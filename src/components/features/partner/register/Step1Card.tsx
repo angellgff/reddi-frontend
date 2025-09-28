@@ -30,9 +30,9 @@ export default function Step1Card({
         onChange={onChange}
       />
       <div
-        className={`flex flex-col items-center justify-center sm:h-28 sm:w-28 lg:h-36 lg:w-36 xl:h-44 xl:w-44 bg-[#F0F2F5B8] shadow-md cursor-pointer rounded-2xl hover:border-2 hover:border-primary transition-colors duration-500 ${
+        className={`flex flex-col items-center justify-center sm:h-28 sm:w-28 lg:h-36 lg:w-36 xl:h-44 xl:w-44 bg-[#F0F2F5B8] shadow-md cursor-pointer rounded-2xl hover:border-4 hover:border-primary transition-colors duration-500 ${
           actualValue === value
-            ? "border-2 border-primary"
+            ? "border-4 border-primary"
             : "border-transparent"
         }`}
       >
@@ -44,7 +44,9 @@ export default function Step1Card({
             className="object-fit"
           />
         </div>
-        <span className="font-medium text-sm md:text-lg">{label}</span>
+        <span className="font-medium text-xs sm:text-sm md:text-regular lg:text-lg">
+          {label}
+        </span>
       </div>
     </label>
   );

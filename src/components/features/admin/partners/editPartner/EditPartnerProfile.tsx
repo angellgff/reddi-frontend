@@ -5,24 +5,6 @@ import { BusinessFormData } from "./PartnerProfile";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-/*const initialFormData: BusinessFormData = {
-  name: "",
-  isPhysical: true,
-  address: "",
-  category: "",
-  phone: "",
-  email: "",
-  hours: {
-    monday: { active: true, opens: "09:00:00", closes: "18:00:00" },
-    tuesday: { active: true, opens: "09:00:00", closes: "18:00:00" },
-    wednesday: { active: true, opens: "09:00:00", closes: "18:00:00" },
-    thursday: { active: true, opens: "09:00:00", closes: "18:00:00" },
-    friday: { active: true, opens: "09:00:00", closes: "18:00:00" },
-    saturday: { active: true, opens: "09:00:00", closes: "18:00:00" },
-  },
-  profileState: true,
-};*/
-
 export default function EditPartnerProfile({
   partnerData,
 }: {

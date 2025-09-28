@@ -1,16 +1,14 @@
-// FileUploadButton.tsx (REFACTORIZADO)
 "use client";
 
 import UploadZoneIcon from "@/src/components/icons/UploadZoneIcon";
 import Image from "next/image";
-import { ChangeEvent, useRef } from "react";
-import { useEffect } from "react";
+import { ChangeEvent, useRef, useState, useEffect } from "react"; // <-- Importa useState
 
-// --- PROPS MÁS SIMPLES ---
+// --- PROPS ---
 interface FileUploadButtonProps {
   onFileChange: (file: File | null) => void;
   name?: string;
-  value?: File | null; // El archivo actual para mostrar la vista previa
+  value?: File | null;
 }
 
 const MAX_FILE_SIZE_MB = 10;
@@ -22,7 +20,24 @@ export default function FileUploadButton({
   value,
 }: FileUploadButtonProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const previewUrl = value ? URL.createObjectURL(value) : null;
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // 2. Este useEffect ahora depende de 'value' (el archivo)
+  useEffect(() => {
+    // Si no hay archivo, limpiamos la URL y terminamos.
+    if (!value) {
+      setPreviewUrl(null);
+      return;
+    }
+
+    // Si hay un archivo, creamos la Object URL.
+    const objectUrl = URL.createObjectURL(value);
+    setPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [value]); // <-- La dependencia ahora es el archivo en sí, no la URL generada.
 
   const handleFileSelected = (selectedFile: File | null) => {
     if (!selectedFile) {
@@ -50,14 +65,6 @@ export default function FileUploadButton({
     onFileChange(null);
   };
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
-
   return (
     <div
       onClick={() => inputRef.current?.click()}
@@ -71,14 +78,15 @@ export default function FileUploadButton({
         onChange={onInputChange}
         className="hidden"
       />
+      {/* La lógica de renderizado sigue siendo la misma, ahora usa el estado 'previewUrl' */}
       {value && previewUrl ? (
         <>
-          <div className="relative w-32 h-11">
+          <div className="relative w-48 h-48">
             <Image
               src={previewUrl}
               alt="Vista previa"
               fill={true}
-              className="rounded-md object-fit"
+              className="rounded-md object-cover" // object-cover suele ser mejor para previews
             />
             <button
               type="button"

@@ -2,27 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isSomeFieldsMissing } from "@/src/lib/partner/utils";
 import { valueCategories } from "@/src/lib/type";
 import { Hours } from "@/src/lib/type";
 import RegisterFormStep1 from "./RegisterFormStep1";
 import RegisterFormStep2 from "./RegisterFormStep2";
+import RegisterFormStep3 from "./RegisterFormStep3";
+import RegisterFormStep4 from "./RegisterFormStep4";
 
 const actualUrl = "/aliado/registro";
-
-const days = [
-  { value: "monday", label: "Lunes" },
-  { value: "tuesday", label: "Martes" },
-  { value: "wednesday", label: "Miércoles" },
-  { value: "thursday", label: "Jueves" },
-  { value: "friday", label: "Viernes" },
-  { value: "saturday", label: "Sábado" },
-];
-
-const hoursOptions = Array.from({ length: 24 }, (_, i) => {
-  const hour = i.toString().padStart(2, "0");
-  return { value: `${hour}:00:00`, label: `${hour}:00` };
-});
 
 // Define la estructura de los datos del formulario
 export interface PartnerRegisterForm {
@@ -82,12 +69,12 @@ export default function PartnerRegisterWizard() {
       conditionsAccepted: false,
     },
     businessHours: {
-      monday: { active: false, opens: "", closes: "" },
-      tuesday: { active: false, opens: "", closes: "" },
-      wednesday: { active: false, opens: "", closes: "" },
-      thursday: { active: false, opens: "", closes: "" },
-      friday: { active: false, opens: "", closes: "" },
-      saturday: { active: false, opens: "", closes: "" },
+      monday: { active: false, opens: "08:00:00", closes: "17:00:00" },
+      tuesday: { active: false, opens: "08:00:00", closes: "17:00:00" },
+      wednesday: { active: false, opens: "08:00:00", closes: "17:00:00" },
+      thursday: { active: false, opens: "08:00:00", closes: "17:00:00" },
+      friday: { active: false, opens: "08:00:00", closes: "17:00:00" },
+      saturday: { active: false, opens: "08:00:00", closes: "17:00:00" },
     },
   });
 
@@ -136,17 +123,56 @@ export default function PartnerRegisterWizard() {
     }));
   };
 
-  // --- HANDLER PARA EL PASO 3: DATOS BANCARIOS ---
-  // Este es más flexible para manejar inputs de archivo y checkboxes
-  const handleBankDataChange = (
-    fieldName: keyof PartnerRegisterForm["bankData"],
-    value: string | boolean | File | null
-  ) => {
+  // Manejador para el FileUploadButton del paso 2
+  const handleFileChange2 = (file: File | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      bussinessData: {
+        ...prev.bussinessData,
+        image: file,
+      },
+    }));
+  };
+
+  // Manejador para el FileUploadButton del paso 3
+  const handleFileChange3 = (file: File | null) => {
     setFormData((prev) => ({
       ...prev,
       bankData: {
         ...prev.bankData,
-        [fieldName]: value,
+        document: file,
+      },
+    }));
+  };
+
+  // --- HANDLER PARA EL PASO 3: DATOS BANCARIOS ---
+  // Este es más flexible para manejar inputs de archivo y checkboxes
+  const handleBankDataChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+
+    if (name === "conditionsAccepted") {
+      if (value === "yes") {
+        setFormData((prev) => ({
+          ...prev,
+          bankData: { ...prev.bankData, conditionsAccepted: true },
+        }));
+        return;
+      } else {
+        setFormData((prev) => ({
+          ...prev,
+          bankData: { ...prev.bankData, conditionsAccepted: false },
+        }));
+        return;
+      }
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      bankData: {
+        ...prev.bankData,
+        [name]: value,
       },
     }));
   };
@@ -228,14 +254,30 @@ export default function PartnerRegisterWizard() {
         <RegisterFormStep2
           formData={formData}
           onChange={handleBusinessDataChange}
+          onFileChange={handleFileChange2}
           onGoBack={() => router.push(`${actualUrl}?step=1`)}
           onNextStep={() => router.push(`${actualUrl}?step=3`)}
         />
       );
     case "3":
-      return;
+      return (
+        <RegisterFormStep3
+          formData={formData}
+          onChange={handleBankDataChange}
+          onFileChange={handleFileChange3}
+          onGoBack={() => router.push(`${actualUrl}?step=2`)}
+          onNextStep={() => router.push(`${actualUrl}?step=4`)}
+        />
+      );
     case "4":
-      return;
+      return (
+        <RegisterFormStep4
+          formData={formData}
+          onChange={handleBusinessHoursChange}
+          onGoBack={() => router.push(`${actualUrl}?step=3`)}
+          onNextStep={() => {}}
+        />
+      );
     default:
       return null;
   }

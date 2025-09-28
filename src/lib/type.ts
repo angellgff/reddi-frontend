@@ -8,6 +8,16 @@ export type Hours = Record<
   { active: boolean; opens: string; closes: string }
 >;
 
+export type valueAccounts = "savings" | "checking";
+
+export const accountTypeOptions: Array<{
+  value: valueAccounts;
+  label: string;
+}> = [
+  { value: "savings", label: "Ahorros" },
+  { value: "checking", label: "Corriente" },
+];
+
 export type valueCategories =
   | "market"
   | "restaurant"

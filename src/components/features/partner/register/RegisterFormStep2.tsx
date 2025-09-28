@@ -11,6 +11,7 @@ import StepperHeader from "./StepperHeader";
 interface RegisterFormStep2Props {
   formData: PartnerRegisterForm;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onFileChange: (file: File | null) => void;
   onGoBack: () => void;
   onNextStep: () => void;
 }
@@ -18,6 +19,7 @@ interface RegisterFormStep2Props {
 export default function RegisterFormStep2({
   formData,
   onChange,
+  onFileChange,
   onGoBack,
   onNextStep,
 }: RegisterFormStep2Props) {
@@ -32,11 +34,11 @@ tu establecimiento para comenzar el registro"
       <div className="md:px-8 md:py-6 bg-white rounded-2xl">
         <div className="text-center md:mb-8">
           <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
-            Datos del local
+            Datos del Local
           </h1>
           <p className="text-gray-500 mt-2 font-roboto">
             La información que nos proporciones será el punto de partida para
-            crear tu perfil en nuestro sistema.
+            crear tu perfil en nuestro sistema
           </p>
         </div>
         {/* --- Sección del Formulario --- */}
@@ -46,7 +48,8 @@ tu establecimiento para comenzar el registro"
         <div className="flex flex-col items-center justify-center md:p-6">
           <UploadImageButton
             name="image"
-            onFileChange={(file) => console.log(file)}
+            onFileChange={onFileChange}
+            value={formData.bussinessData.image}
           />
         </div>
 
