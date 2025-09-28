@@ -6,7 +6,8 @@ import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import RadioInput from "@/src/components/basics/RadioInput";
 import CheckBox from "@/src/components/basics/CheckBox";
-import { partnersCategories } from "@/src/lib/type";
+import { partnersCategories, valueCategories } from "@/src/lib/type";
+import { Hours } from "@/src/lib/type";
 
 const days = [
   { value: "monday", label: "Lunes" },
@@ -22,20 +23,18 @@ const hoursOptions = Array.from({ length: 24 }, (_, i) => {
   return { value: `${hour}:00:00`, label: `${hour}:00` };
 });
 
-type Hours = Record<string, { active: boolean; opens: string; closes: string }>;
-
 // Define la estructura de los datos del formulario
 export interface BusinessFormData {
   name: string;
   isPhysical: boolean;
   address: string;
-  category: string;
+  category: valueCategories;
   phone: string;
   email: string;
   hours: Hours;
   profileState: boolean;
-  logo?: File | null;
-  document?: File | null;
+  logo?: File | string | null;
+  document?: File | string | null;
 }
 
 // Define las props del componente
@@ -258,6 +257,7 @@ export default function BusinessProfileForm({
               <h3 className="text-sm font-medium">Estado del perfil</h3>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
+                  id="profileState"
                   type="checkbox"
                   checked={formData.profileState}
                   onChange={(e) =>
@@ -280,6 +280,7 @@ export default function BusinessProfileForm({
                 onFileChange={(file) =>
                   setFormData((prev) => ({ ...prev, logo: file }))
                 }
+                value={formData.logo}
               />
             </div>
             <div>
@@ -304,6 +305,7 @@ export default function BusinessProfileForm({
         onSaveAndExit={() => console.log("Guardar y salir:", formData)}
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
+        nextText="Subir cambios"
       />
     </form>
   );

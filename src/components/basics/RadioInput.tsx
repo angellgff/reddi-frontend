@@ -7,10 +7,11 @@ type RadioButtonProps = {
   name: string;
   value: string;
   checked: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
   label: string;
   className?: string;
+  readOnly?: boolean;
 };
 
 export default function RadioButton({
@@ -22,13 +23,12 @@ export default function RadioButton({
   disabled = false,
   label,
   className = "",
+  readOnly = false,
 }: RadioButtonProps) {
   return (
     <label
       htmlFor={id}
-      className={`flex items-center cursor-pointer ${className} ${
-        disabled ? "cursor-not-allowed opacity-60" : ""
-      }`}
+      className={`flex items-center cursor-pointer ${className}`}
     >
       {/* 1. EL INPUT REAL: Se oculta visualmente pero sigue ahí */}
       <input
@@ -38,8 +38,11 @@ export default function RadioButton({
         value={value}
         checked={checked}
         onChange={onChange}
-        disabled={disabled}
-        className="sr-only peer"
+        disabled={disabled || readOnly}
+        readOnly={readOnly}
+        className={`sr-only peer ${
+          disabled && "text-gray-400 cursor-not-allowed"
+        }`}
       />
 
       <span
@@ -50,7 +53,8 @@ export default function RadioButton({
           transition-colors duration-200
           peer-checked:border-primary
           peer-checked:border-[4px]
-          peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-
+          peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-primary
+          peer-disabled:cursor-not-allowed
         `}
       >
         {/* 3. EL FALSO RADIO BUTTON (EL PUNTO INTERIOR) */}

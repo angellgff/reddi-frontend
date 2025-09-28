@@ -5,9 +5,10 @@ import { forwardRef, useState, useEffect, ChangeEvent, DragEvent } from "react";
 
 interface FileUploadZoneProps {
   required?: boolean;
-  onFileChange: (file: File | null) => void;
+  onFileChange?: (file: File | null) => void;
   label?: string;
-  value?: File | null;
+  value?: File | string | null;
+  disabled?: boolean;
 }
 
 const MAX_FILE_SIZE_MB = 10;
@@ -15,10 +16,16 @@ const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
 
 export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
   function FileUploadZone(
-    { required, onFileChange, value, label = "Foto del producto" },
+    {
+      required,
+      onFileChange,
+      value,
+      label = "Foto del producto",
+      disabled = false,
+    },
     ref
   ) {
-    const [file, setFile] = useState<File | null>(null);
+    const [file, setFile] = useState<File | string | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
 
@@ -30,6 +37,10 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
     useEffect(() => {
       if (!file) {
         setPreview(null);
+        return;
+      }
+      if (typeof file === "string") {
+        setPreview(file);
         return;
       }
       // Creamos una URL temporal para el archivo seleccionado
@@ -47,7 +58,7 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
       // 1. Si no hay archivo, limpiamos todo y salimos.
       if (!selectedFile) {
         setFile(null);
-        onFileChange(null);
+        onFileChange?.(null);
         return;
       }
 
@@ -57,7 +68,7 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
           `El archivo es demasiado grande. El tamaño máximo permitido es de ${MAX_FILE_SIZE_MB}MB.`
         );
         setFile(null); // ¡CRÍTICO! Limpiamos el estado interno.
-        onFileChange(null);
+        onFileChange?.(null);
         return;
       }
 
@@ -67,13 +78,13 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
           "Por favor, selecciona un archivo de imagen válido (JPG, PNG, etc.)."
         );
         setFile(null); // ¡CRÍTICO! Limpiamos el estado interno.
-        onFileChange(null);
+        onFileChange?.(null);
         return;
       }
 
       // 4. ÉXITO: Si todas las validaciones pasaron, ahora sí actualizamos el estado.
       setFile(selectedFile);
-      onFileChange(selectedFile);
+      onFileChange?.(selectedFile);
     };
 
     // Se activa cuando el usuario selecciona un archivo a través del diálogo
@@ -107,7 +118,7 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
     // Para eliminar la imagen seleccionada
     const handleRemoveImage = () => {
       setFile(null);
-      onFileChange(null);
+      onFileChange?.(null);
     };
 
     // Cambiamos el estilo del borde dinámicamente
@@ -117,7 +128,7 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
       <>
         <label
           className="block text-sm font-medium text-gray-700 mb-1 font-roboto"
-          htmlFor="file-upload-input"
+          htmlFor={`${preview ? "" : "file-upload-input"}`}
         >
           {label}
           {required && <span className="text-red-500"> *</span>}
@@ -137,20 +148,24 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
           <div className="mt-1 relative p-2 border border-gray-300 rounded-md">
             <Image
               src={preview}
-              alt={file.name}
+              alt={file instanceof File ? file.name : "Imagen subida"}
               className="w-full h-auto rounded-md object-contain max-h-80"
               width={100}
               height={100}
             />
-            <p className="text-xs text-gray-600 mt-2 truncate">{file.name}</p>
-            <button
-              type="button"
-              onClick={handleRemoveImage}
-              className="absolute top-2 right-2 flex items-center justify-center bg-red-600 text-white rounded-full h-6 w-6 hover:bg-red-700"
-              aria-label="Eliminar imagen"
-            >
-              &#x2715; {/* Símbolo de 'X' */}
-            </button>
+            <p className="text-xs text-gray-600 mt-2 truncate">
+              {file instanceof File ? file.name : "Imagen subida"}
+            </p>
+            {!disabled && (
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute top-2 right-2 flex items-center justify-center bg-red-600 text-white rounded-full h-6 w-6 hover:bg-red-700"
+                aria-label="Eliminar imagen"
+              >
+                &#x2715; {/* Símbolo de 'X' */}
+              </button>
+            )}
           </div>
         ) : (
           // --- ZONA DE CARGA (cuando no hay archivo) ---

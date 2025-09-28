@@ -54,8 +54,8 @@ export default function DishCard({ dish, onDelete }: DishItemProps) {
         {/* Separador visual para los botones */}
         <div className="flex items-center gap-2 mt-1">
           <Link
-            href={`menu/${dish.id}`}
-            className="inline-flex items-center justify-center gap-2 py-2 text-sm font-medium bg-white border border-black rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 px-2"
+            href={`menu/editar/${dish.id}`}
+            className="inline-flex items-center justify-center gap-2 py-2 text-sm font-medium bg-white border border-black rounded-xl hover:bg-gray-50 px-2"
           >
             <EditPartnerIcon className="h-4 w-4" />
             Editar
@@ -63,7 +63,7 @@ export default function DishCard({ dish, onDelete }: DishItemProps) {
           <button
             onClick={() => onDelete(dish.id)}
             aria-label="Eliminar producto"
-            className="p-2 text-white bg-[#DB5151] rounded-xl hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+            className="p-2 text-white bg-[#DB5151] rounded-xl hover:bg-red-700 focus:ring-red-500"
           >
             <DeletePartnerIcon className="h-4 w-4" />
           </button>

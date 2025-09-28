@@ -46,7 +46,7 @@ export default function CollapsibleNavLink({
               className={`block rounded-lg px-4 py-2 text-sm font-medium ${
                 // /aliado/dashboard/productos/nuevo
                 activeSubLink.startsWith(subLink.href)
-                  ? "bg-teal-500 text-white"
+                  ? "bg-primary text-white"
                   : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
               }`}
             >

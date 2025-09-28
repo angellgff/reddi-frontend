@@ -1,3 +1,5 @@
+import { valueCategories } from "../type";
+
 export type StatData = {
   title: string;
   value: string;
@@ -9,7 +11,7 @@ export interface Restaurant {
   name: string;
   nit: string;
   address: string;
-  type: string;
+  type: valueCategories;
   totalOrders: string;
   state: "open" | "closed";
 }

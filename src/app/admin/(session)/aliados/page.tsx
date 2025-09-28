@@ -1,7 +1,7 @@
 "use server";
 
-import ClientShell from "@/src/components/features/admin/partners/ClientShell";
-import RestaurantListServer from "@/src/components/features/admin/partners/RestaurantListServer";
+import ClientShell from "@/src/components/features/admin/partners/partnersList/ClientShell";
+import RestaurantListServer from "@/src/components/features/admin/partners/partnersList/RestaurantListServer";
 import getTotalCount from "@/src/lib/admin/data/partners/getTotalCount";
 
 export type SearchParams = Promise<{

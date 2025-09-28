@@ -5,7 +5,7 @@ import { BusinessFormData } from "./PartnerProfile";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const initialFormData: BusinessFormData = {
+/*const initialFormData: BusinessFormData = {
   name: "",
   isPhysical: true,
   address: "",
@@ -21,11 +21,15 @@ const initialFormData: BusinessFormData = {
     saturday: { active: true, opens: "09:00:00", closes: "18:00:00" },
   },
   profileState: true,
-};
+};*/
 
-export default function EditPartnerProfile() {
+export default function EditPartnerProfile({
+  partnerData,
+}: {
+  partnerData: BusinessFormData;
+}) {
   const router = useRouter();
-  const [formData, setFormData] = useState<BusinessFormData>(initialFormData);
+  const [formData, setFormData] = useState<BusinessFormData>(partnerData);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -13,8 +13,8 @@ export default function StatCard({
   return (
     // Contenedor principal de la tarjeta
     <div
-      className="bg-white rounded-2xl p-4 shadow-sm flex items-center space-x-4
-                    hover:shadow-lg transition-shadow duration-300 justify-center md:justify-start w-full"
+      className="bg-white rounded-2xl p-4 flex items-center space-x-4
+                    justify-center md:justify-start w-full"
     >
       {/* Círculo del Ícono */}
       <div className="rounded-full bg-primary h-14 w-14 flex items-center justify-center">

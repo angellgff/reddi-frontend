@@ -11,6 +11,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import SearchBar from "./SearchBar";
+import BasicButton from "@/src/components/basics/LinkButton";
+import LoginIcon from "@/src/components/icons/LoginIcon";
 
 const badgeColor = "bg-primary";
 const primary = "#00A86B";
@@ -73,7 +75,7 @@ export default function GuestHeader() {
       className={`
         fixed top-0 left-0 right-0 z-50
         text-white
-        shadow-lg
+       
         pt-safe 
         overflow-hidden
         ${showSearchBar && "rounded-b-xl"}
@@ -90,19 +92,29 @@ export default function GuestHeader() {
         className={`flex flex-col p-4 ${isSearchBarVisible ? "space-y-4" : ""}`}
       >
         {/* --- Fila Superior: Logo y Acciones --- */}
-        <div className="flex items-end justify-between">
+        <div className="flex items-end justify-between md:items-center">
           {/* Lado Izquierdo: Logo */}
           <Link href="/">
             <Logo fill={primary} />
           </Link>
 
           {/* Lado Derecho: Iconos de Acción */}
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-4 sm:hidden">
             <button className="relative">
               <UserCarIcon fill="#000000" />
               <Badge count={1} color={badgeColor} className="rounded-full" />
             </button>
             <BurgerButton isOpen={isMenuOpen} onClick={toggleMenu} />
+          </div>
+          <div className="hidden sm:flex sm:items-center font-roboto sm:space-x-4">
+            <span className="text-black">¿Ya tienes cuenta?</span>
+            <BasicButton
+              href="/login"
+              className="px-6 py-2 md:flex bg-black text-white hover:bg-primary hover:border-primary hover:text-black"
+            >
+              <LoginIcon className="text-primary group-hover:text-black"></LoginIcon>
+              <span className="font-medium text-sm">Iniciar Sesión</span>
+            </BasicButton>
           </div>
         </div>
 

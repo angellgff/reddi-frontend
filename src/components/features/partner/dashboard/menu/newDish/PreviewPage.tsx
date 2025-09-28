@@ -10,7 +10,12 @@ interface PreviewPageProps {
 
 export default function PreviewPage({ formData }: PreviewPageProps) {
   const discountPercentage = formData.discount ? `-${formData.discount}%` : "";
-  const imageUrl = formData.image ? URL.createObjectURL(formData.image) : null;
+  let imageUrl = null;
+  if (formData.image && typeof formData.image === "string") {
+    imageUrl = formData.image;
+  } else if (formData.image instanceof File) {
+    imageUrl = formData.image ? URL.createObjectURL(formData.image) : null;
+  }
 
   return (
     <div className="max-w-4xl mx-auto my-10 p-6 bg-white rounded-xl font-sans">

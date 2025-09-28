@@ -6,6 +6,7 @@ import { isSomeFieldsMissing } from "@/src/lib/partner/utils";
 import NewDishStep1 from "./NewDishStep1";
 import NewDishStep2 from "./NewDishStep2";
 import PreviewPage from "./PreviewPage";
+import { valueDishesTags } from "@/src/lib/type";
 
 const actualUrl = "/aliado/menu/nuevo";
 
@@ -31,7 +32,7 @@ export type dishSection = {
 };
 
 export interface IDishFormState {
-  image: File | null;
+  image: File | string | null;
   dishName: string;
   basePrice: string;
   previousPrice: string;
@@ -39,7 +40,7 @@ export interface IDishFormState {
   unit: string;
   estimatedTime: string;
   description: string;
-  category: string;
+  category: valueDishesTags;
   isAvailable: boolean;
   taxIncluded: boolean;
   dishSections: dishSection[];
@@ -55,10 +56,10 @@ const requiredFieldsStep1: (keyof IDishFormState)[] = [
   "category",
 ];
 
-export default function RegisterWizard() {
+export default function NewDishWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentStep = searchParams.get("step");
+  const currentStep = searchParams.get("step") || "1";
 
   const [formData, setFormData] = useState<IDishFormState>({
     image: null,
@@ -69,7 +70,7 @@ export default function RegisterWizard() {
     unit: "",
     estimatedTime: "",
     description: "",
-    category: "",
+    category: "tag1",
     isAvailable: true,
     taxIncluded: false,
     dishSections: [],

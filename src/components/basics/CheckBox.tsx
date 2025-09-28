@@ -5,8 +5,9 @@ type CheckboxProps = {
   id: string;
   label: string;
   checked: boolean;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string; // Para espaciado y layout
+  disabled?: boolean;
 } & Omit<
   React.InputHTMLAttributes<HTMLInputElement>,
   "type" | "id" | "checked" | "onChange"
@@ -18,6 +19,7 @@ export default function StyledCheckbox({
   checked,
   onChange,
   className = "",
+  disabled = false,
   ...rest
 }: CheckboxProps) {
   return (
@@ -32,7 +34,8 @@ export default function StyledCheckbox({
         type="checkbox"
         checked={checked}
         onChange={onChange}
-        className="sr-only peer" // sr-only lo oculta de forma accesible
+        className={`sr-only peer`} // sr-only lo oculta de forma accesible
+        disabled={disabled}
         {...rest}
       />
 
@@ -47,6 +50,7 @@ export default function StyledCheckbox({
           peer-checked:bg-primary
           peer-checked:border-primary
           peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-primary
+          peer-disabled:cursor-not-allowed
         `}
       >
         {/* 4. El icono de la marca de verificación.*/}

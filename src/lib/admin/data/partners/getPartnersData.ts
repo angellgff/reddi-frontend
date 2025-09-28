@@ -1,6 +1,8 @@
-import { RestaurantListProps } from "@/src/components/features/admin/partners/RestaurantList";
+import { RestaurantListProps } from "@/src/components/features/admin/partners/partnersList/RestaurantList";
 import { Restaurant } from "@/src/lib/admin/type";
 import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
+
+// Función para traer datos de restaurantes para la tabla de admin/aliados
 
 import { API_DELAY } from "@/src/lib/type";
 
@@ -20,7 +22,7 @@ const mockRestaurants: Restaurant[] = [
     name: "Pizza express",
     nit: "900123456-7",
     address: "Calle 123#2322",
-    type: "Restaurante",
+    type: "restaurant",
     totalOrders: "1,247",
     state: "open",
   },
@@ -30,7 +32,8 @@ const mockRestaurants: Restaurant[] = [
     name: "Super Burger",
     nit: "900123456-8",
     address: "Avenida 45#12-3",
-    type: "Comida Rápida",
+    type: "restaurant",
+
     totalOrders: "980",
     state: "closed",
   },
@@ -40,7 +43,8 @@ const mockRestaurants: Restaurant[] = [
     name: "Café del Sol",
     nit: "900123456-9",
     address: "Carrera 7#82-10",
-    type: "Cafetería",
+    type: "restaurant",
+
     totalOrders: "2,510",
     state: "open",
   },
@@ -50,7 +54,8 @@ const mockRestaurants: Restaurant[] = [
     name: "Tacos el Jefe",
     nit: "900123457-0",
     address: "Transversal 5#11-9",
-    type: "Restaurante",
+    type: "restaurant",
+
     totalOrders: "753",
     state: "closed",
   },
@@ -60,7 +65,8 @@ const mockRestaurants: Restaurant[] = [
     name: "Sushi Time",
     nit: "900123457-1",
     address: "Calle 90#15-50",
-    type: "Restaurante",
+    type: "restaurant",
+
     totalOrders: "1,890",
     state: "open",
   },
@@ -69,6 +75,8 @@ const mockRestaurants: Restaurant[] = [
 const data: RestaurantListProps = {
   restaurants: mockRestaurants,
 };
+
+// Se reciben los parámetros de búsqueda y paginación y se envían a la API para que los filtre
 
 export default async function getPartnersData({
   page = 1,

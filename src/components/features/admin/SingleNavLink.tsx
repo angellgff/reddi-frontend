@@ -20,7 +20,7 @@ export default function SingleNavLink({
       onClick={onClick}
       className={`flex items-center space-x-3 rounded-lg p-3 text-sm font-medium ${
         isActive
-          ? "bg-teal-500 text-white"
+          ? "bg-primary text-white"
           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
       }`}
     >

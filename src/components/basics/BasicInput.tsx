@@ -6,7 +6,7 @@ type SearchInputProps = {
   label: string;
   placeholder?: string;
   value: string;
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   name?: string;
   icon?: React.ReactNode;
@@ -15,6 +15,7 @@ type SearchInputProps = {
   disabled?: boolean;
   type?: string;
   autocomplete?: string;
+  readOnly?: boolean;
 };
 
 export default function BasicInput({
@@ -31,6 +32,7 @@ export default function BasicInput({
   disabled = false,
   type = "text",
   autocomplete = "off",
+  readOnly = false,
 }: SearchInputProps) {
   return (
     <div className={className}>
@@ -56,9 +58,12 @@ export default function BasicInput({
           disabled={disabled}
           className={`block w-full rounded-xl border-[#D9DCE3] border ${
             icon && "pl-10"
-          } sm:text-sm p-2 font-roboto ${error && "border-error"}`}
+          } sm:text-sm p-2 font-roboto ${error && "border-error"} ${
+            disabled && "text-gray-400 cursor-not-allowed"
+          }`}
           placeholder={placeholder}
           autoComplete={autocomplete}
+          readOnly={readOnly}
         />
       </div>
       {error && <InputNotice variant="error" msg={error} />}

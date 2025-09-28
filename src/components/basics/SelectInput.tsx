@@ -8,7 +8,7 @@ type SelectInputProps<T> = {
   getOptionValue: (option: T) => string | number; // Función para obtener el valor del <option>
   getOptionLabel: (option: T) => string; // Función para obtener el texto visible del <option>
   value: string; // El valor seleccionado actualmente (controlado por el padre)
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void; // Función que se ejecuta al cambiar
+  onChange?: (e: React.ChangeEvent<HTMLSelectElement>) => void; // Función que se ejecuta al cambiar
   placeholder?: string;
   className?: string;
   name?: string;
@@ -49,7 +49,7 @@ export default function SelectInput<T>({
         disabled={disabled}
         className={`block w-full rounded-xl border border-[#D9DCE3] sm:text-sm p-2 font-roboto ${
           error && "border-error"
-        }`}
+        } ${disabled && "text-gray-400 cursor-not-allowed"}`}
       >
         {placeholder && <option value="">{placeholder}</option>}
         {options.map((option) => {
