@@ -11,6 +11,9 @@ import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import { accountTypeOptions } from "@/src/lib/type";
 
+const BANK_REGEX = /^\d{7,20}$/;
+const RNC_REGEX = /^1\d{8}$/;
+
 interface RegisterFormStep2Props {
   formData: PartnerRegisterForm;
   onChange: (
@@ -54,6 +57,23 @@ export default function RegisterFormStep3({
     if (formData.bankData.conditionsAccepted !== true) {
       newErrors.conditionsAccepted =
         "Debe aceptar los términos y condiciones para continuar";
+    }
+
+    // Verificar formato del número de cuenta bancaria
+    if (
+      formData.bankData.accountNumber.trim() &&
+      !BANK_REGEX.test(formData.bankData.accountNumber.trim())
+    ) {
+      newErrors.accountNumber =
+        "El número de cuenta debe contener entre 7 y 20 dígitos, solo se admiten números";
+    }
+
+    // Verificar forma de RNC
+    if (
+      formData.bankData.bankRnc.trim() &&
+      !RNC_REGEX.test(formData.bankData.bankRnc.trim())
+    ) {
+      newErrors.bankRnc = "El RNC debe comenzar con '1' y tener 9 dígitos";
     }
 
     // Verificar documento
@@ -161,6 +181,7 @@ tu establecimiento para comenzar el registro"
               <FileUploadZone
                 label="Documentos de verificación de la cuenta bancaria"
                 onFileChange={onFileChange}
+                acceptedFileTypes="any"
               />
               {errors.document && (
                 <InputNotice variant="error" msg={errors.document} />

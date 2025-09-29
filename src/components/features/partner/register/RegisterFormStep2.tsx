@@ -8,6 +8,8 @@ import UploadImageButton from "./UploadImageButton";
 import { useState } from "react";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const RNC_REGEX = /^1\d{8}$/;
+const PHONE_REGEX = /^(809|829|849)\d{7}$/;
 
 import StepperHeader from "./StepperHeader";
 
@@ -62,6 +64,22 @@ export default function RegisterFormStep2({
       !EMAIL_REGEX.test(formData.bussinessData.billingMail.trim())
     ) {
       newErrors.billingMail = "Formato de correo inválido";
+    }
+
+    // Verificar forma de RNC
+    if (
+      formData.bussinessData.userRnc.trim() &&
+      !RNC_REGEX.test(formData.bussinessData.userRnc.trim())
+    ) {
+      newErrors.userRnc = "El RNC debe comenzar con '1' y tener 9 dígitos";
+    }
+
+    if (
+      formData.bussinessData.phone.trim() &&
+      !PHONE_REGEX.test(formData.bussinessData.phone.trim())
+    ) {
+      newErrors.phone =
+        "El teléfono debe comenzar con 809, 829 o 849 y tener 10 dígitos";
     }
 
     // Si no hay errores, retorna el objeto vacío inicial
@@ -173,6 +191,7 @@ tu establecimiento para comenzar el registro"
                 />
               </div>
             </div>
+
             <BasicInput
               name="address"
               value={formData.bussinessData.address}
@@ -204,9 +223,11 @@ tu establecimiento para comenzar el registro"
               placeholder="Ingresar la información"
               error={errors.billingMail}
             />
-            <div className="h-48 mx-12 bg-gray-200 flex items-center justify-center text-gray-500 rounded-2xl">
-              Componente de Mapa (ej. Google Maps, Mapbox) iría aquí
-            </div>
+            {formData.bussinessData.isPhysical && (
+              <div className="h-48 mx-12 bg-gray-200 flex items-center justify-center text-gray-500 rounded-2xl">
+                Componente de Mapa (ej. Google Maps, Mapbox) iría aquí
+              </div>
+            )}
           </div>
         </form>
         <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onSubmit} />

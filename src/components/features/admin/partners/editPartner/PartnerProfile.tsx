@@ -276,11 +276,13 @@ export default function BusinessProfileForm({
                 Logo e Imágenes
               </h2>
               <FileUploadZone
+                id="logo-upload"
                 label="Logo del aliado"
                 onFileChange={(file) =>
                   setFormData((prev) => ({ ...prev, logo: file }))
                 }
                 value={formData.logo}
+                acceptedFileTypes="image"
               />
             </div>
             <div>
@@ -288,10 +290,12 @@ export default function BusinessProfileForm({
                 Documentos Legales
               </h2>
               <FileUploadZone
+                id="document-upload"
                 label="Documentos de verificación de la cuenta bancaria"
                 onFileChange={(file) =>
-                  setFormData((prev) => ({ ...prev, documento: file }))
+                  setFormData((prev) => ({ ...prev, document: file }))
                 }
+                acceptedFileTypes="any"
               />
             </div>
           </div>

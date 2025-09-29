@@ -9,6 +9,7 @@ import StepperHeader from "./StepperHeader";
 import SelectInput from "@/src/components/basics/SelectInput";
 import CheckBox from "@/src/components/basics/CheckBox";
 import Modal from "./Modal";
+import InputNotice from "@/src/components/basics/InputNotice";
 
 const days = [
   { value: "monday", label: "Lunes" },
@@ -42,9 +43,21 @@ export default function RegisterFormStep4({
   onNextStep,
 }: RegisterFormStep2Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAnyDayActiveError, setIsAnyDayActiveError] = useState(false);
+
+  const isAnyDayActive = Object.values(formData.businessHours).some(
+    (day) => day.active
+  );
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Se verifica que al menos 1 día esté activo
+    if (!isAnyDayActive) {
+      setIsAnyDayActiveError(true);
+      return;
+    }
+    setIsAnyDayActiveError(false);
+    // Si todo está bien, se abre el modal de confirmación
     setIsModalOpen(true);
   };
 
@@ -116,6 +129,12 @@ tu establecimiento para comenzar el registro"
               </React.Fragment>
             ))}
           </div>
+          {isAnyDayActiveError && (
+            <InputNotice
+              msg="Debe activar al menos un día de la semana"
+              variant="error"
+            />
+          )}
           <div className="bg-[#EFF6FF] p-4 flex items-center gap-2 mt-4">
             <span className="bg-[#2563EB] h-5 w-5 rounded-full flex items-center justify-center shrink-0">
               <InfoPartnerIcon fill="white" />
