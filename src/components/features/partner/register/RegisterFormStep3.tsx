@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import InputNotice from "@/src/components/basics/InputNotice";
 import RadioInput from "@/src/components/basics/RadioInput";
 import RegisterFooterButtons from "./RegisterFooterButtons";
 import BasicInput from "@/src/components/basics/BasicInput";
@@ -26,6 +28,71 @@ export default function RegisterFormStep3({
   onGoBack,
   onNextStep,
 }: RegisterFormStep2Props) {
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof PartnerRegisterForm["bankData"], string>>
+  >({});
+
+  // Función para verificar errores en los campos del formulario
+  const verifyErrors = (
+    newErrors: Partial<Record<keyof PartnerRegisterForm["bankData"], string>>
+  ) => {
+    const requiredFields: (keyof PartnerRegisterForm["bankData"])[] = [
+      "holderName",
+      "accountType",
+      "accountNumber",
+      "bankRnc",
+    ];
+
+    // Verificar campos obligatorios
+    requiredFields.forEach((field) => {
+      if (!formData.bankData[field]?.toString().trim()) {
+        newErrors[field] = "Este campo es obligatorio";
+      }
+    });
+
+    // Verificar aceptación de términos
+    if (formData.bankData.conditionsAccepted !== true) {
+      newErrors.conditionsAccepted =
+        "Debe aceptar los términos y condiciones para continuar";
+    }
+
+    // Verificar documento
+    if (!formData.bankData.document) {
+      newErrors.document = "El documento es obligatorio";
+    }
+
+    // Si no hay errores, retorna el objeto vacío inicial
+    return newErrors;
+  };
+
+  const onChangeHandler = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
+    // Limpia el error del campo que se está modificando
+    if (errors[e.target.name as keyof PartnerRegisterForm["bankData"]]) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [e.target.name as keyof PartnerRegisterForm["bankData"]]: undefined,
+      }));
+    }
+    onChange(e);
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let newErrors: Partial<
+      Record<keyof PartnerRegisterForm["bankData"], string>
+    > = {};
+    newErrors = verifyErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+    onNextStep();
+  };
+
   return (
     <>
       <StepperHeader
@@ -45,16 +112,17 @@ tu establecimiento para comenzar el registro"
           </p>
         </div>
         {/* --- Sección del Formulario --- */}
-        <form onSubmit={onNextStep}>
+        <form noValidate>
           <div className="grid grid-cols-2 gap-6">
             <div className="md:col-span-1 col-span-2 space-y-5">
               <BasicInput
                 id="holderName"
                 name="holderName"
                 value={formData.bankData.holderName}
-                onChange={onChange}
+                onChange={onChangeHandler}
                 label="Titular de la cuenta bancaria"
                 placeholder="Ingresa la información"
+                error={errors.holderName}
               />
               <SelectInput
                 id="accountType"
@@ -63,9 +131,10 @@ tu establecimiento para comenzar el registro"
                 options={accountTypeOptions}
                 getOptionValue={(option) => option.value}
                 getOptionLabel={(option) => option.label}
-                onChange={onChange}
+                onChange={onChangeHandler}
                 label="Tipo de cuenta bancaria"
                 placeholder="Ingresa la información"
+                error={errors.accountType}
               />
             </div>
             <div className="md:col-span-1 col-span-2 space-y-5">
@@ -73,17 +142,19 @@ tu establecimiento para comenzar el registro"
                 id="accountNumber"
                 name="accountNumber"
                 value={formData.bankData.accountNumber}
-                onChange={onChange}
+                onChange={onChangeHandler}
                 label="Número de cuenta bancaria"
                 placeholder="Ingresa la información"
+                error={errors.accountNumber}
               />
               <BasicInput
                 id="bankRnc"
                 name="bankRnc"
                 value={formData.bankData.bankRnc}
-                onChange={onChange}
+                onChange={onChangeHandler}
                 label="RNC o boleta registrada en la DGII"
                 placeholder="Ingresa la información"
+                error={errors.bankRnc}
               />
             </div>
             <div className="col-span-2">
@@ -91,6 +162,9 @@ tu establecimiento para comenzar el registro"
                 label="Documentos de verificación de la cuenta bancaria"
                 onFileChange={onFileChange}
               />
+              {errors.document && (
+                <InputNotice variant="error" msg={errors.document} />
+              )}
             </div>
             <div className="col-span-2">
               {" "}
@@ -105,7 +179,7 @@ tu establecimiento para comenzar el registro"
                   id="yesConditions"
                   value="yes"
                   checked={formData.bankData.conditionsAccepted === true}
-                  onChange={onChange}
+                  onChange={onChangeHandler}
                   label="Sí"
                 />
 
@@ -114,15 +188,18 @@ tu establecimiento para comenzar el registro"
                   id="noConditions"
                   value="no"
                   checked={formData.bankData.conditionsAccepted === false}
-                  onChange={onChange}
+                  onChange={onChangeHandler}
                   label="No"
                 />
               </div>
+              {errors.conditionsAccepted && (
+                <InputNotice variant="error" msg={errors.conditionsAccepted} />
+              )}
             </div>
           </div>
         </form>
 
-        <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onNextStep} />
+        <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onSubmit} />
       </div>
     </>
   );

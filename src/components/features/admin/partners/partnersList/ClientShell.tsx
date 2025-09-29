@@ -151,7 +151,7 @@ export default function ClientShell({
           {isPending ? (
             <RestaurantListSkeleton />
           ) : (
-            <table>
+            <table className="w-full text-center">
               <TableHeader
                 currentSortBy={currentSortBy}
                 currentSortDirection={currentSortDirection}

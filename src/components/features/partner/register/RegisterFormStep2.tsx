@@ -5,6 +5,9 @@ import RegisterFooterButtons from "./RegisterFooterButtons";
 import BasicInput from "@/src/components/basics/BasicInput";
 import { PartnerRegisterForm } from "./PartnerRegisterWizard";
 import UploadImageButton from "./UploadImageButton";
+import { useState } from "react";
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 import StepperHeader from "./StepperHeader";
 
@@ -23,6 +26,75 @@ export default function RegisterFormStep2({
   onGoBack,
   onNextStep,
 }: RegisterFormStep2Props) {
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof PartnerRegisterForm["bussinessData"], string>>
+  >({});
+
+  // Función para verificar errores en los campos del formulario
+  const verifyErrors = (
+    newErrors: Partial<
+      Record<keyof PartnerRegisterForm["bussinessData"], string>
+    >
+  ) => {
+    const requiredFields: (keyof PartnerRegisterForm["bussinessData"])[] = [
+      "name",
+      "phone",
+      "address",
+      "userRnc",
+      "billingMail",
+    ];
+
+    // Verificar campos obligatorios
+    requiredFields.forEach((field) => {
+      if (!formData.bussinessData[field]?.toString().trim()) {
+        newErrors[field] = "Este campo es obligatorio";
+      }
+    });
+
+    // Verificar imagen
+    if (!formData.bussinessData.image) {
+      newErrors.image = "La imagen es obligatoria";
+    }
+
+    // Verificar formato de correo electrónico
+    if (
+      formData.bussinessData.billingMail.trim() &&
+      !EMAIL_REGEX.test(formData.bussinessData.billingMail.trim())
+    ) {
+      newErrors.billingMail = "Formato de correo inválido";
+    }
+
+    // Si no hay errores, retorna el objeto vacío inicial
+    return newErrors;
+  };
+
+  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Limpia el error del campo que se está modificando
+    if (errors[e.target.name as keyof PartnerRegisterForm["bussinessData"]]) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        [e.target.name as keyof PartnerRegisterForm["bussinessData"]]:
+          undefined,
+      }));
+    }
+    onChange(e);
+  };
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    let newErrors: Partial<
+      Record<keyof PartnerRegisterForm["bussinessData"], string>
+    > = {};
+    newErrors = verifyErrors(newErrors);
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+    setErrors({});
+    onNextStep();
+  };
+
   return (
     <>
       <StepperHeader
@@ -30,8 +102,8 @@ export default function RegisterFormStep2({
 tu establecimiento para comenzar el registro"
         currentStep={2}
       />
-      {/* --- Sección de Título --- */}
       <div className="md:px-8 md:py-6 bg-white rounded-2xl">
+        {/* --- Sección de Título --- */}
         <div className="text-center md:mb-8">
           <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
             Datos del Local
@@ -50,28 +122,31 @@ tu establecimiento para comenzar el registro"
             name="image"
             onFileChange={onFileChange}
             value={formData.bussinessData.image}
+            error={errors.image}
           />
         </div>
 
         {/* Formulario */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form className="grid grid-cols-1 md:grid-cols-2 gap-6" noValidate>
           <div className="md:col-span-1 space-y-5">
             <BasicInput
               name="name"
               value={formData.bussinessData.name}
-              onChange={onChange}
+              onChange={onChangeHandler}
               label="Razón social o nombre"
               id="name"
               placeholder="Ingresa la información"
+              error={errors.name}
             />
 
             <BasicInput
               name="phone"
               value={formData.bussinessData.phone}
-              onChange={onChange}
+              onChange={onChangeHandler}
               label="Teléfono del local"
               id="phone"
               placeholder="Ingresar la información"
+              error={errors.phone}
             />
 
             <div>
@@ -84,7 +159,7 @@ tu establecimiento para comenzar el registro"
                   name="isPhysical"
                   value="yes"
                   checked={formData.bussinessData.isPhysical === true}
-                  onChange={onChange}
+                  onChange={onChangeHandler}
                   label="Sí"
                 />
 
@@ -93,7 +168,7 @@ tu establecimiento para comenzar el registro"
                   name="isPhysical"
                   value="no"
                   checked={formData.bussinessData.isPhysical === false}
-                  onChange={onChange}
+                  onChange={onChangeHandler}
                   label="No"
                 />
               </div>
@@ -101,37 +176,40 @@ tu establecimiento para comenzar el registro"
             <BasicInput
               name="address"
               value={formData.bussinessData.address}
-              onChange={onChange}
+              onChange={onChangeHandler}
               label="Dirección de facturación"
               id="address"
               placeholder="Ingresar la información"
+              error={errors.address}
             />
           </div>
           <div className="grid-cols-1 space-y-5">
             <BasicInput
               name="userRnc"
               value={formData.bussinessData.userRnc}
-              onChange={onChange}
+              onChange={onChangeHandler}
               label="RNC o boleta registrada en la DGII"
               id="userRnc"
               type="tel"
               placeholder="Ingresa la información"
+              error={errors.userRnc}
             />
 
             <BasicInput
               name="billingMail"
               value={formData.bussinessData.billingMail}
-              onChange={onChange}
+              onChange={onChangeHandler}
               label="Email de facturación"
               id="billingMail"
               placeholder="Ingresar la información"
+              error={errors.billingMail}
             />
             <div className="h-48 mx-12 bg-gray-200 flex items-center justify-center text-gray-500 rounded-2xl">
               Componente de Mapa (ej. Google Maps, Mapbox) iría aquí
             </div>
           </div>
-        </div>
-        <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onNextStep} />
+        </form>
+        <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onSubmit} />
       </div>
     </>
   );

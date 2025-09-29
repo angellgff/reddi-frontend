@@ -11,12 +11,14 @@ type CategoryTabsProps = {
   tags: Tag[];
   selectedCategoryId: string; // El ID de la categoría actualmente seleccionada
   onSelectCategory: (id: string) => void; // Función para notificar al padre de un cambio
+  disabled?: boolean;
 };
 
 export default function CategoryTabs({
   tags,
   selectedCategoryId,
   onSelectCategory,
+  disabled = false,
 }: CategoryTabsProps) {
   return (
     <>
@@ -34,6 +36,7 @@ export default function CategoryTabs({
                   ? "bg-[#CDF7E7] text-primary border border-primary shadow-sm"
                   : "bg-[#F0F2F5B8] text-gray-700 border border-[#D9DCE3] hover:bg-gray-200"
               }
+              ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
             `}
           >
             {tag.label}

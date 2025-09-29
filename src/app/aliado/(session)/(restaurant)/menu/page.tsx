@@ -4,7 +4,13 @@ import DishesServer from "@/src/components/features/partner/dashboard/menu/dishe
 import ProductsSkeleton from "@/src/components/features/partner/dashboard/products/productsList/ProductsSkeleton";
 import { Suspense } from "react";
 
-export default function MenuPage() {
+export default async function MenuPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { category, tag, q } = await searchParams;
+
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       {/* Título */}
@@ -17,7 +23,7 @@ export default function MenuPage() {
       {/* Fila 2: Lista de Productos */}
       <section className="bg-white px-10 py-6 rounded-xl">
         <Suspense fallback={<ProductsSkeleton />}>
-          <DishesServer />
+          <DishesServer category={category} tag={tag} q={q} />
         </Suspense>
       </section>
     </div>

@@ -1,6 +1,7 @@
 import LockLoginIcon from "@/src/components/icons/LockLoginIcon";
 import EyeLoginIcon from "@/src/components/icons/EyeLoginIcon";
 import EyeLoginHIcon from "@/src/components/icons/EyeLoginHIcon";
+import InputNotice from "./InputNotice";
 
 // myOnChange registra en el padre los cambios en el input
 // displayPassword avisa al padre si debe mostrar o cambiar la contraseña
@@ -15,6 +16,7 @@ interface PasswordInputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   displayPassword: (visible: boolean) => void;
   disabled?: boolean;
+  error?: string;
 }
 
 export default function PasswordInput({
@@ -28,6 +30,7 @@ export default function PasswordInput({
   onChange,
   displayPassword,
   disabled = false,
+  error,
 }: PasswordInputProps) {
   return (
     <div>
@@ -50,7 +53,9 @@ export default function PasswordInput({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className="block w-full rounded-xl border-[#D9DCE3] border sm:text-sm p-2 font-roboto px-10"
+          className={`block w-full rounded-xl border-[#D9DCE3] border sm:text-sm p-2 font-roboto px-10 ${
+            error ? "border-error" : ""
+          }`}
           disabled={disabled}
         />
         <button
@@ -66,6 +71,7 @@ export default function PasswordInput({
           )}
         </button>
       </div>
+      {error && <InputNotice msg={error} variant="error" />}
     </div>
   );
 }

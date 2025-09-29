@@ -1,11 +1,14 @@
 "use client";
 
+import { useState } from "react";
+import InfoPartnerIcon from "@/src/components/icons/InfoPartnerIcon";
 import React from "react";
 import RegisterFooterButtons from "./RegisterFooterButtons";
 import { PartnerRegisterForm } from "./PartnerRegisterWizard";
 import StepperHeader from "./StepperHeader";
 import SelectInput from "@/src/components/basics/SelectInput";
 import CheckBox from "@/src/components/basics/CheckBox";
+import Modal from "./Modal";
 
 const days = [
   { value: "monday", label: "Lunes" },
@@ -38,6 +41,13 @@ export default function RegisterFormStep4({
   onGoBack,
   onNextStep,
 }: RegisterFormStep2Props) {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsModalOpen(true);
+  };
+
   return (
     <>
       <StepperHeader
@@ -60,7 +70,7 @@ tu establecimiento para comenzar el registro"
           <div className="grid grid-cols-3 gap-6">
             {days.map(({ value, label }) => (
               <React.Fragment key={value}>
-                <div className="col-span-3 sm:col-span-1">
+                <div className="col-span-3 sm:col-span-1 ">
                   <CheckBox
                     id={`${value}-active`}
                     name={`${value}-active`}
@@ -106,9 +116,26 @@ tu establecimiento para comenzar el registro"
               </React.Fragment>
             ))}
           </div>
+          <div className="bg-[#EFF6FF] p-4 flex items-center gap-2 mt-4">
+            <span className="bg-[#2563EB] h-5 w-5 rounded-full flex items-center justify-center shrink-0">
+              <InfoPartnerIcon fill="white" />
+            </span>
+            <span className="font-montserrat text-sm text-[#1E40AF]">
+              Los horarios se aplicarán automáticamente en la plataforma Reddi
+            </span>
+          </div>
         </form>
 
-        <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onNextStep} />
+        <RegisterFooterButtons
+          onGoBack={onGoBack}
+          onSubmit={onSubmit}
+          nextText="Finalizar"
+        />
+        <Modal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onConfirm={() => {}}
+        />
       </div>
     </>
   );
