@@ -7,12 +7,21 @@ import Image from "next/image";
 import Avatar from "@/public/carlosAvatar.svg";
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
+import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
+import { useRouter } from "next/navigation";
 
 const logoFill = "white";
 const logoURL = "/repartidor/home";
 
 export default function Header() {
   const [displayName, setDisplayName] = useState<string>("");
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
 
   useEffect(() => {
     const supabase = createClient();
@@ -80,6 +89,15 @@ export default function Header() {
                 />
               </div>
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label="Cerrar sesión"
+              className="relative"
+              title="Cerrar sesión"
+            >
+              <LogoutHeaderIcon fill="white" />
+            </button>
           </div>
         </div>
       </header>
