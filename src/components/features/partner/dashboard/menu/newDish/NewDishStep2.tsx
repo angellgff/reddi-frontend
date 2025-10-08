@@ -1,22 +1,24 @@
 "use client";
-
-import FooterButtons from "@/src/components/basics/FooterButtons";
+import {
+  ProductSectionForm,
+  SectionExtraSelection,
+  ProductExtra,
+} from "@/src/lib/partner/productTypes";
+import { useState } from "react";
 import BasicInput from "@/src/components/basics/BasicInput";
 import Checkbox from "@/src/components/basics/CheckBox";
-import { useState } from "react";
-import { dishSection, dishOption } from "./NewDishWizard";
-import DishIcon from "@/src/components/icons/DishIcon";
-import DeletePartnerIcon from "@/src/components/icons/DeletePartnerIcon";
-import FileUploadButton from "@/src/components/basics/FileUploadButton";
-
-const POSITIVE_NUMBER_REGEX = /^(0|[1-9]\d*)(\.\d+)?$/;
+import FooterButtons from "@/src/components/basics/FooterButtons";
+import SelectInput from "@/src/components/basics/SelectInput";
 
 interface NewDishStep2Props {
-  sections: dishSection[]; // Recibe el array de secciones
-  onSectionsChange: (newSections: dishSection[]) => void; // Notifica al padre de los cambios
-  onNextStep: () => void; // Para ir al siguiente paso
-  onGoBack: () => void; // Para volver al paso anterior
-  onPreview: () => void; // Para vista previa
+  sections: ProductSectionForm[];
+  onSectionsChange: (newSections: ProductSectionForm[]) => void;
+  onNextStep: () => void;
+  onGoBack: () => void;
+  onPreview: () => void;
+  extrasCatalog: ProductExtra[];
+  errors: Record<string, string>;
+  onRequestCreateExtra: (sectionId: string, optionId: string) => void;
 }
 
 export default function NewDishStep2({
@@ -25,177 +27,73 @@ export default function NewDishStep2({
   onNextStep,
   onGoBack,
   onPreview,
+  extrasCatalog,
+  errors,
+  onRequestCreateExtra,
 }: NewDishStep2Props) {
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof dishSection | keyof dishOption, string>>
-  >({});
-
-  // Función para verificar errores en secciones y opciones
-  const verifyErrors = (
-    newErrors: Partial<Record<keyof dishSection | keyof dishOption, string>>
-  ) => {
-    // La validación ahora debe ocurrir sobre el array `sections` de las props.
-    // Ejemplo de validación:
-    sections.forEach((section) => {
-      // Se verifica si cada sección tiene un nombre
-      if (!section.name.trim()) {
-        newErrors[`sec-name-${section.id}` as keyof dishSection] =
-          "Este campo es obligatorio";
-      }
-      // Se verifica si cada opción dentro de la sección tiene nombre
-      section.options.forEach((option) => {
-        if (!option.name.trim()) {
-          newErrors[`opt-name-${option.id}` as keyof dishOption] =
-            "Este campo es obligatorio";
-        }
-        // Se verifica si cada opción dentro de la sección tiene precio
-        if (!option.extraPrice.trim()) {
-          newErrors[`opt-price-${option.id}` as keyof dishOption] =
-            "Este campo es obligatorio";
-        }
-        if (
-          option.extraPrice.trim() !== "" &&
-          !POSITIVE_NUMBER_REGEX.test(option.extraPrice)
-        ) {
-          newErrors[`opt-price-${option.id}` as keyof dishOption] =
-            "Solo se permiten números positivos";
-        }
-      });
-    });
-    return newErrors;
-  };
-
-  // --- Handlers para las Secciones ---
   const addSection = () => {
-    const newSection: dishSection = {
-      id: crypto.randomUUID(),
+    const newSection: ProductSectionForm = {
+      clientId: crypto.randomUUID(),
       name: "",
       isRequired: false,
-      options: [
-        { id: crypto.randomUUID(), name: "", extraPrice: "", image: null },
-      ],
+      options: [],
     };
-    // Calculamos el nuevo array y se lo pasamos al padre
     onSectionsChange([...sections, newSection]);
   };
-
-  const removeSection = (sectionId: string) => {
-    const newSections = sections.filter((section) => section.id !== sectionId);
-    onSectionsChange(newSections);
+  const removeSection = (id: string) => {
+    onSectionsChange(sections.filter((s) => s.clientId !== id));
   };
-
   const handleSectionChange = (
-    sectionId: string,
-    field: "name" | "isRequired",
+    id: string,
+    field: keyof Omit<ProductSectionForm, "clientId" | "options">,
     value: string | boolean
   ) => {
-    const newSections = sections.map((section) =>
-      section.id === sectionId ? { ...section, [field]: value } : section
+    onSectionsChange(
+      sections.map((s) => (s.clientId === id ? { ...s, [field]: value } : s))
     );
-    onSectionsChange(newSections);
   };
-
-  // --- Handlers para las Opciones (dentro de una sección) ---
   const addOption = (sectionId: string) => {
-    const newOption: dishOption = {
-      id: crypto.randomUUID(),
-      name: "",
-      extraPrice: "",
-      image: null,
+    const newOpt: SectionExtraSelection = {
+      clientId: crypto.randomUUID(),
+      extraId: null,
+      overridePrice: "",
     };
-    const newSections = sections.map((section) =>
-      section.id === sectionId
-        ? { ...section, options: [...section.options, newOption] }
-        : section
+    onSectionsChange(
+      sections.map((s) =>
+        s.clientId === sectionId ? { ...s, options: [...s.options, newOpt] } : s
+      )
     );
-    onSectionsChange(newSections);
   };
-
-  const removeOption = (sectionId: string, optionId: string) => {
-    const newSections = sections.map((section) =>
-      section.id === sectionId
-        ? {
-            ...section,
-            options: section.options.filter((opt) => opt.id !== optionId),
-          }
-        : section
+  const removeOption = (sectionId: string, optId: string) => {
+    onSectionsChange(
+      sections.map((s) =>
+        s.clientId === sectionId
+          ? { ...s, options: s.options.filter((o) => o.clientId !== optId) }
+          : s
+      )
     );
-    onSectionsChange(newSections);
   };
-
-  const handleOptionChange = (
+  const updateOption = (
     sectionId: string,
-    optionId: string,
-    field: "name" | "extraPrice", // Asegúrate de que los tipos coincidan
-    value: string
+    optId: string,
+    field: keyof Omit<SectionExtraSelection, "clientId">,
+    value: string | null
   ) => {
-    const newSections = sections.map((section) => {
-      if (section.id === sectionId) {
-        const updatedOptions = section.options.map((option) =>
-          option.id === optionId ? { ...option, [field]: value } : option
-        );
-        return { ...section, options: updatedOptions };
-      }
-      return section;
-    });
-    onSectionsChange(newSections);
-  };
-
-  const handleOptionImageChange = (
-    sectionId: string,
-    optionId: string,
-    file: File | null // El nuevo archivo
-  ) => {
-    const newSections = sections.map((section) => {
-      if (section.id === sectionId) {
-        const updatedOptions = section.options.map((option) =>
-          option.id === optionId ? { ...option, image: file } : option
-        );
-        return { ...section, options: updatedOptions };
-      }
-      return section;
-    });
-    // Notifica al padre del cambio en todo el array de secciones
-    onSectionsChange(newSections);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    let newErrors: Partial<
-      Record<keyof dishSection | keyof dishOption, string>
-    > = {};
-
-    newErrors = verifyErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
-    onNextStep();
-  };
-
-  const handlePreview = () => {
-    let newErrors: Partial<
-      Record<keyof dishSection | keyof dishOption, string>
-    > = {};
-
-    newErrors = verifyErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
-    setErrors({});
-    onPreview();
+    onSectionsChange(
+      sections.map((s) => {
+        if (s.clientId !== sectionId) return s;
+        return {
+          ...s,
+          options: s.options.map((o) =>
+            o.clientId === optId ? { ...o, [field]: value as any } : o
+          ),
+        };
+      })
+    );
   };
 
   return (
     <>
-      {/* --- Cabecera del Grupo de Opciones --- */}
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg text-gray-900 font-inter">
           Grupos de opciones y extras
@@ -208,146 +106,161 @@ export default function NewDishStep2({
           Añadir sección
         </button>
       </div>
-
-      <form onSubmit={handleSubmit} className="bg-white rounded-2xl space-y-8">
-        {/* --- Lista Dinámica de Secciones --- */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          onNextStep();
+        }}
+        className="space-y-8"
+      >
         <div className="space-y-6">
           {sections.length === 0 ? (
             <span className="text-gray-500 m-6">
               No hay secciones. Añada una con el botón de la esquina.
             </span>
           ) : (
-            sections.map((section) => (
-              <div
-                key={section.id}
-                className="border border-[#D9DCE3] rounded-xl p-4 sm:p-6 space-y-4"
-              >
-                {/* -- Fila de la Sección -- */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-                  <div className="w-full">
-                    <BasicInput
-                      id={`sec-name-${section.id}`}
-                      label="Nombre de la sección"
-                      placeholder="Ejm. Salsas, Bebidas frías, Bebidas calientes"
-                      value={section.name}
-                      onChange={(e) =>
-                        handleSectionChange(section.id, "name", e.target.value)
-                      }
-                      required
-                      error={
-                        errors[`sec-name-${section.id}` as keyof dishSection]
-                      }
-                    />
-                  </div>
-                  <div className="flex items-center space-x-4 pt-0 sm:pt-6 flex-shrink-0">
-                    <Checkbox
-                      label="Requerido"
-                      id={`required-${section.id}`}
-                      checked={section.isRequired}
-                      onChange={(e) =>
-                        handleSectionChange(
-                          section.id,
-                          "isRequired",
-                          e.target.checked
-                        )
-                      }
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeSection(section.id)}
-                      aria-label="Eliminar producto"
-                      className="px-6 py-2 text-white bg-[#DB5151] rounded-xl hover:bg-red-700 flex items-center"
-                    >
-                      <DeletePartnerIcon className="h-4 w-4" />{" "}
-                      <span className="mx-2">Eliminar</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* -- Opciones dentro de la Sección -- */}
-                <div className="space-y-3 sm:pl-4">
-                  {section.options.map((option) => (
-                    <div
-                      key={option.id}
-                      className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
-                    >
-                      <FileUploadButton
-                        value={option.image}
-                        onFileChange={(file) =>
-                          handleOptionImageChange(section.id, option.id, file)
+            sections.map((section) => {
+              const usedExtraIds = new Set(
+                section.options.filter((o) => o.extraId).map((o) => o.extraId)
+              );
+              return (
+                <div
+                  key={section.clientId}
+                  className="border border-[#D9DCE3] rounded-xl p-4 sm:p-6 space-y-4"
+                >
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                    <div className="w-full">
+                      <BasicInput
+                        id={`sec-name-${section.clientId}`}
+                        label="Nombre de la sección"
+                        placeholder="Ejm. Salsas, Acompañantes"
+                        value={section.name}
+                        onChange={(e) =>
+                          handleSectionChange(
+                            section.clientId,
+                            "name",
+                            e.target.value
+                          )
+                        }
+                        required
+                        error={errors[`section-${section.clientId}-name`] || ""}
+                      />
+                    </div>
+                    <div className="flex items-center space-x-4 pt-0 sm:pt-6 flex-shrink-0">
+                      <Checkbox
+                        label="Requerido"
+                        id={`required-${section.clientId}`}
+                        checked={section.isRequired}
+                        onChange={(e) =>
+                          handleSectionChange(
+                            section.clientId,
+                            "isRequired",
+                            e.target.checked
+                          )
                         }
                       />
-                      <div className="grow">
-                        <BasicInput
-                          id={`opt-name-${option.id}`}
-                          label="Nombre de la opción"
-                          placeholder="Ejm. Papas fritas, Queso"
-                          value={option.name}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              section.id,
-                              option.id,
-                              "name",
-                              e.target.value
-                            )
-                          }
-                          required
-                          error={
-                            errors[`opt-name-${option.id}` as keyof dishOption]
-                          }
-                        />
-                      </div>
-                      <div className="grow sm:w-40">
-                        <BasicInput
-                          id={`opt-price-${option.id}`}
-                          label="Precio"
-                          placeholder="0.00"
-                          value={option.extraPrice}
-                          onChange={(e) =>
-                            handleOptionChange(
-                              section.id,
-                              option.id,
-                              "extraPrice",
-                              e.target.value
-                            )
-                          }
-                          required
-                          error={
-                            errors[`opt-price-${option.id}` as keyof dishOption]
-                          }
-                        />
-                      </div>
                       <button
                         type="button"
-                        onClick={() => removeOption(section.id, option.id)}
-                        aria-label="Eliminar producto"
-                        className="p-3 text-white bg-[#DB5151] rounded-xl hover:bg-red-700 flex items-center"
+                        onClick={() => removeSection(section.clientId)}
+                        className="px-6 py-2 text-white bg-[#DB5151] rounded-xl hover:bg-red-700 flex items-center"
                       >
-                        <DeletePartnerIcon className="h-4 w-4" />
+                        Eliminar
                       </button>
                     </div>
-                  ))}
+                  </div>
+                  <div className="space-y-3 sm:pl-4">
+                    {section.options.map((opt) => (
+                      <div
+                        key={opt.clientId}
+                        className="flex flex-col sm:flex-row items-start sm:items-center gap-3"
+                      >
+                        <div className="grow">
+                          <SelectInput
+                            id={`opt-extra-${opt.clientId}`}
+                            name={`opt-extra-${opt.clientId}`}
+                            label="Extra"
+                            placeholder="Seleccione extra"
+                            value={opt.extraId || ""}
+                            options={[
+                              {
+                                value: "__create__",
+                                label: "➕ Crear nuevo extra",
+                              },
+                              ...extrasCatalog.map((ex) => ({
+                                value: ex.id,
+                                label: `${ex.name} (def: $${ex.defaultPrice})`,
+                                disabled:
+                                  usedExtraIds.has(ex.id) &&
+                                  ex.id !== opt.extraId,
+                              })),
+                            ]}
+                            onChange={(e) => {
+                              if (e.target.value === "__create__") {
+                                onRequestCreateExtra(
+                                  section.clientId,
+                                  opt.clientId
+                                );
+                                return;
+                              }
+                              updateOption(
+                                section.clientId,
+                                opt.clientId,
+                                "extraId",
+                                e.target.value
+                              );
+                            }}
+                            getOptionValue={(o) => (o as any).value}
+                            getOptionLabel={(o) => (o as any).label}
+                            error={errors[`option-${opt.clientId}-extra`]}
+                            required
+                          />
+                        </div>
+                        <BasicInput
+                          id={`opt-override-${opt.clientId}`}
+                          label="Precio override (opcional)"
+                          placeholder="Usar precio por defecto"
+                          value={opt.overridePrice}
+                          onChange={(e) =>
+                            updateOption(
+                              section.clientId,
+                              opt.clientId,
+                              "overridePrice",
+                              e.target.value
+                            )
+                          }
+                          error={
+                            errors[`option-${opt.clientId}-overridePrice`] || ""
+                          }
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            removeOption(section.clientId, opt.clientId)
+                          }
+                          className="px-4 py-2 text-sm text-white bg-[#DB5151] rounded-lg"
+                        >
+                          Quitar
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => addOption(section.clientId)}
+                    className="flex items-center text-sm font-medium hover:underline"
+                  >
+                    Añadir opción
+                  </button>
                 </div>
-
-                {/* -- Botón para añadir opción -- */}
-                <button
-                  type="button"
-                  onClick={() => addOption(section.id)}
-                  className="flex items-center text-sm font-medium hover:underline"
-                >
-                  <DishIcon className="h-4 w-4 mr-1" /> Añadir opción
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
-
-        {/* Botones de Acción */}
         <FooterButtons
           onGoBack={onGoBack}
-          onPreview={handlePreview}
+          onPreview={onPreview}
           onSaveAndExit={() => {}}
-          onSubmit={handleSubmit}
+          onSubmit={() => {}}
         />
       </form>
     </>

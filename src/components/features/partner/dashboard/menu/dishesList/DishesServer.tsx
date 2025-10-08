@@ -1,6 +1,7 @@
 import DishesSection from "./DishesSection";
-import getDishesData from "@/src/lib/partner/dashboard/data/products/getDishesData";
-import { dishesTags } from "@/src/lib/type";
+import getRealDishesData from "@/src/lib/partner/dashboard/data/products/getRealDishesData";
+import getSubCategories from "@/src/lib/partner/dashboard/data/products/getSubCategories";
+import { dishesTags } from "@/src/lib/type"; // Keep mock tags (no tag system yet)
 
 interface DishesServerProps {
   category: string[] | string | undefined;
@@ -15,9 +16,16 @@ export default async function DishesServer({
   q,
 }: DishesServerProps) {
   // Se hace la petición para obtener los datos de los platillos
-  const data = await getDishesData();
+  const [dishes, categoriesOpts] = await Promise.all([
+    getRealDishesData({ q, category, tag }),
+    getSubCategories(),
+  ]);
 
   return (
-    <DishesSection dishes={data} categories={dishesTags} tags={dishesTags} />
+    <DishesSection
+      dishes={dishes}
+      categories={categoriesOpts}
+      tags={dishesTags}
+    />
   );
 }

@@ -7,41 +7,45 @@ import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import SelectInput from "@/src/components/basics/SelectInput";
 import TextArea from "@/src/components/features/partner/TextArea";
 import InputNotice from "@/src/components/basics/InputNotice";
-import { IDishFormState } from "./NewDishWizard";
+import {
+  CreateProductFormState,
+  ProductSubCategory,
+} from "@/src/lib/partner/productTypes";
 import { useState, useRef } from "react";
 import { isFieldInvalid } from "@/src/lib/partner/utils";
-import { dishesTags } from "@/src/lib/type";
 
 const POSITIVE_NUMBER_REGEX = /^(0|[1-9]\d*)(\.\d+)?$/;
 const ESTIMATED_TIME_REGEX = /^\d{1,2}-\d{1,2}?min$/;
 const LIMIT_DESCRIPTION_LENGTH = 250;
 
-const mustBeNumber: (keyof IDishFormState)[] = [
+const mustBeNumber: Array<keyof CreateProductFormState> = [
   "basePrice",
   "previousPrice",
-  "discount",
+  "discountPercent",
 ];
 
 interface NewDishStep1Props {
-  formData: IDishFormState;
-  requiredFields: (keyof IDishFormState)[];
-  updateFormData: (newData: Partial<IDishFormState>) => void;
+  formData: CreateProductFormState;
+  updateFormData: (newData: Partial<CreateProductFormState>) => void;
   onGoBack: () => void;
   onNextStep: () => void;
   onPreview: () => void;
+  subCategories: ProductSubCategory[];
+  errors: Record<string, string>;
+  openCreateCategoryModal: () => void;
 }
 
 export default function NewDishStep1({
   formData,
-  requiredFields,
   onPreview,
   updateFormData,
   onGoBack,
   onNextStep,
+  subCategories,
+  errors: externalErrors,
+  openCreateCategoryModal,
 }: NewDishStep1Props) {
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof IDishFormState, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const formRef = useRef<HTMLFormElement>(null);
   const fileUploadRef = useRef<HTMLDivElement>(null);
 
@@ -54,17 +58,17 @@ export default function NewDishStep1({
     updateFormData({ [name]: value });
 
     // Limpieza de errores para el campo modificado
-    if (errors[name as keyof IDishFormState]) {
+    if (errors[name]) {
       setErrors((prevErrors) => {
         const newErrors = { ...prevErrors };
-        delete newErrors[name as keyof IDishFormState];
+        delete newErrors[name];
         return newErrors;
       });
     }
   };
 
   const handleFileChange = (file: File | null) => {
-    const fieldName: keyof IDishFormState = "image";
+    const fieldName = "image" as const;
 
     updateFormData({ [fieldName]: file });
 
@@ -84,27 +88,30 @@ export default function NewDishStep1({
     updateFormData({ [name]: checked });
   };
 
-  const verifyErrors = (
-    newErrors: Partial<Record<keyof IDishFormState, string>>
-  ) => {
-    requiredFields.forEach((field) => {
-      if (isFieldInvalid(formData[field])) {
-        newErrors[field] = "Este campo es obligatorio";
+  const verifyErrors = (newErrors: Partial<Record<string, string>>) => {
+    ["name", "basePrice", "unit", "estimatedTimeRange", "description"].forEach(
+      (f) => {
+        const val = (formData as any)[f];
+        if (!val || (typeof val === "string" && !val.trim())) {
+          newErrors[f] = "Este campo es obligatorio";
+        }
       }
-    });
+    );
+    if (!formData.subCategoryId) {
+      newErrors["subCategoryId"] = "Seleccione una categoría";
+    }
     mustBeNumber.forEach((field) => {
-      if (
-        formData[field] &&
-        !POSITIVE_NUMBER_REGEX.test(formData[field] as string)
-      ) {
+      const val = formData[field];
+      if (val && !POSITIVE_NUMBER_REGEX.test(val as string)) {
         newErrors[field] = "Solo se permiten números positivos";
       }
     });
     if (
-      formData.estimatedTime &&
-      !ESTIMATED_TIME_REGEX.test(formData.estimatedTime)
+      formData.estimatedTimeRange &&
+      !ESTIMATED_TIME_REGEX.test(formData.estimatedTimeRange)
     ) {
-      newErrors.estimatedTime = "Siga el formato XX-XXmin, ejemplo: 10-20min";
+      newErrors.estimatedTimeRange =
+        "Siga el formato XX-XXmin, ejemplo: 10-20min";
     }
     if (
       formData.description &&
@@ -117,13 +124,13 @@ export default function NewDishStep1({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let newErrors: Partial<Record<keyof IDishFormState, string>> = {};
+    let newErrors: Partial<Record<string, string>> = {};
     newErrors = verifyErrors(newErrors);
 
     // ACTUALIZAMOS el estado de errores si encontramos alguno
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      const firstErrorField = Object.keys(newErrors)[0] as keyof IDishFormState;
+      const firstErrorField = Object.keys(newErrors)[0];
       // Se hace focus al primer campo con error
       if (firstErrorField === "image") {
         fileUploadRef.current?.focus();
@@ -143,13 +150,13 @@ export default function NewDishStep1({
   };
 
   const handlePreview = () => {
-    let newErrors: Partial<Record<keyof IDishFormState, string>> = {};
+    let newErrors: Partial<Record<string, string>> = {};
     newErrors = verifyErrors(newErrors);
 
     // ACTUALIZAMOS el estado de errores si encontramos alguno
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
-      const firstErrorField = Object.keys(newErrors)[0] as keyof IDishFormState;
+      const firstErrorField = Object.keys(newErrors)[0];
       if (firstErrorField === "image") {
         fileUploadRef.current?.focus();
       } else {
@@ -187,13 +194,13 @@ export default function NewDishStep1({
           {/* Columna Derecha: Inputs */}
           <div className="lg:col-span-2 space-y-6">
             <BasicInput
-              id="dishName"
-              label="Nombre del plato"
+              id="name"
+              label="Nombre del producto"
               placeholder="Ingresar la información"
-              value={formData.dishName}
+              value={formData.name}
               onChange={handleChange}
               required
-              error={errors.dishName}
+              error={errors.name || externalErrors.name}
             />
 
             <BasicInput
@@ -216,12 +223,12 @@ export default function NewDishStep1({
                 error={errors.previousPrice}
               />
               <BasicInput
-                id="discount"
+                id="discountPercent"
                 label="Descuento %"
                 placeholder="Ingresar la información"
-                value={formData.discount}
+                value={formData.discountPercent}
                 onChange={handleChange}
-                error={errors.discount}
+                error={errors.discountPercent || externalErrors.discountPercent}
               />
             </div>
 
@@ -237,13 +244,15 @@ export default function NewDishStep1({
               />
 
               <BasicInput
-                id="estimatedTime"
+                id="estimatedTimeRange"
                 label="Tiempo estimado"
                 placeholder="Ejm. 25-35 min"
-                value={formData.estimatedTime}
+                value={formData.estimatedTimeRange}
                 onChange={handleChange}
                 required
-                error={errors.estimatedTime}
+                error={
+                  errors.estimatedTimeRange || externalErrors.estimatedTimeRange
+                }
               />
             </div>
 
@@ -262,17 +271,32 @@ export default function NewDishStep1({
             <div>
               <div>
                 <SelectInput
-                  id="category"
-                  name="category"
-                  label="Categorías"
+                  id="subCategoryId"
+                  name="subCategoryId"
+                  label="Categoría"
                   placeholder="Seleccione"
-                  options={dishesTags}
-                  value={formData.category}
-                  onChange={handleChange}
-                  getOptionValue={(option) => option.value}
-                  getOptionLabel={(option) => option.label}
+                  options={[
+                    {
+                      value: "__create__",
+                      label: "➕ Crear nueva categoría...",
+                    },
+                    ...subCategories.map((c) => ({
+                      value: c.id,
+                      label: c.name,
+                    })),
+                  ]}
+                  value={formData.subCategoryId || ""}
+                  onChange={(e) => {
+                    if (e.target.value === "__create__") {
+                      openCreateCategoryModal();
+                      return;
+                    }
+                    handleChange(e as any);
+                  }}
+                  getOptionValue={(option) => (option as any).value}
+                  getOptionLabel={(option) => (option as any).label}
                   required
-                  error={errors.category}
+                  error={errors.subCategoryId || externalErrors.subCategoryId}
                 />
               </div>
             </div>

@@ -1,7 +1,7 @@
 "use server";
 
 import StatCardSection from "@/src/components/features/partner/stats/StatCardSection";
-import getProductsStatsData from "@/src/lib/partner/dashboard/data/products/getProductsStatsData";
+import { createClient } from "@/src/lib/supabase/server";
 import StatCarIcon from "@/src/components/icons/StatCarIcon";
 import StatDollarIcon from "@/src/components/icons/StatDollarIcon";
 import CompleteOrderIcon from "@/src/components/icons/CompleteOrderIcon";
@@ -22,7 +22,24 @@ const titleMap: Record<ProductsStatsData["statKey"], string> = {
 };
 
 export default async function ProductsStasServer() {
-  const statsData = await getProductsStatsData();
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,is_available")
+    .limit(5000); // safety cap
+  if (error) {
+    console.error("Error fetching product stats", error);
+  }
+  const rows = data || [];
+  const active = rows.filter((r) => r.is_available).length;
+  const inactive = rows.filter((r) => !r.is_available).length;
+  // Placeholder most_sold (needs sales data). Show active again or 0.
+  const mostSold = 0;
+  const statsData = [
+    { statKey: "active_products" as const, value: String(active) },
+    { statKey: "most_sold" as const, value: String(mostSold) },
+    { statKey: "inactive_products" as const, value: String(inactive) },
+  ];
   return (
     <StatCardSection
       stats={statsData}
