@@ -7,12 +7,14 @@ import Image from "next/image";
 import Avatar from "@/public/carlosAvatar.svg";
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 const logoFill = "white";
 const logoURL = "/repartidor/home";
 
 export default function Header() {
   const [displayName, setDisplayName] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     const supabase = createClient();
@@ -28,6 +30,21 @@ export default function Header() {
       setDisplayName(name as string);
     });
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        return;
+      }
+      // Redirect to auth login page after successful sign out
+      router.push("/login");
+    } catch (err) {
+      console.error("Unexpected logout error:", err);
+    }
+  };
 
   return (
     <>
@@ -79,6 +96,13 @@ export default function Header() {
                   fill={true}
                 />
               </div>
+              <button
+                onClick={handleLogout}
+                className="px-3 py-2 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-md text-sm"
+                aria-label="Cerrar sesión"
+              >
+                Cerrar sesión
+              </button>
             </div>
           </div>
         </div>

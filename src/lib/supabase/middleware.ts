@@ -13,7 +13,7 @@ export async function updateSession(request: NextRequest) {
   });
 
   // Lista de rutas que son públicas y no requieren autenticación
-  const authPaths = ["/login", "/admin/login"];
+  const authPaths = ["/login", "/admin/login", "/aliado/registro"];
 
   // With Fluid compute, don't put this client in a global environment
   // variable. Always create a new one on each request.

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import InfoPartnerIcon from "@/src/components/icons/InfoPartnerIcon";
 import React from "react";
 import RegisterFooterButtons from "./RegisterFooterButtons";
@@ -25,7 +25,7 @@ const hoursOptions = Array.from({ length: 24 }, (_, i) => {
   return { value: `${hour}:00:00`, label: `${hour}:00` };
 });
 
-interface RegisterFormStep2Props {
+interface RegisterFormStep4Props {
   formData: PartnerRegisterForm;
   onChange: (
     day: keyof PartnerRegisterForm["businessHours"],
@@ -34,6 +34,8 @@ interface RegisterFormStep2Props {
   ) => void;
   onGoBack: () => void;
   onNextStep: () => void;
+  isSubmitting: boolean;
+  error: string | null;
 }
 
 export default function RegisterFormStep4({
@@ -41,13 +43,35 @@ export default function RegisterFormStep4({
   onChange,
   onGoBack,
   onNextStep,
-}: RegisterFormStep2Props) {
+  isSubmitting,
+  error,
+}: RegisterFormStep4Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAnyDayActiveError, setIsAnyDayActiveError] = useState(false);
 
   const isAnyDayActive = Object.values(formData.businessHours).some(
     (day) => day.active
   );
+
+  const handleValidationAndOpenModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Resetea cualquier error previo antes de validar de nuevo
+    setIsAnyDayActiveError(false);
+
+    // Se verifica que al menos 1 día esté activo
+    if (!isAnyDayActive) {
+      setIsAnyDayActiveError(true);
+      return;
+    }
+    // Si todo está bien, se abre el modal de confirmación
+    setIsModalOpen(true);
+  };
+
+  useEffect(() => {
+    if (error) {
+      setIsModalOpen(false);
+    }
+  }, [error]);
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +103,7 @@ tu establecimiento para comenzar el registro"
           </p>
         </div>
         {/* --- Sección del Formulario --- */}
-        <form onSubmit={onNextStep}>
+        <form onSubmit={handleValidationAndOpenModal}>
           <div className="grid grid-cols-3 gap-6">
             {days.map(({ value, label }) => (
               <React.Fragment key={value}>
@@ -135,6 +159,9 @@ tu establecimiento para comenzar el registro"
               variant="error"
             />
           )}
+
+          {error && <InputNotice msg={error} variant="error" />}
+
           <div className="bg-[#EFF6FF] p-4 flex items-center gap-2 mt-4">
             <span className="bg-[#2563EB] h-5 w-5 rounded-full flex items-center justify-center shrink-0">
               <InfoPartnerIcon fill="white" />
@@ -147,7 +174,7 @@ tu establecimiento para comenzar el registro"
 
         <RegisterFooterButtons
           onGoBack={onGoBack}
-          onSubmit={onSubmit}
+          onSubmit={onNextStep}
           nextText="Finalizar"
         />
         <Modal
