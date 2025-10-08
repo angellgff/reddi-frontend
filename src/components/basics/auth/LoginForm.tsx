@@ -208,6 +208,18 @@ export default function LoginForm({
           {isLoading ? "Ingresando..." : "Iniciar Sesión"}
         </button>
       </form>
+
+      {/* --- CTA SOCIO / ALIADO --- */}
+      <div className="mt-8 text-center text-sm text-gray-700 space-y-2">
+        <p className="leading-snug">¿Quieres ser uno de nuestros socios?</p>
+        <Link
+          href="/aliado/registro"
+          className="inline-block bg-primary text-white font-medium px-4 py-2 rounded-lg transition-colors duration-300 shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-secondary"
+          aria-label="Ir al registro de socios aliados"
+        >
+          Haz clic aquí
+        </Link>
+      </div>
     </>
   );
 }

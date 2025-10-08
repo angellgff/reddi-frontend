@@ -82,6 +82,8 @@ export default function PartnerRegisterWizard() {
     },
   });
 
+  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
   useEffect(() => {
     console.log(formData);
 
@@ -254,185 +256,119 @@ export default function PartnerRegisterWizard() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
-    console.info("[handleSubmit: START] - Proceso de registro iniciado.");
 
-    // Variables para guardar referencias y poder limpiar en caso de error
     let createdUserId: string | null = null;
     let uploadedImagePath: string | null = null;
     let uploadedDocumentPath: string | null = null;
 
     try {
-      // --- 1. Crear el usuario en Supabase Auth ---
-      console.info(
-        "[handleSubmit: Step 1] - Intentando crear usuario con email:",
-        formData.session.email
-      );
+      // --- 1. Crear el usuario de forma NATIVA ---
+      // Esto es mucho más fiable.
+      console.info("[handleSubmit] Step 1: Creating user natively...");
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.session.email,
         password: formData.session.password,
         options: {
           data: {
-            role: "admin", // O el rol de partner que hayas definido
+            // Aún podemos pasar metadatos, aunque nuestra RPC no los use directamente.
+            // Es bueno para tenerlo en la tabla auth.users.
+            role: "admin",
             partner_type: formData.session.category,
           },
         },
       });
 
-      if (authError) {
-        console.error(
-          "[handleSubmit: Step 1 FAILED] - Error en signUp:",
-          authError
-        );
-        throw authError;
-      }
-      if (!authData.user) {
-        throw new Error("Respuesta de Supabase Auth no contiene un usuario.");
-      }
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("User creation failed.");
 
       createdUserId = authData.user.id;
+      console.info(`[handleSubmit] User created with ID: ${createdUserId}`);
+
+      // --- 2. Preparar y enviar datos a la Edge Function ---
+      const partnerData = {
+        category: formData.session.category,
+        name: formData.bussinessData.name,
+        userRnc: formData.bussinessData.userRnc,
+        phone: formData.bussinessData.phone,
+        billingMail: formData.bussinessData.billingMail,
+        isPhysical: formData.bussinessData.isPhysical,
+        address: formData.bussinessData.address,
+        holderName: formData.bankData.holderName,
+        accountNumber: formData.bankData.accountNumber,
+        accountType: formData.bankData.accountType,
+        bankRnc: formData.bankData.bankRnc,
+        conditionsAccepted: formData.bankData.conditionsAccepted,
+        businessHours: formData.businessHours,
+      };
+
       console.info(
-        `[handleSubmit: Step 1 SUCCESS] - Usuario creado con ID: ${createdUserId}`
+        "[handleSubmit] Step 2: Calling Edge Function to complete profile..."
+      );
+      const { error: functionError } = await supabase.functions.invoke(
+        "complete-partner-registration",
+        { body: { userId: createdUserId, partnerData } }
       );
 
-      // --- 2. Subir la imagen del negocio (si existe) ---
+      if (functionError) {
+        // Si la Edge Function falla, la transacción se revirtió.
+        // El usuario existe pero sin perfil.
+        throw new Error(
+          `Failed to create partner profile: ${functionError.message}`
+        );
+      }
+      console.info("[handleSubmit] Edge Function executed successfully.");
+
+      // --- 3. Subir archivos y actualizar URLs (flujo ya conocido) ---
+      // Para esto, primero necesitamos iniciar sesión.
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.session.email,
+        password: formData.session.password,
+      });
+      if (signInError) throw new Error("Sign in after registration failed.");
+
+      // --- 3. Subir archivos (ahora que sabemos que el usuario existe) ---
       let imageUrl: string | null = null;
       if (formData.bussinessData.image) {
         const imageFile = formData.bussinessData.image;
         const filePath = `${createdUserId}/${Date.now()}_${imageFile.name}`;
-        console.info(
-          `[handleSubmit: Step 2] - Intentando subir imagen a Storage en: business-images/${filePath}`
-        );
         const { error: uploadError } = await supabase.storage
           .from("business-images")
           .upload(filePath, imageFile);
-        if (uploadError) {
-          console.error(
-            "[handleSubmit: Step 2 FAILED] - Error subiendo imagen:",
-            uploadError
-          );
-          throw uploadError;
-        }
-        uploadedImagePath = filePath;
+        if (uploadError) throw uploadError;
+        uploadedImagePath = filePath; // Guardar para posible rollback
         const { data: publicUrlData } = supabase.storage
           .from("business-images")
           .getPublicUrl(filePath);
         imageUrl = publicUrlData.publicUrl;
-        console.info(
-          `[handleSubmit: Step 2 SUCCESS] - Imagen subida. URL pública: ${imageUrl}`
-        );
-      } else {
-        console.info(
-          "[handleSubmit: Step 2 SKIPPED] - No se proporcionó imagen de negocio."
-        );
       }
 
-      // --- 3. Subir el documento bancario (si existe) ---
       let documentUrl: string | null = null;
       if (formData.bankData.document) {
         const docFile = formData.bankData.document;
         const docPath = `${createdUserId}/${Date.now()}_${docFile.name}`;
-        console.info(
-          `[handleSubmit: Step 3] - Intentando subir documento a Storage en: bank-documents/${docPath}`
-        );
         const { error: docUploadError } = await supabase.storage
           .from("bank-documents")
           .upload(docPath, docFile);
-        if (docUploadError) {
-          console.error(
-            "[handleSubmit: Step 3 FAILED] - Error subiendo documento:",
-            docUploadError
-          );
-          throw docUploadError;
-        }
-        uploadedDocumentPath = docPath;
-        documentUrl = docPath;
-        console.info(
-          `[handleSubmit: Step 3 SUCCESS] - Documento subido a la ruta: ${documentUrl}`
-        );
-      } else {
-        console.info(
-          "[handleSubmit: Step 3 SKIPPED] - No se proporcionó documento bancario."
-        );
+        if (docUploadError) throw docUploadError;
+        uploadedDocumentPath = docPath; // Guardar para posible rollback
+        documentUrl = docPath; // O la URL pública si la necesitas
       }
 
-      // --- 4. Insertar todos los datos en las tablas 'partners' y la tabla específica ---
-
-      // =========================================================================
-      // CORRECCIÓN PRINCIPAL AQUÍ: COMPLETAR EL OBJETO DE DATOS PARA 'partners'
-      // =========================================================================
-      const partnerDataToInsert = {
-        // Claves principales
-        id: createdUserId,
-        user_id: createdUserId,
-        partner_type: formData.session.category,
-
-        // Datos del negocio (bussinessData)
-        name: formData.bussinessData.name,
-        image_url: imageUrl,
-        user_rnc: formData.bussinessData.userRnc,
-        phone: formData.bussinessData.phone,
-        billing_email: formData.bussinessData.billingMail,
-        is_physical: formData.bussinessData.isPhysical,
-        address: formData.bussinessData.address,
-
-        // Datos bancarios (bankData)
-        bank_holder_name: formData.bankData.holderName,
-        bank_account_number: formData.bankData.accountNumber,
-        bank_account_type: formData.bankData.accountType,
-        bank_rnc: formData.bankData.bankRnc,
-        bank_document_url: documentUrl,
-        conditions_accepted: formData.bankData.conditionsAccepted,
-
-        // Horario comercial (businessHours)
-        business_hours: formData.businessHours,
-      };
-
-      console.log(
-        "[handleSubmit: Step 4] - Datos a insertar en 'partners':",
-        partnerDataToInsert
-      );
-
-      const { error: insertPartnerError } = await supabase
-        .from("partners")
-        .insert(partnerDataToInsert);
-      if (insertPartnerError) {
-        console.error(
-          "[handleSubmit: Step 4 FAILED] - Error insertando en 'partners':",
-          insertPartnerError
+      // --- 4. Actualizar el registro 'partners' con las URLs de los archivos ---
+      // Esta es una operación pequeña y de bajo riesgo.
+      if (imageUrl || documentUrl) {
+        console.info(
+          "[handleSubmit: Step 4] - Actualizando URLs de archivos..."
         );
-        throw insertPartnerError;
-      }
-      console.log(
-        "[handleSubmit: Step 4 SUCCESS] - Datos insertados en 'partners'."
-      );
+        const { error: updateError } = await supabase
+          .from("partners")
+          .update({
+            image_url: imageUrl,
+            bank_document_url: documentUrl,
+          })
+          .eq("id", createdUserId);
 
-      // --- 4.b. Inserción en la tabla específica (markets, restaurants, etc.) ---
-      const partnerType = formData.session.category;
-      let specificTable = "";
-      if (partnerType === "market") specificTable = "markets";
-      if (partnerType === "restaurant") specificTable = "restaurants";
-      // ... añade más casos si tienes más tipos
-
-      if (specificTable) {
-        console.log(
-          `[handleSubmit: Step 4.b] - Insertando ID en tabla específica '${specificTable}'...`
-        );
-        const { error: insertSpecificError } = await supabase
-          .from(specificTable)
-          .insert({
-            id: createdUserId,
-            // Aquí irían los campos específicos de ese tipo de negocio si los tuvieras en el formulario
-          });
-        if (insertSpecificError) {
-          console.error(
-            `[handleSubmit: Step 4.b FAILED] - Error insertando en '${specificTable}':`,
-            insertSpecificError
-          );
-          throw insertSpecificError;
-        }
-        console.log(
-          `[handleSubmit: Step 4.b SUCCESS] - ID insertado en '${specificTable}'.`
-        );
+        if (updateError) throw updateError;
       }
 
       // --- 5. Éxito ---
@@ -441,56 +377,44 @@ export default function PartnerRegisterWizard() {
       );
       router.push("/aliado/dashboard?registro=exitoso");
     } catch (error: any) {
-      // --- Bloque de Manejo de Errores y Limpieza ---
       console.error(
-        "====================== ERROR CAPTURADO ======================"
-      );
-      console.error(
-        "Fallo en el registro, iniciando limpieza. Objeto de error completo:",
+        "====================== ERROR CAPTURADO ======================",
         error
       );
-      console.error("Tipo de error:", typeof error);
-      console.error("Mensaje de error:", error?.message);
-      console.error("Stack de error:", error?.stack);
-      console.error(
-        "============================================================"
-      );
 
-      setError(
-        error.message ||
-          "Ocurrió un error inesperado. Revisa la consola para más detalles."
-      );
+      // --- NUEVA LÓGICA DE MANEJO DE ERRORES ---
+      let friendlyErrorMessage =
+        "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
 
-      // Lógica de Rollback/Limpieza
+      // Detectar el error de email duplicado
+      if (
+        error.code === "23505" ||
+        (error.message && error.message.includes("duplicate key value"))
+      ) {
+        friendlyErrorMessage =
+          "Este correo electrónico ya está registrado. Por favor, usa otro o inicia sesión.";
+      }
+      // Podrías añadir más `else if` para otros errores comunes, como contraseñas débiles.
+      else if (error.message) {
+        // Para otros errores de la base de datos, puedes mostrar su mensaje si es seguro.
+        friendlyErrorMessage = error.message;
+      }
+
+      setError(friendlyErrorMessage); // ¡Usamos el mensaje amigable!
+
+      // La lógica de Rollback de archivos sigue siendo válida
       if (uploadedImagePath) {
-        console.warn(
-          `[Rollback] - Intentando eliminar imagen: ${uploadedImagePath}`
-        );
         await supabase.storage
           .from("business-images")
           .remove([uploadedImagePath]);
       }
       if (uploadedDocumentPath) {
-        console.warn(
-          `[Rollback] - Intentando eliminar documento: ${uploadedDocumentPath}`
-        );
         await supabase.storage
           .from("bank-documents")
           .remove([uploadedDocumentPath]);
       }
-
-      if (createdUserId) {
-        console.warn(
-          `[Rollback] - El usuario con ID ${createdUserId} fue creado pero el proceso falló. ` +
-            `Debe ser eliminado manualmente o a través de una función de limpieza en el backend.`
-        );
-      }
     } finally {
-      // --- Este bloque se ejecuta SIEMPRE ---
       setIsSubmitting(false);
-      console.info(
-        "[handleSubmit: FINALLY] - Proceso de envío finalizado (con éxito o error)."
-      );
     }
   };
 
