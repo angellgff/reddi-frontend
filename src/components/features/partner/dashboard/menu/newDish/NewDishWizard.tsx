@@ -135,9 +135,38 @@ export default function NewDishWizard({
     }
     try {
       setIsSubmitting(true);
-      const payload = buildCreateProductPayload(formData);
-      const { productId } = await createDishAction(payload);
-      // TODO: subir imagen si existe (segunda action)
+      const data = new FormData();
+
+      // 2. Añadir todos los campos del formulario
+      // Campos de texto
+      data.append("name", formData.name);
+      data.append("basePrice", formData.basePrice);
+      data.append("description", formData.description);
+      data.append("subCategoryId", formData.subCategoryId || "");
+      data.append("unit", formData.unit);
+      data.append("estimatedTimeRange", formData.estimatedTimeRange);
+      if (formData.previousPrice) {
+        data.append("previousPrice", formData.previousPrice);
+      }
+      if (formData.discountPercent) {
+        data.append("discountPercent", formData.discountPercent);
+      }
+
+      // Campos booleanos (convertidos a string)
+      data.append("isAvailable", String(formData.isAvailable));
+      data.append("taxIncluded", String(formData.taxIncluded));
+
+      // El archivo de imagen (si existe)
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
+
+      // Objetos/Arrays complejos se convierten a string JSON
+      data.append("sections", JSON.stringify(formData.sections));
+
+      // 3. Llamar a la server action con el FormData
+      const { productId } = await createDishAction(data);
+
       router.push(`/aliado/menu?created=${productId}`);
     } catch (e: any) {
       setSubmitError(e.message || "Error inesperado");

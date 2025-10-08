@@ -21,11 +21,13 @@ function mapRowToDish(row: any): DishData {
   };
 }
 
-export default async function getRealDishesData(params: FetchDishesParams = {}) {
+export default async function getRealDishesData(
+  params: FetchDishesParams = {}
+) {
   const supabase = await createClient();
-  let query = supabase.from("products").select(
-    "id,name,image_url,estimated_time,is_available,sub_category_id"
-  );
+  let query = supabase
+    .from("products")
+    .select("id,name,image_url,estimated_time,is_available,sub_category_id");
 
   // Text search (basic ilike on name)
   if (params.q && typeof params.q === "string" && params.q.trim()) {
@@ -33,7 +35,11 @@ export default async function getRealDishesData(params: FetchDishesParams = {}) 
   }
 
   // Category filter (sub_category_id)
-  if (params.category && typeof params.category === "string" && params.category) {
+  if (
+    params.category &&
+    typeof params.category === "string" &&
+    params.category
+  ) {
     query = query.eq("sub_category_id", params.category);
   }
 
