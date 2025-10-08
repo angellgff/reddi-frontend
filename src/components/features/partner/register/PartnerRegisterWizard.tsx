@@ -272,7 +272,7 @@ export default function PartnerRegisterWizard() {
           data: {
             // Aún podemos pasar metadatos, aunque nuestra RPC no los use directamente.
             // Es bueno para tenerlo en la tabla auth.users.
-            role: "admin",
+            role: "restaurant",
             partner_type: formData.session.category,
           },
         },

@@ -2,6 +2,7 @@ import PartnerAside, {
   NavLink,
 } from "@/src/components/basics/dashboard/DashboardAside";
 import PartnerHeader from "@/src/components/basics/dashboard/DashboardHeader";
+import { getAuthenticatedPartnerProfile } from "@/src/lib/partner/header/data/getData";
 
 const actualURL = "/aliado";
 
@@ -38,15 +39,16 @@ const navigationLinks: NavLink[] = [
   },
 ];
 
-export default function PartnerDashboardLayout({
+export default async function PartnerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const partnerProfile = await getAuthenticatedPartnerProfile();
   return (
     <>
       <PartnerAside navigationLinks={navigationLinks} />
-      <PartnerHeader />
+      <PartnerHeader profile={partnerProfile} />
       <main className="md:ml-[14rem] mt-[86px] bg-[#F0F2F5B8]">{children}</main>
     </>
   );
