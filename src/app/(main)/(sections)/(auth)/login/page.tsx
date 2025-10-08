@@ -190,6 +190,12 @@ export default function Login() {
           </SessionButton>
         );
       })}
+      <SessionButton
+        href="/admin/login"
+        className={`w-full h-14 gap-2 hover:bg-primary hover:border-white md:w-[70%] lg:w-[50%] truncate`}
+      >
+        Administrador
+      </SessionButton>
       <p className="text-center">
         ¿Todavía no tienes una cuenta?{" "}
         <Link

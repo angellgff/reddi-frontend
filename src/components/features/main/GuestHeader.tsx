@@ -22,6 +22,7 @@ const menuLinksData = [
   { label: "Desayuno", href: "/" },
   { label: "Almuerzo", href: "/" },
   { label: "Cena", href: "/" },
+  { label: "login", href: "/login" },
 ];
 
 export default function GuestHeader() {

@@ -7,6 +7,7 @@ import Image from "next/image";
 import Avatar from "@/public/carlosAvatar.svg";
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
+import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { useRouter } from "next/navigation";
 
 const logoFill = "white";
@@ -104,6 +105,15 @@ export default function Header() {
                 Cerrar sesión
               </button>
             </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              aria-label="Cerrar sesión"
+              className="relative"
+              title="Cerrar sesión"
+            >
+              <LogoutHeaderIcon fill="white" />
+            </button>
           </div>
         </div>
       </header>
