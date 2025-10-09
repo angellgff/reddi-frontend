@@ -45,8 +45,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         <Image
           src={imageUrl}
           alt={`Icono de ${name}`}
-          width={imageSize}
-          height={imageSize}
+          width={imageUrl === "/group.svg" ? 48 : imageSize}
+          height={imageUrl === "/group.svg" ? 48 : imageSize}
           className="object-contain"
         />
       </div>

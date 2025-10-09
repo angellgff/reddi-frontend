@@ -90,30 +90,17 @@ export default function Header() {
 
             {/* Lado Derecho: Imagen de repartidor */}
             <div className="flex items-center space-x-4">
-              <div className="relative w-16 h-16 rounded-full overflow-hidden">
+              <div
+                className="relative w-16 h-16 rounded-full overflow-hidden"
+                onClick={handleLogout}
+              >
                 <Image
                   src={Avatar}
                   alt="Foto de perfil de usuario"
                   fill={true}
                 />
               </div>
-              <button
-                onClick={handleLogout}
-                className="px-3 py-2 bg-white bg-opacity-10 hover:bg-opacity-20 rounded-md text-sm"
-                aria-label="Cerrar sesión"
-              >
-                Cerrar sesión
-              </button>
             </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              aria-label="Cerrar sesión"
-              className="relative"
-              title="Cerrar sesión"
-            >
-              <LogoutHeaderIcon fill="white" />
-            </button>
           </div>
         </div>
       </header>

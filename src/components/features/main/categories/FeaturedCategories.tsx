@@ -7,7 +7,7 @@ import CategoryCard from "./CategoryCard";
 // ¡IMPORTANTE! Deberás reemplazar 'imageUrl' con las rutas a tus propias imágenes.
 const categories = [
   {
-    name: "Restaurantes",
+    name: "Restaurant",
     imageUrl: "/burger.svg", // Ruta de ejemplo
     href: "/categorias/restaurantes",
   },
@@ -23,7 +23,7 @@ const categories = [
   },
   {
     name: "Farmacia",
-    imageUrl: "/Pharma.svg", // Ruta de ejemplo
+    imageUrl: "/group.svg", // Ruta de ejemplo
     href: "/categorias/farmacia",
   },
   {
