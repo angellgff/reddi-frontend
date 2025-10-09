@@ -11,7 +11,13 @@ export default function RestaurantList({ restaurants }: RestaurantListProps) {
   return (
     <>
       {restaurants.length === 0 ? (
-        <h2>No hay restaurantes disponibles</h2>
+        <tbody>
+          <tr>
+            <td colSpan={8} className="px-6 py-6 text-center text-sm text-gray-500">
+              No hay restaurantes disponibles
+            </td>
+          </tr>
+        </tbody>
       ) : (
         <tbody className="bg-white divide-y divide-gray-200">
           {restaurants.map((restaurant) => (

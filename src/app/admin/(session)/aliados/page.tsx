@@ -13,7 +13,12 @@ export default async function AdminPartnersPage({
 }: {
   searchParams: SearchParams;
 }) {
-  const totalCount = await getTotalCount();
+  const params = await searchParams;
+  const totalCount = await getTotalCount({
+    q: (params.q as string) || "",
+    type: (params.type as string) || "",
+    state: (params.state as string) || "",
+  });
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       {/* Título */}

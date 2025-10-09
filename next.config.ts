@@ -31,7 +31,15 @@ if (!remotePatterns.some((p) => p.hostname === fallbackHost)) {
 
 const nextConfig: NextConfig = {
   images: {
-    remotePatterns,
+    remotePatterns: [
+      ...remotePatterns,
+      // Allow Google avatars (e.g., OAuth profiles)
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        pathname: "/**",
+      },
+    ],
   },
   experimental: {
     serverActions: {

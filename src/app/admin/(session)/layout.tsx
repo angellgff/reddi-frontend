@@ -2,6 +2,7 @@ import AdminAside, {
   NavLink,
 } from "@/src/components/basics/dashboard/DashboardAside";
 import AdminHeader from "@/src/components/basics/dashboard/DashboardHeader";
+import { getAuthenticatedAdminProfile } from "@/src/lib/admin/header/data/getData";
 
 const actualURL = "/admin";
 
@@ -33,15 +34,16 @@ const navigationLinks: NavLink[] = [
   },
 ];
 
-export default function AdminDashboardLayout({
+export default async function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const adminProfile = await getAuthenticatedAdminProfile();
   return (
     <>
       <AdminAside navigationLinks={navigationLinks} />
-      <AdminHeader />
+      <AdminHeader profile={adminProfile} />
       <main className="md:ml-[14rem] mt-[86px] bg-[#F0F2F5B8]">{children}</main>
     </>
   );

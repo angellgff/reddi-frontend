@@ -15,9 +15,11 @@ export interface ClientShellProps {
   tableBody: React.ReactNode;
 }
 
+// Debe coincidir con DB public.Enums.partner_type
 const businessSelect = [
-  { value: "res", label: "Restaurante" },
-  { value: "caf", label: "Cafetería" },
+  { value: "market", label: "Mercado" },
+  { value: "restaurant", label: "Restaurante" },
+  { value: "liquor_store", label: "Alcohol" },
 ];
 
 const stateSelect = [
@@ -140,10 +142,10 @@ export default function ClientShell({
       <div className="bg-white rounded-lg overflow-hidden mt-6 px-6">
         <div className="py-4 flex justify-between items-center">
           <h1 className="text-lg font-semibold text-gray-800 font-montserrat">
-            Lista de Usuarios
+            Lista de Aliados
           </h1>
           <span className="text-sm text-[#6A6C71] font-roboto">
-            {formattedTotal} usuarios encontrados
+            {formattedTotal} aliados encontrados
           </span>
         </div>
         {/* 3. TABLA DE RESTAURANTES */}
@@ -164,7 +166,9 @@ export default function ClientShell({
         {/* 4. BOTONES DE PAGINACIÓN */}
         <div className="p-4 flex items-center justify-between border-t border-gray-200">
           <p className="text-sm text-gray-700">
-            1 - {ITEMS_PER_PAGE} de {totalPages} Páginas
+            {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalCount)} -
+            {" "}
+            {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} de {totalCount}
           </p>
           <div className="flex items-center gap-2">
             <PaginButtons
