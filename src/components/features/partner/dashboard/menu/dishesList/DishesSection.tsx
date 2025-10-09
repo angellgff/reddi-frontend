@@ -45,6 +45,11 @@ export default function DishesSection({
     type?: "success" | "error" | "info";
   }>({ open: false, msg: "" });
 
+  // Sincroniza el estado local con los datos que vienen del servidor
+  useEffect(() => {
+    setItems(dishes);
+  }, [dishes]);
+
   useEffect(() => {
     // Usamos un timeout para "debounce" la búsqueda y no actualizar la URL en cada tecleo.
     const debounceTimer = setTimeout(() => {

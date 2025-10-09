@@ -37,14 +37,14 @@ export default async function getRealDishesData(
     return [];
   }
 
-  // Buscamos el partner_id asociado al perfil del usuario
-  const { data: profile } = await supabase
-    .from("profiles")
+  // Buscar el partner asociado al usuario (partners.user_id -> partners.id)
+  const { data: partner, error: pErr } = await supabase
+    .from("partners")
     .select("id")
-    .eq("id", user.id)
+    .eq("user_id", user.id)
     .single();
 
-  const partnerId = profile?.id;
+  const partnerId = partner?.id;
 
   if (!partnerId) {
     console.error(
