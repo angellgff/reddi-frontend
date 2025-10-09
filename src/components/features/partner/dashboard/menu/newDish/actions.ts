@@ -508,3 +508,94 @@ export async function updateDishAction(dishId: string, formData: FormData) {
 
   return { success: true, updatedProductId: dishId };
 }
+
+// Eliminar producto (plato) y sus dependencias
+export async function deleteDishAction(dishId: string) {
+  const supabase = await createClient();
+
+  // 1) Autenticación
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("No autenticado");
+
+  // 2) Obtener partner vinculado al usuario
+  const { data: partner, error: pErr } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+  if (pErr || !partner) throw new Error("Partner no encontrado");
+
+  // 3) Traer producto para validar ownership y obtener image_url
+  const { data: productRow, error: fetchErr } = await supabase
+    .from("products")
+    .select("id, partner_id, image_url")
+    .eq("id", dishId)
+    .single();
+  if (fetchErr || !productRow)
+    throw new Error(fetchErr?.message || "Producto no encontrado");
+  if (productRow.partner_id !== partner.id)
+    throw new Error("No autorizado para eliminar este producto");
+
+  // 4) Borrar dependencias: opciones y secciones
+  const { data: oldSections, error: fetchSectionsErr } = await supabase
+    .from("product_sections")
+    .select("id")
+    .eq("product_id", dishId);
+  if (fetchSectionsErr)
+    throw new Error(
+      `Error buscando secciones del producto: ${fetchSectionsErr.message}`
+    );
+
+  const sectionIds = (oldSections || []).map((s: any) => s.id);
+  if (sectionIds.length > 0) {
+    const { error: delOptsErr } = await supabase
+      .from("product_section_options")
+      .delete()
+      .in("section_id", sectionIds);
+    if (delOptsErr)
+      throw new Error(`Error borrando opciones: ${delOptsErr.message}`);
+
+    const { error: delSecsErr } = await supabase
+      .from("product_sections")
+      .delete()
+      .eq("product_id", dishId);
+    if (delSecsErr)
+      throw new Error(`Error borrando secciones: ${delSecsErr.message}`);
+  }
+
+  // 5) Borrar el producto
+  const { error: delProdErr } = await supabase
+    .from("products")
+    .delete()
+    .eq("id", dishId)
+    .eq("partner_id", partner.id);
+  if (delProdErr)
+    throw new Error(`Error borrando producto: ${delProdErr.message}`);
+
+  // 6) Intentar borrar la imagen del storage (best-effort)
+  const imageUrl: string | null = productRow.image_url;
+  if (imageUrl) {
+    try {
+      // Los publicUrl suelen contener "/object/public/<bucket>/<path>"
+      const marker = "/object/public/product-images/";
+      const idx = imageUrl.indexOf(marker);
+      if (idx !== -1) {
+        const storagePath = imageUrl.substring(idx + marker.length);
+        if (storagePath) {
+          await supabase.storage.from("product-images").remove([storagePath]);
+        }
+      }
+    } catch (e) {
+      // No romper por un fallo al borrar imagen
+      console.warn("No se pudo eliminar la imagen del storage:", e);
+    }
+  }
+
+  // 7) Revalidar listado
+  revalidatePath("/aliado/menu");
+
+  return { success: true };
+}

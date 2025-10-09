@@ -11,6 +11,9 @@ import SearchInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import TagsTabs from "@/src/components/features/partner/TagsTabs";
 import SearchPartnerIcon from "@/src/components/icons/SearchPartnerIcon";
+import { deleteDishAction } from "../newDish/actions";
+import ConfirmModal from "@/src/components/basics/ConfirmModal";
+import Toast from "@/src/components/basics/Toast";
 
 type DishesListProps = {
   dishes: DishData[];
@@ -33,6 +36,14 @@ export default function DishesSection({
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || ""
   );
+  const [items, setItems] = useState(dishes);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [toast, setToast] = useState<{
+    open: boolean;
+    msg: string;
+    type?: "success" | "error" | "info";
+  }>({ open: false, msg: "" });
 
   useEffect(() => {
     // Usamos un timeout para "debounce" la búsqueda y no actualizar la URL en cada tecleo.
@@ -63,9 +74,37 @@ export default function DishesSection({
   }, [query, selectedCategory]);
 
   // Estado y manejador para la etiqueta seleccionada
-  const handleDeleteDish = (id: string) => {
-    console.log("Eliminando plato con ID:", id);
-    // Aquí podrías añadir lógica para refrescar los datos si es necesario
+  const handleDeleteDish = async (id: string) => {
+    if (!id) return;
+    setDeletingId(id);
+    setConfirmOpen(true);
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deletingId) return;
+    const id = deletingId;
+    setConfirmOpen(false);
+
+    // Optimistic UI: remove locally first
+    const prev = items;
+    setItems((curr) => curr.filter((d) => d.id !== id));
+
+    try {
+      await deleteDishAction(id);
+      setToast({ open: true, msg: "Plato eliminado", type: "success" });
+      startTransition(() => router.refresh());
+    } catch (e) {
+      console.error("Error eliminando plato:", e);
+      // Revert optimistic change
+      setItems(prev);
+      setToast({
+        open: true,
+        msg: "No se pudo eliminar el plato",
+        type: "error",
+      });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   return (
@@ -121,7 +160,7 @@ export default function DishesSection({
         <div className="flex items-center justify-center h-72">
           <Spinner />
         </div>
-      ) : dishes.length === 0 ? (
+      ) : items.length === 0 ? (
         <div className="flex items-center justify-center h-72">
           <p className="text-gray-500">
             No se encontraron platillos, verifique los filtros.
@@ -129,11 +168,33 @@ export default function DishesSection({
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 mt-4">
-          {dishes.map((dish) => (
+          {items.map((dish) => (
             <DishItem key={dish.id} dish={dish} onDelete={handleDeleteDish} />
           ))}
         </div>
       )}
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Eliminar plato"
+        description="Esta acción no se puede deshacer. ¿Deseas continuar?"
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={onConfirmDelete}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setDeletingId(null);
+        }}
+      />
+
+      {/* Toast notifications */}
+      <Toast
+        open={toast.open}
+        message={toast.msg}
+        type={toast.type}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
     </>
   );
 }
