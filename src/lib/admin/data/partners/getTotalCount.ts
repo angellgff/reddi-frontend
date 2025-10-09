@@ -13,10 +13,12 @@ export default async function getTotalCount(params: Params = {}) {
   // Construimos un query al view/table partners con filtros equivalentes.
   // Nota: usamos partners base; asumiendo que el estado open/closed se deriva de is_approved o similar.
   // Si get_partners aplica una lógica distinta para "state", se recomienda crear un RPC count paralelo.
-  let query = supabase.from("partners").select("id, name, address, user_rnc, partner_type, image_url", {
-    count: "exact",
-    head: true,
-  });
+  let query = supabase
+    .from("partners")
+    .select("id, name, address, user_rnc, partner_type, image_url", {
+      count: "exact",
+      head: true,
+    });
 
   if (type) query = query.eq("partner_type", type);
 

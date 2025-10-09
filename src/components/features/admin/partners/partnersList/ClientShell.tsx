@@ -166,8 +166,7 @@ export default function ClientShell({
         {/* 4. BOTONES DE PAGINACIÓN */}
         <div className="p-4 flex items-center justify-between border-t border-gray-200">
           <p className="text-sm text-gray-700">
-            {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalCount)} -
-            {" "}
+            {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalCount)} -{" "}
             {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} de {totalCount}
           </p>
           <div className="flex items-center gap-2">
