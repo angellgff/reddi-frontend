@@ -247,53 +247,62 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Autenticación requerida.");
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  // CONSISTENCIA: Usar la misma lógica para obtener el ID del partner que en la creación
+  const { data: partner, error: pErr } = await supabase
+    .from("partners")
     .select("id")
-    .eq("id", user.id)
+    .eq("user_id", user.id)
     .single();
-  if (!profile?.id) throw new Error("Usuario no asociado a un partner.");
 
-  // 1. Extraer y parsear datos del FormData
-  const rawData = {
-    name: formData.get("name"),
-    basePrice: formData.get("basePrice"),
-    description: formData.get("description"),
-    subCategoryId: formData.get("subCategoryId"),
-    // ...etc
-  };
+  console.log("Usuario autenticado (user.id):", user.id);
+  if (pErr) console.error("Error al obtener el partner:", pErr);
+  console.log("Partner obtenido (partner):", partner);
 
-  // 2. Validación (opcional pero recomendada)
-  // const validation = ProductSchema.safeParse(rawData);
-  // if (!validation.success) {
-  //   throw new Error("Datos inválidos.");
-  // }
+  if (pErr || !partner)
+    throw new Error("Partner no encontrado para este usuario.");
 
+  // Extraer y parsear datos del FormData (simplificado para el ejemplo)
   const updatePayload: any = {
-    name: rawData.name,
-    base_price: Number(rawData.basePrice),
-    description: rawData.description,
-    sub_category_id: rawData.subCategoryId,
-    //... mapea el resto de los campos a snake_case
+    name: formData.get("name"),
+    base_price: Number(formData.get("basePrice")),
+    description: formData.get("description"),
+    sub_category_id: formData.get("subCategoryId"),
+    // ... mapea el resto de los campos ...
   };
 
-  // 3. Manejo de la imagen
+  // 3. Manejo de la imagen (con lógica unificada y corrección)
   const imageFile = formData.get("image") as File | null;
   if (imageFile && imageFile.size > 0) {
-    const filePath = `${profile.id}/${dishId}-${imageFile.name}`;
+    // MEJORA: Usar la misma lógica de nombre de archivo único que en la creación
+    const fileName = generateUniqueFileName(imageFile.name);
+    // MEJORA: Usar la misma estructura de carpetas (partner.id o 'public')
+    // Usaré 'public/' para ser consistente con tu función de creación.
+    const filePath = `${partner.id}/${fileName}`;
+
+    console.log("Intentando subir archivo a la ruta:", filePath);
+
+    // *** LA CORRECCIÓN PRINCIPAL ESTÁ AQUÍ ***
     const { error: uploadError } = await supabase.storage
-      .from("product_images")
-      .upload(filePath, imageFile, { upsert: true }); // upsert: true para sobreescribir si ya existe
+      .from("product-images") // Corregido: guion en lugar de guion bajo
+      .upload(filePath, imageFile, { upsert: true }); // upsert es útil si necesitas sobreescribir
 
     if (uploadError) {
-      console.error("Error subiendo imagen:", uploadError);
+      // ESTA LÍNEA ES LA MÁS IMPORTANTE PARA EL DEBUG
+      console.error(
+        "DETAILED UPLOAD ERROR:",
+        JSON.stringify(uploadError, null, 2)
+      );
       throw new Error("No se pudo actualizar la imagen del producto.");
     }
 
     const {
       data: { publicUrl },
-    } = supabase.storage.from("product_images").getPublicUrl(filePath);
+    } = supabase.storage.from("product-images").getPublicUrl(filePath);
+
     updatePayload.image_url = publicUrl;
+
+    // OPCIONAL: Deberías borrar la imagen antigua del storage para no acumular archivos huérfanos.
+    // Esto requiere obtener la URL de la imagen antigua de la base de datos antes de la actualización.
   }
 
   // 4. Actualizar el producto principal
@@ -301,7 +310,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     .from("products")
     .update(updatePayload)
     .eq("id", dishId)
-    .eq("partner_id", profile.id); // ¡Filtro de seguridad!
+    .eq("partner_id", partner.id); // ¡Filtro de seguridad!
 
   if (updateError) {
     console.error("Error actualizando producto:", updateError);
