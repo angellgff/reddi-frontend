@@ -4,7 +4,7 @@ import {
   SectionExtraSelection,
   ProductExtra,
 } from "@/src/lib/partner/productTypes";
-import { useState } from "react";
+// Quitamos useState porque no se usa
 import BasicInput from "@/src/components/basics/BasicInput";
 import Checkbox from "@/src/components/basics/CheckBox";
 import FooterButtons from "@/src/components/basics/FooterButtons";
@@ -35,6 +35,35 @@ export default function NewDishStep2({
   onSaveAndExit,
   isSubmitting,
 }: NewDishStep2Props) {
+  // --- LOGS DE DEPURACIÓN PRINCIPALES ---
+  console.groupCollapsed(`--- [NewDishStep2] Render Ciclo ---`);
+  console.log("Timestamp:", new Date().toISOString());
+  console.log("Props recibidos:", {
+    sections,
+    extrasCatalog,
+    errors,
+    isSubmitting,
+  });
+
+  if (!extrasCatalog || extrasCatalog.length === 0) {
+    console.warn(
+      "⚠️ ADVERTENCIA: El prop 'extrasCatalog' está vacío o no definido. Los selectores de extras no tendrán opciones."
+    );
+  } else {
+    console.log(
+      `✅ Catálogo de extras recibido con ${extrasCatalog.length} elementos.`
+    );
+  }
+
+  if (!sections || sections.length === 0) {
+    console.info(
+      "ℹ️ El prop 'sections' está vacío. Se mostrará el mensaje 'No hay secciones'."
+    );
+  }
+
+  console.groupEnd();
+  // --- FIN DE LOGS DE DEPURACIÓN ---
+
   const addSection = () => {
     const newSection: ProductSectionForm = {
       clientId: crypto.randomUUID(),
@@ -127,6 +156,28 @@ export default function NewDishStep2({
               const usedExtraIds = new Set(
                 section.options.filter((o) => o.extraId).map((o) => o.extraId)
               );
+
+              // --- LOGS DENTRO DEL MAP ---
+              console.log(
+                `-> Renderizando sección "${section.name || "(sin nombre)"}"`,
+                { sectionData: section, usedExtraIds: Array.from(usedExtraIds) }
+              );
+
+              const dropdownOptions = [
+                {
+                  value: "__create__",
+                  label: "➕ Crear nuevo extra",
+                },
+                ...extrasCatalog.map((ex) => ({
+                  value: ex.id,
+                  label: `${ex.name} (def: $${ex.defaultPrice})`,
+                  disabled:
+                    usedExtraIds.has(ex.id) &&
+                    !section.options.some((o) => o.extraId === ex.id),
+                })),
+              ];
+              // --- FIN LOGS DENTRO DEL MAP ---
+
               return (
                 <div
                   key={section.clientId}
@@ -185,19 +236,7 @@ export default function NewDishStep2({
                             label="Extra"
                             placeholder="Seleccione extra"
                             value={opt.extraId || ""}
-                            options={[
-                              {
-                                value: "__create__",
-                                label: "➕ Crear nuevo extra",
-                              },
-                              ...extrasCatalog.map((ex) => ({
-                                value: ex.id,
-                                label: `${ex.name} (def: $${ex.defaultPrice})`,
-                                disabled:
-                                  usedExtraIds.has(ex.id) &&
-                                  ex.id !== opt.extraId,
-                              })),
-                            ]}
+                            options={dropdownOptions} // Usamos la variable con logs
                             onChange={(e) => {
                               if (e.target.value === "__create__") {
                                 onRequestCreateExtra(

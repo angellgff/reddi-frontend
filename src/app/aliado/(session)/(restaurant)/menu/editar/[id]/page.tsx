@@ -14,7 +14,7 @@ export default async function EditDishPage({
 }: {
   params: { id: string };
 }) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     // 1. Obtener los datos del producto a editar y los datos generales del partner

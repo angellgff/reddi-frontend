@@ -241,96 +241,270 @@ export async function createExtraAction({
 }
 
 export async function updateDishAction(dishId: string, formData: FormData) {
+  console.group(
+    `\n\n--- 🚀 INICIO DE ACCIÓN: updateDishAction para plato ID: ${dishId} ---`
+  );
+  console.log(`Timestamp: ${new Date().toISOString()}`);
+
   const supabase = await createClient();
+
+  // 1. AUTENTICACIÓN Y OBTENCIÓN DE DATOS
+  console.group("1. Autenticación y obtención de Partner ID");
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("Autenticación requerida.");
+  if (!user) {
+    console.error("❌ ERROR CRÍTICO: No hay usuario autenticado.");
+    console.groupEnd();
+    console.groupEnd();
+    throw new Error("Autenticación requerida.");
+  }
+  console.log(`Usuario autenticado: ${user.id}`);
 
-  // CONSISTENCIA: Usar la misma lógica para obtener el ID del partner que en la creación
   const { data: partner, error: pErr } = await supabase
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
     .single();
 
-  console.log("Usuario autenticado (user.id):", user.id);
-  if (pErr) console.error("Error al obtener el partner:", pErr);
-  console.log("Partner obtenido (partner):", partner);
-
-  if (pErr || !partner)
+  if (pErr || !partner) {
+    console.error(
+      "❌ ERROR CRÍTICO: No se pudo encontrar un partner para este usuario.",
+      { userId: user.id, dbError: pErr }
+    );
+    console.groupEnd();
+    console.groupEnd();
     throw new Error("Partner no encontrado para este usuario.");
+  }
+  console.log(`Partner ID obtenido: ${partner.id}`);
+  console.groupEnd();
 
-  // Extraer y parsear datos del FormData (simplificado para el ejemplo)
-  const updatePayload: any = {
-    name: formData.get("name"),
-    base_price: Number(formData.get("basePrice")),
-    description: formData.get("description"),
-    sub_category_id: formData.get("subCategoryId"),
-    // ... mapea el resto de los campos ...
+  // 2. PAYLOAD DEL PRODUCTO PRINCIPAL
+  console.group("2. Preparando payload para actualizar el producto principal");
+  const updatePayload: { [key: string]: any } = {
+    name: formData.get("name") as string,
+    base_price: parseFloat(formData.get("basePrice") as string),
+    description: formData.get("description") as string,
+    sub_category_id: formData.get("subCategoryId") as string,
+    unit: formData.get("unit") as string,
+    estimated_time: formData.get("estimatedTimeRange") as string,
+    is_available: formData.get("isAvailable") === "true",
+    tax_included: formData.get("taxIncluded") === "true",
+    previous_price: formData.get("previousPrice")
+      ? parseFloat(formData.get("previousPrice") as string)
+      : null,
   };
+  console.log("Payload construido (sin imagen):", updatePayload);
+  console.groupEnd();
 
-  // 3. Manejo de la imagen (con lógica unificada y corrección)
+  // 3. MANEJO DE IMAGEN
+  console.group("3. Manejando subida de nueva imagen (si existe)");
   const imageFile = formData.get("image") as File | null;
   if (imageFile && imageFile.size > 0) {
-    // MEJORA: Usar la misma lógica de nombre de archivo único que en la creación
+    console.log(
+      `Nueva imagen detectada: ${imageFile.name}, tamaño: ${imageFile.size} bytes.`
+    );
     const fileName = generateUniqueFileName(imageFile.name);
-    // MEJORA: Usar la misma estructura de carpetas (partner.id o 'public')
-    // Usaré 'public/' para ser consistente con tu función de creación.
     const filePath = `${partner.id}/${fileName}`;
+    console.log(`Intentando subir a la ruta: ${filePath}`);
 
-    console.log("Intentando subir archivo a la ruta:", filePath);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(filePath, imageFile, { upsert: true });
 
-    // *** LA CORRECCIÓN PRINCIPAL ESTÁ AQUÍ ***
-    const { error: uploadError } = await supabase.storage
-      .from("product-images") // Corregido: guion en lugar de guion bajo
-      .upload(filePath, imageFile, { upsert: true }); // upsert es útil si necesitas sobreescribir
-
+    console.log("Respuesta de Supabase Storage:", { uploadData, uploadError });
     if (uploadError) {
-      // ESTA LÍNEA ES LA MÁS IMPORTANTE PARA EL DEBUG
       console.error(
-        "DETAILED UPLOAD ERROR:",
-        JSON.stringify(uploadError, null, 2)
+        "❌ ERROR CRÍTICO: Falló la subida de la imagen.",
+        uploadError
       );
+      console.groupEnd();
+      console.groupEnd();
       throw new Error("No se pudo actualizar la imagen del producto.");
     }
 
     const {
       data: { publicUrl },
     } = supabase.storage.from("product-images").getPublicUrl(filePath);
-
     updatePayload.image_url = publicUrl;
-
-    // OPCIONAL: Deberías borrar la imagen antigua del storage para no acumular archivos huérfanos.
-    // Esto requiere obtener la URL de la imagen antigua de la base de datos antes de la actualización.
+    console.log(`Imagen subida con éxito. URL pública: ${publicUrl}`);
+  } else {
+    console.log("No se proporcionó una nueva imagen. Se omite este paso.");
   }
+  console.groupEnd();
 
-  // 4. Actualizar el producto principal
+  // 4. ACTUALIZACIÓN DE PRODUCTO PRINCIPAL
+  console.group("4. Ejecutando actualización en la tabla 'products'");
+  console.log(
+    "Enviando el siguiente payload a la tabla 'products':",
+    updatePayload
+  );
   const { error: updateError } = await supabase
     .from("products")
     .update(updatePayload)
     .eq("id", dishId)
-    .eq("partner_id", partner.id); // ¡Filtro de seguridad!
+    .eq("partner_id", partner.id);
 
+  console.log(
+    "Respuesta de la actualización de 'products'. Error:",
+    updateError
+  );
   if (updateError) {
-    console.error("Error actualizando producto:", updateError);
+    console.error(
+      "❌ ERROR CRÍTICO: Falló la actualización del producto principal.",
+      updateError
+    );
+    console.groupEnd();
+    console.groupEnd();
     throw new Error("No se pudo guardar los cambios del producto.");
   }
+  console.log("✅ Producto principal actualizado con éxito.");
+  console.groupEnd();
 
-  // 5. Actualizar secciones y opciones (estrategia: borrar y recrear)
-  // ¡Esta es la parte más compleja!
+  // 5. ACTUALIZACIÓN DE SECCIONES Y OPCIONES
+  console.group("5. Actualizando Secciones y Opciones (Borrar y Recrear)");
+  try {
+    const sectionsRaw = formData.get("sections") as string;
+    console.log("Datos de secciones recibidos (raw string):", sectionsRaw);
+    const sections: ProductSectionForm[] = JSON.parse(sectionsRaw);
+    console.log(
+      `JSON parseado con éxito. ${sections.length} secciones para procesar.`
+    );
 
-  // 5.1 Borrar opciones y secciones existentes para este producto
-  // await supabase.from("product_options").delete().eq("product_id", dishId);
-  // await supabase.from("product_sections").delete().eq("product_id", dishId);
+    // 5.1. PROCESO DE BORRADO
+    console.group("5.1. Borrando datos antiguos");
+    const { data: oldSections, error: fetchOldSectionsError } = await supabase
+      .from("product_sections")
+      .select("id")
+      .eq("product_id", dishId);
 
-  // 5.2 Re-insertar las nuevas secciones y opciones desde el formData
-  // const sections = JSON.parse(formData.get("sections") as string);
-  // ... Lógica para iterar y hacer los inserts...
+    console.log(
+      "Respuesta de la búsqueda de secciones antiguas. Error:",
+      fetchOldSectionsError
+    );
+    if (fetchOldSectionsError)
+      throw new Error(
+        `Error buscando secciones antiguas: ${fetchOldSectionsError.message}`
+      );
 
-  // 6. Revalidar la caché para que los cambios se vean al instante
-  revalidatePath("/aliado/menu");
-  revalidatePath(`/aliado/menu/editar/${dishId}`);
+    if (oldSections && oldSections.length > 0) {
+      const oldSectionIds = oldSections.map((s) => s.id);
+      console.log(
+        `Se encontraron ${oldSections.length} secciones antiguas para borrar. IDs:`,
+        oldSectionIds
+      );
+
+      console.log("Intentando borrar opciones antiguas...");
+      const { error: deleteOptErr } = await supabase
+        .from("product_section_options")
+        .delete()
+        .in("section_id", oldSectionIds);
+      console.log("Respuesta del borrado de opciones. Error:", deleteOptErr);
+      if (deleteOptErr)
+        throw new Error(
+          `Error borrando opciones antiguas: ${deleteOptErr.message}`
+        );
+      console.log("✅ Opciones antiguas borradas.");
+
+      console.log("Intentando borrar secciones antiguas...");
+      const { error: deleteSecErr } = await supabase
+        .from("product_sections")
+        .delete()
+        .eq("product_id", dishId);
+      console.log("Respuesta del borrado de secciones. Error:", deleteSecErr);
+      if (deleteSecErr)
+        throw new Error(
+          `Error borrando secciones antiguas: ${deleteSecErr.message}`
+        );
+      console.log("✅ Secciones antiguas borradas.");
+    } else {
+      console.log("No se encontraron secciones antiguas para borrar.");
+    }
+    console.groupEnd();
+
+    // 5.2. PROCESO DE RE-INSERCIÓN
+    console.group("5.2. Re-insertando nuevos datos");
+    if (sections && sections.length > 0) {
+      const sectionsInsert = sections.map((s, index) => ({
+        name: s.name,
+        is_required: s.isRequired,
+        display_order: index,
+        product_id: dishId,
+      }));
+      console.log("Payload para insertar nuevas secciones:", sectionsInsert);
+
+      const { data: newSectionsRows, error: secErr } = await supabase
+        .from("product_sections")
+        .insert(sectionsInsert)
+        .select("id, display_order");
+
+      console.log("Respuesta de la inserción de secciones. Error:", secErr);
+      console.log("Filas de secciones insertadas:", newSectionsRows);
+      if (secErr)
+        throw new Error(`Error al re-insertar secciones: ${secErr.message}`);
+      if (!newSectionsRows)
+        throw new Error("La inserción de secciones no devolvió filas.");
+
+      const orderToId = new Map<number, string>();
+      newSectionsRows.forEach((r) => orderToId.set(r.display_order, r.id));
+      console.log("Mapa de order -> new_id creado:", orderToId);
+
+      const optionsFlatten = sections.flatMap((s, sectionIndex) =>
+        s.options
+          .filter((o) => o.extraId)
+          .map((o, optionIndex) => ({
+            section_id: orderToId.get(sectionIndex)!,
+            extra_id: o.extraId!,
+            override_price:
+              o.overridePrice && o.overridePrice.trim() !== ""
+                ? parseFloat(o.overridePrice)
+                : null,
+            display_order: optionIndex,
+          }))
+      );
+
+      if (optionsFlatten.length > 0) {
+        console.log("Payload para insertar nuevas opciones:", optionsFlatten);
+        const { error: optErr } = await supabase
+          .from("product_section_options")
+          .insert(optionsFlatten);
+        console.log("Respuesta de la inserción de opciones. Error:", optErr);
+        if (optErr)
+          throw new Error(`Error al re-insertar opciones: ${optErr.message}`);
+        console.log("✅ Opciones nuevas insertadas.");
+      } else {
+        console.log("No había nuevas opciones para insertar.");
+      }
+    } else {
+      console.log("No hay nuevas secciones para insertar.");
+    }
+    console.groupEnd();
+  } catch (error: any) {
+    console.error(
+      "❌ ERROR CRÍTICO: Falló el bloque de actualización de secciones/opciones.",
+      error
+    );
+    console.groupEnd();
+    console.groupEnd();
+    throw new Error(
+      `No se pudieron actualizar las secciones y opciones: ${error.message}`
+    );
+  }
+  console.groupEnd();
+
+  // 6. FINALIZACIÓN Y REVALIDACIÓN
+  console.group("6. Finalización");
+  console.log(
+    "Todas las operaciones de base de datos se han ejecutado. Intentando revalidar paths..."
+  );
+  // Descomenta estas líneas una vez que el problema principal esté resuelto.
+  // revalidatePath("/aliado/menu");
+  // revalidatePath(`/aliado/menu/editar/${dishId}`);
+  console.log("Revalidación (actualmente comentada) omitida.");
+
+  console.log("✅✅✅ ACCIÓN COMPLETADA: Devolviendo objeto de éxito.");
+  console.groupEnd();
+  console.groupEnd(); // Cierra el grupo principal de la acción
 
   return { success: true, updatedProductId: dishId };
 }

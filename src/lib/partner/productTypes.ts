@@ -18,19 +18,22 @@ export interface ProductSubCategory {
 // Selección de un extra (no crea extra, lo referencia)
 export interface SectionExtraSelection {
   clientId: string; // id temporal para React
+  id?: string; // <-- AÑADIDO: ID opcional de la base de datos (de la tabla product_section_options)
   extraId: string | null; // id de product_extras
   overridePrice: string; // string para el input, se parsea a number|null en server
 }
 
 export interface ProductSectionForm {
   clientId: string;
+  id?: string; // <-- AÑADIDO: ID opcional de la base de datos (de la tabla product_sections)
   name: string;
   isRequired: boolean;
   options: SectionExtraSelection[];
 }
 
 export interface CreateProductFormState {
-  image: File | null; // imagen principal temporal (no se envía directo)
+  // CORRECCIÓN: 'image' puede ser también la URL del producto existente
+  image: File | string | null;
   name: string;
   basePrice: string;
   previousPrice: string;
