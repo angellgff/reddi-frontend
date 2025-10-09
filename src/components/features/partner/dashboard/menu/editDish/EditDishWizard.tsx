@@ -1,143 +1,225 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { isSomeFieldsMissing } from "@/src/lib/partner/utils";
 import NewDishStep1 from "../newDish/NewDishStep1";
 import NewDishStep2 from "../newDish/NewDishStep2";
-import PreviewPage from "../newDish/PreviewPage";
-import { IDishFormState } from "../newDish/NewDishWizard";
-
-export type dishOption = {
-  id: string;
-  name: string;
-  extraPrice: string;
-  image: File | null;
-};
-
-export type dishSection = {
-  id: string;
-  name: string;
-  isRequired: boolean;
-  options: dishOption[];
-};
-
-const requiredFieldsStep1: (keyof IDishFormState)[] = [
-  "image",
-  "dishName",
-  "basePrice",
-  "unit",
-  "estimatedTime",
-  "description",
-  "category",
-];
+import PreviewPageFinal from "../newDish/PreviewPageFinal";
+import {
+  CreateProductFormState,
+  ProductSubCategory,
+  ProductExtra,
+} from "@/src/lib/partner/productTypes";
+import { validateStep1, validateStep2 } from "@/src/lib/partner/productUtils";
+import { updateDishAction } from "../newDish/actions";
+import CreateCategoryModal from "../newDish/CreateCategoryModal";
+import { CreateExtraModal } from "../newDish/CreateExtraModal";
 
 interface EditDishWizardProps {
-  id: string;
-  data: IDishFormState;
+  dishId: string;
+  initialDishData: CreateProductFormState;
+  initialSubCategories: ProductSubCategory[];
+  extrasCatalog: ProductExtra[];
 }
 
-export default function EditDishWizard({ id, data }: EditDishWizardProps) {
-  const actualUrl = `/aliado/menu/editar/${id}`;
+export default function EditDishWizard({
+  dishId,
+  initialDishData,
+  initialSubCategories,
+  extrasCatalog: initialExtrasCatalog,
+}: EditDishWizardProps) {
+  const basePath = `/aliado/menu/editar/${dishId}`;
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentStep = searchParams.get("step") || "1";
 
-  const [formData, setFormData] = useState<IDishFormState>(data);
+  const [formData, setFormData] =
+    useState<CreateProductFormState>(initialDishData);
+  const [subCategories, setSubCategories] =
+    useState<ProductSubCategory[]>(initialSubCategories);
+  const [extras, setExtras] = useState<ProductExtra[]>(initialExtrasCatalog);
 
-  // Maneja los cambios en NewDishStep2
-  const handleSectionsChange = (newSections: dishSection[]) => {
-    setFormData((prev) => ({
-      ...prev,
-      dishSections: newSections,
-    }));
+  const [errorsStep1, setErrorsStep1] = useState<Record<string, string>>({});
+  const [errorsStep2, setErrorsStep2] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showExtraModal, setShowExtraModal] = useState(false);
+  const [pendingExtraTarget, setPendingExtraTarget] = useState<{
+    sectionId: string;
+    optionId: string;
+  } | null>(null);
+
+  const handleSectionsChange = (
+    newSections: CreateProductFormState["sections"]
+  ) => {
+    setFormData((prev) => ({ ...prev, sections: newSections }));
   };
 
-  // Actualiza cualquier campo del formulario
-  const updateFormData = (newData: Partial<IDishFormState>) => {
-    setFormData((prev) => ({
-      ...prev,
-      ...newData,
-    }));
+  const updateFormData = (newData: Partial<CreateProductFormState>) => {
+    setFormData((prev) => ({ ...prev, ...newData }));
   };
 
-  // Función para el botón siguiente en el Step1
   const handleNextStep1 = () => {
-    router.push(`${actualUrl}?step=2`);
+    const issues = validateStep1(formData);
+    setErrorsStep1(
+      issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+    );
+    if (issues.length === 0) {
+      router.push(`${basePath}?step=2`);
+    }
   };
 
   const handleNextStep2 = () => {
-    // Esta función será un action para enviar el formulario, se hará en un server component que verificará
-    // todos los datos y después los enviará al backend o avisará al usuario que algo está mal.
-    window.alert(
-      "No implementado aún, buscar handleNextStep2 en NewDishWizard.tsx"
+    const issues = validateStep2(formData);
+    setErrorsStep2(
+      issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
     );
+    if (issues.length === 0) {
+      router.push(`${basePath}?step=preview`);
+    }
   };
 
-  // Efecto para validar el paso actual y los campos requeridos
   useEffect(() => {
-    const validSteps = ["1", "2", "preview"];
-    const requiredFieldsStep1: (keyof IDishFormState)[] = [
-      "image",
-      "dishName",
-      "basePrice",
-      "unit",
-      "estimatedTime",
-      "description",
-      "category",
-    ];
+    if (currentStep !== "1" && validateStep1(formData).length > 0) {
+      router.replace(`${basePath}?step=1`);
+    }
+  }, [currentStep, formData, router, basePath]);
 
-    // Verifica que se esté en un paso válido
-    if (!validSteps.includes(currentStep || "")) {
-      router.replace(`${actualUrl}?step=1`);
+  const handleSubmitAll = useCallback(async () => {
+    setSubmitError(null);
+    const s1 = validateStep1(formData);
+    const s2 = validateStep2(formData);
+    if (s1.length || s2.length) {
+      setErrorsStep1(
+        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      );
+      setErrorsStep2(
+        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      );
+      router.push(`${basePath}?step=1`);
       return;
     }
-    // Si se intenta acceder al paso 2 o a la vista previa sin haber completado el paso 1 redirige al paso 1
-    if (
-      (currentStep === "2" || currentStep === "preview") &&
-      isSomeFieldsMissing(requiredFieldsStep1, formData)
-    ) {
-      router.replace(`${actualUrl}?step=1`);
-      return;
+    try {
+      setIsSubmitting(true);
+      const data = new FormData();
+      // Llenar FormData (exactamente como en NewDishWizard)
+      data.append("name", formData.name);
+      data.append("basePrice", formData.basePrice);
+      // ... (añade todos los demás campos)
+      data.append("description", formData.description);
+      data.append("subCategoryId", formData.subCategoryId || "");
+      data.append("unit", formData.unit);
+      data.append("estimatedTimeRange", formData.estimatedTimeRange);
+      if (formData.previousPrice)
+        data.append("previousPrice", formData.previousPrice);
+      if (formData.discountPercent)
+        data.append("discountPercent", formData.discountPercent);
+      data.append("isAvailable", String(formData.isAvailable));
+      data.append("taxIncluded", String(formData.taxIncluded));
+      if (formData.image instanceof File) {
+        data.append("image", formData.image);
+      }
+      data.append("sections", JSON.stringify(formData.sections));
+
+      // Llamar a la server action de ACTUALIZACIÓN
+      await updateDishAction(dishId, data);
+      router.push(`/aliado/menu?updated=${dishId}`);
+    } catch (e: any) {
+      setSubmitError(e.message || "Error inesperado al actualizar.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [currentStep, router, formData, actualUrl]);
+  }, [formData, router, dishId, basePath]);
 
-  // Guardias para renderizar el paso correcto o nada
-  if (!["1", "2", "preview"].includes(currentStep || "")) {
-    return null;
-  }
-
-  if (
-    (currentStep === "2" || currentStep === "preview") &&
-    isSomeFieldsMissing(requiredFieldsStep1, formData)
-  ) {
-    return null;
-  }
-
+  // Renderizado condicional idéntico a NewDishWizard
   switch (currentStep) {
     case "1":
       return (
-        <NewDishStep1
-          onPreview={() => router.push(`${actualUrl}?step=preview`)}
-          onGoBack={() => router.push("/aliado/menu")}
-          formData={formData}
-          requiredFields={requiredFieldsStep1}
-          updateFormData={updateFormData}
-          onNextStep={handleNextStep1}
-        />
+        <>
+          <NewDishStep1
+            onPreview={() => router.push(`${basePath}?step=preview`)}
+            onGoBack={() => router.push("/aliado/menu")}
+            formData={formData}
+            updateFormData={updateFormData}
+            onNextStep={handleNextStep1}
+            subCategories={subCategories}
+            errors={errorsStep1}
+            openCreateCategoryModal={() => setShowCategoryModal(true)}
+            onSaveAndExit={handleSubmitAll} // Reutilizamos la misma lógica
+            isSubmitting={isSubmitting}
+          />
+          <CreateCategoryModal
+            isOpen={showCategoryModal}
+            onClose={() => setShowCategoryModal(false)}
+            onCreated={(sc) => {
+              setSubCategories((prev) => [...prev, sc]);
+              setFormData((prev) => ({ ...prev, subCategoryId: sc.id }));
+            }}
+          />
+        </>
       );
     case "2":
       return (
-        <NewDishStep2
-          onPreview={() => router.push(`${actualUrl}?step=preview`)}
-          onGoBack={() => router.push(`${actualUrl}?step=1`)}
-          sections={formData.dishSections}
-          onSectionsChange={handleSectionsChange}
-          onNextStep={handleNextStep2}
-        />
+        <>
+          <NewDishStep2
+            onPreview={() => router.push(`${basePath}?step=preview`)}
+            onGoBack={() => router.push(`${basePath}?step=1`)}
+            sections={formData.sections}
+            onSectionsChange={handleSectionsChange}
+            onNextStep={handleNextStep2}
+            extrasCatalog={extras}
+            errors={errorsStep2}
+            onRequestCreateExtra={(sectionId, optionId) => {
+              setPendingExtraTarget({ sectionId, optionId });
+              setShowExtraModal(true);
+            }}
+            onSaveAndExit={handleSubmitAll}
+            isSubmitting={isSubmitting}
+          />
+          <CreateExtraModal
+            isOpen={showExtraModal}
+            onClose={() => {
+              setShowExtraModal(false);
+              setPendingExtraTarget(null);
+            }}
+            onCreated={(extra: ProductExtra) => {
+              setExtras((prev) => [...prev, extra]);
+              if (pendingExtraTarget) {
+                setFormData((prev) => ({
+                  ...prev,
+                  sections: prev.sections.map((sec) =>
+                    sec.clientId === pendingExtraTarget.sectionId
+                      ? {
+                          ...sec,
+                          options: sec.options.map((opt) =>
+                            opt.clientId === pendingExtraTarget.optionId
+                              ? { ...opt, extraId: extra.id }
+                              : opt
+                          ),
+                        }
+                      : sec
+                  ),
+                }));
+              }
+              setPendingExtraTarget(null);
+              setShowExtraModal(false);
+            }}
+          />
+        </>
       );
     case "preview":
-      return <PreviewPage formData={formData} />;
+      return (
+        <PreviewPageFinal
+          formData={formData}
+          onSubmitAll={handleSubmitAll}
+          submitting={isSubmitting}
+          submitError={submitError}
+          extrasCatalog={extras}
+          subCategories={subCategories}
+        />
+      );
     default:
       return null;
   }

@@ -177,6 +177,8 @@ export default function NewDishStep1({
     onPreview();
   };
 
+  console.log(formData);
+
   return (
     <>
       <h2 className="text-lg text-gray-900 mb-4 font-inter">

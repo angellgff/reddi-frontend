@@ -239,3 +239,90 @@ export async function createExtraAction({
     partnerId: data.partner_id,
   };
 }
+
+export async function updateDishAction(dishId: string, formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Autenticación requerida.");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("partner_id")
+    .eq("id", user.id)
+    .single();
+  if (!profile?.partner_id)
+    throw new Error("Usuario no asociado a un partner.");
+
+  // 1. Extraer y parsear datos del FormData
+  const rawData = {
+    name: formData.get("name"),
+    basePrice: formData.get("basePrice"),
+    description: formData.get("description"),
+    subCategoryId: formData.get("subCategoryId"),
+    // ...etc
+  };
+
+  // 2. Validación (opcional pero recomendada)
+  // const validation = ProductSchema.safeParse(rawData);
+  // if (!validation.success) {
+  //   throw new Error("Datos inválidos.");
+  // }
+
+  const updatePayload: any = {
+    name: rawData.name,
+    base_price: Number(rawData.basePrice),
+    description: rawData.description,
+    sub_category_id: rawData.subCategoryId,
+    //... mapea el resto de los campos a snake_case
+  };
+
+  // 3. Manejo de la imagen
+  const imageFile = formData.get("image") as File | null;
+  if (imageFile && imageFile.size > 0) {
+    const filePath = `${profile.partner_id}/${dishId}-${imageFile.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from("product_images")
+      .upload(filePath, imageFile, { upsert: true }); // upsert: true para sobreescribir si ya existe
+
+    if (uploadError) {
+      console.error("Error subiendo imagen:", uploadError);
+      throw new Error("No se pudo actualizar la imagen del producto.");
+    }
+
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("product_images").getPublicUrl(filePath);
+    updatePayload.image_url = publicUrl;
+  }
+
+  // 4. Actualizar el producto principal
+  const { error: updateError } = await supabase
+    .from("products")
+    .update(updatePayload)
+    .eq("id", dishId)
+    .eq("partner_id", profile.partner_id); // ¡Filtro de seguridad!
+
+  if (updateError) {
+    console.error("Error actualizando producto:", updateError);
+    throw new Error("No se pudo guardar los cambios del producto.");
+  }
+
+  // 5. Actualizar secciones y opciones (estrategia: borrar y recrear)
+  // ¡Esta es la parte más compleja!
+
+  // 5.1 Borrar opciones y secciones existentes para este producto
+  // await supabase.from("product_options").delete().eq("product_id", dishId);
+  // await supabase.from("product_sections").delete().eq("product_id", dishId);
+
+  // 5.2 Re-insertar las nuevas secciones y opciones desde el formData
+  // const sections = JSON.parse(formData.get("sections") as string);
+  // ... Lógica para iterar y hacer los inserts...
+
+  // 6. Revalidar la caché para que los cambios se vean al instante
+  revalidatePath("/aliado/menu");
+  revalidatePath(`/aliado/menu/editar/${dishId}`);
+
+  return { success: true, updatedProductId: dishId };
+}
