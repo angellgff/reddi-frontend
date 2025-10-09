@@ -20,7 +20,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   // Clases dinámicas
   const containerClasses = isLarge
     ? "w-full p-4 justify-between"
-    : "w-24 flex-shrink-0 gap-2 justify-start";
+    : "w-24 flex-shrink-0 gap-2 justify-start p-3";
 
   const imageContainerClasses = isLarge ? "w-full h-24" : "h-16 w-16";
 

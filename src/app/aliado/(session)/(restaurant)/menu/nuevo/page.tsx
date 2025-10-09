@@ -17,11 +17,21 @@ export default async function NewDishPage() {
     partnerId = partner?.id || null;
   }
 
-  // Obtener sub-categorías del partner (por ahora no hay relación directa partner->sub_categories, se asume globales)
-  const { data: subCategories } = await supabase
-    .from("sub_categories")
-    .select("id, name")
-    .order("name");
+  console.log("//////////////////////////////Partner ID:", partnerId);
+
+  // Obtener SOLO las sub-categorías del partner autenticado
+  let subCategories: Array<{ id: string; name: string }> = [];
+  if (partnerId) {
+    const { data: subCategoriesRows } = await supabase
+      .from("sub_categories")
+      .select("id, name, partner_id")
+      .eq("partner_id", partnerId)
+      .order("name");
+    subCategories = (subCategoriesRows || []).map((c) => ({
+      id: c.id,
+      name: c.name,
+    }));
+  }
 
   // Obtener catálogo de extras del partner
   let extras: Array<{
@@ -45,7 +55,7 @@ export default async function NewDishPage() {
       <h1 className="font-semibold">Crear producto</h1>
       <section className="bg-white p-6 rounded-xl shadow-sm mt-6">
         <NewDishWizard
-          initialSubCategories={(subCategories || []).map((c) => ({
+          initialSubCategories={subCategories.map((c) => ({
             id: c.id,
             name: c.name,
             categoryId: null,

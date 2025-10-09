@@ -9,6 +9,7 @@ import BasicInput from "@/src/components/basics/BasicInput";
 import Checkbox from "@/src/components/basics/CheckBox";
 import FooterButtons from "@/src/components/basics/FooterButtons";
 import SelectInput from "@/src/components/basics/SelectInput";
+import { uuid } from "@/src/lib/utils";
 
 interface NewDishStep2Props {
   sections: ProductSectionForm[];
@@ -66,7 +67,7 @@ export default function NewDishStep2({
 
   const addSection = () => {
     const newSection: ProductSectionForm = {
-      clientId: crypto.randomUUID(),
+      clientId: uuid(),
       name: "",
       isRequired: false,
       options: [],
@@ -87,7 +88,7 @@ export default function NewDishStep2({
   };
   const addOption = (sectionId: string) => {
     const newOpt: SectionExtraSelection = {
-      clientId: crypto.randomUUID(),
+      clientId: uuid(),
       extraId: null,
       overridePrice: "",
     };
