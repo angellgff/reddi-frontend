@@ -4,37 +4,68 @@ import { DishData } from "@/src/lib/partner/dashboard/type";
 export interface FetchDishesParams {
   q?: string | string[];
   category?: string | string[]; // sub_category_id
-  tag?: string | string[]; // Placeholder (no tag column yet)
-  partnerId?: string; // optional future use
+  tag?: string | string[];
+  partnerId?: string;
 }
 
-// Maps DB row to DishData (rating/reviewCount/deliveryTime/deliveryFee are placeholders until real metrics exist)
+// Maps DB row to DishData (placeholders are fine)
 function mapRowToDish(row: any): DishData {
   return {
     id: row.id,
     name: row.name,
-    imageUrl: row.image_url || "/tacos.svg", // fallback image
-    rating: "4.8", // placeholder
-    reviewCount: 0, // placeholder
+    imageUrl: row.image_url || "/tacos.svg",
+    rating: "4.8",
+    reviewCount: 0,
     deliveryTime: row.estimated_time || "--",
-    deliveryFee: "0$ tarifa de envío", // placeholder
+    deliveryFee: "0$ tarifa de envío",
   };
 }
 
 export default async function getRealDishesData(
   params: FetchDishesParams = {}
-) {
+): Promise<DishData[]> {
   const supabase = await createClient();
+
+  // --- PASO 1: Obtener el usuario y su partner_id (CRÍTICO) ---
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    console.warn(
+      "getRealDishesData: No user session found. Returning empty array."
+    );
+    return [];
+  }
+
+  // Buscamos el partner_id asociado al perfil del usuario
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("id", user.id)
+    .single();
+
+  const partnerId = profile?.id;
+
+  if (!partnerId) {
+    console.error(
+      `getRealDishesData: No partner_id found for user ${user.id}.`
+    );
+    return [];
+  }
+
+  // --- PASO 2: Construir la consulta CON el filtro del partner ---
   let query = supabase
     .from("products")
-    .select("id,name,image_url,estimated_time,is_available,sub_category_id");
+    .select("id,name,image_url,estimated_time,is_available,sub_category_id")
+    // Este filtro es OBLIGATORIO para asegurar que el partner solo vea sus productos
+    .eq("partner_id", partnerId); // Asegúrate de que tu columna se llame 'partner_id'
 
-  // Text search (basic ilike on name)
+  // Filtro de búsqueda por texto (tu lógica es correcta)
   if (params.q && typeof params.q === "string" && params.q.trim()) {
     query = query.ilike("name", `%${params.q.trim()}%`);
   }
 
-  // Category filter (sub_category_id)
+  // Filtro de categoría (tu lógica también es correcta)
   if (
     params.category &&
     typeof params.category === "string" &&
@@ -44,9 +75,11 @@ export default async function getRealDishesData(
   }
 
   const { data, error } = await query;
+
   if (error) {
     console.error("Error fetching products", error);
-    return [] as DishData[];
+    return [];
   }
+
   return (data || []).map(mapRowToDish);
 }

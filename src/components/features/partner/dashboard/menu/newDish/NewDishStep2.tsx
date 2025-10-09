@@ -19,6 +19,8 @@ interface NewDishStep2Props {
   extrasCatalog: ProductExtra[];
   errors: Record<string, string>;
   onRequestCreateExtra: (sectionId: string, optionId: string) => void;
+  onSaveAndExit: () => void;
+  isSubmitting?: boolean;
 }
 
 export default function NewDishStep2({
@@ -30,6 +32,8 @@ export default function NewDishStep2({
   extrasCatalog,
   errors,
   onRequestCreateExtra,
+  onSaveAndExit,
+  isSubmitting,
 }: NewDishStep2Props) {
   const addSection = () => {
     const newSection: ProductSectionForm = {
@@ -259,8 +263,9 @@ export default function NewDishStep2({
         <FooterButtons
           onGoBack={onGoBack}
           onPreview={onPreview}
-          onSaveAndExit={() => {}}
+          onSaveAndExit={onSaveAndExit}
           onSubmit={() => {}}
+          isSubmitting={isSubmitting}
         />
       </form>
     </>

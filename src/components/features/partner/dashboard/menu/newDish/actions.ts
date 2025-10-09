@@ -184,9 +184,11 @@ export async function uploadProductImageAction(
 export async function createExtraAction({
   name,
   defaultPrice,
+  imageFile,
 }: {
   name: string;
   defaultPrice: number;
+  imageFile?: File | null;
 }): Promise<ProductExtra> {
   const supabase = await createClient();
   const {
@@ -201,12 +203,30 @@ export async function createExtraAction({
   if (pErr || !partner) throw new Error("Partner no encontrado");
   const trimmed = name.trim();
   if (!trimmed) throw new Error("Nombre requerido");
+
+  // Subida opcional de imagen del extra
+  let imageUrl: string | null = null;
+  if (imageFile && imageFile.size > 0) {
+    const fileName = generateUniqueFileName(imageFile.name);
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(`public/extras/${fileName}`, imageFile);
+    if (uploadError) {
+      console.error("Supabase Storage Error (extra):", uploadError);
+      throw new Error("Error al subir la imagen del extra.");
+    }
+    const { data: publicUrlData } = supabase.storage
+      .from("product-images")
+      .getPublicUrl(uploadData.path);
+    imageUrl = publicUrlData.publicUrl;
+  }
   const { data, error } = await supabase
     .from("product_extras")
     .insert({
       name: trimmed,
       default_price: defaultPrice,
       partner_id: partner.id,
+      image_url: imageUrl,
     })
     .select("id, name, default_price, image_url, partner_id")
     .single();

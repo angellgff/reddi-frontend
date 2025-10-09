@@ -33,7 +33,6 @@ export default function DishesSection({
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || ""
   );
-  const [selectedTag, setSelectedTag] = useState(searchParams.get("tag") || "");
 
   useEffect(() => {
     // Usamos un timeout para "debounce" la búsqueda y no actualizar la URL en cada tecleo.
@@ -55,21 +54,15 @@ export default function DishesSection({
         params.delete("category");
       }
 
-      // Actualizamos el parámetro 'tag'
-      if (selectedTag) {
-        params.set("tag", selectedTag);
-      } else {
-        params.delete("tag");
-      }
-
       startTransition(() => {
         router.push(`${pathname}?${params.toString()}`, { scroll: false });
       });
     }, 300); // Espera 300ms después de que el usuario deja de escribir
 
     return () => clearTimeout(debounceTimer);
-  }, [query, selectedCategory, selectedTag]);
+  }, [query, selectedCategory]);
 
+  // Estado y manejador para la etiqueta seleccionada
   const handleDeleteDish = (id: string) => {
     console.log("Eliminando plato con ID:", id);
     // Aquí podrías añadir lógica para refrescar los datos si es necesario
@@ -113,10 +106,11 @@ export default function DishesSection({
         />
       </div>
       <div className="flex items-center gap-2 flex-wrap">
+        {/* Conectamos los tags al estado y setter de la categoría principal */}
         <TagsTabs
           tags={tags}
-          selectedCategoryId={selectedTag}
-          onSelectCategory={isPending ? () => {} : setSelectedTag}
+          selectedCategoryId={selectedCategory}
+          onSelectCategory={isPending ? () => {} : setSelectedCategory}
           disabled={isPending}
         />
       </div>

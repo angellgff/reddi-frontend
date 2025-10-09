@@ -1,14 +1,21 @@
 // src/components/preview/ExtraSection.tsx
 
-import { dishSection } from "./NewDishWizard";
 import MinusIcon from "@/src/components/icons/MinusIcon";
 import ExtraItem from "./ExtraItem";
+import {
+  ProductSectionForm,
+  ProductExtra,
+} from "@/src/lib/partner/productTypes";
 
 interface ExtraSectionProps {
-  section: dishSection;
+  section: ProductSectionForm;
+  extrasCatalog: ProductExtra[];
 }
 
-export default function ExtraSection({ section }: ExtraSectionProps) {
+export default function ExtraSection({
+  section,
+  extrasCatalog,
+}: ExtraSectionProps) {
   return (
     <div className="mt-4">
       {/* Encabezado de la Sección */}
@@ -26,9 +33,26 @@ export default function ExtraSection({ section }: ExtraSectionProps) {
 
       {/* Lista de Items */}
       <div className="pl-4 pr-2 divide-y divide-gray-200">
-        {section.options.map((item) => (
-          <ExtraItem key={item.id} item={item} />
-        ))}
+        {section.options.map((opt) => {
+          const extra = opt.extraId
+            ? extrasCatalog.find((e) => e.id === opt.extraId)
+            : null;
+          const priceText = opt.overridePrice
+            ? `+$${opt.overridePrice}`
+            : extra
+            ? `+$${extra.defaultPrice}`
+            : undefined;
+          return (
+            <ExtraItem
+              key={opt.clientId}
+              item={{
+                name: extra?.name || "(sin seleccionar)",
+                imageUrl: extra?.imageUrl || null,
+                priceText,
+              }}
+            />
+          );
+        })}
       </div>
     </div>
   );

@@ -33,6 +33,8 @@ interface NewDishStep1Props {
   subCategories: ProductSubCategory[];
   errors: Record<string, string>;
   openCreateCategoryModal: () => void;
+  onSaveAndExit: () => void;
+  isSubmitting?: boolean;
 }
 
 export default function NewDishStep1({
@@ -44,6 +46,8 @@ export default function NewDishStep1({
   subCategories,
   errors: externalErrors,
   openCreateCategoryModal,
+  onSaveAndExit,
+  isSubmitting,
 }: NewDishStep1Props) {
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -322,8 +326,9 @@ export default function NewDishStep1({
         <FooterButtons
           onGoBack={onGoBack}
           onPreview={handlePreview}
-          onSaveAndExit={() => {}}
+          onSaveAndExit={onSaveAndExit}
           onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
         />
       </form>
     </>

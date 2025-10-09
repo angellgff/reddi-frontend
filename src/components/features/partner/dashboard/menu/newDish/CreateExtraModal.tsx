@@ -21,6 +21,8 @@ function CreateExtraModal({
   const [price, setPrice] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -34,6 +36,8 @@ function CreateExtraModal({
       setName("");
       setPrice("");
       setError(null);
+      setImageFile(null);
+      setImagePreview(null);
     }
   }, [isOpen]);
 
@@ -69,6 +73,7 @@ function CreateExtraModal({
       const created = await createExtraAction({
         name: n,
         defaultPrice: numeric,
+        imageFile,
       });
       onCreated(created);
       onClose();
@@ -114,6 +119,35 @@ function CreateExtraModal({
               required
               error={error && name.trim() && !price.trim() ? error : undefined}
             />
+            <div>
+              <label
+                htmlFor="new-extra-image"
+                className="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Imagen (opcional)
+              </label>
+              <input
+                id="new-extra-image"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0] || null;
+                  setImageFile(file);
+                  setImagePreview(file ? URL.createObjectURL(file) : null);
+                }}
+                className="block w-full text-sm text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-green-700"
+              />
+              {imagePreview && (
+                <div className="mt-3">
+                  {/* Contenedor para vista previa */}
+                  <img
+                    src={imagePreview}
+                    alt="Vista previa del extra"
+                    className="h-24 w-24 object-cover rounded-md border"
+                  />
+                </div>
+              )}
+            </div>
             {error &&
               !/(^$)|(^\d+(\.\d+)?$)/.test(price) &&
               price.trim() !== "" && (

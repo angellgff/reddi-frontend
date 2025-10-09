@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import NewDishStep1 from "./NewDishStep1";
 import NewDishStep2 from "./NewDishStep2";
-import PreviewPage from "./PreviewPage";
+import PreviewPageFinal from "./PreviewPageFinal";
 import {
   CreateProductFormState,
   ProductSubCategory,
@@ -175,6 +175,51 @@ export default function NewDishWizard({
     }
   }, [formData, router]);
 
+  const handleSaveAndExit = useCallback(async () => {
+    setSubmitError(null);
+    const s1 = validateStep1(formData);
+    const s2 = validateStep2(formData);
+    if (s1.length || s2.length) {
+      setErrorsStep1(
+        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      );
+      setErrorsStep2(
+        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      );
+      // En caso de errores, vuelve al primer paso con errores
+      router.push(`${basePath}?step=1`);
+      return;
+    }
+    try {
+      setIsSubmitting(true);
+      const data = new FormData();
+      data.append("name", formData.name);
+      data.append("basePrice", formData.basePrice);
+      data.append("description", formData.description);
+      data.append("subCategoryId", formData.subCategoryId || "");
+      data.append("unit", formData.unit);
+      data.append("estimatedTimeRange", formData.estimatedTimeRange);
+      if (formData.previousPrice) {
+        data.append("previousPrice", formData.previousPrice);
+      }
+      if (formData.discountPercent) {
+        data.append("discountPercent", formData.discountPercent);
+      }
+      data.append("isAvailable", String(formData.isAvailable));
+      data.append("taxIncluded", String(formData.taxIncluded));
+      if (formData.image) {
+        data.append("image", formData.image);
+      }
+      data.append("sections", JSON.stringify(formData.sections));
+      const { productId } = await createDishAction(data);
+      router.push(`/aliado/menu?created=${productId}`);
+    } catch (e: any) {
+      setSubmitError(e.message || "Error inesperado");
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, router]);
+
   // Guardias para renderizar el paso correcto o nada
   if (!["1", "2", "preview"].includes(currentStep || "")) {
     return null;
@@ -193,6 +238,8 @@ export default function NewDishWizard({
             subCategories={subCategories}
             errors={errorsStep1}
             openCreateCategoryModal={() => setShowCategoryModal(true)}
+            onSaveAndExit={handleSaveAndExit}
+            isSubmitting={isSubmitting}
           />
           <CreateCategoryModal
             isOpen={showCategoryModal}
@@ -219,6 +266,8 @@ export default function NewDishWizard({
               setPendingExtraTarget({ sectionId, optionId });
               setShowExtraModal(true);
             }}
+            onSaveAndExit={handleSaveAndExit}
+            isSubmitting={isSubmitting}
           />
           <CreateExtraModal
             isOpen={showExtraModal}
@@ -253,8 +302,8 @@ export default function NewDishWizard({
       );
     case "preview":
       return (
-        <PreviewPage
-          formData={formData as any}
+        <PreviewPageFinal
+          formData={formData}
           onSubmitAll={handleSubmitAll}
           submitting={isSubmitting}
           submitError={submitError}

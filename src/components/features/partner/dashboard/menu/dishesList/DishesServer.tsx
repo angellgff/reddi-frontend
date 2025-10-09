@@ -25,7 +25,7 @@ export default async function DishesServer({
     <DishesSection
       dishes={dishes}
       categories={categoriesOpts}
-      tags={dishesTags}
+      tags={categoriesOpts}
     />
   );
 }
