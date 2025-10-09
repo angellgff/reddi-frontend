@@ -10,6 +10,7 @@ import SelectInput from "@/src/components/basics/SelectInput";
 import CheckBox from "@/src/components/basics/CheckBox";
 import Modal from "./Modal";
 import InputNotice from "@/src/components/basics/InputNotice";
+import Spinner from "@/src/components/basics/Spinner";
 
 const days = [
   { value: "monday", label: "Lunes" },
@@ -183,6 +184,20 @@ tu establecimiento para comenzar el registro"
           onConfirm={() => {}}
         />
       </div>
+
+      {isSubmitting && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Registrando tu negocio"
+        >
+          <div className="bg-white rounded-2xl p-6 shadow-2xl flex flex-col items-center gap-3">
+            <Spinner className="w-10 h-10" />
+            <p className="text-sm text-gray-700">Registrando tu negocio...</p>
+          </div>
+        </div>
+      )}
     </>
   );
 }

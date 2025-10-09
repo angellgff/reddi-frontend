@@ -36,10 +36,15 @@ export async function createSubCategoryAction(name: string) {
   if (!trimmed) throw new Error("Nombre requerido");
   if (trimmed.length > 80) throw new Error("Nombre demasiado largo");
 
-  // Insert simple (sin category padre por ahora)
+  // Insert con asociación al partner (partner_id es NOT NULL en el esquema)
+  const payload: any = {
+    name: trimmed,
+    partner_id: partner.id,
+    // category_id: null, // opcional si luego se soporta categoría padre
+  };
   const { data, error } = await supabase
     .from("sub_categories")
-    .insert({ name: trimmed })
+    .insert(payload)
     .select("id, name")
     .single();
   if (error) throw new Error(error.message);
