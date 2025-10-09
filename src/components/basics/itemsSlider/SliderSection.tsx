@@ -26,9 +26,11 @@ export default function SliderSection({
 
       {/* Carrusel de tarjetas */}
       <div className="flex gap-4 overflow-x-auto  scrollbar-hide sm:px-6">
-        {cards.map((item) => (
-          <RestaurantCard key={item.name} {...item} />
-        ))}
+        {cards.map(
+          (item) => (
+            console.log(item), (<RestaurantCard key={item.name} {...item} />)
+          )
+        )}
       </div>
 
       {/* Enlace "Mostrar todo" */}

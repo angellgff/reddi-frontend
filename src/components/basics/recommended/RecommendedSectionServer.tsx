@@ -1,7 +1,7 @@
-import { getRecommendedData } from "@/src/lib/basics/data";
+import getRecommendedPartners from "@/src/lib/finalUser/getRecommendedPartners";
 import RecommendedSection from "./RecommendedSection";
 
 export default async function RecommendedSectionServer() {
-  const data = await getRecommendedData();
+  const data = await getRecommendedPartners();
   return <RecommendedSection recommendedItems={data}></RecommendedSection>;
 }
