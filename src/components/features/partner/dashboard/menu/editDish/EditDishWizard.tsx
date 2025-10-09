@@ -88,26 +88,63 @@ export default function EditDishWizard({
   }, [currentStep, formData, router, basePath]);
 
   const handleSubmitAll = useCallback(async () => {
+    // 🚀 Inicia el proceso de envío
+    console.group("handleSubmitAll - Proceso de Envío de Plato");
+    console.log("Timestamp:", new Date().toISOString());
+    console.log("Iniciando validación y envío para el plato ID:", dishId);
+
     setSubmitError(null);
+
+    // 1. Fase de Validación
+    console.group("1. Fase de Validación");
+    console.log("Datos del formulario a validar:", formData);
+
     const s1 = validateStep1(formData);
     const s2 = validateStep2(formData);
+
+    console.log("Resultados de validación Step 1:", s1);
+    console.log("Resultados de validación Step 2:", s2);
+    console.groupEnd(); // Fin de Fase de Validación
+
+    // 2. Comprobar si hay errores de validación
     if (s1.length || s2.length) {
-      setErrorsStep1(
-        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      console.warn("❌ Validación fallida. Hay errores.");
+      const errors1 = s1.reduce(
+        (acc, i) => ({ ...acc, [i.field]: i.message }),
+        {}
       );
-      setErrorsStep2(
-        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      const errors2 = s2.reduce(
+        (acc, i) => ({ ...acc, [i.field]: i.message }),
+        {}
       );
-      router.push(`${basePath}?step=1`);
+
+      console.log("Errores a establecer en el estado (Step 1):", errors1);
+      console.log("Errores a establecer en el estado (Step 2):", errors2);
+
+      setErrorsStep1(errors1);
+      setErrorsStep2(errors2);
+
+      const redirectPath = `${basePath}?step=1`;
+      console.log(`Redirigiendo al usuario a: ${redirectPath}`);
+      router.push(redirectPath);
+
+      console.groupEnd(); // Fin del proceso handleSubmitAll (temprano)
       return;
     }
+
+    // 3. Si la validación es exitosa, proceder con el envío
+    console.log(
+      "✅ Validación exitosa. Procediendo a preparar los datos para el envío."
+    );
+
     try {
       setIsSubmitting(true);
+      console.group("2. Fase de Envío (API Call)");
+
+      // Preparar FormData
       const data = new FormData();
-      // Llenar FormData (exactamente como en NewDishWizard)
       data.append("name", formData.name);
       data.append("basePrice", formData.basePrice);
-      // ... (añade todos los demás campos)
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
       data.append("unit", formData.unit);
@@ -123,13 +160,43 @@ export default function EditDishWizard({
       }
       data.append("sections", JSON.stringify(formData.sections));
 
-      // Llamar a la server action de ACTUALIZACIÓN
+      // Loggear el contenido de FormData (no se puede loggear directamente)
+      console.log("Contenido de FormData que se enviará:");
+      for (let [key, value] of data.entries()) {
+        // Para el archivo, solo mostramos su nombre para no llenar la consola
+        if (value instanceof File) {
+          console.log(`  ${key}:`, {
+            name: value.name,
+            size: value.size,
+            type: value.type,
+          });
+        } else {
+          console.log(`  ${key}:`, value);
+        }
+      }
+
+      // Llamar a la server action
+      console.log(`Llamando a 'updateDishAction' con dishId: ${dishId}`);
       await updateDishAction(dishId, data);
-      router.push(`/aliado/menu?updated=${dishId}`);
+      console.log("✅ Server action 'updateDishAction' completada con éxito.");
+
+      const successPath = `/aliado/menu?updated=${dishId}`;
+      console.log(`Redirigiendo a la página de éxito: ${successPath}`);
+      router.push(successPath);
     } catch (e: any) {
-      setSubmitError(e.message || "Error inesperado al actualizar.");
+      // Manejo de errores
+      console.error("🔴 ERROR durante el envío a la server action:", e);
+      const errorMessage = e.message || "Error inesperado al actualizar.";
+      console.log("Estableciendo mensaje de error en el estado:", errorMessage);
+      setSubmitError(errorMessage);
     } finally {
+      // Limpieza
+      console.log(
+        "Ejecutando el bloque 'finally'. Finalizando el estado de envío."
+      );
       setIsSubmitting(false);
+      console.groupEnd(); // Fin de Fase de Envío (API Call)
+      console.groupEnd(); // Fin del proceso handleSubmitAll
     }
   }, [formData, router, dishId, basePath]);
 

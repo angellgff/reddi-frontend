@@ -249,11 +249,10 @@ export async function updateDishAction(dishId: string, formData: FormData) {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("partner_id")
+    .select("id")
     .eq("id", user.id)
     .single();
-  if (!profile?.partner_id)
-    throw new Error("Usuario no asociado a un partner.");
+  if (!profile?.id) throw new Error("Usuario no asociado a un partner.");
 
   // 1. Extraer y parsear datos del FormData
   const rawData = {
@@ -281,7 +280,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   // 3. Manejo de la imagen
   const imageFile = formData.get("image") as File | null;
   if (imageFile && imageFile.size > 0) {
-    const filePath = `${profile.partner_id}/${dishId}-${imageFile.name}`;
+    const filePath = `${profile.id}/${dishId}-${imageFile.name}`;
     const { error: uploadError } = await supabase.storage
       .from("product_images")
       .upload(filePath, imageFile, { upsert: true }); // upsert: true para sobreescribir si ya existe
@@ -302,7 +301,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     .from("products")
     .update(updatePayload)
     .eq("id", dishId)
-    .eq("partner_id", profile.partner_id); // ¡Filtro de seguridad!
+    .eq("partner_id", profile.id); // ¡Filtro de seguridad!
 
   if (updateError) {
     console.error("Error actualizando producto:", updateError);
