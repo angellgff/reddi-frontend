@@ -8,6 +8,7 @@ export interface RestaurantListProps {
 }
 
 export default function RestaurantList({ restaurants }: RestaurantListProps) {
+  console.log(restaurants);
   return (
     <>
       {restaurants.length === 0 ? (

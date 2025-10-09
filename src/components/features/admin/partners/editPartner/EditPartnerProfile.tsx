@@ -2,12 +2,15 @@
 
 import PartnerProfile from "./PartnerProfile";
 import { BusinessFormData } from "./PartnerProfile";
+import { updatePartnerProfile } from "@/src/lib/admin/data/partners/updatePartnerProfile";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function EditPartnerProfile({
+  partnerId,
   partnerData,
 }: {
+  partnerId: string;
   partnerData: BusinessFormData;
 }) {
   const router = useRouter();
@@ -17,15 +20,28 @@ export default function EditPartnerProfile({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    console.log("Enviando datos a la API:", formData);
-
-    // Simula una llamada a la API
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
-    console.log("Datos enviados con éxito.");
-    // Redirigir al siguiente paso
-    // router.push('/next-step');
+    try {
+      await updatePartnerProfile({
+        id: partnerId,
+        name: formData.name,
+        isPhysical: formData.isPhysical,
+        address: formData.address,
+        category:
+          formData.category === "alcohol"
+            ? "alcohol"
+            : (formData.category as any),
+        phone: formData.phone,
+        email: formData.email,
+        hours: formData.hours,
+        profileState: formData.profileState,
+      });
+      // Opcional: refrescar la ruta o navegar atrás
+      // router.refresh();
+    } catch (err) {
+      console.error("No se pudo actualizar el aliado", err);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

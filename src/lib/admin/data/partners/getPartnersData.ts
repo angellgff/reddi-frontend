@@ -76,6 +76,8 @@ export default async function getPartnersData({
 
   const formatter = new Intl.NumberFormat("es-CO");
 
+  console.log(data);
+
   type RpcRow =
     Database["public"]["Functions"]["get_partners"]["Returns"][number];
 
@@ -92,7 +94,7 @@ export default async function getPartnersData({
       address: row.address,
       type: uiType,
       totalOrders: formatter.format(Number(row.totalorders ?? 0)),
-      state: row.state === "open" ? "open" : "closed",
+      state: row.state === "active" ? "open" : "closed",
     };
   });
 
