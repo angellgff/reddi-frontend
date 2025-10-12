@@ -1,6 +1,7 @@
 import "./globals.css";
 // Importanción de fuentes
 import { Poppins, Roboto, Inter, Manrope, Montserrat } from "next/font/google";
+import ReduxProvider from "@/src/lib/store/ReduxProvider";
 
 // Weights: 400 = normal, 500 = medium, 700 = bold, 900 = black
 const poppins = Poppins({
@@ -44,7 +45,7 @@ export default function RootLayout({
       className={`${poppins.variable} ${roboto.variable} ${inter.variable} ${manrope.variable} ${montserrat.variable}`}
     >
       <body className="flex flex-col min-h-screen font-poppins">
-        {children}
+        <ReduxProvider>{children}</ReduxProvider>
       </body>
     </html>
   );

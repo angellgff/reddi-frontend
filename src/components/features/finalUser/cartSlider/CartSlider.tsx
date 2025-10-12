@@ -2,38 +2,84 @@
 
 import Portal from "@/src/components/basics/Portal";
 import useBodyScrollLock from "@/src/lib/hooks/useScrollBodyLock";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import {
+  selectCartItems,
+  CartItem as CartItemType,
+  addItem,
+} from "@/src/lib/store/cartSlice";
+import { closeCart, selectCartOpen } from "@/src/lib/store/uiSlice";
+import CartHeader from "./CartHeader";
+import CartItem from "./CartItem";
+import CartSummary from "./CartSummary";
+import { createClient } from "@/src/lib/supabase/client";
 
 type CartSliderProps = {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
 };
 
 export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
-  useBodyScrollLock(isOpen);
+  const dispatch = useAppDispatch();
+  const openFromStore = useAppSelector(selectCartOpen);
+  const effectiveOpen = typeof isOpen === "boolean" ? isOpen : openFromStore;
+  useBodyScrollLock(effectiveOpen);
+  const items = useAppSelector(selectCartItems);
+  const [partnerName, setPartnerName] = useState<string>("Tu carrito");
+  const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
+  const [partnerAddress, setPartnerAddress] = useState<string>("");
 
   useEffect(() => {
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+    const doClose = () => {
+      if (onClose) onClose();
+      else dispatch(closeCart());
     };
-    if (isOpen) document.addEventListener("keydown", handleEsc);
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === "Escape") doClose();
+    };
+    if (effectiveOpen) document.addEventListener("keydown", handleEsc);
     return () => document.removeEventListener("keydown", handleEsc);
-  }, [isOpen, onClose]);
+  }, [effectiveOpen, onClose, dispatch]);
+
+  useEffect(() => {
+    const loadPartner = async () => {
+      const pId = items[0]?.partnerId;
+      if (!pId) {
+        setPartnerName("Tu carrito");
+        setPartnerLogo(null);
+        setPartnerAddress("");
+        return;
+      }
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("partners")
+        .select("name, image_url, address")
+        .eq("id", pId)
+        .single();
+      if (data) {
+        setPartnerName(data.name || "");
+        setPartnerLogo(data.image_url);
+        setPartnerAddress(data.address || "");
+      }
+    };
+    loadPartner();
+  }, [items]);
 
   return (
     <Portal>
       <div
         className={`fixed inset-0 z-50 ${
-          isOpen ? "pointer-events-auto" : "pointer-events-none"
+          effectiveOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
-        aria-hidden={!isOpen}
+        aria-hidden={!effectiveOpen}
       >
         {/* Backdrop */}
         <div
           className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
-            isOpen ? "opacity-100" : "opacity-0"
+            effectiveOpen ? "opacity-100" : "opacity-0"
           }`}
-          onClick={onClose}
+          onClick={() => (onClose ? onClose() : dispatch(closeCart()))}
         />
 
         {/* Panel deslizante desde la derecha */}
@@ -42,7 +88,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
           aria-modal="true"
           aria-labelledby="cart-panel-title"
           className={`absolute right-0 top-0 h-full w-full md:w-[480px] lg:w-[560px] bg-white shadow-2xl transform transition-transform duration-300 ease-in-out ${
-            isOpen ? "translate-x-0" : "translate-x-full"
+            effectiveOpen ? "translate-x-0" : "translate-x-full"
           } flex flex-col`}
         >
           {/* Header */}
@@ -52,7 +98,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
             </h2>
             <button
               type="button"
-              onClick={onClose}
+              onClick={() => (onClose ? onClose() : dispatch(closeCart()))}
               aria-label="Cerrar carrito"
               className="p-2 rounded-full hover:bg-black/10"
             >
@@ -73,22 +119,66 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
           </header>
 
           {/* Content */}
-          <main className="flex-1 overflow-y-auto p-4">
-            {/* Placeholder de contenido del carrito */}
-            <div className="text-sm text-gray-600">
-              Tu carrito está vacío por ahora.
-            </div>
+          <main className="flex-1 overflow-y-auto p-4 space-y-3">
+            <CartHeader
+              partnerName={partnerName}
+              address={partnerAddress}
+              itemsCount={items.reduce(
+                (s: number, i: CartItemType) => s + i.quantity,
+                0
+              )}
+              logoUrl={partnerLogo}
+            />
+
+            {items.length === 0 ? (
+              <div className="text-sm text-gray-600">
+                Tu carrito está vacío por ahora.
+                <div className="mt-3">
+                  <button
+                    onClick={() =>
+                      dispatch(
+                        addItem({
+                          productId: "demo-product",
+                          partnerId: "partner-1",
+                          name: "Combi truffles",
+                          imageUrl: null,
+                          unitPrice: 299,
+                          quantity: 1,
+                          extras: [
+                            {
+                              id: "ex-1-c1",
+                              extraId: "ex-1",
+                              name: "Papas fritas",
+                              price: 9,
+                            },
+                            {
+                              id: "ex-2-c1",
+                              extraId: "ex-2",
+                              name: "Nuggets",
+                              price: 9,
+                            },
+                          ],
+                        })
+                      )
+                    }
+                    className="px-3 py-2 rounded-lg border text-xs"
+                  >
+                    Agregar item demo
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {items.map((it: CartItemType) => (
+                  <CartItem key={it.id} item={it} />
+                ))}
+              </div>
+            )}
           </main>
 
           {/* Footer */}
           <footer className="p-4 border-t border-gray-200">
-            <button
-              type="button"
-              className="w-full bg-primary text-white font-medium py-3 rounded-xl disabled:opacity-60"
-              disabled
-            >
-              Ir a pagar
-            </button>
+            <CartSummary />
           </footer>
         </aside>
       </div>

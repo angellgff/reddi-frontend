@@ -16,6 +16,9 @@ import { useState, useEffect } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { createClient } from "@/src/lib/supabase/client";
 import { useRouter } from "next/navigation";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
+import { selectCartCount } from "@/src/lib/store/cartSlice";
 
 const badgeColor = "bg-red-500";
 
@@ -24,8 +27,10 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true); // Para mostrar/ocultar la barra de búsqueda según el scroll
   const [isClient, setIsClient] = useState(false); //Para verificar si se renderizó en el cliente
   const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
+  const cartCount = useAppSelector(selectCartCount);
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -37,7 +42,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     setIsAddressMenuVisible(!isAddressMenuVisible);
   };
 
-  const toggleCart = () => setIsCartOpen((v) => !v);
+  const onToggleCart = () => dispatch(toggleCart());
 
   useEffect(() => {
     setIsClient(true);
@@ -78,7 +83,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
         onClose={toggleAddressMenu}
         data={userData.address}
       ></AddressSlider>
-      <CartSlider isOpen={isCartOpen} onClose={toggleCart} />
+      <CartSlider onClose={() => dispatch(closeCart())} />
       <header
         className={`
         fixed top-0 left-0 right-0 z-50
@@ -141,12 +146,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               </button>
               <button
                 className="relative"
-                onClick={toggleCart}
+                onClick={onToggleCart}
                 aria-label="Abrir carrito"
               >
                 <UserCarIcon />
                 <Badge
-                  count={userData.carCount}
+                  count={cartCount || userData.carCount}
                   color={badgeColor}
                   className="rounded-full"
                 />

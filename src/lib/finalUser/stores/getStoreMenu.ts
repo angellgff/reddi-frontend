@@ -18,6 +18,7 @@ export type StoreMenu = {
         | "base_price"
         | "previous_price"
         | "description"
+        | "discount_percentage"
       >
     >;
   }>;
@@ -48,7 +49,7 @@ export default async function getStoreMenu(
   let query = supabase
     .from("products")
     .select(
-      "id, name, image_url, base_price, previous_price, description, sub_category_id"
+      "id, name, image_url, base_price, previous_price, description, discount_percentage, sub_category_id"
     )
     .eq("partner_id", partnerId)
     .eq("is_available", true);
@@ -75,6 +76,7 @@ export default async function getStoreMenu(
       | "base_price"
       | "previous_price"
       | "description"
+      | "discount_percentage"
       | "sub_category_id"
     >
   >;
@@ -83,7 +85,22 @@ export default async function getStoreMenu(
   const categories = subCats.map((c) => ({ value: c.id, label: c.name }));
   const groupsMap = new Map<
     string,
-    { id: string; name: string; products: any[] }
+    {
+      id: string;
+      name: string;
+      products: Array<
+        Pick<
+          ProductRow,
+          | "id"
+          | "name"
+          | "image_url"
+          | "base_price"
+          | "previous_price"
+          | "description"
+          | "discount_percentage"
+        >
+      >;
+    }
   >();
   for (const sc of subCats) {
     groupsMap.set(sc.id, { id: sc.id, name: sc.name, products: [] });
@@ -102,6 +119,7 @@ export default async function getStoreMenu(
       base_price: p.base_price,
       previous_price: p.previous_price,
       description: p.description,
+      discount_percentage: p.discount_percentage,
     });
     groupsMap.set(group.id, group);
   }

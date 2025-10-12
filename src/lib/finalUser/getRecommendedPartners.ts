@@ -11,7 +11,7 @@ export default async function getRecommendedPartners(): Promise<
     .select("id, name, image_url, partner_type")
     .eq("is_approved", true)
     .order("created_at", { ascending: false })
-    .limit(5);
+    .limit(10);
 
   if (error || !data) {
     console.error("getRecommendedPartners error", error);
