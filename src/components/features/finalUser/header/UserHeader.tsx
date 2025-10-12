@@ -10,6 +10,7 @@ import SearchIcon from "@/src/components/icons/SearchIcon";
 import BellIcon from "@/src/components/icons/BellIcon";
 import UserCarIcon from "@/src/components/icons/UserCarIcon";
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
+import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 import { UserHeaderData } from "@/src/lib/finalUser/type";
 import { useState, useEffect } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
@@ -23,6 +24,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true); // Para mostrar/ocultar la barra de búsqueda según el scroll
   const [isClient, setIsClient] = useState(false); //Para verificar si se renderizó en el cliente
   const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -34,6 +36,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const toggleAddressMenu = () => {
     setIsAddressMenuVisible(!isAddressMenuVisible);
   };
+
+  const toggleCart = () => setIsCartOpen((v) => !v);
 
   useEffect(() => {
     setIsClient(true);
@@ -74,6 +78,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
         onClose={toggleAddressMenu}
         data={userData.address}
       ></AddressSlider>
+      <CartSlider isOpen={isCartOpen} onClose={toggleCart} />
       <header
         className={`
         fixed top-0 left-0 right-0 z-50
@@ -134,7 +139,11 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                   className="rounded-full"
                 />
               </button>
-              <button className="relative">
+              <button
+                className="relative"
+                onClick={toggleCart}
+                aria-label="Abrir carrito"
+              >
                 <UserCarIcon />
                 <Badge
                   count={userData.carCount}

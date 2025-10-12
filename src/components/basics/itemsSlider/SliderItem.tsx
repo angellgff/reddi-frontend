@@ -6,6 +6,7 @@ import React from "react";
 import { Star } from "lucide-react"; // Importamos el icono de estrella
 
 export type SliderCardProps = {
+  id: string;
   name: string;
   imageUrl: string;
   rating: number;
