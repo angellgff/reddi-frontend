@@ -9,6 +9,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/src/lib/store/hooks";
 import { addItem } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
+import { useRouter as useNextRouter } from "next/navigation";
 
 export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
   const [isPending, startTransition] = useTransition();
@@ -21,6 +22,7 @@ export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || ""
   );
+  const nav = useNextRouter();
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -72,6 +74,12 @@ export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
     dispatch(openCart());
   };
 
+  const openDetails = (p: ProductCard) => {
+    // navigate to /user/stores/[id]/product/[productId]
+    if (!partnerId) return;
+    nav.push(`/user/stores/${partnerId}/product/${p.id}`);
+  };
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -107,7 +115,8 @@ export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
               {group.products.map((p) => (
                 <div
                   key={p.id}
-                  className="border border-[#D9DCE3] rounded-xl p-3 hover:shadow-sm transition-shadow"
+                  className="border border-[#D9DCE3] rounded-xl p-3 hover:shadow-sm transition-shadow cursor-pointer"
+                  onClick={() => openDetails(p)}
                 >
                   {p.image_url ? (
                     <div className="relative w-full h-28 rounded-lg overflow-hidden mb-2">
@@ -145,11 +154,15 @@ export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
                     </div>
                     <button
                       className="mt-2 w-full bg-primary text-white text-sm py-2 rounded-lg"
-                      onClick={() => handleAddToCart(p)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart(p);
+                      }}
                       disabled={isPending}
                     >
                       Agregar al carrito
                     </button>
+                    {/* Clicking the card already opens details. No separate button. */}
                   </div>
                 </div>
               ))}
