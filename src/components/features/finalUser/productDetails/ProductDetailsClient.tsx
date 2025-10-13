@@ -92,6 +92,7 @@ export default function ProductDetailsClient({
     <div className="max-w-6xl mx-auto">
       <div className="rounded-2xl border overflow-hidden bg-white">
         <div className="grid grid-cols-1 md:grid-cols-2">
+          {/* Left: image */}
           <div className="relative h-56 md:h-80 w-full">
             {details.image_url ? (
               <Image
@@ -104,6 +105,8 @@ export default function ProductDetailsClient({
               <div className="w-full h-full bg-gray-100" />
             )}
           </div>
+
+          {/* Right: main info + extras under description */}
           <div className="p-4 md:p-6 space-y-2">
             <h1 className="text-xl font-semibold">{details.name}</h1>
             <div className="flex items-center gap-3">
@@ -125,80 +128,84 @@ export default function ProductDetailsClient({
             {details.description ? (
               <p className="text-sm text-gray-600">{details.description}</p>
             ) : null}
+
+            {/* Extras in the same column, below description */}
+            <div className="mt-4 space-y-4">
+              {details.sections.length === 0 ? (
+                <div className="text-sm text-gray-500">
+                  Este producto no tiene extras disponibles.
+                </div>
+              ) : (
+                details.sections.map((s) => (
+                  <div key={s.id} className="rounded-xl border overflow-hidden">
+                    <div className="px-4 py-2 bg-gray-50 flex items-center justify-between">
+                      <span className="text-sm font-medium">{s.name}</span>
+                      {s.isRequired ? (
+                        <span className="text-[11px] text-emerald-600">
+                          Requerido
+                        </span>
+                      ) : null}
+                    </div>
+                    <ul className="divide-y">
+                      {s.options.map((o) => {
+                        const qty = selected[o.extraId] || 0;
+                        return (
+                          <li
+                            key={o.id}
+                            className="px-4 py-3 flex items-center gap-3 justify-between"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              {o.imageUrl ? (
+                                <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                                  <Image
+                                    src={o.imageUrl}
+                                    alt={o.name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-10 h-10 bg-gray-100 rounded-md" />
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-medium truncate">
+                                  {o.name}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  + ${o.price.toFixed(2)}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <button
+                                className="w-8 h-8 rounded-full border text-lg leading-none disabled:opacity-50"
+                                onClick={() => decOption(o.extraId)}
+                                disabled={qty === 0}
+                              >
+                                −
+                              </button>
+                              <span className="w-6 text-center text-sm">
+                                {qty}
+                              </span>
+                              <button
+                                className="w-8 h-8 rounded-full border text-lg leading-none"
+                                onClick={() => incOption(o.extraId)}
+                              >
+                                +
+                              </button>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="border-t p-4 md:p-6 space-y-4">
-          {details.sections.length === 0 ? (
-            <div className="text-sm text-gray-500">
-              Este producto no tiene extras disponibles.
-            </div>
-          ) : (
-            details.sections.map((s) => (
-              <div key={s.id} className="rounded-xl border overflow-hidden">
-                <div className="px-4 py-2 bg-gray-50 flex items-center justify-between">
-                  <span className="text-sm font-medium">{s.name}</span>
-                  {s.isRequired ? (
-                    <span className="text-[11px] text-emerald-600">
-                      Requerido
-                    </span>
-                  ) : null}
-                </div>
-                <ul className="divide-y">
-                  {s.options.map((o) => {
-                    const qty = selected[o.extraId] || 0;
-                    return (
-                      <li
-                        key={o.id}
-                        className="px-4 py-3 flex items-center gap-3 justify-between"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          {o.imageUrl ? (
-                            <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
-                              <Image
-                                src={o.imageUrl}
-                                alt={o.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 bg-gray-100 rounded-md" />
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {o.name}
-                            </p>
-                            <p className="text-xs text-gray-500">
-                              + ${o.price.toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="w-8 h-8 rounded-full border text-lg leading-none disabled:opacity-50"
-                            onClick={() => decOption(o.extraId)}
-                            disabled={qty === 0}
-                          >
-                            −
-                          </button>
-                          <span className="w-6 text-center text-sm">{qty}</span>
-                          <button
-                            className="w-8 h-8 rounded-full border text-lg leading-none"
-                            onClick={() => incOption(o.extraId)}
-                          >
-                            +
-                          </button>
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </div>
-            ))
-          )}
-        </div>
-
+        {/* Footer controls */}
         <div className="p-4 md:p-6 border-t flex items-center justify-between gap-3">
           <button
             className="px-3 py-2 rounded-lg border text-sm"
