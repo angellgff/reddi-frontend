@@ -6,9 +6,11 @@ export type ProductExtraId = string; // product_extras.id
 
 export interface SelectedExtra {
   id: string; // client id
+  imageUrl?: string | null;
   extraId: ProductExtraId; // FK to product_extras
   name: string;
   price: number; // override o default
+  quantity: number; // cantidad por extra
 }
 
 export interface CartItem {
@@ -33,8 +35,11 @@ const initialState: CartState = {
 
 // Helpers
 const calcItemTotal = (item: CartItem) => {
-  const extrasTotal = item.extras.reduce((s, e) => s + e.price, 0);
-  return (item.unitPrice + extrasTotal) * item.quantity;
+  const extrasTotalPerUnit = item.extras.reduce(
+    (s, e) => s + e.price * e.quantity,
+    0
+  );
+  return (item.unitPrice + extrasTotalPerUnit) * item.quantity;
 };
 
 // Slice
@@ -42,6 +47,9 @@ const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
+    setCartItems: (state: CartState, action: PayloadAction<CartItem[]>) => {
+      state.items = action.payload ?? [];
+    },
     addItem: (
       state: CartState,
       action: PayloadAction<
@@ -103,12 +111,49 @@ const cartSlice = createSlice({
     },
     addExtraToItem: (
       state: CartState,
-      action: PayloadAction<{ id: string; extra: Omit<SelectedExtra, "id"> }>
+      action: PayloadAction<{
+        id: string;
+        extra: Omit<SelectedExtra, "id" | "quantity"> & { quantity?: number };
+      }>
     ) => {
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (it) {
-        it.extras.push({ id: nanoid(), ...action.payload.extra });
+        const existing = it.extras.find(
+          (e: SelectedExtra) => e.extraId === action.payload.extra.extraId
+        );
+        if (existing) {
+          existing.quantity += action.payload.extra.quantity ?? 1;
+        } else {
+          it.extras.push({
+            id: nanoid(),
+            quantity: action.payload.extra.quantity ?? 1,
+            ...action.payload.extra,
+          });
+        }
       }
+    },
+    incrementExtraQuantity: (
+      state: CartState,
+      action: PayloadAction<{ id: string; extraId: string }>
+    ) => {
+      const it = state.items.find((i: CartItem) => i.id === action.payload.id);
+      if (!it) return;
+      const ex = it.extras.find((e) => e.extraId === action.payload.extraId);
+      if (ex) ex.quantity += 1;
+    },
+    decrementExtraQuantity: (
+      state: CartState,
+      action: PayloadAction<{ id: string; extraId: string }>
+    ) => {
+      const it = state.items.find((i: CartItem) => i.id === action.payload.id);
+      if (!it) return;
+      const exIdx = it.extras.findIndex(
+        (e) => e.extraId === action.payload.extraId
+      );
+      if (exIdx === -1) return;
+      const ex = it.extras[exIdx];
+      if (ex.quantity > 1) ex.quantity -= 1;
+      else it.extras.splice(exIdx, 1);
     },
     removeExtraFromItem: (
       state: CartState,
@@ -128,10 +173,13 @@ const cartSlice = createSlice({
 });
 
 export const {
+  setCartItems,
   addItem,
   removeItem,
   setQuantity,
   addExtraToItem,
+  incrementExtraQuantity,
+  decrementExtraQuantity,
   removeExtraFromItem,
   clearCart,
 } = cartSlice.actions;

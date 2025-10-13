@@ -150,12 +150,14 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
                               extraId: "ex-1",
                               name: "Papas fritas",
                               price: 9,
+                              quantity: 1,
                             },
                             {
                               id: "ex-2-c1",
                               extraId: "ex-2",
                               name: "Nuggets",
                               price: 9,
+                              quantity: 1,
                             },
                           ],
                         })
