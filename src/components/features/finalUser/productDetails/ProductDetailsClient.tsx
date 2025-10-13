@@ -91,6 +91,16 @@ export default function ProductDetailsClient({
   return (
     <div className="max-w-6xl mx-auto">
       <div className="rounded-2xl border overflow-hidden bg-white">
+        {/* Top header with Back button */}
+        <div className="p-4 border-b">
+          <button
+            className="px-3 py-2 rounded-lg border text-sm"
+            onClick={() => router.back()}
+          >
+            Volver
+          </button>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2">
           {/* Left: image */}
           <div className="relative h-56 md:h-80 w-full">
@@ -207,28 +217,23 @@ export default function ProductDetailsClient({
 
         {/* Footer controls */}
         <div className="p-4 md:p-6 border-t flex items-center justify-between gap-3">
-          <button
-            className="px-3 py-2 rounded-lg border text-sm"
-            onClick={() => router.back()}
-          >
-            Volver
-          </button>
+          {/* Quantity on the left */}
+          <div className="flex items-center gap-2 border rounded-full px-3 py-1">
+            <button
+              className="text-lg"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            >
+              -
+            </button>
+            <span className="w-6 text-center text-sm">{quantity}</span>
+            <button
+              className="text-lg"
+              onClick={() => setQuantity((q) => q + 1)}
+            >
+              +
+            </button>
+          </div>
           <div className="flex items-center gap-3 ml-auto">
-            <div className="flex items-center gap-2 border rounded-full px-3 py-1">
-              <button
-                className="text-lg"
-                onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-              >
-                -
-              </button>
-              <span className="w-6 text-center text-sm">{quantity}</span>
-              <button
-                className="text-lg"
-                onClick={() => setQuantity((q) => q + 1)}
-              >
-                +
-              </button>
-            </div>
             <button
               className="px-3 py-2 rounded-lg border text-sm"
               disabled={!requiredSatisfied}
