@@ -2,6 +2,7 @@
 
 import React from "react";
 import CategoryCard from "./CategoryCard";
+import HorizontalScrollButtons from "@/src/components/basics/itemsSlider/HorizontalScrollButtons";
 
 // 1. Define los datos de tus categorías
 // ¡IMPORTANTE! Deberás reemplazar 'imageUrl' con las rutas a tus propias imágenes.
@@ -40,7 +41,10 @@ const FeaturedCategories: React.FC = ({
 }) => {
   return (
     <section className={`${className}`} aria-labelledby="categorias-destacadas">
-      {/* Título (Opcional pero recomendado para accesibilidad) */}
+      {/* Botones de scroll (desktop) */}
+      <div className="mb-4 sm:px-6 hidden md:flex items-center justify-end">
+        <HorizontalScrollButtons targetId="featured-categories-row" />
+      </div>
       {/* Contenedor con scroll horizontal */}
       <div
         className="
@@ -49,6 +53,7 @@ const FeaturedCategories: React.FC = ({
           sm:px-6 
           scrollbar-hide
         "
+        id="featured-categories-row"
       >
         {/* 2. Mapea los datos y renderiza cada CategoryCard */}
         {categories.map((category) => (
