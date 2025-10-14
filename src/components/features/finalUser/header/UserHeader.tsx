@@ -26,6 +26,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [lastScrollY, setLastScrollY] = useState(0); // Para saber si el usuario está scrolleando
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true); // Para mostrar/ocultar la barra de búsqueda según el scroll
   const [isClient, setIsClient] = useState(false); //Para verificar si se renderizó en el cliente
+  const [hydrated, setHydrated] = useState(false); // marca cuando ya podemos usar estados del cliente sin riesgo de mismatch
   const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -46,6 +47,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
 
   useEffect(() => {
     setIsClient(true);
+    // Defer cart count swapping to next tick to ensure initial server text coincide
+    setHydrated(true);
   }, []);
 
   useEffect(() => {
@@ -240,8 +243,13 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
             >
               <div className="flex items-center gap-2">
                 <UserCarIcon />
-                <span className="whitespace-nowrap">
-                  Tu carrito ({cartCount || userData.carCount || 0})
+                <span className="whitespace-nowrap" suppressHydrationWarning>
+                  {/* Usamos el snapshot del server (userData.carCount) hasta estar hidratados */}
+                  Tu carrito (
+                  {hydrated
+                    ? cartCount || userData.carCount || 0
+                    : userData.carCount || 0}
+                  )
                 </span>
               </div>
             </button>
