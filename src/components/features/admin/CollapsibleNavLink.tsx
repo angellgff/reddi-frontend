@@ -16,6 +16,7 @@ export default function CollapsibleNavLink({
   activeSubLink,
   onToggle,
 }: CollapsibleNavLinkProps) {
+  const IconComp = link.icon ?? Squares2X2Icon;
   return (
     <div>
       <button
@@ -27,7 +28,7 @@ export default function CollapsibleNavLink({
         }`}
       >
         <div className="flex items-center space-x-3">
-          <Squares2X2Icon className="h-5 w-5" />
+          <IconComp className="h-5 w-5" />
           <span>{link.name}</span>
         </div>
         <ChevronIcon
@@ -39,20 +40,24 @@ export default function CollapsibleNavLink({
 
       {isOpen && (
         <div className="mt-1 space-y-1 pl-6">
-          {link.subLinks?.map((subLink) => (
-            <Link
-              key={subLink.name}
-              href={subLink.href}
-              className={`block rounded-lg px-4 py-2 text-sm font-medium ${
-                // /aliado/dashboard/productos/nuevo
-                activeSubLink.startsWith(subLink.href)
-                  ? "bg-primary text-white"
-                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-              }`}
-            >
-              {subLink.name}
-            </Link>
-          ))}
+          {link.subLinks?.map((subLink) => {
+            const SubIcon = subLink.icon ?? Squares2X2Icon;
+            const isActive = activeSubLink.startsWith(subLink.href);
+            return (
+              <Link
+                key={subLink.name}
+                href={subLink.href}
+                className={`flex items-center space-x-3 rounded-lg px-4 py-2 text-sm font-medium ${
+                  isActive
+                    ? "bg-primary text-white"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                }`}
+              >
+                <SubIcon className="h-4 w-4" />
+                <span>{subLink.name}</span>
+              </Link>
+            );
+          })}
         </div>
       )}
     </div>

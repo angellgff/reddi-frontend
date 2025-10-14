@@ -55,11 +55,20 @@ export async function updateSession(request: NextRequest) {
   console.log(`[mw] Path: ${path}, Authed: ${isAuthed}, Role: ${role}`);
 
   // 2. Definir rutas públicas y de autenticación
-  const publicPaths = ["/login", "/admin/login", "/aliado/registro"];
+  // Public unauthenticated pages (no session required)
+  const publicPaths = [
+    "/login",
+    "/admin/login",
+    "/aliado/registro", // legacy
+    "/partner/login",
+    "/partner/registro",
+  ];
   const authPaths = [
     "/login",
     "/admin/login",
-    "/aliado/registro",
+    "/aliado/registro", // legacy
+    "/partner/login",
+    "/partner/registro",
     "/auth/callback",
   ];
 
@@ -83,19 +92,34 @@ export async function updateSession(request: NextRequest) {
       return denyAccess(request, role, "Admin area requires 'admin' role");
     }
 
-    // ====================================================================
-    //              CAMBIO PRINCIPAL: Múltiples roles de aliado
-    // ====================================================================
-    // Usuario en sección /aliado
+    // --- Partner sections gating (new structure) ---
+    if (path.startsWith("/partner/market") && role !== "market") {
+      return denyAccess(
+        request,
+        role,
+        "Partner Market area requires 'market' role"
+      );
+    }
+    if (path.startsWith("/partner/restaurant") && role !== "restaurant") {
+      return denyAccess(
+        request,
+        role,
+        "Partner Restaurant area requires 'restaurant' role"
+      );
+    }
+
+    // Backward-compat: redirect old /aliado/* to new partner namespace by role
     if (path.startsWith("/aliado")) {
-      const allowedAliadoRoles = ["market", "restaurant"]; // <-- Lista de roles permitidos
-      if (!allowedAliadoRoles.includes(role as string)) {
-        return denyAccess(
-          request,
-          role,
-          "Aliado area requires 'market' or 'restaurant' role"
-        );
-      }
+      const base =
+        role === "restaurant" ? "/partner/restaurant" : "/partner/market";
+      const sub = path.replace(/^\/aliado/, "");
+      const targetPath =
+        sub && sub !== "" ? `${base}${sub}` : `${base}/dashboard`;
+      const target = new URL(targetPath, request.url);
+      // preserve querystring
+      target.search = request.nextUrl.search;
+      console.log(`[mw] Redirect legacy '/aliado' -> ${target.pathname}`);
+      return NextResponse.redirect(target);
     }
 
     // Usuario en sección /repartidor
@@ -118,6 +142,12 @@ export async function updateSession(request: NextRequest) {
         );
       }
     }
+
+    // Usuario entra a /partner sin especificar segmento: llévalo a su dashboard
+    if (path === "/partner" || path === "/partner/") {
+      const homeUrl = getHomeUrlForRole(role);
+      return NextResponse.redirect(new URL(homeUrl, request.url));
+    }
   }
 
   // 5. Lógica para usuarios NO AUTENTICADOS
@@ -125,7 +155,13 @@ export async function updateSession(request: NextRequest) {
     console.log(
       `[mw] Redirecting unauthenticated user from protected route: ${path}`
     );
-    const loginUrl = new URL("/login", request.url);
+    // Route unauthenticated users to the most relevant login page
+    const loginPath = path.startsWith("/admin")
+      ? "/admin/login"
+      : path.startsWith("/partner") || path.startsWith("/aliado")
+      ? "/partner/login"
+      : "/login";
+    const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set("next", path);
     return NextResponse.redirect(loginUrl);
   }
@@ -145,11 +181,9 @@ function getHomeUrlForRole(role: string | null): string {
     case "admin":
       return "/admin/dashboard";
     case "market":
-      return "/aliado/dashboard";
+      return "/partner/market/dashboard";
     case "restaurant":
-      // Asumimos que los restaurantes también van al dashboard de aliado.
-      // ¡Cámbialo si tienen su propia página de inicio!
-      return "/aliado/dashboard";
+      return "/partner/restaurant/dashboard";
     case "delivery":
       return "/repartidor/home";
     default:

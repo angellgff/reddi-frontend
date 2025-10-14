@@ -3,12 +3,13 @@
 import LogoutAsideIcon from "@/src/components/icons/LogoutAsideIcon";
 import CollapsibleNavLink from "../../features/admin/CollapsibleNavLink";
 import SingleNavLink from "../../features/admin/SingleNavLink";
-import { useState } from "react";
+import { ReactNode, useState, type ComponentType } from "react";
 import { usePathname } from "next/navigation";
 
 export type NavLink = {
   name: string;
   href: string;
+  icon?: ReactNode;
   subLinks?: Omit<NavLink, "subLinks">[];
 };
 
