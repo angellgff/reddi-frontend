@@ -66,7 +66,7 @@ export default function StoreHeader({
             <span className="inline-flex items-center font-semibold">
               ⭐ {rating}
             </span>
-            <span className="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF6FF] text-[#1C398E] border border-[#BEDBFF]">
               {deliveryTime}
             </span>
           </div>
