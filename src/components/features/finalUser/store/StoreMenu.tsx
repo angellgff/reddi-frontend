@@ -2,16 +2,33 @@
 
 import React, { useEffect, useMemo, useState, useTransition } from "react";
 import type { StoreMenu as StoreMenuType } from "@/src/lib/finalUser/stores/getStoreMenu";
-import Image from "next/image";
-import BasicInput from "@/src/components/basics/BasicInput";
+import Image from "next/image"; // might still be used indirectly if removed, keep for now (can prune later)
+import BasicInput from "@/src/components/basics/BasicInput"; // reserved for future search input UI
 import TagsTabs from "@/src/components/features/partner/TagsTabs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/src/lib/store/hooks";
 import { addItem } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
 import { useRouter as useNextRouter } from "next/navigation";
+import ProductCardRestaurant, {
+  ProductCardBase,
+} from "./productCards/ProductCardRestaurant";
+import ProductCardGeneric from "./productCards/ProductCardGeneric";
 
-export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
+type PartnerType =
+  | "market"
+  | "restaurant"
+  | "liquor_store"
+  | string
+  | undefined;
+
+export default function StoreMenu({
+  menu,
+  partnerType,
+}: {
+  menu: StoreMenuType;
+  partnerType?: PartnerType;
+}) {
   const [isPending, startTransition] = useTransition();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -80,6 +97,8 @@ export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
     nav.push(`/user/stores/${partnerId}/product/${p.id}`);
   };
 
+  const isRestaurant = partnerType === "restaurant";
+
   return (
     <div className="space-y-8">
       {/* Search + Categories Bar */}
@@ -114,71 +133,41 @@ export default function StoreMenu({ menu }: { menu: StoreMenuType }) {
         groups.map((group) => (
           <div key={group.id} className="space-y-4">
             <h2 className="text-xl font-semibold">{group.name}</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5">
               {group.products.map((p) => {
                 const discounted = p.discount_percentage
                   ? p.base_price * (1 - p.discount_percentage / 100)
                   : p.base_price;
-                return (
-                  <div
+                const discountedPrice = discounted;
+
+                const onAdd = (
+                  product: ProductCardBase,
+                  e: React.MouseEvent
+                ) => {
+                  e.stopPropagation();
+                  handleAddToCart(product as any);
+                };
+                const onOpen = (product: ProductCardBase) =>
+                  openDetails(product as any);
+
+                return isRestaurant ? (
+                  <ProductCardRestaurant
                     key={p.id}
-                    className="group border border-gray-200 rounded-xl overflow-hidden bg-white hover:shadow-md transition-shadow cursor-pointer flex flex-col"
-                    onClick={() => openDetails(p)}
-                  >
-                    <div className="relative w-full aspect-[4/3] bg-gray-100">
-                      {p.image_url ? (
-                        <Image
-                          src={p.image_url}
-                          alt={p.name}
-                          fill
-                          sizes="(max-width: 768px) 50vw, 25vw"
-                          className="object-cover"
-                        />
-                      ) : null}
-                      {p.discount_percentage ? (
-                        <span className="absolute top-2 left-2 bg-red-600 text-white text-[11px] font-semibold px-2 py-1 rounded-md shadow-sm">
-                          -{p.discount_percentage}%
-                        </span>
-                      ) : null}
-                    </div>
-                    <div className="p-3 flex flex-col gap-1 flex-1">
-                      <p className="font-medium text-sm line-clamp-2 min-h-[2.5rem]">
-                        {p.name}
-                      </p>
-                      {p.description && (
-                        <p className="text-xs text-gray-500 line-clamp-2">
-                          {p.description}
-                        </p>
-                      )}
-                      <div className="mt-auto">
-                        <div className="flex items-baseline gap-2">
-                          <span className="text-sm font-semibold text-gray-900">
-                            ${discounted.toFixed(2)}
-                          </span>
-                          {p.previous_price && (
-                            <span className="text-xs text-gray-400 line-through">
-                              ${p.previous_price.toFixed(2)}
-                            </span>
-                          )}
-                        </div>
-                        {p.discount_percentage ? (
-                          <div className="text-[11px] text-red-600 font-semibold">
-                            Ahorra {p.discount_percentage}%
-                          </div>
-                        ) : null}
-                        <button
-                          className="mt-2 w-full bg-primary text-white text-xs py-2 rounded-lg font-medium hover:bg-primary/90"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleAddToCart(p);
-                          }}
-                          disabled={isPending}
-                        >
-                          Agregar al carrito
-                        </button>
-                      </div>
-                    </div>
-                  </div>
+                    product={p as any}
+                    discountedPrice={discountedPrice}
+                    isPending={isPending}
+                    onAdd={onAdd}
+                    onOpen={onOpen}
+                  />
+                ) : (
+                  <ProductCardGeneric
+                    key={p.id}
+                    product={p as any}
+                    discountedPrice={discountedPrice}
+                    isPending={isPending}
+                    onAdd={onAdd}
+                    onOpen={onOpen}
+                  />
                 );
               })}
             </div>

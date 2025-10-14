@@ -62,9 +62,10 @@ export default function StoreHeader({
         <div className="md:pl-[240px] w-full">
           <h1 className="text-2xl font-bold">{store.name}</h1>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-gray-600">
+          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-black">
             <span className="inline-flex items-center font-semibold">
-              ⭐ {rating}
+              Valoraciones
+              <span className="font-bold text-black ml-1"> {rating} ⭐</span>
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF6FF] text-[#1C398E] border border-[#BEDBFF]">
               {deliveryTime}
@@ -72,14 +73,19 @@ export default function StoreHeader({
           </div>
 
           {/* Dirección y Teléfono */}
-          <div className="mt-2 text-sm text-gray-500 space-y-1">
+          <div className="mt-2 text-sm text-black space-y-1">
             {store.address && (
               <p>
-                <span className="font-semibold">Dirección</span> {store.address}
+                Dirección
+                <span className="font-bold text-black ml-1">
+                  {" "}
+                  {store.address}
+                </span>
               </p>
             )}
             <p>
-              <span className="font-semibold">Teléfono</span> {phone}
+              Teléfono
+              <span className="font-bold text-black ml-1"> {phone} </span>
             </p>
           </div>
         </div>
