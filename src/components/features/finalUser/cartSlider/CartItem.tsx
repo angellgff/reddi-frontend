@@ -8,6 +8,7 @@ import {
   setQuantity,
   removeExtraFromItem,
   addExtraToItem,
+  addItem,
 } from "@/src/lib/store/cartSlice";
 import {
   incrementExtraQuantity,
@@ -19,8 +20,25 @@ import type { Tables } from "@/src/lib/database.types";
 
 export default function CartItem({ item }: { item: CartItemType }) {
   const dispatch = useAppDispatch();
-  const increase = () =>
-    dispatch(setQuantity({ id: item.id, quantity: item.quantity + 1 }));
+  const increase = () => {
+    if (item.extras.length > 0) {
+      // Nueva regla: si el item tiene extras, agregar una nueva línea base en lugar de sumar cantidad.
+      dispatch(
+        addItem({
+          productId: item.productId,
+          partnerId: item.partnerId,
+          name: item.name,
+          imageUrl: item.imageUrl,
+          unitPrice: item.unitPrice,
+          quantity: 1,
+          extras: [],
+          mergeByProduct: true,
+        })
+      );
+    } else {
+      dispatch(setQuantity({ id: item.id, quantity: item.quantity + 1 }));
+    }
+  };
   const decrease = () =>
     dispatch(
       setQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) })
@@ -241,7 +259,10 @@ export default function CartItem({ item }: { item: CartItemType }) {
                     className="text-[11px] underline text-gray-600 ml-1"
                     onClick={() =>
                       dispatch(
-                        removeExtraFromItem({ id: item.id, extraId: ex.id })
+                        removeExtraFromItem({
+                          id: item.id,
+                          extraId: ex.extraId,
+                        })
                       )
                     }
                   >
