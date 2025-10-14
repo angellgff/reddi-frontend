@@ -23,9 +23,63 @@ const titleMap: Record<ProductsStatsData["statKey"], string> = {
 
 export default async function ProductsStasServer() {
   const supabase = await createClient();
+  // 1) Obtener usuario autenticado
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    // Sin sesión: devolver estadísticas en cero
+    const zeroStats = [
+      { statKey: "active_products" as const, value: "0" },
+      { statKey: "most_sold" as const, value: "0" },
+      { statKey: "inactive_products" as const, value: "0" },
+    ];
+    return (
+      <StatCardSection
+        stats={zeroStats}
+        iconMap={iconMap}
+        titleMap={titleMap}
+        getKey={(item) => item.statKey}
+        getValue={(item) => item.value}
+      />
+    );
+  }
+
+  // 2) Obtener el partner vinculado al usuario
+  const { data: partner, error: partnerErr } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (partnerErr || !partner) {
+    console.error(
+      "ProductsStasServer: partner no encontrado para user",
+      user.id,
+      partnerErr
+    );
+    const zeroStats = [
+      { statKey: "active_products" as const, value: "0" },
+      { statKey: "most_sold" as const, value: "0" },
+      { statKey: "inactive_products" as const, value: "0" },
+    ];
+    return (
+      <StatCardSection
+        stats={zeroStats}
+        iconMap={iconMap}
+        titleMap={titleMap}
+        getKey={(item) => item.statKey}
+        getValue={(item) => item.value}
+      />
+    );
+  }
+
+  // 3) Traer solo productos del partner autenticado
   const { data, error } = await supabase
     .from("products")
     .select("id,is_available")
+    .eq("partner_id", partner.id)
     .limit(5000); // safety cap
   if (error) {
     console.error("Error fetching product stats", error);

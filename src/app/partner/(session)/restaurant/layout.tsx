@@ -11,37 +11,39 @@ import HistoryIcon from "@/src/components/icons/HistoryIcon";
 import SupportIcon from "@/src/components/icons/SupportIcon";
 import FinancesIcon from "@/src/components/icons/FinancesIcon";
 
-const actualURL = "/aliado";
+// Base de rutas correcta para la sección Restaurant
+const actualURL = "/partner/restaurant";
 
 const navigationLinks: NavLink[] = [
   {
     name: "Dashboard",
     href: `${actualURL}/dashboard`,
+    icon: "dashboard", // Usaremos un string
   },
   {
     name: "Pedidos",
     href: `${actualURL}/pedidos`,
-    icon: <OrderIcon className="h-5 w-5" />,
+    icon: "order", // ANTES: OrderIcon
   },
   {
     name: "Productos",
     href: `${actualURL}/menu`,
-    icon: <ProductIcon className="h-5 w-5" fill="#6A6C71" />,
+    icon: "product", // ANTES: ProductIcon
   },
   {
     name: "Historial",
     href: "#",
-    icon: <HistoryIcon className="h-5 w-5" fill="#6A6C71" />,
+    icon: "history", // ANTES: HistoryIcon
   },
   {
     name: "Soporte",
     href: `${actualURL}/support`,
-    icon: <SupportIcon className="h-5 w-5" fill="#6A6C71" />,
+    icon: "support", // ANTES: SupportIcon
   },
   {
     name: "Finanzas",
     href: `${actualURL}/finances`,
-    icon: <FinancesIcon className="h-5 w-5" fill="#6A6C71" />,
+    icon: "finances", // ANTES: FinancesIcon
   },
 ];
 

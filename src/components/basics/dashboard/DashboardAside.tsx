@@ -9,7 +9,7 @@ import { usePathname } from "next/navigation";
 export type NavLink = {
   name: string;
   href: string;
-  icon?: ReactNode;
+  icon?: string; // Un identificador de texto para el icono
   subLinks?: Omit<NavLink, "subLinks">[];
 };
 
@@ -19,9 +19,20 @@ export default function Sidebar({
   navigationLinks: NavLink[];
 }) {
   const pathname = usePathname();
+
+  // Helper: determine if link is active for current route
+  const isLinkActive = (href: string) => {
+    if (!href) return false;
+    // Exact match first
+    if (pathname === href) return true;
+    // Otherwise check if current path is under the link base path
+    const base = href.endsWith("/") ? href : `${href}/`;
+    return pathname.startsWith(base);
+  };
+
   const [openMenu, setOpenMenu] = useState(() => {
     const currentLink = navigationLinks.find((link) =>
-      link.subLinks?.some((sub) => pathname.startsWith(sub.href))
+      link.subLinks?.some((sub) => isLinkActive(sub.href))
     );
     return currentLink?.name || "";
   });
@@ -34,7 +45,7 @@ export default function Sidebar({
           {navigationLinks.map((link) => {
             if (link.subLinks) {
               const isMenuActive = link.subLinks.some((sub) =>
-                pathname.startsWith(sub.href)
+                isLinkActive(sub.href)
               );
               return (
                 <CollapsibleNavLink
@@ -42,7 +53,7 @@ export default function Sidebar({
                   link={link}
                   // El menú está abierto si su nombre coincide con el estado O si está activo
                   isOpen={openMenu === link.name || isMenuActive}
-                  activeSubLink={pathname} // El sub-enlace activo es simplemente la ruta actual
+                  activeSubLink={pathname}
                   onToggle={() =>
                     setOpenMenu(openMenu === link.name ? "" : link.name)
                   }
@@ -50,10 +61,7 @@ export default function Sidebar({
               );
             }
 
-            const isActive =
-              link.href === "/aliado/dashboard"
-                ? pathname === link.href
-                : pathname.startsWith(link.href);
+            const isActive = isLinkActive(link.href);
 
             return (
               <SingleNavLink
