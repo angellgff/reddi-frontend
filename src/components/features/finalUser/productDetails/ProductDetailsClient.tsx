@@ -17,6 +17,7 @@ export default function ProductDetailsClient({
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, number>>({});
+  const [note, setNote] = useState<string>("");
 
   const unitPrice = useMemo(() => {
     const base = Number(details.base_price) || 0;
@@ -83,6 +84,7 @@ export default function ProductDetailsClient({
         quantity,
         extras,
         mergeByProduct: true,
+        note: note.trim() ? note.trim() : null,
       })
     );
     if (openAfter) dispatch(openCart());
@@ -211,6 +213,23 @@ export default function ProductDetailsClient({
                   </div>
                 ))
               )}
+            </div>
+
+            {/* Note input */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nota para el pedido (opcional)
+              </label>
+              <textarea
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ej. Sin cebolla, salsa aparte…"
+                rows={3}
+                className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+              />
+              <div className="mt-1 text-[11px] text-gray-500">
+                La nota se guardará junto con este producto en tu carrito.
+              </div>
             </div>
           </div>
         </div>

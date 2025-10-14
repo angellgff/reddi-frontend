@@ -23,6 +23,7 @@ export interface CartItem {
   quantity: number;
   extras: SelectedExtra[];
   // opcional: notas, variantes, etc.
+  note?: string | null;
 }
 
 export interface CartState {
@@ -66,6 +67,7 @@ const cartSlice = createSlice({
         unitPrice,
         quantity,
         extras,
+        note,
       } = action.payload;
 
       // Si el item tiene extras, no hacemos merge y forzamos líneas unitarias
@@ -88,6 +90,7 @@ const cartSlice = createSlice({
               price: e.price,
               quantity: e.quantity,
             })),
+            note: note ?? null,
           });
         }
         return;
@@ -98,7 +101,9 @@ const cartSlice = createSlice({
           (i: CartItem) =>
             i.productId === productId &&
             i.partnerId === partnerId &&
-            (i.extras?.length ?? 0) === 0
+            (i.extras?.length ?? 0) === 0 &&
+            // Merge solo si la nota coincide (tratando undefined y "" como iguales)
+            (i.note ?? "") === (note ?? "")
         );
         if (found) {
           found.quantity += quantity;
@@ -115,6 +120,7 @@ const cartSlice = createSlice({
         unitPrice,
         quantity,
         extras: [],
+        note: note ?? null,
       });
     },
     removeItem: (state: CartState, action: PayloadAction<{ id: string }>) => {
@@ -150,6 +156,7 @@ const cartSlice = createSlice({
             unitPrice: it.unitPrice,
             quantity: 1,
             extras: [],
+            note: it.note ?? null,
           });
         }
         // La línea original mantiene su cantidad intacta (no se cambia)
@@ -206,6 +213,7 @@ const cartSlice = createSlice({
           unitPrice: it.unitPrice,
           quantity: 1,
           extras: newExtras,
+          note: it.note ?? null,
         };
         state.items.push(newItem);
         return;
@@ -259,6 +267,17 @@ const cartSlice = createSlice({
         );
       }
     },
+    updateItemNote: (
+      state: CartState,
+      action: PayloadAction<{ id: string; note: string | null }>
+    ) => {
+      const it = state.items.find((i: CartItem) => i.id === action.payload.id);
+      if (!it) return;
+      it.note =
+        action.payload.note && action.payload.note.trim() !== ""
+          ? action.payload.note.trim()
+          : null;
+    },
     clearCart: (state: CartState) => {
       state.items = [];
     },
@@ -274,6 +293,7 @@ export const {
   incrementExtraQuantity,
   decrementExtraQuantity,
   removeExtraFromItem,
+  updateItemNote,
   clearCart,
 } = cartSlice.actions;
 

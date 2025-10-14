@@ -9,6 +9,7 @@ import {
   removeExtraFromItem,
   addExtraToItem,
   addItem,
+  updateItemNote,
 } from "@/src/lib/store/cartSlice";
 import {
   incrementExtraQuantity,
@@ -33,6 +34,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
           quantity: 1,
           extras: [],
           mergeByProduct: true,
+          note: item.note ?? null,
         })
       );
     } else {
@@ -139,6 +141,46 @@ export default function CartItem({ item }: { item: CartItemType }) {
     );
     return item.unitPrice + extras;
   }, [item.unitPrice, item.extras]);
+
+  // Estado para editar nota
+  const [editingNote, setEditingNote] = useState(false);
+  const [draftNote, setDraftNote] = useState(item.note ?? "");
+  const startEditNote = () => {
+    setDraftNote(item.note ?? "");
+    setEditingNote(true);
+  };
+  const cancelEditNote = () => {
+    setEditingNote(false);
+    setDraftNote(item.note ?? "");
+  };
+  const saveNote = () => {
+    dispatch(
+      updateItemNote({ id: item.id, note: draftNote.trim() ? draftNote : null })
+    );
+    setEditingNote(false);
+  };
+
+  // Lista plana de todas las opciones para mostrar en una sola fila
+  const flatOptions = useMemo(
+    () =>
+      sections
+        .slice()
+        .sort((a, b) => a.displayOrder - b.displayOrder)
+        .flatMap((section) =>
+          section.options.map((opt) => ({
+            ...opt,
+            sectionName: section.name,
+            sectionRequired: section.isRequired,
+            sectionOrder: section.displayOrder,
+          }))
+        )
+        .sort((a, b) =>
+          a.sectionOrder !== b.sectionOrder
+            ? a.sectionOrder - b.sectionOrder
+            : a.displayOrder - b.displayOrder
+        ),
+    [sections]
+  );
 
   return (
     <div className="rounded-xl border p-3">
@@ -275,82 +317,133 @@ export default function CartItem({ item }: { item: CartItemType }) {
         </div>
       )}
 
-      {/* Extras disponibles (por secciones) */}
-      <div className="mt-3 space-y-2">
+      {/* Extras disponibles (una sola fila) */}
+      <div className="mt-3">
         {loadingExtras ? (
           <div className="text-xs text-gray-500">Cargando extras…</div>
-        ) : sections.length > 0 ? (
-          sections.map((section) => (
-            <div key={section.id} className="space-y-2">
-              <div className="text-xs font-medium text-gray-700">
-                {section.name}
-                {section.isRequired ? (
-                  <span className="ml-1 text-[10px] text-red-500">
-                    (requerido)
-                  </span>
-                ) : null}
-              </div>
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {section.options.map((opt) => {
-                  const selected = item.extras.find(
-                    (e) => e.extraId === opt.extraId
-                  );
-                  const priceLabel =
-                    opt.price > 0 ? `$${opt.price.toFixed(2)}` : "Incluido";
-                  return (
-                    <div
-                      key={opt.optionId}
-                      className={`min-w-32 rounded-lg border p-2 text-center hover:shadow transition ${
-                        selected ? "ring-2 ring-primary/60" : ""
-                      }`}
-                    >
-                      <div className="h-12 w-full bg-gray-100 rounded mb-1 overflow-hidden">
-                        <Image
-                          src={opt.imageUrl || "/placeholder-food.png"}
-                          alt={opt.name}
-                          width={48}
-                          height={48}
-                          className="object-cover w-full h-full"
-                        />
-                      </div>
-                      <div className="text-xs font-medium truncate">
-                        {opt.name}
-                      </div>
-                      <div className="text-[10px] text-gray-500">
-                        {priceLabel}
-                      </div>
-                      {!selected ? (
-                        <button
-                          type="button"
-                          className="mt-2 w-full text-[11px] py-1 rounded border bg-white hover:bg-gray-50"
-                          onClick={() =>
-                            dispatch(
-                              addExtraToItem({
-                                id: item.id,
-                                extra: {
-                                  imageUrl: opt.imageUrl,
-                                  extraId: opt.extraId,
-                                  name: opt.name,
-                                  price: opt.price,
-                                },
-                              })
-                            )
-                          }
-                        >
-                          Agregar
-                        </button>
-                      ) : (
-                        <div className="mt-2 text-[11px] text-green-600">
-                          Agregado
-                        </div>
-                      )}
+        ) : flatOptions.length > 0 ? (
+          <div className="flex gap-3 overflow-x-auto pb-1">
+            {flatOptions.map((opt) => {
+              const selected = item.extras.find(
+                (e) => e.extraId === opt.extraId
+              );
+              const priceLabel =
+                opt.price > 0 ? `$${opt.price.toFixed(2)}` : "Incluido";
+              return (
+                <div
+                  key={opt.optionId}
+                  className={`w-36 h-48 flex-none overflow-hidden rounded-lg border p-2 text-center hover:shadow transition flex flex-col ${
+                    selected ? "ring-2 ring-primary/60" : ""
+                  }`}
+                >
+                  <div className="h-16 w-full bg-gray-100 rounded mb-2 overflow-hidden">
+                    <Image
+                      src={opt.imageUrl || "/placeholder-food.png"}
+                      alt={opt.name}
+                      width={48}
+                      height={48}
+                      className="object-cover w-full h-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-xs font-medium truncate">
+                      {opt.name}
                     </div>
-                  );
-                })}
-              </div>
-            </div>
-          ))
+                    <div className="text-[10px] text-gray-500">
+                      {priceLabel}
+                    </div>
+                    {/* Badge pequeña con el nombre de la sección para contexto */}
+                    <div className="mt-1 text-[10px] text-gray-400 truncate">
+                      {opt.sectionName}
+                      {opt.sectionRequired ? (
+                        <span className="ml-1 text-red-500">*</span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div>
+                    {!selected ? (
+                      <button
+                        type="button"
+                        className="mt-2 w-full text-[11px] py-1 rounded border bg-white hover:bg-gray-50"
+                        onClick={() =>
+                          dispatch(
+                            addExtraToItem({
+                              id: item.id,
+                              extra: {
+                                imageUrl: opt.imageUrl,
+                                extraId: opt.extraId,
+                                name: opt.name,
+                                price: opt.price,
+                              },
+                            })
+                          )
+                        }
+                      >
+                        Agregar
+                      </button>
+                    ) : (
+                      <div className="mt-2 text-[11px] text-green-600">
+                        Agregado
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         ) : null}
+      </div>
+
+      {/* Nota del producto */}
+      <div className="mt-3 rounded-lg bg-gray-50 border p-2">
+        <div className="flex items-center justify-between mb-1">
+          <div className="text-xs font-medium text-gray-700">Nota</div>
+          {!editingNote && (
+            <button
+              type="button"
+              onClick={startEditNote}
+              className="text-[11px] underline text-gray-600"
+            >
+              {item.note ? "Editar" : "Añadir"}
+            </button>
+          )}
+        </div>
+        {!editingNote ? (
+          item.note ? (
+            <div className="text-xs text-gray-700 whitespace-pre-wrap">
+              {item.note}
+            </div>
+          ) : (
+            <div className="text-[11px] text-gray-500">Sin nota</div>
+          )
+        ) : (
+          <div className="space-y-2">
+            <textarea
+              value={draftNote}
+              onChange={(e) => setDraftNote(e.target.value)}
+              rows={3}
+              className="w-full rounded-md border px-2 py-1 text-xs outline-none focus:ring-2 focus:ring-primary/40"
+              placeholder="Ej. Sin cebolla, salsa aparte…"
+            />
+            <div className="flex gap-2 justify-end">
+              <button
+                type="button"
+                onClick={cancelEditNote}
+                className="px-2 py-1 rounded border text-[11px]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={saveNote}
+                disabled={draftNote.trim() === (item.note ?? "")}
+                className="px-2 py-1 rounded bg-primary text-white text-[11px] disabled:opacity-50"
+              >
+                Guardar
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
