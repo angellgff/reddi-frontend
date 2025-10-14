@@ -189,7 +189,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
 
       {/* Desktop Header */}
       <div className="hidden md:block w-full bg-white border-b border-primary relative z-40">
-        <div className="mx-auto w-full max-w-[1400px] xl:max-w-[1280px] 2xl:max-w-[1400px] px-6 lg:px-10 xl:px-12 flex h-[88px] lg:h-[104px] items-center justify-between gap-6 lg:gap-10">
+        <div className="mx-auto w-full max-w-[1400px] xl:max-w-[1280px] 2xl:max-w-7xl px-6 lg:px-10 xl:px-12 flex h-[88px] lg:h-[104px] items-center justify-between gap-6 lg:gap-10">
           {/* Left group: Logo (placeholder) + user/address */}
           <div className="flex items-center gap-6 lg:gap-10 min-w-0">
             <div className="flex items-center flex-shrink-0">

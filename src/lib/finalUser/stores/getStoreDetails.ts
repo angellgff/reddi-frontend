@@ -13,7 +13,7 @@ export default async function getStoreDetails(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("partners")
-    .select("id, name, image_url, address, partner_type")
+    .select("id, name, image_url, address, partner_type, phone")
     .eq("id", id)
     .single();
 
