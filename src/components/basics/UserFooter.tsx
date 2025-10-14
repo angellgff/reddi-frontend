@@ -24,12 +24,14 @@ export default function Footer() {
   return (
     <footer
       className="
-        fixed bottom-0 left-0 right-0 z-50
+        fixed bottom-0 left-0 right-0 z-50 md:hidden
         bg-white
         border-gray-300 border
         shadow-[0_-5px_15px_-3px_rgba(0,0,0,0.05)]
         pb-safe
       "
+      role="navigation"
+      aria-label="Menú inferior"
     >
       <nav className="flex items-center justify-around py-2">
         {navItems.map((item) => (

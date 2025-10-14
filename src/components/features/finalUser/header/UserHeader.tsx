@@ -2,7 +2,7 @@
 
 "use client";
 
-import { ChevronDown, ShoppingBag, Heart, MapPin } from "lucide-react";
+import { ChevronDown, ShoppingBag, Heart, MapPin, Menu, X } from "lucide-react";
 
 import Badge from "@/src/components/basics/header/Badge";
 import FiltersIcon from "@/src/components/icons/FiltersIcon";
@@ -28,6 +28,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [isClient, setIsClient] = useState(false); //Para verificar si se renderizó en el cliente
   const [hydrated, setHydrated] = useState(false); // marca cuando ya podemos usar estados del cliente sin riesgo de mismatch
   const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false); // menú hamburguesa para < xl
   const router = useRouter();
   const dispatch = useAppDispatch();
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
@@ -42,6 +43,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const toggleAddressMenu = () => {
     setIsAddressMenuVisible(!isAddressMenuVisible);
   };
+  const toggleNav = () => setIsNavOpen((p) => !p);
 
   const onToggleCart = () => dispatch(toggleCart());
 
@@ -91,7 +93,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       {/* Mobile Header */}
       <header
         className={`
-          fixed top-0 left-0 right-0 z-50 lg:hidden
+          fixed top-0 left-0 right-0 z-50 md:hidden
           text-white
           rounded-b-3xl shadow-lg
           pt-safe
@@ -186,23 +188,26 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       </header>
 
       {/* Desktop Header */}
-      <div className="hidden lg:block w-full bg-white border-b border-primary relative z-40">
-        <div className="mx-auto max-w-[1440px] px-12 flex h-[104px] items-center justify-between gap-10">
+      <div className="hidden md:block w-full bg-white border-b border-primary relative z-40">
+        <div className="mx-auto w-full max-w-[1400px] xl:max-w-[1280px] 2xl:max-w-[1400px] px-6 lg:px-10 xl:px-12 flex h-[88px] lg:h-[104px] items-center justify-between gap-6 lg:gap-10">
           {/* Left group: Logo (placeholder) + user/address */}
-          <div className="flex items-center gap-10">
-            <div className="flex items-center">
+          <div className="flex items-center gap-6 lg:gap-10 min-w-0">
+            <div className="flex items-center flex-shrink-0">
               {/* Placeholder for logo - replace with real Logo component if available */}
               <span className="text-3xl font-bold text-primary select-none">
                 Reddi
               </span>
             </div>
-            <div className="flex items-center gap-10 border-l border-primary pl-8">
-              <div className="flex flex-col w-[151px]">
+            <div className="flex items-center gap-6 lg:gap-10 border-l border-primary pl-4 lg:pl-8 min-w-0">
+              <div className="flex flex-col w-[151px] flex-shrink-0">
                 <span className="text-[12px] leading-4 font-medium font-[Poppins] text-black">
                   {userData.userName}
                 </span>
                 <div className="flex items-end gap-2 h-5">
-                  <span className="text-[16px] leading-5 font-bold font-[Poppins] text-black truncate max-w-[120px]">
+                  <span
+                    className="text-[16px] leading-5 font-bold font-[Poppins] text-black truncate max-w-[120px]"
+                    title={userData.address[0].address}
+                  >
                     {userData.address[0].address}
                   </span>
                   <button
@@ -219,8 +224,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                   </button>
                 </div>
               </div>
-              {/* Nav pills */}
-              <div className="flex items-center gap-5 border-l border-primary pl-6">
+              {/* Nav pills solo visibles en >= xl */}
+              <div className="hidden xl:flex items-center gap-5 border-l border-primary pl-6 flex-shrink min-w-0">
                 <NavPill
                   icon={<ShoppingBag size={20} />}
                   label="Mis pedidos"
@@ -235,15 +240,18 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
             </div>
           </div>
           {/* Right group: Cart + bell + user */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
             <button
               onClick={onToggleCart}
-              className="relative flex items-center text-[17px] font-normal font-[Rubik]"
+              className="relative hidden xl:flex items-center text-[17px] font-normal font-[Rubik]"
               aria-label="Abrir carrito"
             >
               <div className="flex items-center gap-2">
                 <UserCarIcon />
-                <span className="whitespace-nowrap" suppressHydrationWarning>
+                <span
+                  className="whitespace-nowrap text-sm lg:text-base"
+                  suppressHydrationWarning
+                >
                   {/* Usamos el snapshot del server (userData.carCount) hasta estar hidratados */}
                   Tu carrito (
                   {hydrated
@@ -253,7 +261,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 </span>
               </div>
             </button>
-            <div className="flex items-center gap-6">
+            <div className="hidden xl:flex items-center gap-4 lg:gap-6">
               <IconSquareButton aria-label="Notificaciones">
                 <div className="relative">
                   <BellIcon />
@@ -272,8 +280,80 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 <LogoutHeaderIcon />
               </IconSquareButton>
             </div>
+            {/* Botón hamburguesa se mueve al extremo derecho para < xl */}
+            <button
+              type="button"
+              onClick={toggleNav}
+              aria-label="Abrir menú"
+              className="xl:hidden flex items-center justify-center w-10 h-10 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors"
+            >
+              {isNavOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
+        {/* Drawer nav para < xl */}
+        {isNavOpen && (
+          <div className="xl:hidden absolute right-0 top-full bg-white shadow-md border border-gray-200 rounded-b-xl z-50 w-72 animate-slide-down">
+            <div className="p-4 flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <NavPill
+                  icon={<ShoppingBag size={20} />}
+                  label="Mis pedidos"
+                  active
+                />
+                <NavPill icon={<Heart size={20} />} label="Favoritos" />
+                <NavPill
+                  icon={<MapPin size={20} />}
+                  label="Direcciones guardadas"
+                />
+              </div>
+              <div className="h-px bg-gray-200" />
+              {/* Acciones que se ocultaron inline */}
+              <button
+                onClick={onToggleCart}
+                className="flex items-center justify-between w-full text-sm font-medium px-3 py-2 rounded-lg bg-gray-50 hover:bg-gray-100"
+              >
+                <span>Carrito</span>
+                <div className="relative">
+                  <UserCarIcon />
+                  <Badge
+                    count={
+                      hydrated
+                        ? cartCount || userData.carCount || 0
+                        : userData.carCount || 0
+                    }
+                    color={badgeColor}
+                    className="rounded-full"
+                  />
+                </div>
+              </button>
+              <IconSquareButton
+                aria-label="Notificaciones"
+                className="w-full justify-start px-3 py-2"
+              >
+                <div className="relative flex items-center gap-2">
+                  <BellIcon />
+                  <span className="text-sm">Notificaciones</span>
+                  <Badge
+                    count={userData.notificationCount}
+                    color={badgeColor}
+                    className="rounded-full"
+                  />
+                </div>
+              </IconSquareButton>
+              <IconSquareButton
+                aria-label="Cerrar sesión"
+                onClick={handleLogout}
+                className="w-full justify-start px-3 py-2"
+              >
+                <div className="flex items-center gap-2">
+                  <LogoutHeaderIcon />
+                  <span className="text-sm">Cerrar sesión</span>
+                </div>
+              </IconSquareButton>
+            </div>
+          </div>
+        )}
       </div>
     </>
   );
@@ -298,7 +378,7 @@ function NavPill({
     >
       <div className="flex items-start gap-1 h-5">
         {icon}
-        <span className="text-[16px] leading-5 font-medium font-[Poppins] text-black text-center">
+        <span className="text-[14px] leading-5 font-medium font-[Poppins] text-black text-center">
           {label}
         </span>
       </div>
