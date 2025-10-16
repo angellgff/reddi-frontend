@@ -14,6 +14,8 @@ import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCar
 import { useStoreDetailsClient } from "@/src/lib/finalUser/stores/useStoreDetailsClient";
 import { useAppDispatch } from "@/src/lib/store/hooks";
 import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
+import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/PaymentMethodsDialog";
+import { createClient } from "@/src/lib/supabase/client";
 
 function currency(n: number) {
   if (!isFinite(n)) return "$0.00";
@@ -97,6 +99,38 @@ export default function PaymentPage() {
   );
 
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
+
+  // Local payment method selection
+  const [selectedMethod, setSelectedMethod] = useState<{
+    brand: string;
+    last4: string;
+    cardholder_name: string | null;
+  } | null>(null);
+
+  // Initialize selected payment method from default (or first) on first load
+  useEffect(() => {
+    if (selectedMethod) return; // don't override user selection
+    const loadDefaultMethod = async () => {
+      try {
+        const supabase = createClient();
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user) return;
+        const { data, error } = await supabase
+          .from("user_payment_methods")
+          .select("*")
+          .eq("user_id", auth.user.id)
+          .order("created_at", { ascending: false });
+        if (error || !data) return;
+        const def = (data as any[]).find((m) => m.is_default) || (data as any[])[0];
+        if (def) {
+          setSelectedMethod({ brand: def.brand, last4: def.last4, cardholder_name: def.cardholder_name });
+        }
+      } catch {
+        // ignore
+      }
+    };
+    loadDefaultMethod();
+  }, [selectedMethod]);
 
   const validateCoupon = () => {
     const code = coupon.trim().toUpperCase();
@@ -222,15 +256,36 @@ export default function PaymentPage() {
               </div>
             </div>
 
-            {/* Payment method selector (placeholder) */}
+            {/* Payment method selector */}
             <div className="mt-4 rounded-xl border p-3 flex items-center justify-between">
               <div className="text-sm">
-                <div className="font-medium">Tarjeta Visa ·•••2893</div>
-                <div className="text-xs text-gray-500">Pepito Nuñez</div>
+                <div className="font-medium">
+                  {selectedMethod
+                    ? `Tarjeta ${selectedMethod.brand} ·•••${selectedMethod.last4}`
+                    : "Selecciona un método de pago"}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {selectedMethod?.cardholder_name || ""}
+                </div>
               </div>
-              <button className="h-8 rounded-lg border px-3 text-xs">
-                Cambiar
-              </button>
+              <PaymentMethodsDialog
+                trigger={
+                  <button className="h-8 rounded-lg border px-3 text-xs">
+                    Cambiar
+                  </button>
+                }
+                onSelected={(m) =>
+                  setSelectedMethod(
+                    m
+                      ? {
+                          brand: m.brand,
+                          last4: m.last4,
+                          cardholder_name: m.cardholder_name,
+                        }
+                      : null
+                  )
+                }
+              />
             </div>
 
             {/* Coupon */}
@@ -281,7 +336,7 @@ export default function PaymentPage() {
               { label: "Propina", value: tip },
             ]}
             total={total}
-            disabled={items.length === 0}
+            disabled={items.length === 0 || !selectedMethod}
             cta={
               <Link
                 href="/user/address"
