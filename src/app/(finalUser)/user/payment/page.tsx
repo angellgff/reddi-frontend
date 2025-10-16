@@ -121,9 +121,14 @@ export default function PaymentPage() {
           .eq("user_id", auth.user.id)
           .order("created_at", { ascending: false });
         if (error || !data) return;
-        const def = (data as any[]).find((m) => m.is_default) || (data as any[])[0];
+        const def =
+          (data as any[]).find((m) => m.is_default) || (data as any[])[0];
         if (def) {
-          setSelectedMethod({ brand: def.brand, last4: def.last4, cardholder_name: def.cardholder_name });
+          setSelectedMethod({
+            brand: def.brand,
+            last4: def.last4,
+            cardholder_name: def.cardholder_name,
+          });
         }
       } catch {
         // ignore
