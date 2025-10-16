@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from "@reduxjs/toolkit";
 import cartReducer from "./cartSlice";
 import chargesReducer from "./chargesSlice";
 import uiReducer from "./uiSlice";
+import addressReducer from "./addressSlice";
 import type { CartState } from "./cartSlice";
 import type { ChargesState } from "./chargesSlice";
 
@@ -9,6 +10,7 @@ const rootReducer = combineReducers({
   cart: cartReducer,
   charges: chargesReducer,
   ui: uiReducer,
+  addresses: addressReducer,
 });
 export type RootState = ReturnType<typeof rootReducer>;
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartItems, selectCartSubtotal } from "@/src/lib/store/cartSlice";
 import {
@@ -12,6 +12,8 @@ import Image from "next/image";
 import TipSelector from "@/src/components/features/finalUser/checkout/TipSelector";
 import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCard";
 import { useStoreDetailsClient } from "@/src/lib/finalUser/stores/useStoreDetailsClient";
+import { useAppDispatch } from "@/src/lib/store/hooks";
+import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
 
 function currency(n: number) {
   if (!isFinite(n)) return "$0.00";
@@ -23,10 +25,49 @@ function currency(n: number) {
 }
 
 export default function PaymentPage() {
+  const dispatch = useAppDispatch();
   const items = useAppSelector(selectCartItems);
   const subtotal = useAppSelector(selectCartSubtotal);
   const shipping = useAppSelector(selectShippingFee);
   const serviceFee = useAppSelector(selectServiceFee);
+  const { addresses, selectedAddressId, status, error } = useAppSelector(
+    (s) => s.addresses
+  );
+
+  // Local selection for this payment (independent from global default)
+  const [paymentAddressId, setPaymentAddressId] = useState<string | null>(null);
+
+  // Load addresses if needed (read-only access to context)
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchUserAddresses());
+    }
+  }, [status, dispatch]);
+
+  // Initialize local selection from global selected or first address
+  useEffect(() => {
+    if (!paymentAddressId) {
+      if (selectedAddressId) setPaymentAddressId(selectedAddressId);
+      else if (addresses.length > 0)
+        setPaymentAddressId(addresses[0].id as unknown as string);
+    }
+  }, [selectedAddressId, addresses, paymentAddressId]);
+
+  // Selected address string like "VILLA 27"
+  const displayedAddress = useMemo(() => {
+    const effectiveId = paymentAddressId || selectedAddressId || null;
+    const selected = addresses.find(
+      (a) => (a.id as unknown as string) === effectiveId
+    );
+    if (selected) {
+      const label = (selected.location_type as string)?.toUpperCase?.() || "";
+      return `${label} ${selected.location_number}`.trim();
+    }
+    return "";
+  }, [addresses, selectedAddressId, paymentAddressId]);
+
+  const [addressOpen, setAddressOpen] = useState(false);
+  const toggleAddressOpen = () => setAddressOpen((v) => !v);
 
   // Stores for items in cart
   const partnerIds = useMemo(() => items.map((i) => i.partnerId), [items]);
@@ -87,17 +128,72 @@ export default function PaymentPage() {
         <div className="lg:col-span-8 space-y-4">
           {/* Address + Store Card */}
           <section className="rounded-2xl border bg-white p-4">
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between relative">
               <div>
                 <div className="text-xs text-gray-500">
-                  Naco– apartamento 3A
+                  {status === "loading"
+                    ? "Cargando dirección…"
+                    : displayedAddress || "Sin dirección seleccionada"}
                 </div>
-                <div className="text-[11px] text-gray-400">Puertón rojo</div>
+                {error ? (
+                  <div className="text-[11px] text-red-600">{error}</div>
+                ) : null}
               </div>
-              <button className="h-8 rounded-lg border px-3 text-xs">
+              <button
+                onClick={toggleAddressOpen}
+                className="h-8 rounded-lg border px-3 text-xs"
+              >
                 Cambiar
               </button>
             </div>
+
+            {/* Inline dropdown for selecting address */}
+            {addressOpen && (
+              <div className="mt-3 rounded-lg border bg-white shadow-sm overflow-hidden">
+                {status === "loading" ? (
+                  <div className="px-3 py-2 text-xs text-gray-500">
+                    Cargando direcciones…
+                  </div>
+                ) : addresses.length === 0 ? (
+                  <div className="px-3 py-2 text-xs text-gray-500">
+                    No tienes direcciones guardadas.
+                  </div>
+                ) : (
+                  <ul className="max-h-56 overflow-y-auto">
+                    {addresses.map((a) => {
+                      const id = a.id as unknown as string;
+                      const label = `${String(a.location_type).toUpperCase()} ${
+                        a.location_number
+                      }`.trim();
+                      const selected = id === paymentAddressId;
+                      return (
+                        <li key={id}>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              setPaymentAddressId(id);
+                              setAddressOpen(false);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-sm flex items-center justify-between hover:bg-gray-50 ${
+                              selected ? "bg-emerald-50 text-emerald-700" : ""
+                            }`}
+                          >
+                            <span>{label}</span>
+                            {selected ? (
+                              <span className="text-xs">Seleccionada</span>
+                            ) : (
+                              <span className="text-xs text-gray-500">
+                                Seleccionar
+                              </span>
+                            )}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+            )}
 
             <div className="mt-4 flex items-start gap-3">
               <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 grid place-items-center">

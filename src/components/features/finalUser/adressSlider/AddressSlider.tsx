@@ -9,62 +9,51 @@ import Portal from "@/src/components/basics/Portal";
 import useBodyScrollLock from "@/src/lib/hooks/useScrollBodyLock";
 import { useEffect, useMemo, useState } from "react";
 import NewAddressForm from "./NewAddressForm";
-import { AddressData } from "@/src/lib/finalUser/type";
-import { useUserAddresses } from "@/src/lib/finalUser/addresses/useUserAddresses";
+import { deleteUserAddress } from "@/src/lib/finalUser/addresses/actions";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import {
-  deleteUserAddress,
-  setSelectedAddress,
-} from "@/src/lib/finalUser/addresses/actions";
-import { createClient } from "@/src/lib/supabase/client";
+  fetchUserAddresses,
+  updateSelectedAddress,
+} from "@/src/lib/store/addressSlice";
 
 export type AddressSliderProps = {
   isOpen: boolean;
   onClose: () => void;
-  data?: AddressData[]; // optional: if not provided, hook data will be used
 };
 
-export default function AddressSlider({
-  isOpen,
-  onClose,
-  data,
-}: AddressSliderProps) {
+export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
   useBodyScrollLock(isOpen);
-
   const [isAddingAddress, setIsAddingAddress] = useState(false);
-  const { addresses, loading, error } = useUserAddresses();
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const dispatch = useAppDispatch();
+  const { addresses, selectedAddressId, status, error } = useAppSelector(
+    (s) => s.addresses
+  );
 
   useEffect(() => {
-    const loadSelected = async () => {
-      const supabase = createClient();
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
-      const { data } = await supabase
-        .from("profiles")
-        .select("selected_address")
-        .eq("id", auth.user.id)
-        .single();
-      setSelectedId((data as any)?.selected_address ?? null);
-    };
-    loadSelected();
-  }, []);
+    if (status === "idle") {
+      dispatch(fetchUserAddresses());
+    }
+  }, [status, dispatch]);
 
   const handleNewAddress = () => {
     setIsAddingAddress(!isAddingAddress);
   };
 
   const mergedData = useMemo(() => {
-    if (data && data.length > 0) return data;
-    // Map hook addresses to AddressData shape (temporario para UI)
     return addresses.map((a) => ({
       id: Number.NaN, // placeholder, AddressCard no usa id
-      address: `${a.location_type?.toUpperCase?.() || ""} ${
+      address: `${(a.location_type as string)?.toUpperCase?.() || ""} ${
         a.location_number
       }`.trim(),
-      label: a.location_type,
-      _rawId: a.id,
-    })) as unknown as AddressData[] & { _rawId?: string }[];
-  }, [data, addresses]);
+      label: a.location_type as string,
+      _rawId: a.id as unknown as string,
+    })) as Array<{
+      id: number;
+      address: string;
+      label: string;
+      _rawId: string;
+    }>;
+  }, [addresses]);
 
   return (
     <Portal>
@@ -104,7 +93,7 @@ export default function AddressSlider({
               <h3 className="text-base font-bold mb-4">
                 {isAddingAddress ? "Nueva dirección" : "Direcciones guardadas"}
               </h3>
-              {loading ? (
+              {status === "loading" ? (
                 <p className="text-sm text-gray-500">Cargando…</p>
               ) : error ? (
                 <p className="text-sm text-red-600">{error}</p>
@@ -125,17 +114,16 @@ export default function AddressSlider({
                       />
                       <button
                         className={`text-xs underline ${
-                          selectedId === item._rawId
+                          selectedAddressId === item._rawId
                             ? "text-green-700"
                             : "text-gray-700"
                         }`}
                         onClick={async () => {
                           if (!item._rawId) return;
-                          const res = await setSelectedAddress(item._rawId);
-                          if (res.success) setSelectedId(item._rawId);
+                          await dispatch(updateSelectedAddress(item._rawId));
                         }}
                       >
-                        {selectedId === item._rawId
+                        {selectedAddressId === item._rawId
                           ? "Seleccionada"
                           : "Seleccionar"}
                       </button>
@@ -146,8 +134,8 @@ export default function AddressSlider({
                           const ok = window.confirm("¿Eliminar dirección?");
                           if (!ok) return;
                           await deleteUserAddress(item._rawId);
-                          // Dejar que el hook se recargue por revalidación; o refetch manual si se desea
-                          window.location.reload();
+                          // Opcional: recargar direcciones del store
+                          dispatch(fetchUserAddresses());
                         }}
                       >
                         Eliminar

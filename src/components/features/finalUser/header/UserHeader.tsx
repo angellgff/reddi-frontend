@@ -12,13 +12,14 @@ import UserCarIcon from "@/src/components/icons/UserCarIcon";
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
 import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 import { UserHeaderData } from "@/src/lib/finalUser/type";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { createClient } from "@/src/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
+import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
 
 const badgeColor = "bg-red-500";
 
@@ -33,6 +34,9 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const dispatch = useAppDispatch();
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
   const cartCount = useAppSelector(selectCartCount);
+  const { addresses, selectedAddressId, status } = useAppSelector(
+    (s) => s.addresses
+  );
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -52,6 +56,25 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     // Defer cart count swapping to next tick to ensure initial server text coincide
     setHydrated(true);
   }, []);
+
+  // Ensure addresses are loaded regardless of which component mounts first
+  useEffect(() => {
+    if (status === "idle") {
+      dispatch(fetchUserAddresses());
+    }
+  }, [status, dispatch]);
+
+  const displayedAddress = useMemo(() => {
+    const selected = addresses.find(
+      (a) => (a.id as unknown as string) === selectedAddressId
+    );
+    if (selected) {
+      const label = (selected.location_type as string)?.toUpperCase?.() || "";
+      return `${label} ${selected.location_number}`.trim();
+    }
+    // Fallback to server-provided first address, if available
+    return userData?.address?.[0]?.address || "";
+  }, [addresses, selectedAddressId, userData]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -111,8 +134,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
             <div>
               <p className="text-xs opacity-90">{userData.userName}</p>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold">
-                  {userData.address[0].address}
+                <h1 className="text-lg font-semibold" suppressHydrationWarning>
+                  {displayedAddress}
                 </h1>
                 <button
                   onClick={toggleAddressMenu}
@@ -205,9 +228,9 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 <div className="flex items-end gap-2 h-5">
                   <span
                     className="text-[16px] leading-5 font-bold font-[Poppins] text-black truncate max-w-[120px]"
-                    title={userData.address[0].address}
+                    title={displayedAddress}
                   >
-                    {userData.address[0].address}
+                    <span suppressHydrationWarning>{displayedAddress}</span>
                   </span>
                   <button
                     onClick={toggleAddressMenu}
