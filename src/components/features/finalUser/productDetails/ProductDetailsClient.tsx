@@ -90,28 +90,36 @@ export default function ProductDetailsClient({
     if (openAfter) dispatch(openCart());
   };
 
+  // Estado para colapsar / expandir cada sección de extras
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  const toggleSection = (id: string) =>
+    setCollapsed((m) => ({ ...m, [id]: !m[id] }));
+
+  const prepTime = details.estimated_time;
+
   return (
     <div className="max-w-6xl mx-auto">
+      <div className="p-4">
+        <button
+          className="px-3 py-2 rounded-lg border text-sm"
+          onClick={() => router.back()}
+        >
+          Volver
+        </button>
+      </div>
       <div className="rounded-2xl border overflow-hidden bg-white">
         {/* Top header with Back button */}
-        <div className="p-4 border-b">
-          <button
-            className="px-3 py-2 rounded-lg border text-sm"
-            onClick={() => router.back()}
-          >
-            Volver
-          </button>
-        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2">
+        <div className=" p-4 grid grid-cols-1 md:grid-cols-2">
           {/* Left: image */}
-          <div className="relative h-56 md:h-80 w-full">
+          <div className="relative h-56 md:h-60 w-full">
             {details.image_url ? (
               <Image
                 src={details.image_url}
                 alt={details.name}
                 fill
-                className="object-cover"
+                className="object-cover rounded-[20px]"
               />
             ) : (
               <div className="w-full h-full bg-gray-100" />
@@ -119,12 +127,14 @@ export default function ProductDetailsClient({
           </div>
 
           {/* Right: main info + extras under description */}
-          <div className="p-4 md:p-6 space-y-2">
-            <h1 className="text-xl font-semibold">{details.name}</h1>
+          <div className="px-4 md:px-6 space-y-2">
+            <h1 className="text-xl font-semibold flex flex-wrap items-center gap-2">
+              {details.name}
+            </h1>
             <div className="flex items-center gap-3">
-              <span className="text-emerald-600 font-bold">
+              <span className="text-primary font-bold">
                 $ {unitPrice.toFixed(2)}{" "}
-                <span className="text-gray-500 text-xs">/ {details.unit}</span>
+                <span className="text-primary text-xs"> {details.unit}</span>
               </span>
               {details.previous_price ? (
                 <span className="text-xs text-gray-400 line-through">
@@ -137,6 +147,11 @@ export default function ProductDetailsClient({
                 </span>
               ) : null}
             </div>
+            {prepTime ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF6FF] text-[#1C398E] border border-[#BEDBFF]">
+                {prepTime}
+              </span>
+            ) : null}
             {details.description ? (
               <p className="text-sm text-gray-600">{details.description}</p>
             ) : null}
@@ -148,70 +163,87 @@ export default function ProductDetailsClient({
                   Este producto no tiene extras disponibles.
                 </div>
               ) : (
-                details.sections.map((s) => (
-                  <div key={s.id} className="rounded-xl border overflow-hidden">
-                    <div className="px-4 py-2 bg-gray-50 flex items-center justify-between">
-                      <span className="text-sm font-medium">{s.name}</span>
-                      {s.isRequired ? (
-                        <span className="text-[11px] text-emerald-600">
-                          Requerido
+                details.sections.map((s) => {
+                  const isCollapsed = collapsed[s.id];
+                  return (
+                    <div
+                      key={s.id}
+                      className="rounded-xl border overflow-hidden"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => toggleSection(s.id)}
+                        className="w-full px-4 py-2 bg-gray-50 flex items-center justify-between text-left"
+                      >
+                        <span className="text-sm font-medium flex items-center gap-2">
+                          {s.name}
+                          {s.isRequired ? (
+                            <span className="text-[11px] text-emerald-600 font-normal">
+                              Requerido
+                            </span>
+                          ) : null}
                         </span>
-                      ) : null}
-                    </div>
-                    <ul className="divide-y">
-                      {s.options.map((o) => {
-                        const qty = selected[o.extraId] || 0;
-                        return (
-                          <li
-                            key={o.id}
-                            className="px-4 py-3 flex items-center gap-3 justify-between"
-                          >
-                            <div className="flex items-center gap-3 min-w-0">
-                              {o.imageUrl ? (
-                                <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
-                                  <Image
-                                    src={o.imageUrl}
-                                    alt={o.name}
-                                    fill
-                                    className="object-cover"
-                                  />
+                        <span className="text-xs text-gray-500">
+                          {isCollapsed ? "Mostrar" : "Ocultar"}
+                        </span>
+                      </button>
+                      {!isCollapsed && (
+                        <ul className="divide-y">
+                          {s.options.map((o) => {
+                            const qty = selected[o.extraId] || 0;
+                            return (
+                              <li
+                                key={o.id}
+                                className="px-4 py-3 flex items-center gap-3 justify-between"
+                              >
+                                <div className="flex items-center gap-3 min-w-0">
+                                  {o.imageUrl ? (
+                                    <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                                      <Image
+                                        src={o.imageUrl}
+                                        alt={o.name}
+                                        fill
+                                        className="object-cover"
+                                      />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 bg-gray-100 rounded-md" />
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="text-sm font-medium truncate">
+                                      {o.name}
+                                    </p>
+                                    <p className="text-xs text-gray-500">
+                                      + ${o.price.toFixed(2)}
+                                    </p>
+                                  </div>
                                 </div>
-                              ) : (
-                                <div className="w-10 h-10 bg-gray-100 rounded-md" />
-                              )}
-                              <div className="min-w-0">
-                                <p className="text-sm font-medium truncate">
-                                  {o.name}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  + ${o.price.toFixed(2)}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                className="w-8 h-8 rounded-full border text-lg leading-none disabled:opacity-50"
-                                onClick={() => decOption(o.extraId)}
-                                disabled={qty === 0}
-                              >
-                                −
-                              </button>
-                              <span className="w-6 text-center text-sm">
-                                {qty}
-                              </span>
-                              <button
-                                className="w-8 h-8 rounded-full border text-lg leading-none"
-                                onClick={() => incOption(o.extraId)}
-                              >
-                                +
-                              </button>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </div>
-                ))
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    className="w-8 h-8 rounded-full border text-lg leading-none disabled:opacity-50"
+                                    onClick={() => decOption(o.extraId)}
+                                    disabled={qty === 0}
+                                  >
+                                    −
+                                  </button>
+                                  <span className="w-6 text-center text-sm">
+                                    {qty}
+                                  </span>
+                                  <button
+                                    className="w-8 h-8 rounded-full border text-lg leading-none"
+                                    onClick={() => incOption(o.extraId)}
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  );
+                })
               )}
             </div>
 
