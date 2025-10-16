@@ -86,7 +86,6 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       <AddressSlider
         isOpen={isAddressMenuVisible}
         onClose={toggleAddressMenu}
-        data={userData.address}
       />
       <CartSlider onClose={() => dispatch(closeCart())} />
 

@@ -2,30 +2,48 @@
 "use client";
 
 // importar useTransition si decido usarlo
-import { useState } from "react";
-import { AddressData } from "@/src/lib/finalUser/type";
+import { useState, useTransition } from "react";
 import ArrowIcon from "@/src/components/icons/ArrowIcon";
+import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
+import type { Enums } from "@/src/lib/database.types";
 
 export type NewAddressFormProps = {
   onCancel: () => void;
   onSave?: (data: FormData) => Promise<void>;
 };
 
-type FormData = Omit<AddressData, "id">;
+type LocationType = Enums<"address_location_type">; // "villa" | "yate"
+type FormData = {
+  location_type: LocationType;
+  location_number: string;
+  instructions?: string;
+};
 
 // agregar el OnSave para cuando tenga la función hecha
 export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
   const [formData, setFormData] = useState<FormData>({
-    address: "",
-    label: "",
+    location_type: "villa",
+    location_number: "",
+    instructions: "",
   });
-  //const [isPending, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // startTransition(async () => {
-    // await onSave(formData);
-    // });
+    setError(null);
+    const fd = new window.FormData();
+    fd.set("location_type", formData.location_type);
+    fd.set("location_number", formData.location_number);
+    if (formData.instructions) fd.set("instructions", formData.instructions);
+    startTransition(async () => {
+      const res = await createUserAddress(fd);
+      if (!res.success) {
+        setError(res.error || "No se pudo guardar");
+        return;
+      }
+      onCancel();
+    });
   };
 
   return (
@@ -49,28 +67,44 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
               Nueva dirección
             </h3>
             <label
-              htmlFor="label"
+              htmlFor="location_type"
               className="block text-sm font-semibold text-gray-700 pb-1"
             >
               Tipo de lugar
             </label>
             <select
-              id="label"
-              name="label"
-              value={formData.label}
+              id="location_type"
+              name="location_type"
+              value={formData.location_type}
               onChange={(e) =>
-                setFormData({ ...formData, label: e.target.value })
+                setFormData({
+                  ...formData,
+                  location_type: e.target.value as LocationType,
+                })
               }
-              className="
-            block w-full border border-gray-300 rounded-xl
-            py-2 px-3 appearance-none
-            
-          "
+              className="block w-full border border-gray-300 rounded-xl py-2 px-3 appearance-none"
             >
-              {/* Opciones*/}
-              <option>Villa</option>
-              <option>Yate</option>
+              <option value="villa">Villa</option>
+              <option value="yate">Yate</option>
             </select>
+
+            {/* Campo: Número de villa/yate */}
+            <label
+              htmlFor="location_number"
+              className="block text-sm text-gray-700 pt-4 pb-1 font-semibold"
+            >
+              Número de {formData.location_type === "yate" ? "yate" : "villa"}
+            </label>
+            <input
+              id="location_number"
+              name="location_number"
+              value={formData.location_number}
+              onChange={(e) =>
+                setFormData({ ...formData, location_number: e.target.value })
+              }
+              placeholder="Ej. 23A, 5, #7"
+              className="block w-full rounded-xl border-gray-300 shadow-sm border py-2 px-3"
+            />
 
             {/* Campo: Instrucciones especiales */}
             <div>
@@ -84,17 +118,12 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
                 id="instructions"
                 name="instructions"
                 rows={4}
-                value={formData.address}
+                value={formData.instructions}
                 onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
+                  setFormData({ ...formData, instructions: e.target.value })
                 }
                 placeholder="Ingresa la información"
-                className="
-            block w-full rounded-xl border-gray-300 shadow-sm
-            border
-            py-2 px-3 resize-none
-            
-          "
+                className="block w-full rounded-xl border-gray-300 shadow-sm border py-2 px-3 resize-none"
               />
             </div>
           </div>
@@ -102,15 +131,12 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
 
         {/* Botones de Acción */}
         <footer className="p-4 flex-shrink-0">
+          {error ? <p className="text-sm text-red-600 mb-2">{error}</p> : null}
           <button
-            className="
-              w-full bg-primary text-white font-medium py-3
-              rounded-2xl text-center
-              hover:bg-[#15803d] transition-colors
-            "
+            disabled={isPending}
+            className="w-full bg-primary text-white font-medium py-3 rounded-2xl text-center hover:bg-[#15803d] transition-colors disabled:opacity-60"
           >
-            Guardar dirección
-            {/*{isPending? "Guardando..."" : "Guardar dirección"*/}
+            {isPending ? "Guardando..." : "Guardar dirección"}
           </button>
         </footer>
       </form>

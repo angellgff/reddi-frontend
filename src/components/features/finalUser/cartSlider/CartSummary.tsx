@@ -22,12 +22,14 @@ export default function CartSummary() {
       <div className="border-t pt-2">
         <Row label="Subtotal" value={`$${total.toFixed(2)}`} bold />
       </div>
-      <button
-        className="mt-3 w-full bg-primary text-white font-medium py-3 rounded-xl disabled:opacity-60"
-        disabled={items.length === 0}
+      <a
+        href={items.length === 0 ? undefined : "/user/payment"}
+        className={`mt-3 block w-full text-center bg-primary text-white font-medium py-3 rounded-xl ${
+          items.length === 0 ? "pointer-events-none opacity-60" : ""
+        }`}
       >
         Ir al pago
-      </button>
+      </a>
     </div>
   );
 }

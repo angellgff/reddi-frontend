@@ -1,4 +1,4 @@
-export type Json =
+﻿export type Json =
   | string
   | number
   | boolean
@@ -11,31 +11,6 @@ export type Database = {
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4";
-  };
-  graphql_public: {
-    Tables: {
-      [_ in never]: never;
-    };
-    Views: {
-      [_ in never]: never;
-    };
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
-        Returns: Json;
-      };
-    };
-    Enums: {
-      [_ in never]: never;
-    };
-    CompositeTypes: {
-      [_ in never]: never;
-    };
   };
   public: {
     Tables: {
@@ -226,16 +201,27 @@ export type Database = {
         Row: {
           created_at: string;
           id: string;
+          partner_id: string | null;
         };
         Insert: {
           created_at?: string;
           id?: string;
+          partner_id?: string | null;
         };
         Update: {
           created_at?: string;
           id?: string;
+          partner_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "fk_partner";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "partners";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       partners: {
         Row: {
@@ -524,14 +510,17 @@ export type Database = {
         Row: {
           id: string;
           role: Database["public"]["Enums"]["app_role"];
+          selected_address: string | null;
         };
         Insert: {
           id: string;
           role?: Database["public"]["Enums"]["app_role"];
+          selected_address?: string | null;
         };
         Update: {
           id?: string;
           role?: Database["public"]["Enums"]["app_role"];
+          selected_address?: string | null;
         };
         Relationships: [];
       };
@@ -570,18 +559,21 @@ export type Database = {
           created_at: string;
           id: string;
           name: string;
+          partner_id: string;
         };
         Insert: {
           category_id?: string | null;
           created_at?: string;
           id?: string;
           name?: string;
+          partner_id: string;
         };
         Update: {
           category_id?: string | null;
           created_at?: string;
           id?: string;
           name?: string;
+          partner_id?: string;
         };
         Relationships: [
           {
@@ -589,6 +581,45 @@ export type Database = {
             columns: ["category_id"];
             isOneToOne: false;
             referencedRelation: "categories";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "fk_partner";
+            columns: ["partner_id"];
+            isOneToOne: false;
+            referencedRelation: "partners";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      user_addresses: {
+        Row: {
+          created_at: string;
+          id: string;
+          location_number: string;
+          location_type: Database["public"]["Enums"]["address_location_type"];
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          location_number: string;
+          location_type: Database["public"]["Enums"]["address_location_type"];
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          location_number?: string;
+          location_type?: Database["public"]["Enums"]["address_location_type"];
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_addresses_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
             referencedColumns: ["id"];
           }
         ];
@@ -629,6 +660,7 @@ export type Database = {
       };
     };
     Enums: {
+      address_location_type: "villa" | "yate";
       app_role: "user" | "admin" | "market" | "restaurant" | "delivery";
       partner_type: "market" | "restaurant" | "liquor_store";
     };
@@ -759,11 +791,9 @@ export type CompositeTypes<
   : never;
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {
+      address_location_type: ["villa", "yate"],
       app_role: ["user", "admin", "market", "restaurant", "delivery"],
       partner_type: ["market", "restaurant", "liquor_store"],
     },
