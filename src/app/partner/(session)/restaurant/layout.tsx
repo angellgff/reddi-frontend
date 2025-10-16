@@ -22,7 +22,7 @@ const navigationLinks: NavLink[] = [
   },
   {
     name: "Pedidos",
-    href: `${actualURL}/pedidos`,
+    href: `${actualURL}/orders`,
     icon: "order", // ANTES: OrderIcon
   },
   {
