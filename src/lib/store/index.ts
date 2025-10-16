@@ -3,6 +3,7 @@ import cartReducer from "./cartSlice";
 import chargesReducer from "./chargesSlice";
 import uiReducer from "./uiSlice";
 import addressReducer from "./addressSlice";
+import checkoutReducer from "./checkoutSlice";
 import type { CartState } from "./cartSlice";
 import type { ChargesState } from "./chargesSlice";
 
@@ -11,6 +12,7 @@ const rootReducer = combineReducers({
   charges: chargesReducer,
   ui: uiReducer,
   addresses: addressReducer,
+  checkout: checkoutReducer,
 });
 export type RootState = ReturnType<typeof rootReducer>;
 

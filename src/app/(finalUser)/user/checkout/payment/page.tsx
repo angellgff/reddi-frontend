@@ -1,66 +1,41 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useAppSelector } from "@/src/lib/store/hooks";
+import Link from "next/link";
+import Image from "next/image";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartItems, selectCartSubtotal } from "@/src/lib/store/cartSlice";
 import {
   selectServiceFee,
   selectShippingFee,
 } from "@/src/lib/store/chargesSlice";
-import Link from "next/link";
-import Image from "next/image";
-import TipSelector from "@/src/components/features/finalUser/checkout/TipSelector";
-import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCard";
-import { useStoreDetailsClient } from "@/src/lib/finalUser/stores/useStoreDetailsClient";
-import { useAppDispatch } from "@/src/lib/store/hooks";
 import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
-import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/PaymentMethodsDialog";
-import { createClient } from "@/src/lib/supabase/client";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
-import AddressStep from "@/src/components/features/finalUser/checkout/AddressStep";
-import ScheduleStep, {
-  type ScheduleValue,
-} from "@/src/components/features/finalUser/checkout/ScheduleStep";
+import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/PaymentMethodsDialog";
+import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCard";
+import TipSelector from "@/src/components/features/finalUser/checkout/TipSelector";
+import { useStoreDetailsClient } from "@/src/lib/finalUser/stores/useStoreDetailsClient";
+import {
+  setPayment as setPaymentGlobal,
+  setCoupon as setCouponGlobal,
+  setTipPercent as setTipGlobal,
+} from "@/src/lib/store/checkoutSlice";
 
-function currency(n: number) {
-  if (!isFinite(n)) return "$0.00";
-  return n.toLocaleString("es-MX", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-  });
-}
-
-export default function PaymentPage() {
+export default function CheckoutPaymentPage() {
   const dispatch = useAppDispatch();
   const items = useAppSelector(selectCartItems);
   const subtotal = useAppSelector(selectCartSubtotal);
   const shipping = useAppSelector(selectShippingFee);
   const serviceFee = useAppSelector(selectServiceFee);
-  const { addresses, selectedAddressId, status, error } = useAppSelector(
+
+  // addresses for header/store portion
+  const { addresses, selectedAddressId, status } = useAppSelector(
     (s) => s.addresses
   );
-
-  // Local selection for this payment (independent from global default)
-  const [paymentAddressId, setPaymentAddressId] = useState<string | null>(null);
-
-  // Load addresses if needed (read-only access to context)
   useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchUserAddresses());
-    }
+    if (status === "idle") dispatch(fetchUserAddresses());
   }, [status, dispatch]);
 
-  // Initialize local selection from global selected or first address
-  useEffect(() => {
-    if (!paymentAddressId) {
-      if (selectedAddressId) setPaymentAddressId(selectedAddressId);
-      else if (addresses.length > 0)
-        setPaymentAddressId(addresses[0].id as unknown as string);
-    }
-  }, [selectedAddressId, addresses, paymentAddressId]);
-
-  // Stores for items in cart
   const partnerIds = useMemo(() => items.map((i) => i.partnerId), [items]);
   const { data: storesMap } = useStoreDetailsClient(partnerIds);
   const firstStore = useMemo(() => {
@@ -71,60 +46,27 @@ export default function PaymentPage() {
     return null;
   }, [partnerIds, storesMap]);
 
-  // Tip/propina (% of subtotal)
+  // local coupon and tip for UX; persisted to checkout slice
+  const [coupon, setCoupon] = useState("");
+  const [couponMsg, setCouponMsg] = useState<string | null>(null);
+  const [discountPct, setDiscountPct] = useState<number>(0);
   const [tipPercent, setTipPercent] = useState<number>(9);
+
   const tip = useMemo(
     () => (subtotal * tipPercent) / 100,
     [subtotal, tipPercent]
   );
-
-  // Simple coupon demo: REDDI10 => 10% descuento del subtotal
-  const [coupon, setCoupon] = useState("");
-  const [couponMsg, setCouponMsg] = useState<string | null>(null);
-  const [discountPct, setDiscountPct] = useState<number>(0);
   const discount = useMemo(
     () => (subtotal > 0 ? (subtotal * discountPct) / 100 : 0),
     [subtotal, discountPct]
   );
-
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
 
-  // Local payment method selection
   const [selectedMethod, setSelectedMethod] = useState<{
     brand: string;
     last4: string;
     cardholder_name: string | null;
   } | null>(null);
-
-  // Initialize selected payment method from default (or first) on first load
-  useEffect(() => {
-    if (selectedMethod) return; // don't override user selection
-    const loadDefaultMethod = async () => {
-      try {
-        const supabase = createClient();
-        const { data: auth } = await supabase.auth.getUser();
-        if (!auth.user) return;
-        const { data, error } = await supabase
-          .from("user_payment_methods")
-          .select("*")
-          .eq("user_id", auth.user.id)
-          .order("created_at", { ascending: false });
-        if (error || !data) return;
-        const def =
-          (data as any[]).find((m) => m.is_default) || (data as any[])[0];
-        if (def) {
-          setSelectedMethod({
-            brand: def.brand,
-            last4: def.last4,
-            cardholder_name: def.cardholder_name,
-          });
-        }
-      } catch {
-        // ignore
-      }
-    };
-    loadDefaultMethod();
-  }, [selectedMethod]);
 
   const validateCoupon = () => {
     const code = coupon.trim().toUpperCase();
@@ -142,32 +84,28 @@ export default function PaymentPage() {
     }
   };
 
-  // Delivery scheduling state
-  const [schedule, setSchedule] = useState<ScheduleValue>({ mode: "now" });
-  const scheduleValid =
-    schedule.mode === "now" ||
-    ((schedule as any).date?.length > 0 && (schedule as any).time?.length > 0);
+  // persist to global slice on change
+  useEffect(() => {
+    dispatch(setCouponGlobal({ code: coupon, pct: discountPct }));
+  }, [coupon, discountPct, dispatch]);
+  useEffect(() => {
+    dispatch(setTipGlobal(tipPercent));
+  }, [tipPercent, dispatch]);
+
+  const canProceed = items.length > 0 && !!selectedMethod;
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      {/* Stepper (simple) */}
       <Stepper current="pago" />
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Left column */}
         <div className="lg:col-span-8 space-y-4">
-          {/* Address selection */}
-          <AddressStep
-            value={paymentAddressId}
-            onChange={setPaymentAddressId}
-          />
-
-          {/* Delivery scheduling */}
-          <ScheduleStep value={schedule} onChange={setSchedule} />
-
-          {/* Store Card */}
+          {/* Store Card and address headline */}
           <section className="rounded-2xl border bg-white p-4">
-            <div className="flex items-start gap-3">
+            <div className="text-xs text-gray-500">
+              {status === "loading" ? "Cargando dirección…" : ""}
+            </div>
+            <div className="mt-4 flex items-start gap-3">
               <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-100 grid place-items-center">
                 {firstStore?.image_url ? (
                   <Image
@@ -193,11 +131,9 @@ export default function PaymentPage() {
                 {items.length} producto(s)
               </div>
             </div>
-          </section>
 
-          {/* Payment method selector */}
-          <section className="rounded-2xl border bg-white p-4">
-            <div className="rounded-xl border p-3 flex items-center justify-between">
+            {/* Payment method selector */}
+            <div className="mt-4 rounded-xl border p-3 flex items-center justify-between">
               <div className="text-sm">
                 <div className="font-medium">
                   {selectedMethod
@@ -214,24 +150,22 @@ export default function PaymentPage() {
                     Cambiar
                   </button>
                 }
-                onSelected={(m) =>
-                  setSelectedMethod(
-                    m
-                      ? {
-                          brand: m.brand,
-                          last4: m.last4,
-                          cardholder_name: m.cardholder_name,
-                        }
-                      : null
-                  )
-                }
+                onSelected={(m) => {
+                  const val = m
+                    ? {
+                        brand: m.brand,
+                        last4: m.last4,
+                        cardholder_name: m.cardholder_name,
+                      }
+                    : null;
+                  setSelectedMethod(val);
+                  dispatch(setPaymentGlobal(val));
+                }}
               />
             </div>
-          </section>
 
-          {/* Coupon and Tip */}
-          <section className="rounded-2xl border bg-white p-4">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Coupon */}
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input
                 value={coupon}
                 onChange={(e) => setCoupon(e.target.value)}
@@ -249,6 +183,7 @@ export default function PaymentPage() {
               <div className="mt-1 text-xs text-gray-600">{couponMsg}</div>
             ) : null}
 
+            {/* Tip selector */}
             <div className="mt-5">
               <div className="text-sm font-medium">
                 Gratificación para el conductor
@@ -264,7 +199,6 @@ export default function PaymentPage() {
           </section>
         </div>
 
-        {/* Right column: summary */}
         <aside className="lg:col-span-4">
           <SummaryCard
             rows={[
@@ -276,14 +210,16 @@ export default function PaymentPage() {
               { label: "Tarifa de servicio", value: serviceFee },
               { label: "Propina", value: tip },
             ]}
-            total={total}
-            disabled={items.length === 0 || !selectedMethod || !scheduleValid}
+            total={
+              Math.max(0, subtotal - discount) + shipping + serviceFee + tip
+            }
+            disabled={!canProceed}
             cta={
               <Link
                 href="/user/checkout/address"
                 className="mt-4 inline-flex w-full items-center justify-center rounded-xl bg-emerald-600 px-4 py-3 text-white text-sm font-medium"
               >
-                Proceder
+                Siguiente
               </Link>
             }
           />
@@ -292,5 +228,3 @@ export default function PaymentPage() {
     </div>
   );
 }
-
-// Stepper component is used above
