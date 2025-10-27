@@ -4,6 +4,13 @@ import { NextResponse, type NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   console.log("[root-mw] ->", request.method, request.nextUrl.pathname);
   try {
+    // Hard redirect legacy route to new 3-step checkout
+    if (request.nextUrl.pathname === "/user/payment") {
+      const url = request.nextUrl.clone();
+      url.pathname = "/user/checkout/payment";
+      return NextResponse.redirect(url);
+    }
+
     const res = await updateSession(request);
     // Mark response so we can confirm middleware ran from the browser devtools
     try {

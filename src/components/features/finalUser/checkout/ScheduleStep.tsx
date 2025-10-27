@@ -64,8 +64,9 @@ export default function ScheduleStep({
       </div>
 
       {local.mode === "later" && (
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="flex items-center gap-2 border rounded-xl px-3 h-10">
+        <div className="mt-4 grid grid-cols-1 gap-3">
+          <label className="">Fecha</label>
+          <div className="flex  items-center gap-2 border rounded-xl px-3 h-10">
             <input
               type="date"
               value={(local as any).date || ""}
@@ -73,6 +74,7 @@ export default function ScheduleStep({
               className="w-full h-8 outline-none text-sm"
             />
           </div>
+          <label className="">Hora</label>
           <div className="flex items-center gap-2 border rounded-xl px-3 h-10">
             <input
               type="time"

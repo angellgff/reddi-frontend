@@ -33,47 +33,56 @@ export default function CheckoutConfirmPage() {
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <Stepper current="confirmar" />
 
-      <section className="rounded-2xl border bg-white p-6">
-        <h2 className="text-center text-2xl font-semibold">Resumen final</h2>
+      <section className="rounded-2xl border border-[#D9DCE3] bg-white p-[30px]">
+        <h2 className="text-center text-[28px] leading-8 font-semibold text-[#0D0D0D]">
+          Resumen final
+        </h2>
 
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Items</span>
-              <span>{items.length} productos</span>
+        <div className="mt-6 grid grid-cols-1 gap-[21px]">
+          {/* Columna izquierda */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Ítems</span>
+              <span className="text-right">{items.length} productos</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>Total</span>
-              <span>{currency(total)}</span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Total</span>
+              <span className="text-right">{currency(total)}</span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>Tipo de lugar</span>
-              <span className="capitalize">{checkout.placeType || "—"}</span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Tipo de lugar</span>
+              <span className="text-right capitalize">
+                {checkout.placeType || "—"}
+              </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>Instrucciones especiales para la entrega</span>
-              <span className="max-w-[60%] text-right truncate">
+            <div className="flex items-start justify-between text-sm">
+              <span className="font-medium">
+                Instrucciones especiales para la entrega
+              </span>
+              <span className="max-w-[60%] text-right leading-5">
                 {checkout.instructions || "—"}
               </span>
             </div>
           </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span>Entrega</span>
-              <span>
+
+          {/* Columna derecha */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Entrega</span>
+              <span className="text-right">
                 {checkout.schedule.mode === "now" ? (
                   "ahora"
                 ) : (
-                  <span className="inline-flex items-center gap-2">
-                    <span className="h-2 w-2 rounded-full bg-blue-600" />
+                  <span className="inline-flex items-center gap-2 rounded-full bg-[#E7EFFF] px-3 py-0.5 text-[12px] leading-4 font-medium text-[#292929]">
+                    <span className="h-2 w-2 rounded-full bg-[#3762E2]" />
                     programado
                   </span>
                 )}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>Fecha y hora</span>
-              <span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Fecha y hora</span>
+              <span className="text-right">
                 {checkout.schedule.mode === "now"
                   ? "—"
                   : `${(checkout.schedule as any).date}, ${
@@ -81,9 +90,9 @@ export default function CheckoutConfirmPage() {
                     }`}
               </span>
             </div>
-            <div className="flex justify-between text-sm">
-              <span>Pago</span>
-              <span>
+            <div className="flex items-center justify-between text-sm">
+              <span className="font-medium">Pago</span>
+              <span className="text-right">
                 {checkout.payment
                   ? `Tarjeta •••• ${checkout.payment.last4}`
                   : "—"}
