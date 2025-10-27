@@ -280,7 +280,7 @@ export default function OrderStatusPage() {
 
       {/* Back link */}
       <div className="mt-6">
-        <Link href="/user" className="text-sm underline">
+        <Link href="/user/home" className="text-sm underline">
           Volver al inicio
         </Link>
       </div>
