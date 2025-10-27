@@ -60,7 +60,8 @@ export default function OrderCard({
           </div>
           <div>
             <h2 className="text-lg font-bold text-gray-800">
-              <span className="text-emerald-500">Pedido</span> #{orderId.split("-")[0]}
+              <span className="text-emerald-500">Pedido</span> #
+              {orderId.split("-")[0]}
             </h2>
             <p className="text-sm text-gray-500 font-roboto">
               {restaurantName}
