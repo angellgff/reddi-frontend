@@ -16,6 +16,10 @@ const navigationLinks: NavLink[] = [
     href: `${actualURL}/orders`,
   },
   {
+    name: "Cupones",
+    href: `${actualURL}/coupons`,
+  },
+  {
     name: "Usuarios",
     href: "#",
     subLinks: [

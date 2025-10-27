@@ -33,6 +33,7 @@ export default function Header() {
   }, []);
 
   const handleLogout = async () => {
+    console.log("Logging out...");
     try {
       const supabase = createClient();
       const { error } = await supabase.auth.signOut();
@@ -91,7 +92,7 @@ export default function Header() {
             {/* Lado Derecho: Imagen de repartidor */}
             <div className="flex items-center space-x-4">
               <div
-                className="relative w-16 h-16 rounded-full overflow-hidden"
+                className="relative w-16 h-16 rounded-full overflow-hidden cursor-pointer"
                 onClick={handleLogout}
               >
                 <Image
