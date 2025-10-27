@@ -11,6 +11,7 @@ import { createClient } from "@/src/lib/supabase/client";
 import { useRouter } from "next/navigation";
 // Importamos la interfaz que definimos antes para tipar las props
 import { PartnerProfile } from "@/src/lib/partner/header/data/getData";
+import { useNotifications } from "@/src/lib/notifications/NotificationsContext";
 
 // Definimos las props que recibirá el componente
 interface PartnerHeaderProps {
@@ -19,6 +20,7 @@ interface PartnerHeaderProps {
 
 export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   const router = useRouter();
+  const { unreadCount } = useNotifications();
 
   const handleLogout = async () => {
     const supabase = createClient();
@@ -41,9 +43,19 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
           <div className="flex items-center space-x-6 px-4">
             {/* Icono de Notificaciones */}
             <div className="flex items-center space-x-4 ">
-              <button className="relative">
+              <button
+                className="relative"
+                onClick={() => {
+                  const target =
+                    profile.role === "restaurant"
+                      ? "/partner/restaurant/notifications"
+                      : "/partner/market/notifications";
+                  router.push(target);
+                }}
+                aria-label="Notificaciones"
+              >
                 <BellIcon fill="#454545" />
-                <Badge className="rounded-sm" />
+                <Badge className="rounded-sm" count={unreadCount} />
               </button>
             </div>
           </div>
