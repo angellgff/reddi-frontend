@@ -8,12 +8,17 @@ interface OrderHeaderServer {
 }
 
 export default async function OrderHeaderServer({ id }: OrderHeaderServer) {
-  const { status: initialStatus, timeRemaining } = await getOrderHeaderData(id);
+  const {
+    status: initialStatus,
+    timeRemaining,
+    customerName,
+  } = await getOrderHeaderData(id);
   return (
     <OrderHeader
       id={id}
       initialStatus={initialStatus}
       timeRemaining={timeRemaining}
+      customerName={customerName}
     />
   );
 }

@@ -1,5 +1,11 @@
+"use client";
+
 import PhoneIcon from "@/src/components/icons/PhoneIcon";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
+// Cargar el mapa solo en cliente
+const OrderMap = dynamic(() => import("./OrderMap"), { ssr: false });
 
 interface OrderTrackingProps {
   orderData: {
@@ -39,11 +45,7 @@ export default function OrderTracking({ orderData }: OrderTrackingProps) {
       </div>
 
       {/* SECCIÓN 2: MAPA DE SEGUIMIENTO */}
-      <div className="relative w-full grow rounded-2xl overflow-hidden bg-gray-200">
-        <span className="text-gray-400 pointer-events-none">
-          Componente de mapa de seguimiento
-        </span>
-      </div>
+      <OrderMap className="h-64 md:h-[420px] w-full rounded-2xl overflow-hidden" />
 
       {/* SECCIÓN 3: DATOS DEL REPARTIDOR */}
       <div className="flex items-center justify-between p-3 border-2 border-[#9BA1AE] rounded-2xl">

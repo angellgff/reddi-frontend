@@ -1,23 +1,29 @@
 "use server";
 
+import { createClient } from "@/src/lib/supabase/server";
+
 export type OrderDetails = {
-  orderId: number;
+  orderId: string;
   estimatedTime: string;
   store: {
     name: string;
     logoUrl: string;
   };
   items: {
-    id: number;
+    id: string;
     name: string;
     description: string;
     price: number;
     quantity: number;
     imageUrl: string;
   }[];
+  subtotal: number;
+  total: number;
   costs: {
     delivery: number;
     taxes: number;
+    tip: number;
+    discount: number;
   };
   address: {
     title: string;
@@ -25,103 +31,99 @@ export type OrderDetails = {
   };
 };
 
-const orderData: OrderDetails[] = [
-  {
-    orderId: 22341,
-    estimatedTime: "30-40 min",
-    store: {
-      name: "La Pizzería Italiana",
-      logoUrl: "/lapizzeria.svg",
-    },
-    items: [
-      {
-        id: 1,
-        name: "Leche Entera",
-        description: "2 Litros",
-        price: 437,
-        quantity: 1,
-        imageUrl: "/lecheentera.svg",
-      },
-      {
-        id: 2,
-        name: "Pan Integral",
-        description: "2 Litros",
-        price: 437,
-        quantity: 1,
-        imageUrl: "/panintegral.svg",
-      },
-    ],
-    costs: {
-      delivery: 50,
-      taxes: 87,
-    },
-    address: {
-      title: "Villa Mediterránea",
-      details:
-        "Villa número 203, cerca a la piscina principal, frente al jardín azul",
-    },
-  },
-  {
-    orderId: 22342,
-    estimatedTime: "30-40 min",
-    store: {
-      name: "Pollos pollongos",
-      logoUrl: "/images/store-logo.png",
-    },
-    items: [
-      {
-        id: 1,
-        name: "Leche Entera",
-        description: "2 Litros",
-        price: 437,
-        quantity: 1,
-        imageUrl: "/images/milk.png",
-      },
-    ],
-    costs: {
-      delivery: 1000,
-      taxes: 50,
-    },
-    address: {
-      title: "Villa Mediterránea",
-      details:
-        "Villa número 203, cerca a la piscina principal, frente al jardín azul",
-    },
-  },
-  {
-    orderId: 22343,
-    estimatedTime: "30-40 min",
-    store: {
-      name: "Helados",
-      logoUrl: "/images/store-logo.png",
-    },
-    items: [
-      {
-        id: 1,
-        name: "Leche Entera",
-        description: "2 Litros",
-        price: 437,
-        quantity: 1,
-        imageUrl: "/images/milk.png",
-      },
-    ],
-    costs: {
-      delivery: 50,
-      taxes: 87,
-    },
-    address: {
-      title: "Villa Mediterránea",
-      details:
-        "Villa número 203, cerca a la piscina principal, frente al jardín azul",
-    },
-  },
-];
+export default async function getOrderDetailsData(
+  id: string
+): Promise<OrderDetails> {
+  const supabase = await createClient();
 
-export default async function getOrderHeaderData(id: string) {
-  const order = orderData.find((order) => order.orderId === Number(id));
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  if (!order) {
-    throw new Error("Order not found");
+  // Query order with partner and items
+  const { data, error } = await supabase
+    .from("orders")
+    .select(
+      `id, subtotal, delivery_fee, total_amount, tip_amount, discount_amount, scheduled_at, user_address_id,
+       partners:partner_id(name, image_url),
+       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url))`
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error("Order not found");
+
+  // Items mapping
+  const items = (data.order_detail ?? []).map((it: any) => ({
+    id: it.id as string,
+    name: it.products?.name ?? "Producto",
+    description: it.products?.description ?? "",
+    price: it.unit_price ?? 0,
+    quantity: it.quantity ?? 0,
+    imageUrl: it.products?.image_url ?? "/images/store-logo.png",
+  }));
+
+  // Address
+  let addressTitle = "Dirección";
+  let addressDetails = "";
+  if (data.user_address_id) {
+    const { data: addr, error: addrErr } = await supabase
+      .from("user_addresses")
+      .select("location_type, location_number")
+      .eq("id", data.user_address_id)
+      .maybeSingle();
+    if (addrErr) throw addrErr;
+    if (addr) {
+      addressTitle = addr.location_type
+        ? addr.location_type.charAt(0).toUpperCase() +
+          addr.location_type.slice(1)
+        : "Dirección";
+      addressDetails = addr.location_number
+        ? `Ubicación ${addr.location_number}`
+        : "Sin detalles";
+    }
   }
-  return order;
+
+  // Costs
+  const delivery = data.delivery_fee ?? 0;
+  // No hay impuestos explícitos en el esquema, dejar 0 por ahora
+  const taxes = 0;
+  const tip = data.tip_amount ?? 0;
+  const discount = data.discount_amount ?? 0;
+
+  // Store
+  const storeName = (data.partners as any)?.name ?? "Comercio";
+  const storeLogo =
+    (data.partners as any)?.image_url ?? "/images/store-logo.png";
+
+  // Estimated time (simple fallback)
+  const estimatedTime = data.scheduled_at
+    ? new Date(data.scheduled_at).toLocaleTimeString("es-MX", {
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "30-40 min";
+
+  return {
+    orderId: data.id,
+    estimatedTime,
+    store: {
+      name: storeName,
+      logoUrl: storeLogo,
+    },
+    items,
+    subtotal:
+      data.subtotal ??
+      items.reduce(
+        (acc: number, it: any) => acc + (it.price ?? 0) * (it.quantity ?? 0),
+        0
+      ),
+    total: data.total_amount ?? 0,
+    costs: {
+      delivery,
+      taxes,
+      tip,
+      discount,
+    },
+    address: {
+      title: addressTitle,
+      details: addressDetails,
+    },
+  };
 }

@@ -17,11 +17,8 @@ const formatPrice = (price: number): string => {
 };
 
 export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
-  const subtotal = order.items.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0
-  );
-  const total = subtotal + order.costs.delivery + order.costs.taxes;
+  const subtotal = order.subtotal;
+  const total = order.total;
 
   return (
     // Contenedor principal con padding, sombra y bordes redondeados.
@@ -89,9 +86,19 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
           <p>{formatPrice(subtotal)} USD</p>
         </div>
         <div className="flex justify-between text-gray-600">
-          <p>Entrega</p>
+          <p>Envío</p>
           <p>{formatPrice(order.costs.delivery)} USD</p>
         </div>
+        <div className="flex justify-between text-gray-600">
+          <p>Propina</p>
+          <p>{formatPrice(order.costs.tip)} USD</p>
+        </div>
+        {order.costs.discount > 0 && (
+          <div className="flex justify-between text-gray-600">
+            <p>Descuento</p>
+            <p>-{formatPrice(order.costs.discount)} USD</p>
+          </div>
+        )}
         <div className="flex justify-between text-gray-600">
           <p>Impuestos</p>
           <p>{formatPrice(order.costs.taxes)} USD</p>

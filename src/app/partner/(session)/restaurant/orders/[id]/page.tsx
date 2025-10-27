@@ -1,44 +1,9 @@
 import { Suspense } from "react";
 import OrderHeaderServer from "@/src/components/features/partner/market/orders/order/OrderHeaderServer";
-import { PartnerOrderCardProps } from "@/src/components/features/partner/market/orders/main/PartnerOrderCard";
 import OrderTrackingServer from "@/src/components/features/partner/market/orders/order/OrderTrackingServer";
 import OrderTrackingSkeleton from "@/src/components/features/partner/market/orders/order/OrderTrackingSkeleton";
 import OrderDetailsServer from "@/src/components/features/partner/market/orders/order/OrderDetailsServer";
 import OrderDetailsSkeleton from "@/src/components/features/partner/market/orders/order/OrderDetailsSkeleton";
-
-// Datos simulados para el pedido
-export const mockedOrders: PartnerOrderCardProps[] = [
-  {
-    customerName: "María González",
-    orderId: "22341",
-    status: "new",
-    timeRemaining: 25,
-    products: "Producto A, Producto B, Producto C",
-    total: 45,
-    paymentMethod: "Tarjeta",
-    deliveryTime: "14:30",
-  },
-  {
-    customerName: "María González",
-    orderId: "22342",
-    status: "preparation",
-    timeRemaining: 25,
-    products: "Arroz Diana x2, Ibuprofeno x1",
-    total: 45,
-    paymentMethod: "Tarjeta",
-    deliveryTime: "14:30",
-  },
-  {
-    customerName: "María González",
-    orderId: "22343",
-    status: "preparation",
-    timeRemaining: 25,
-    products: "Producto A, Producto B",
-    total: 45,
-    paymentMethod: "Tarjeta",
-    deliveryTime: "14:30",
-  },
-];
 
 export default async function OrderPage({
   params,

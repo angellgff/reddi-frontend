@@ -15,6 +15,7 @@ interface OrderHeaderProps {
   id: string;
   initialStatus: OrderStatus;
   timeRemaining: number;
+  customerName: string;
 }
 
 const buttonStyles = "py-4 px-6 font-medium rounded-2xl transition-colors";
@@ -23,6 +24,7 @@ export default function OrderHeader({
   id,
   initialStatus,
   timeRemaining,
+  customerName,
 }: OrderHeaderProps) {
   // 1. Estado para el status del pedido (actualización optimista)
   const router = useRouter();
@@ -72,7 +74,7 @@ export default function OrderHeader({
           <div>
             <h1 className="font-semibold">Detalle del pedido #{id}</h1>
             <h2 className="font-roboto font-normal mb-5">
-              Información completa del pedido de María González
+              Información completa del pedido de {customerName}
             </h2>
           </div>
         </div>

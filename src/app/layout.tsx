@@ -1,4 +1,5 @@
 import "./globals.css";
+// Mapa: pigeon-maps no requiere CSS global
 // Importanción de fuentes
 import { Poppins, Roboto, Inter, Manrope, Montserrat } from "next/font/google";
 import ReduxProvider from "@/src/lib/store/ReduxProvider";
