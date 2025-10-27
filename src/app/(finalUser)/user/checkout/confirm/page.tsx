@@ -100,22 +100,21 @@ export default function CheckoutConfirmPage() {
             </div>
           </div>
         </div>
-
-        <div className="mt-6 flex items-center justify-between">
-          <Link
-            href="/user/checkout/address"
-            className="h-10 rounded-xl border px-4 text-sm"
-          >
-            Volver
-          </Link>
-          <Link
-            href="/user/orders"
-            className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white"
-          >
-            Seguir tu pedido
-          </Link>
-        </div>
       </section>
+      <div className="mt-6 flex items-center justify-between">
+        <Link
+          href="/user/checkout/address"
+          className="h-10 rounded-xl border px-4 text-sm flex justify-center items-center"
+        >
+          Volver
+        </Link>
+        <Link
+          href="/user/orders"
+          className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white flex justify-center items-center"
+        >
+          Seguir tu pedido
+        </Link>
+      </div>
     </div>
   );
 }

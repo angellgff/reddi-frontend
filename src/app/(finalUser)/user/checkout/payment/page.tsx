@@ -27,6 +27,12 @@ export default function CheckoutPaymentPage() {
   const subtotal = useAppSelector(selectCartSubtotal);
   const shipping = useAppSelector(selectShippingFee);
   const serviceFee = useAppSelector(selectServiceFee);
+  // Persisted selection from checkout slice
+  const storedPayment = useAppSelector((s) => s.checkout.payment) as {
+    brand: string;
+    last4: string;
+    cardholder_name: string | null;
+  } | null;
 
   // addresses for header/store portion
   const { addresses, selectedAddressId, status } = useAppSelector(
@@ -68,6 +74,13 @@ export default function CheckoutPaymentPage() {
     cardholder_name: string | null;
   } | null>(null);
 
+  // Prefill local state with the stored payment method so it shows without opening the modal
+  useEffect(() => {
+    if (storedPayment) {
+      setSelectedMethod(storedPayment);
+    }
+  }, [storedPayment]);
+
   const validateCoupon = () => {
     const code = coupon.trim().toUpperCase();
     if (!code) {
@@ -92,7 +105,8 @@ export default function CheckoutPaymentPage() {
     dispatch(setTipGlobal(tipPercent));
   }, [tipPercent, dispatch]);
 
-  const canProceed = items.length > 0 && !!selectedMethod;
+  const effectiveMethod = selectedMethod || storedPayment;
+  const canProceed = items.length > 0 && !!effectiveMethod;
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -136,12 +150,12 @@ export default function CheckoutPaymentPage() {
             <div className="mt-4 rounded-xl border p-3 flex items-center justify-between">
               <div className="text-sm">
                 <div className="font-medium">
-                  {selectedMethod
-                    ? `Tarjeta ${selectedMethod.brand} ·•••${selectedMethod.last4}`
+                  {effectiveMethod
+                    ? `Tarjeta ${effectiveMethod.brand} ·•••${effectiveMethod.last4}`
                     : "Selecciona un método de pago"}
                 </div>
                 <div className="text-xs text-gray-500">
-                  {selectedMethod?.cardholder_name || ""}
+                  {effectiveMethod?.cardholder_name || ""}
                 </div>
               </div>
               <PaymentMethodsDialog
