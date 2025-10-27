@@ -3,6 +3,7 @@ import getOrdersListData from "@/src/lib/partner/orders/getOrdersListData";
 
 interface OrdersServerProps {
   category: string | string[] | undefined;
+  cursor?: string | string[] | undefined;
 }
 
 const hardCodedTabs = [
@@ -13,9 +14,12 @@ const hardCodedTabs = [
   { value: "delivered", label: "Entregados" },
 ];
 
-export default async function OrdersServer({ category }: OrdersServerProps) {
+export default async function OrdersServer({
+  category,
+  cursor,
+}: OrdersServerProps) {
   // Se hace la petición al servidor para obtener las órdenes
-  const mockedOrders = await getOrdersListData(category);
+  const mockedOrders = await getOrdersListData(category, cursor);
   return (
     <OrdersSection
       // Las tabs vienen desde la base de datos o están hardcodeadas, decide tú

@@ -26,7 +26,8 @@ function minutesRemaining(createdAt: string): number {
 }
 
 export default async function getOrdersListData(
-  category: string | string[] | undefined
+  category: string | string[] | undefined,
+  cursor?: string | string[] | undefined
 ): Promise<PartnerOrderCardProps[]> {
   const supabase = await createClient();
 
@@ -50,14 +51,15 @@ export default async function getOrdersListData(
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
+  const pageSize = 20;
   let query = supabase
     .from("orders")
     .select(
-      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, order_detail(quantity, unit_price, products(name))"
+      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))"
     )
     .eq("partner_id", partner.id)
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range(0, pageSize - 1);
 
   if (cat === "today") {
     query = query.gte("created_at", todayStart.toISOString());
@@ -69,8 +71,35 @@ export default async function getOrdersListData(
     query = query.eq("status", "delivered");
   }
 
+  const cur = Array.isArray(cursor) ? cursor[0] : cursor;
+  if (cur) {
+    query = query.lt("created_at", cur);
+  }
+
   const { data, error } = await query;
   if (error) throw error;
+
+  // Join manual con profiles para obtener el nombre del cliente
+  const userIds = Array.from(
+    new Set((data ?? []).map((o: any) => o.user_id).filter(Boolean))
+  );
+  const profilesMap = new Map<
+    string,
+    { first_name: string | null; last_name: string | null }
+  >();
+  if (userIds.length > 0) {
+    const { data: profs, error: profErr } = await supabase
+      .from("profiles")
+      .select("id, first_name, last_name")
+      .in("id", userIds);
+    if (profErr) throw profErr;
+    (profs ?? []).forEach((p: any) => {
+      profilesMap.set(p.id, {
+        first_name: p.first_name ?? null,
+        last_name: p.last_name ?? null,
+      });
+    });
+  }
 
   // Adaptar al shape de PartnerOrderCardProps
   const list: PartnerOrderCardProps[] = (data ?? []).map((o: any) => {
@@ -79,15 +108,20 @@ export default async function getOrdersListData(
       (s: number, it: any) => s + (it.quantity ?? 0),
       0
     );
-    const paymentMethod = o.payment_intent_id ? "Tarjeta" : "Efectivo";
+    const paymentMethod = o.payment_intent_id ? "Tarjeta" : "Débito";
     const deliveryTime = o.scheduled_at
       ? new Date(o.scheduled_at).toLocaleTimeString("es-MX", {
           hour: "2-digit",
           minute: "2-digit",
         })
       : "Lo antes posible";
+    const prof = profilesMap.get(o.user_id);
+    const fullName = [prof?.first_name, prof?.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
     return {
-      customerName: "Cliente",
+      customerName: fullName || "Cliente",
       orderId: o.id,
       status: mapStatus(o.status),
       timeRemaining: minutesRemaining(o.created_at),

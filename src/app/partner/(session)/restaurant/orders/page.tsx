@@ -7,7 +7,7 @@ export default async function OrdersPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category } = await searchParams;
+  const { category, cursor } = await searchParams;
 
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
@@ -20,7 +20,7 @@ export default async function OrdersPage({
       {/* Fila 1: Lista de órdenes */}
       <section className="bg-white px-10 py-6 rounded-xl">
         <Suspense fallback={<OrdersSkeleton />}>
-          <OrdersServer category={category} />
+          <OrdersServer category={category} cursor={cursor} />
         </Suspense>
       </section>
     </div>
