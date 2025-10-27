@@ -1,13 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
-import { useAppSelector } from "@/src/lib/store/hooks";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartItems, selectCartSubtotal } from "@/src/lib/store/cartSlice";
 import {
   selectServiceFee,
   selectShippingFee,
 } from "@/src/lib/store/chargesSlice";
+import { clearCart } from "@/src/lib/store/cartSlice";
+import { resetCheckout } from "@/src/lib/store/checkoutSlice";
+import { createClient } from "@/src/lib/supabase/client";
 
 function currency(n: number) {
   if (!isFinite(n)) return "$0.00";
@@ -19,6 +24,10 @@ function currency(n: number) {
 }
 
 export default function CheckoutConfirmPage() {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const [placing, setPlacing] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const items = useAppSelector(selectCartItems);
   const subtotal = useAppSelector(selectCartSubtotal);
   const shipping = useAppSelector(selectShippingFee);
@@ -28,6 +37,67 @@ export default function CheckoutConfirmPage() {
   const discount = (subtotal * checkout.discountPct) / 100;
   const tip = (subtotal * checkout.tipPercent) / 100;
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
+
+  async function handleCreateOrder() {
+    if (placing) return;
+    setPlacing(true);
+    setErrorMsg(null);
+    try {
+      const supabase = createClient();
+      const cart_items = items.map((it) => ({
+        productId: it.productId,
+        partnerId: it.partnerId,
+        unitPrice: it.unitPrice,
+        quantity: it.quantity,
+        note: it.note ?? null,
+        extras: it.extras.map((e) => ({
+          extraId: e.extraId,
+          quantity: e.quantity,
+          price: e.price,
+        })),
+      }));
+
+      const checkout_data = {
+        addressId: checkout.addressId,
+        placeType: checkout.placeType,
+        placeNumber: checkout.placeNumber,
+        instructions: checkout.instructions,
+        schedule: checkout.schedule,
+        coupon: checkout.coupon,
+        discountPct: checkout.discountPct,
+        tipPercent: checkout.tipPercent,
+        shippingFee: shipping,
+        serviceFee: serviceFee,
+        subtotal,
+        discountAmount: discount,
+        tipAmount: tip,
+        total,
+        payment: checkout.payment,
+      };
+
+      const { data, error } = await supabase.rpc("create_order", {
+        cart_items,
+        checkout_data,
+      });
+      if (error) throw error;
+
+      // Limpia estados locales
+      dispatch(clearCart());
+      dispatch(resetCheckout());
+
+      // Redirige al estado del pedido usando el id devuelto por la RPC
+      if (typeof data === "string" && data) {
+        router.push(`/user/orders/${data}`);
+      } else {
+        router.push("/user/orders");
+      }
+    } catch (err: any) {
+      console.error("create_order error", err);
+      setErrorMsg(err?.message ?? "No se pudo completar el pedido");
+    } finally {
+      setPlacing(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -101,6 +171,9 @@ export default function CheckoutConfirmPage() {
           </div>
         </div>
       </section>
+      {errorMsg ? (
+        <div className="mt-4 text-sm text-red-600">{errorMsg}</div>
+      ) : null}
       <div className="mt-6 flex items-center justify-between">
         <Link
           href="/user/checkout/address"
@@ -108,12 +181,13 @@ export default function CheckoutConfirmPage() {
         >
           Volver
         </Link>
-        <Link
-          href="/user/orders"
-          className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white flex justify-center items-center"
+        <button
+          onClick={handleCreateOrder}
+          disabled={placing || items.length === 0}
+          className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white flex justify-center items-center disabled:opacity-60"
         >
-          Seguir tu pedido
-        </Link>
+          {placing ? "Creando pedido…" : "Confirmar y seguir pedido"}
+        </button>
       </div>
     </div>
   );

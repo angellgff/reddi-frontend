@@ -136,20 +136,29 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          notes: string | null
           order_id: string | null
           product_id: string | null
+          quantity: number
+          unit_price: number
         }
         Insert: {
           created_at?: string
           id?: string
+          notes?: string | null
           order_id?: string | null
           product_id?: string | null
+          quantity?: number
+          unit_price: number
         }
         Update: {
           created_at?: string
           id?: string
+          notes?: string | null
           order_id?: string | null
           product_id?: string | null
+          quantity?: number
+          unit_price?: number
         }
         Relationships: [
           {
@@ -174,18 +183,24 @@ export type Database = {
           id: string
           product_detail: string | null
           product_extra_id: string | null
+          quantity: number
+          unit_price: number
         }
         Insert: {
           created_at?: string
           id?: string
           product_detail?: string | null
           product_extra_id?: string | null
+          quantity?: number
+          unit_price: number
         }
         Update: {
           created_at?: string
           id?: string
           product_detail?: string | null
           product_extra_id?: string | null
+          quantity?: number
+          unit_price?: number
         }
         Relationships: [
           {
@@ -200,18 +215,51 @@ export type Database = {
       orders: {
         Row: {
           created_at: string
+          delivery_fee: number | null
+          discount_amount: number | null
           id: string
+          instructions: string | null
           partner_id: string | null
+          payment_intent_id: string | null
+          scheduled_at: string | null
+          status: string | null
+          subtotal: number
+          tip_amount: number | null
+          total_amount: number
+          user_address_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string
+          delivery_fee?: number | null
+          discount_amount?: number | null
           id?: string
+          instructions?: string | null
           partner_id?: string | null
+          payment_intent_id?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          subtotal: number
+          tip_amount?: number | null
+          total_amount: number
+          user_address_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string
+          delivery_fee?: number | null
+          discount_amount?: number | null
           id?: string
+          instructions?: string | null
           partner_id?: string | null
+          payment_intent_id?: string | null
+          scheduled_at?: string | null
+          status?: string | null
+          subtotal?: number
+          tip_amount?: number | null
+          total_amount?: number
+          user_address_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {
@@ -219,6 +267,13 @@ export type Database = {
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_user_address_id_fkey"
+            columns: ["user_address_id"]
+            isOneToOne: false
+            referencedRelation: "user_addresses"
             referencedColumns: ["id"]
           },
         ]
@@ -683,6 +738,10 @@ export type Database = {
         Args: { partner_data: Json; user_id: string }
         Returns: undefined
       }
+      create_order: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
       get_partners: {
         Args: {
           filter_state: string
@@ -715,7 +774,19 @@ export type Database = {
       partner_type: "market" | "restaurant" | "liquor_store"
     }
     CompositeTypes: {
-      [_ in never]: never
+      cart_extra_type: {
+        extraId: string | null
+        quantity: number | null
+        price: number | null
+      }
+      cart_item_type: {
+        productId: string | null
+        partnerId: string | null
+        unitPrice: number | null
+        quantity: number | null
+        note: string | null
+        extras: Json | null
+      }
     }
   }
 }
