@@ -1,37 +1,51 @@
-import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
-import { Order } from "@/src/lib/partner/dashboard/type";
-import { API_DELAY } from "@/src/lib/type";
+import { createClient } from "@/src/lib/supabase/server";
+import type { Order } from "@/src/lib/partner/dashboard/type";
+import {
+  ACTIVE_ORDER_STATUSES,
+  orderStatusToUILabel,
+} from "@/src/lib/partner/dashboard/utils/orderStatus";
 
-const data: Order[] = [
-  {
-    id: "001",
-    name: "Margherita x2",
-    details: "Mesa 3 - 16:30",
-    status: "Preparando",
-  },
-  {
-    id: "002",
-    name: "Hamburguesa Deluxe",
-    details: "Delivery - 15:45",
-    status: "Listo",
-  },
-  {
-    id: "003",
-    name: "Ensalada César",
-    details: "Mesa 2 - 16:00",
-    status: "Nuevo",
-  },
-  {
-    id: "004",
-    name: "Tacos al Pastor",
-    details: "Delivery - 16:15",
-    status: "En camino",
-  },
-];
+function timeFromIso(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
 
-export default async function getStatsData() {
-  await new Promise((resolve) =>
-    setTimeout(resolve, API_DELAY * getRandomNumberFrom1To10())
-  );
-  return data;
+export default async function getOrdersData(): Promise<Order[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: partner } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+  const partnerId = partner?.id;
+  if (!partnerId) return [];
+
+  // Fetch recent active orders for this partner
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("id, created_at, status, scheduled_at, instructions")
+    .eq("partner_id", partnerId)
+    .in("status", ACTIVE_ORDER_STATUSES)
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  return (orders || []).map((o) => {
+    const name = `Pedido #${String(o.id).slice(0, 6)}`;
+    const when = timeFromIso(o.scheduled_at || o.created_at);
+    const mode = "Delivery"; // Ajustable si agregas origen en orders
+    return {
+      id: String(o.id),
+      name,
+      details: `${mode} - ${when}`,
+      status: orderStatusToUILabel(o.status) as Order["status"],
+    } as Order;
+  });
 }

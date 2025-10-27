@@ -12,9 +12,7 @@ export default function OrderItem({ order }: { order: Order }) {
   return (
     <div className="flex justify-between items-center py-3 border-b border-[#E5E7EB] last:border-b-0 px-4">
       <div className="flex items-center gap-4">
-        <span className="bg-[#E5E7EB] text-[#2563EB] font-mono text-sm font-semibold w-9 h-9 flex items-center justify-center rounded-lg">
-          {order.id.padStart(3, "0")}
-        </span>
+        <span className="bg-[#E5E7EB] text-[#2563EB] font-mono text-sm font-semibold w-9 h-9 flex items-center justify-center rounded-lg"></span>
         <div>
           <h4 className="font-medium text-gray-800">{order.name}</h4>
           <p className="text-sm text-gray-500 font-thin">{order.details}</p>

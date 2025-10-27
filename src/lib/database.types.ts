@@ -266,7 +266,7 @@ export type Database = {
           partner_id: string | null
           payment_intent_id: string | null
           scheduled_at: string | null
-          status: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
           subtotal: number
           tip_amount: number | null
           total_amount: number
@@ -282,7 +282,7 @@ export type Database = {
           partner_id?: string | null
           payment_intent_id?: string | null
           scheduled_at?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
           subtotal: number
           tip_amount?: number | null
           total_amount: number
@@ -298,7 +298,7 @@ export type Database = {
           partner_id?: string | null
           payment_intent_id?: string | null
           scheduled_at?: string | null
-          status?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
           subtotal?: number
           tip_amount?: number | null
           total_amount?: number
@@ -834,6 +834,12 @@ export type Database = {
     Enums: {
       address_location_type: "villa" | "yate"
       app_role: "user" | "admin" | "market" | "restaurant" | "delivery"
+      order_status:
+        | "pending"
+        | "preparing"
+        | "out_for_delivery"
+        | "delivered"
+        | "cancelled"
       partner_type: "market" | "restaurant" | "liquor_store"
     }
     CompositeTypes: {
@@ -976,6 +982,13 @@ export const Constants = {
     Enums: {
       address_location_type: ["villa", "yate"],
       app_role: ["user", "admin", "market", "restaurant", "delivery"],
+      order_status: [
+        "pending",
+        "preparing",
+        "out_for_delivery",
+        "delivered",
+        "cancelled",
+      ],
       partner_type: ["market", "restaurant", "liquor_store"],
     },
   },

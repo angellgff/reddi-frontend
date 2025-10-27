@@ -1,6 +1,7 @@
 import CardShell from "@/src/components/features/partner/CardShell";
 import NotificationItem from "./NotificationItem";
 import type { Notification } from "@/src/lib/partner/dashboard/type";
+import Link from "next/link";
 
 export default function Notifications({
   notifications,
@@ -24,12 +25,12 @@ export default function Notifications({
         </div>
         {/* Footer Link */}
 
-        <a
-          href="#"
+        <Link
+          href="./notifications"
           className="text-sm text-primary hover:text-emerald-700 mt-4 px-6"
         >
           Ver todas las notificaciones {">"}
-        </a>
+        </Link>
       </div>
     </CardShell>
   );

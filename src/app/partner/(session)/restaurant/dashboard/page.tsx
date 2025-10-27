@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import StatSectionSkeleton from "@/src/components/features/partner/stats/StatSectionSkeleton";
 import StatSectionServer from "@/src/components/features/partner/dashboard/main/MainStatsServer";
 import QuickActions from "@/src/components/features/partner/dashboard/main/QuickActions";
-import NotificationsServer from "@/src/components/features/partner/dashboard/main/notifications/NotificationsServer";
+import NotificationsClient from "@/src/components/features/partner/dashboard/main/notifications/NotificationsClient";
 import NotificationSkeleton from "@/src/components/features/partner/dashboard/main/notifications/NotificationsSkeleton";
 import ActiveOrdersServer from "@/src/components/features/partner/dashboard/main/orders/ActiveOrdersServer";
 import OrdersSkeleton from "@/src/components/features/partner/dashboard/main/orders/OrdersSkeleton";
@@ -33,8 +33,9 @@ export default function PartnerDashboardPage() {
 
         {/* Columna de Notificaciones (ocupa 1 de 3 columnas en pantallas grandes) */}
         <section className="lg:col-span-1">
+          {/* Client component reads live data from NotificationsContext */}
           <Suspense fallback={<NotificationSkeleton />}>
-            <NotificationsServer />
+            <NotificationsClient />
           </Suspense>
         </section>
       </div>

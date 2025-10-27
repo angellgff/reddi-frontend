@@ -1,6 +1,7 @@
 import CardShell from "@/src/components/features/partner/CardShell";
 import OrderItem from "./OrderItem";
 import type { Order } from "@/src/lib/partner/dashboard/type";
+import Link from "next/link";
 
 export default function ActiveOrders({ orders }: { orders: Order[] }) {
   return (
@@ -38,12 +39,12 @@ export default function ActiveOrders({ orders }: { orders: Order[] }) {
           ))}
         </div>
 
-        <a
-          href="#"
+        <Link
+          href="./orders"
           className="text-sm text-primary hover:text-emerald-700 mt-4 px-6"
         >
           Ver todos los pedidos {">"}
-        </a>
+        </Link>
       </div>
     </CardShell>
   );
