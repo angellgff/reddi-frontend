@@ -40,7 +40,9 @@ function StatusBadge({ status }: { status: CouponRow["status"] }) {
     }
   }, [status]);
   return (
-    <span className={`inline-flex rounded-[10px] px-2.5 py-1 text-xs font-medium ${cls}`}>
+    <span
+      className={`inline-flex rounded-[10px] px-2.5 py-1 text-xs font-medium ${cls}`}
+    >
       {text}
     </span>
   );
@@ -58,7 +60,7 @@ export default function CouponsClient({ coupons }: { coupons: CouponRow[] }) {
         (x) =>
           x.code.toLowerCase().includes(q) ||
           x.title.toLowerCase().includes(q) ||
-          (x.description ?? "").toLowerCase().includes(q),
+          (x.description ?? "").toLowerCase().includes(q)
       );
     }
     if (status) {
@@ -82,11 +84,15 @@ export default function CouponsClient({ coupons }: { coupons: CouponRow[] }) {
 
       {/* Filtros */}
       <section className="mb-6 rounded-2xl bg-white p-5">
-        <div className="mb-4 text-[18px] font-semibold text-[#1F2937]">Filtros</div>
+        <div className="mb-4 text-[18px] font-semibold text-[#1F2937]">
+          Filtros
+        </div>
         <div className="flex flex-col gap-4 md:flex-row md:items-end">
           {/* Buscar */}
           <div className="flex-1">
-            <label className="mb-2 block text-sm font-medium text-[#292929]">Buscar</label>
+            <label className="mb-2 block text-sm font-medium text-[#292929]">
+              Buscar
+            </label>
             <div className="flex items-center gap-2 rounded-xl border border-[#D9DCE3] px-4 py-2">
               <input
                 placeholder="Buscar por Código"
@@ -98,7 +104,9 @@ export default function CouponsClient({ coupons }: { coupons: CouponRow[] }) {
           </div>
           {/* Estado */}
           <div className="w-full md:w-72">
-            <label className="mb-2 block text-sm font-medium text-[#292929]">Estados</label>
+            <label className="mb-2 block text-sm font-medium text-[#292929]">
+              Estados
+            </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value)}
@@ -131,34 +139,66 @@ export default function CouponsClient({ coupons }: { coupons: CouponRow[] }) {
       <section className="rounded-2xl bg-white p-5">
         <div className="mb-4 flex items-center justify-between text-[#1F2937]">
           <div className="text-[18px] font-semibold">Lista de cupones</div>
-          <div className="text-sm text-[#6A6C71]">{filtered.length} resultados</div>
+          <div className="text-sm text-[#6A6C71]">
+            {filtered.length} resultados
+          </div>
         </div>
 
         <div className="overflow-hidden rounded-2xl border border-[#D9DCE3]">
           {/* Header */}
           <div className="grid grid-cols-12 bg-[#F0F2F5B8] text-[#525252]">
-            <div className="col-span-2 px-3 py-3 text-sm font-medium">Código</div>
-            <div className="col-span-2 px-3 py-3 text-sm font-medium">Título</div>
-            <div className="col-span-4 px-3 py-3 text-sm font-medium">Descripción</div>
-            <div className="col-span-1 px-3 py-3 text-sm font-medium">Inicio</div>
-            <div className="col-span-1 px-3 py-3 text-sm font-medium">Final</div>
-            <div className="col-span-1 px-3 py-3 text-sm font-medium">Estado</div>
-            <div className="col-span-1 px-3 py-3 text-sm font-medium">Acciones</div>
+            <div className="col-span-2 px-3 py-3 text-sm font-medium">
+              Código
+            </div>
+            <div className="col-span-2 px-3 py-3 text-sm font-medium">
+              Título
+            </div>
+            <div className="col-span-4 px-3 py-3 text-sm font-medium">
+              Descripción
+            </div>
+            <div className="col-span-1 px-3 py-3 text-sm font-medium">
+              Inicio
+            </div>
+            <div className="col-span-1 px-3 py-3 text-sm font-medium">
+              Final
+            </div>
+            <div className="col-span-1 px-3 py-3 text-sm font-medium">
+              Estado
+            </div>
+            <div className="col-span-1 px-3 py-3 text-sm font-medium">
+              Acciones
+            </div>
           </div>
           {/* Rows */}
           <div className="divide-y divide-[#E7E7E7]">
             {filtered.map((c) => (
               <div key={c.id} className="grid grid-cols-12 bg-white">
-                <div className="col-span-2 px-3 py-3 text-sm text-[#454545]">{c.code}</div>
-                <div className="col-span-2 px-3 py-3 text-sm text-[#454545]">{c.title}</div>
-                <div className="col-span-4 px-3 py-3 text-sm text-[#454545]">{c.description}</div>
-                <div className="col-span-1 px-3 py-3 text-sm text-[#171717]">{formatDate(c.start_date)}</div>
-                <div className="col-span-1 px-3 py-3 text-sm text-[#171717]">{formatDate(c.end_date)}</div>
-                <div className="col-span-1 px-3 py-3"><StatusBadge status={c.status} /></div>
+                <div className="col-span-2 px-3 py-3 text-sm text-[#454545]">
+                  {c.code}
+                </div>
+                <div className="col-span-2 px-3 py-3 text-sm text-[#454545]">
+                  {c.title}
+                </div>
+                <div className="col-span-4 px-3 py-3 text-sm text-[#454545]">
+                  {c.description}
+                </div>
+                <div className="col-span-1 px-3 py-3 text-sm text-[#171717]">
+                  {formatDate(c.start_date)}
+                </div>
+                <div className="col-span-1 px-3 py-3 text-sm text-[#171717]">
+                  {formatDate(c.end_date)}
+                </div>
+                <div className="col-span-1 px-3 py-3">
+                  <StatusBadge status={c.status} />
+                </div>
                 <div className="col-span-1 px-3 py-3">
                   <div className="flex items-center gap-3 text-[#6A6C71]">
-                    <button title="Editar" className="hover:text-black">✎</button>
-                    <button title="Eliminar" className="hover:text-black">🗑</button>
+                    <button title="Editar" className="hover:text-black">
+                      ✎
+                    </button>
+                    <button title="Eliminar" className="hover:text-black">
+                      🗑
+                    </button>
                   </div>
                 </div>
               </div>
@@ -169,14 +209,21 @@ export default function CouponsClient({ coupons }: { coupons: CouponRow[] }) {
         {/* Paginación (placeholder) */}
         <div className="mt-4 flex items-center justify-between text-sm text-[#737373]">
           <div>
-            <span className="text-[#1A71F6] font-bold">1</span> - {filtered.length} of {filtered.length} Pages
+            <span className="text-[#1A71F6] font-bold">1</span> -{" "}
+            {filtered.length} of {filtered.length} Pages
           </div>
           <div className="flex items-center gap-3">
             <span className="text-[#454545]">The page on</span>
-            <div className="rounded-md border border-[#B0B0B0] px-2 py-1">1 ▾</div>
+            <div className="rounded-md border border-[#B0B0B0] px-2 py-1">
+              1 ▾
+            </div>
             <div className="flex items-center gap-2">
-              <button className="rounded-md border border-[#B0B0B0] px-2 py-1">◀</button>
-              <button className="rounded-md border border-[#B0B0B0] px-2 py-1">▶</button>
+              <button className="rounded-md border border-[#B0B0B0] px-2 py-1">
+                ◀
+              </button>
+              <button className="rounded-md border border-[#B0B0B0] px-2 py-1">
+                ▶
+              </button>
             </div>
           </div>
         </div>

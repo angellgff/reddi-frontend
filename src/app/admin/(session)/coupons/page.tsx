@@ -6,9 +6,7 @@ export default async function AdminCouponsPage() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("coupons")
-    .select(
-      "id, code, title, description, start_date, end_date, status",
-    )
+    .select("id, code, title, description, start_date, end_date, status")
     .order("created_at", { ascending: false });
 
   const rows: CouponRow[] = (data ?? []).map((c) => ({
