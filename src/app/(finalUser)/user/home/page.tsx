@@ -1,5 +1,6 @@
 import FeaturedCategories from "@/src/components/features/main/categories/FeaturedCategories";
 import LargeCategoryGrid from "@/src/components/features/finalUser/largeCategory/LargeCategoryGrid";
+import DesktopFeaturedCategories from "@/src/components/features/main/categories/DesktopFeaturedCategories";
 import PromoSliderServer from "@/src/components/basics/promos/PromoSliderServer";
 import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkeleton";
 import RecommendedSectionServer from "@/src/components/basics/recommended/RecommendedSectionServer";
@@ -13,13 +14,18 @@ export default function Home() {
     <div className="mx-auto max-w-7xl">
       {/* Hero desktop-only search banner */}
       <DesktopHeroSearch />
-      {/*Sección de botones grandes*/}
-      <section className="p-4 md:px-6 lg:px-8">
+      {/* Categorías: en mobile mostramos ambos componentes actuales; en desktop, uno solo combinado */}
+      {/* Mobile: grandes */}
+      <section className="p-4 md:px-6 lg:px-8 md:hidden">
         <LargeCategoryGrid />
       </section>
-      {/*Sección de botones pequeños*/}
-      <section className="p-4 md:px-6 lg:px-8">
+      {/* Mobile: pequeñas */}
+      <section className="p-4 md:px-6 lg:px-8 md:hidden">
         <FeaturedCategories />
+      </section>
+      {/* Desktop: único componente */}
+      <section className="p-4 md:px-6 lg:px-8">
+        <DesktopFeaturedCategories />
       </section>
       {/*Sección de promociones*/}
       <section className="p-4 md:px-6 lg:px-8">
