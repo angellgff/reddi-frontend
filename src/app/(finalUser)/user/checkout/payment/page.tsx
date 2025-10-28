@@ -250,7 +250,7 @@ export default function CheckoutPaymentPage() {
             disabled={!canProceed}
             cta={
               <Link
-                href="/user/checkout/confirm"
+                href="/user/checkout/address"
                 className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-white text-sm font-medium ${
                   canProceed
                     ? "bg-emerald-600 hover:bg-emerald-700"

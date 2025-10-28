@@ -193,7 +193,7 @@ export default function CheckoutConfirmPage() {
       ) : null}
       <div className="mt-6 flex items-center justify-between">
         <Link
-          href="/user/checkout/payment"
+          href="/user/checkout/address"
           className="h-10 rounded-xl border px-4 text-sm font-medium flex justify-center items-center hover:bg-gray-50"
         >
           Volver
