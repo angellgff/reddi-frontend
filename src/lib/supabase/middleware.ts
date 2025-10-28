@@ -159,7 +159,7 @@ export async function updateSession(request: NextRequest) {
     const loginPath = path.startsWith("/admin")
       ? "/admin/login"
       : path.startsWith("/partner") || path.startsWith("/aliado")
-      ? "/partner/login"
+      ? "/admin/login"
       : "/login";
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set("next", path);
