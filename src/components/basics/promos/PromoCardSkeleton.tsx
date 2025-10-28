@@ -1,16 +1,22 @@
 // components/promotions/PromoCardSkeleton.tsx
 
-export default function PromoCardSkeleton() {
+export default function PromoCardSkeleton({
+  variant = "mobile",
+}: {
+  variant?: "mobile" | "desktop";
+}) {
+  const containerSizeClass =
+    variant === "desktop" ? "w-[317px] h-[146px]" : "w-[23rem] h-40";
   return (
     <div
-      className="
+      className={`
         relative
-        w-[23rem] h-40
+        ${containerSizeClass}
         flex-shrink-0
         rounded-2xl
         shadow-md
         overflow-hidden/* Color base para el fondo */
-      "
+      `}
       aria-label="Cargando promoción"
     >
       <div

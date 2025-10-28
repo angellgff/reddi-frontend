@@ -76,31 +76,37 @@ export default function DesktopFeaturedCategories({
         </h2>
       </div>
 
-      {/* Categories row */}
-      <div className="flex flex-row items-center gap-4 md:gap-[15px] w-full justify-start">
-        {categories.map((c) => (
-          <Link
-            key={c.name}
-            href={c.href}
-            className="flex flex-col justify-center items-center p-5 gap-2 w-[146px] h-[169px] bg-[#F0F2F5]/70 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-transform"
-          >
-            <div className="flex items-center justify-center w-[106px] h-[109px]">
-              <Image
-                src={c.imageUrl}
-                alt={c.name}
-                width={c.imageW ?? 100}
-                height={c.imageH ?? 100}
-                className="object-contain"
-                priority={false}
-              />
-            </div>
-            <div className="flex items-center justify-center">
-              <span className="text-[18px] leading-[22px] font-medium text-black text-center">
-                {c.name}
-              </span>
-            </div>
-          </Link>
-        ))}
+      {/* Categories row: scrollable to avoid overflow */}
+      <div className="flex-1 min-w-0">
+        <div
+          className="flex flex-row items-center gap-[15px] justify-start overflow-x-auto scrollbar-hide pr-2"
+          role="list"
+        >
+          {categories.map((c) => (
+            <Link
+              key={c.name}
+              href={c.href}
+              role="listitem"
+              className="flex-none flex flex-col justify-center items-center p-5 gap-2 w-[146px] h-[169px] bg-[#F0F2F5]/70 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-transform"
+            >
+              <div className="flex items-center justify-center w-[106px] h-[109px]">
+                <Image
+                  src={c.imageUrl}
+                  alt={c.name}
+                  width={c.imageW ?? 100}
+                  height={c.imageH ?? 100}
+                  className="object-contain"
+                  priority={false}
+                />
+              </div>
+              <div className="flex items-center justify-center">
+                <span className="text-[18px] leading-[22px] font-medium text-black text-center">
+                  {c.name}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

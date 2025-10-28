@@ -11,6 +11,7 @@ export type PromoCardProps = {
   imageUrl: string;
   bgColor: string;
   href: string;
+  variant?: "mobile" | "desktop";
 };
 
 export default function PromoCard({
@@ -21,13 +22,16 @@ export default function PromoCard({
   imageUrl,
   bgColor,
   href,
+  variant = "mobile",
 }: PromoCardProps) {
+  const containerSizeClass =
+    variant === "desktop" ? "w-[317px] h-[146px]" : "w-[23rem] h-40";
   return (
     <Link
       href={href}
       className={`
         relative
-        w-[23rem] h-40
+        ${containerSizeClass}
         flex-shrink-0
         rounded-2xl
         shadow-sm
