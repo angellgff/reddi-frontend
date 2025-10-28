@@ -5,11 +5,14 @@ import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkele
 import RecommendedSectionServer from "@/src/components/basics/recommended/RecommendedSectionServer";
 import SliderSectionSkeleton from "@/src/components/basics/itemsSlider/SliderSectionSkeleton";
 import OrderAgainServer from "@/src/components/features/finalUser/orderAgain/OrderAgainServer";
+import DesktopHeroSearch from "@/src/components/features/finalUser/hero/DesktopHeroSearch";
 import { Suspense } from "react";
 
 export default function Home() {
   return (
     <div className="mx-auto max-w-7xl">
+      {/* Hero desktop-only search banner */}
+      <DesktopHeroSearch />
       {/*Sección de botones grandes*/}
       <section className="p-4 md:px-6 lg:px-8">
         <LargeCategoryGrid />
