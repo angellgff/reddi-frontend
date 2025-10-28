@@ -7,7 +7,7 @@ export interface ChargesState {
 
 const initialState: ChargesState = {
   shippingFee: 0,
-  serviceFee: 10,
+  serviceFee: 0,
 };
 
 const chargesSlice = createSlice({

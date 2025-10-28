@@ -1,4 +1,15 @@
+// src/lib/store/checkoutSlice.ts
+
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+
+// NUEVO: Definir un tipo para el objeto del cupón validado.
+// Este tipo debe coincidir con lo que devuelve tu Edge Function 'validate-coupon'.
+export interface ValidatedCoupon {
+  id: string;
+  code: string;
+  discount_type: "percentage" | "fixed_amount";
+  discount_value: number;
+}
 
 export type ScheduleState =
   | { mode: "now" }
@@ -6,18 +17,19 @@ export type ScheduleState =
 
 export interface CheckoutState {
   addressId: string | null;
-  placeType: string | null; // villa | yate (display only)
-  placeNumber: string | null; // number text (display only)
+  placeType: string | null;
+  placeNumber: string | null;
   instructions: string;
   schedule: ScheduleState;
-  coupon: string;
-  discountPct: number;
-  tipPercent: number; // 0,3,6,9,12,15
+  // MODIFICADO: 'coupon' ahora es un objeto o null.
+  coupon: ValidatedCoupon | null;
+  tipPercent: number;
   payment: {
     brand: string | null;
     last4: string | null;
     cardholder_name: string | null;
   } | null;
+  // ELIMINADO: 'discountPct' es redundante, lo calcularemos desde el objeto 'coupon'.
 }
 
 const initialState: CheckoutState = {
@@ -26,8 +38,8 @@ const initialState: CheckoutState = {
   placeNumber: null,
   instructions: "",
   schedule: { mode: "now" },
-  coupon: "",
-  discountPct: 0,
+  // MODIFICADO: El estado inicial para el cupón es null.
+  coupon: null,
   tipPercent: 9,
   payment: null,
 };
@@ -52,9 +64,9 @@ const checkoutSlice = createSlice({
     setSchedule(state, action: PayloadAction<ScheduleState>) {
       state.schedule = action.payload;
     },
-    setCoupon(state, action: PayloadAction<{ code: string; pct: number }>) {
-      state.coupon = action.payload.code;
-      state.discountPct = action.payload.pct;
+    // MODIFICADO: 'setCoupon' ahora acepta el objeto ValidatedCoupon o null.
+    setCoupon(state, action: PayloadAction<ValidatedCoupon | null>) {
+      state.coupon = action.payload;
     },
     setTipPercent(state, action: PayloadAction<number>) {
       state.tipPercent = action.payload;
