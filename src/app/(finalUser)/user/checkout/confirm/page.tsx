@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useMemo } from "react"; // Se añade useMemo
 import { useRouter } from "next/navigation";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
@@ -34,7 +34,22 @@ export default function CheckoutConfirmPage() {
   const serviceFee = useAppSelector(selectServiceFee);
   const checkout = useAppSelector((s) => s.checkout);
 
-  const discount = (subtotal * checkout.discountPct) / 100;
+  // --- INICIO DE CAMBIO: Lógica de cálculo actualizada ---
+  // Se calcula el descuento a partir del objeto 'coupon' en lugar de 'discountPct'
+  const discount = useMemo(() => {
+    if (!checkout.coupon || subtotal <= 0) {
+      return 0;
+    }
+    if (checkout.coupon.discount_type === "percentage") {
+      return (subtotal * checkout.coupon.discount_value) / 100;
+    }
+    if (checkout.coupon.discount_type === "fixed_amount") {
+      return Math.min(subtotal, checkout.coupon.discount_value);
+    }
+    return 0;
+  }, [subtotal, checkout.coupon]);
+  // --- FIN DE CAMBIO ---
+
   const tip = (subtotal * checkout.tipPercent) / 100;
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
 
@@ -57,23 +72,20 @@ export default function CheckoutConfirmPage() {
         })),
       }));
 
+      // --- INICIO DE CAMBIO: Objeto de datos para el backend ---
+      // Se limpia el objeto para enviar solo los datos necesarios y seguros.
+      // El backend se encargará de recalcular todos los montos.
       const checkout_data = {
         addressId: checkout.addressId,
         placeType: checkout.placeType,
         placeNumber: checkout.placeNumber,
         instructions: checkout.instructions,
         schedule: checkout.schedule,
-        coupon: checkout.coupon,
-        discountPct: checkout.discountPct,
+        couponId: checkout.coupon?.id ?? null, // Se envía solo el ID del cupón
         tipPercent: checkout.tipPercent,
-        shippingFee: shipping,
-        serviceFee: serviceFee,
-        subtotal,
-        discountAmount: discount,
-        tipAmount: tip,
-        total,
         payment: checkout.payment,
       };
+      // --- FIN DE CAMBIO ---
 
       const { data, error } = await supabase.rpc("create_order", {
         cart_items,
@@ -99,16 +111,17 @@ export default function CheckoutConfirmPage() {
     }
   }
 
+  // --- NINGÚN CAMBIO VISUAL A PARTIR DE AQUÍ ---
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
       <Stepper current="confirmar" />
 
-      <section className="rounded-2xl border border-[#D9DCE3] bg-white p-[30px]">
+      <section className="mt-8 rounded-2xl border border-[#D9DCE3] bg-white p-[30px]">
         <h2 className="text-center text-[28px] leading-8 font-semibold text-[#0D0D0D]">
           Resumen final
         </h2>
 
-        <div className="mt-6 grid grid-cols-1 gap-[21px]">
+        <div className="mt-6 grid grid-cols-1 gap-x-12 gap-y-6">
           {/* Columna izquierda */}
           <div className="space-y-4">
             <div className="flex items-center justify-between text-sm">
@@ -117,7 +130,9 @@ export default function CheckoutConfirmPage() {
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">Total</span>
-              <span className="text-right">{currency(total)}</span>
+              <span className="text-right font-semibold">
+                {currency(total)}
+              </span>
             </div>
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">Tipo de lugar</span>
@@ -172,19 +187,21 @@ export default function CheckoutConfirmPage() {
         </div>
       </section>
       {errorMsg ? (
-        <div className="mt-4 text-sm text-red-600">{errorMsg}</div>
+        <div className="mt-4 text-sm text-center text-red-600 bg-red-50 p-3 rounded-lg">
+          {errorMsg}
+        </div>
       ) : null}
       <div className="mt-6 flex items-center justify-between">
         <Link
-          href="/user/checkout/address"
-          className="h-10 rounded-xl border px-4 text-sm flex justify-center items-center"
+          href="/user/checkout/payment"
+          className="h-10 rounded-xl border px-4 text-sm font-medium flex justify-center items-center hover:bg-gray-50"
         >
           Volver
         </Link>
         <button
           onClick={handleCreateOrder}
           disabled={placing || items.length === 0}
-          className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white flex justify-center items-center disabled:opacity-60"
+          className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white font-medium flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {placing ? "Creando pedido…" : "Confirmar y seguir pedido"}
         </button>

@@ -43,7 +43,7 @@ export default async function DeliveryLayout({
     r === "admin"
       ? "/admin/dashboard"
       : r === "market" // Si usas 'market' en el middleware, úsalo aquí también
-      ? "/aliado/dashboard"
+      ? "/partner/market/dashboard"
       : r === "delivery"
       ? "/repartidor/home"
       : "/user/home";

@@ -10,7 +10,7 @@ import RegisterFormStep3 from "./RegisterFormStep3";
 import RegisterFormStep4 from "./RegisterFormStep4";
 import { createClient } from "@/src/lib/supabase/client";
 
-const actualUrl = "/aliado/registro";
+const actualUrl = "/partner/registro";
 
 // Define la estructura de los datos del formulario
 export interface PartnerRegisterForm {
@@ -79,6 +79,7 @@ export default function PartnerRegisterWizard() {
       thursday: { active: false, opens: "08:00:00", closes: "17:00:00" },
       friday: { active: false, opens: "08:00:00", closes: "17:00:00" },
       saturday: { active: false, opens: "08:00:00", closes: "17:00:00" },
+      sunday: { active: false, opens: "08:00:00", closes: "17:00:00" },
     },
   });
 
@@ -265,6 +266,9 @@ export default function PartnerRegisterWizard() {
       // --- 1. Crear el usuario de forma NATIVA ---
       // Esto es mucho más fiable.
       console.info("[handleSubmit] Step 1: Creating user natively...");
+      // Asignar role según el tipo de cuenta: si NO es 'restaurant' => 'market'
+      const computedRole =
+        formData.session.category === "restaurant" ? "restaurant" : "market";
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.session.email,
         password: formData.session.password,
@@ -272,7 +276,7 @@ export default function PartnerRegisterWizard() {
           data: {
             // Aún podemos pasar metadatos, aunque nuestra RPC no los use directamente.
             // Es bueno para tenerlo en la tabla auth.users.
-            role: "restaurant",
+            role: computedRole,
             partner_type: formData.session.category,
           },
         },
@@ -287,6 +291,7 @@ export default function PartnerRegisterWizard() {
       // --- 2. Preparar y enviar datos a la Edge Function ---
       const partnerData = {
         category: formData.session.category,
+        role: computedRole,
         name: formData.bussinessData.name,
         userRnc: formData.bussinessData.userRnc,
         phone: formData.bussinessData.phone,

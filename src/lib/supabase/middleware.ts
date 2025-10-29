@@ -2,17 +2,31 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
-  console.log(
-    "[mw] ->",
-    request.method,
-    request.nextUrl.pathname,
-    request.nextUrl.search
-  );
+  function getHomeUrlForRole(role: string | null): string {
+    switch (role) {
+      case "admin":
+        return "/admin/dashboard";
+      case "market":
+        return "/partner/market/dashboard";
+      case "restaurant":
+        return "/partner/restaurant/dashboard";
+      case "delivery":
+        return "/repartidor/home";
+      case "user":
+      default:
+        return "/user/home";
+    }
+  }
+  // console.log("[mw] ->", request.method, request.nextUrl.pathname, request.nextUrl.search);
 
+  // 1. Crear una respuesta base que se usará para pasar a través o para redirigir.
+  // Esto es crucial porque contendrá las cookies de sesión actualizadas.
   let supabaseResponse = NextResponse.next({
     request,
   });
 
+  // 2. Crear el cliente de Supabase para el servidor.
+  // Este cliente leerá y escribirá cookies según sea necesario.
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
@@ -20,6 +34,7 @@ export async function updateSession(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
+          // Cuando Supabase necesite establecer cookies, las adjuntamos a nuestra respuesta base.
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set(name, value)
           );
@@ -34,6 +49,8 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
+  // 3. Obtener la sesión del usuario.
+  // IMPORTANTE: Esto también puede refrescar el token y actualizar las cookies en `supabaseResponse`.
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -41,7 +58,6 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isAuthed = !!user;
 
-  // 1. Obtener el rol del usuario
   let role: string | null = null;
   if (isAuthed) {
     const { data: profile } = await supabase
@@ -52,21 +68,19 @@ export async function updateSession(request: NextRequest) {
     role = profile?.role || null;
   }
 
-  console.log(`[mw] Path: ${path}, Authed: ${isAuthed}, Role: ${role}`);
+  // console.log(`[mw] Path: ${path}, Authed: ${isAuthed}, Role: ${role}`);
 
-  // 2. Definir rutas públicas y de autenticación
-  // Public unauthenticated pages (no session required)
+  // 4. Definir rutas públicas y de autenticación
   const publicPaths = [
+    "/",
     "/login",
     "/admin/login",
-    "/aliado/registro", // legacy
     "/partner/login",
     "/partner/registro",
   ];
   const authPaths = [
     "/login",
     "/admin/login",
-    "/aliado/registro", // legacy
     "/partner/login",
     "/partner/registro",
     "/auth/callback",
@@ -75,40 +89,58 @@ export async function updateSession(request: NextRequest) {
   const isPublicPath = publicPaths.includes(path);
   const isAuthPath = authPaths.some((p) => path.startsWith(p));
 
-  // 3. Lógica para usuarios YA AUTENTICADOS
+  // --- LÓGICA DE REDIRECCIÓN ---
+
+  // 5. Lógica para usuarios YA AUTENTICADOS
   if (isAuthed) {
-    if (isAuthPath) {
+    // Si un usuario autenticado está en una página de inicio de sesión o en la home pública,
+    // redirigirlo a su dashboard correspondiente.
+    if (isAuthPath || path === "/") {
       const homeUrl = getHomeUrlForRole(role);
-      console.log(
-        `[mw] Redirecting authenticated user from auth page to: ${homeUrl}`
+      // console.log(`[mw] Redirecting authed user from auth/public page to: ${homeUrl}`);
+      return NextResponse.redirect(
+        new URL(homeUrl, request.url),
+        supabaseResponse
       );
-      return NextResponse.redirect(new URL(homeUrl, request.url));
     }
 
-    // 4. Control de acceso basado en roles para rutas protegidas
+    // --- Control de acceso basado en roles ---
 
-    // Usuario en sección /admin
+    const denyAccessAndRedirect = (reason: string) => {
+      const homeUrl = getHomeUrlForRole(role);
+      // console.log(`[mw] DENY: ${reason}. Role: '${role}', Path: '${path}'. Redirecting to: ${homeUrl}`);
+      return NextResponse.redirect(
+        new URL(homeUrl, request.url),
+        supabaseResponse
+      );
+    };
+
     if (path.startsWith("/admin") && role !== "admin") {
-      return denyAccess(request, role, "Admin area requires 'admin' role");
+      return denyAccessAndRedirect("Admin area requires 'admin' role");
     }
-
-    // --- Partner sections gating (new structure) ---
     if (path.startsWith("/partner/market") && role !== "market") {
-      return denyAccess(
-        request,
-        role,
+      return denyAccessAndRedirect(
         "Partner Market area requires 'market' role"
       );
     }
     if (path.startsWith("/partner/restaurant") && role !== "restaurant") {
-      return denyAccess(
-        request,
-        role,
+      return denyAccessAndRedirect(
         "Partner Restaurant area requires 'restaurant' role"
       );
     }
+    if (path.startsWith("/repartidor") && role !== "delivery") {
+      return denyAccessAndRedirect("Repartidor area requires 'delivery' role");
+    }
+    if (path.startsWith("/user")) {
+      const specialRoles = ["admin", "market", "restaurant", "delivery"];
+      if (specialRoles.includes(role as string)) {
+        return denyAccessAndRedirect(
+          "Special roles cannot access general user area"
+        );
+      }
+    }
 
-    // Backward-compat: redirect old /aliado/* to new partner namespace by role
+    // Backward-compat: redirige /aliado/* a /partner/ROLE/*
     if (path.startsWith("/aliado")) {
       const base =
         role === "restaurant" ? "/partner/restaurant" : "/partner/market";
@@ -116,92 +148,39 @@ export async function updateSession(request: NextRequest) {
       const targetPath =
         sub && sub !== "" ? `${base}${sub}` : `${base}/dashboard`;
       const target = new URL(targetPath, request.url);
-      // preserve querystring
       target.search = request.nextUrl.search;
-      console.log(`[mw] Redirect legacy '/aliado' -> ${target.pathname}`);
-      return NextResponse.redirect(target);
+      // console.log(`[mw] Redirect legacy '/aliado' -> ${target.pathname}`);
+      return NextResponse.redirect(target, supabaseResponse);
     }
 
-    // Usuario en sección /repartidor
-    if (path.startsWith("/repartidor") && role !== "delivery") {
-      return denyAccess(
-        request,
-        role,
-        "Repartidor area requires 'delivery' role"
-      );
-    }
-
-    // Usuario con rol especial en el área de usuario general
-    if (path.startsWith("/user")) {
-      const specialRoles = ["admin", "market", "restaurant", "delivery"]; // <-- Lista de roles que NO deben estar aquí
-      if (specialRoles.includes(role as string)) {
-        return denyAccess(
-          request,
-          role,
-          "Special roles cannot access general user area"
-        );
-      }
-    }
-
-    // Usuario entra a /partner sin especificar segmento: llévalo a su dashboard
+    // Si un partner entra a /partner sin especificar, llévalo a su dashboard
     if (path === "/partner" || path === "/partner/") {
       const homeUrl = getHomeUrlForRole(role);
-      return NextResponse.redirect(new URL(homeUrl, request.url));
+      return NextResponse.redirect(
+        new URL(homeUrl, request.url),
+        supabaseResponse
+      );
     }
   }
 
-  // 5. Lógica para usuarios NO AUTENTICADOS
+  // 6. Lógica para usuarios NO AUTENTICADOS
   if (!isAuthed && !isPublicPath) {
-    console.log(
-      `[mw] Redirecting unauthenticated user from protected route: ${path}`
-    );
-    // Route unauthenticated users to the most relevant login page
+    // console.log(`[mw] Redirecting unauthenticated user from protected route: ${path}`);
+
+    // Redirige al login más relevante
     const loginPath = path.startsWith("/admin")
       ? "/admin/login"
       : path.startsWith("/partner") || path.startsWith("/aliado")
-      ? "/partner/login"
+      ? "/admin/login" // <-- CORREGIDO
       : "/login";
+
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set("next", path);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(loginUrl, supabaseResponse);
   }
 
-  console.log(`[mw] Allowing access to: ${path}`);
+  // 7. Si ninguna regla de redirección se aplicó, permite el acceso.
+  // Esta respuesta ya contiene las cookies actualizadas si las hubo.
+  // console.log(`[mw] Allowing access to: ${path}`);
   return supabaseResponse;
-}
-
-// --- Helper Functions ---
-
-/**
- * Determina la URL del dashboard principal según el rol del usuario.
- * AÑADIDO: Soporte para el rol 'restaurant'.
- */
-function getHomeUrlForRole(role: string | null): string {
-  switch (role) {
-    case "admin":
-      return "/admin/dashboard";
-    case "market":
-      return "/partner/market/dashboard";
-    case "restaurant":
-      return "/partner/restaurant/dashboard";
-    case "delivery":
-      return "/repartidor/home";
-    default:
-      return "/user/home";
-  }
-}
-
-/**
- * Genera una respuesta de redirección cuando se niega el acceso a una ruta.
- */
-function denyAccess(
-  request: NextRequest,
-  role: string | null,
-  reason: string
-): NextResponse {
-  const homeUrl = getHomeUrlForRole(role);
-  console.log(
-    `[mw] DENY: ${reason}. Role: '${role}', Path: '${request.nextUrl.pathname}'. Redirecting to: ${homeUrl}`
-  );
-  return NextResponse.redirect(new URL(homeUrl, request.url));
 }

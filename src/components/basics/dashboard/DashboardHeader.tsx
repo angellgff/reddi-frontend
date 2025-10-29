@@ -25,7 +25,7 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   const handleLogout = async () => {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.push("/aliado/login"); // Ajusta la ruta si es necesario
+    router.push("/admin/login"); // Ajusta la ruta si es necesario
     router.refresh(); // Asegura que se limpie el estado del servidor
   };
 

@@ -23,7 +23,7 @@ export async function getAuthenticatedPartnerProfile(): Promise<PartnerProfile> 
 
   if (!session) {
     // Si no hay sesión, redirigir al login
-    redirect("/aliado/login"); // Ajusta la ruta a tu página de login de socios
+    redirect("/admin/login"); // Ajusta la ruta a tu página de login de socios
   }
 
   const userId = session.user.id;
@@ -52,7 +52,7 @@ export async function getAuthenticatedPartnerProfile(): Promise<PartnerProfile> 
     console.error("Error fetching partner profile:", error);
     // Si no se encuentra el perfil, podría ser un estado inconsistente.
     // Redirigir o manejar el error como prefieras.
-    redirect("/aliado/login");
+    redirect("/admin/login");
   }
 
   // 3. Formatear y devolver los datos en una estructura clara

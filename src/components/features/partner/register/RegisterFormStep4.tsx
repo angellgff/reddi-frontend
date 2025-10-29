@@ -19,6 +19,7 @@ const days = [
   { value: "thursday", label: "Jueves" },
   { value: "friday", label: "Viernes" },
   { value: "saturday", label: "Sábado" },
+  { value: "sunday", label: "Domingo" },
 ];
 
 const hoursOptions = Array.from({ length: 24 }, (_, i) => {

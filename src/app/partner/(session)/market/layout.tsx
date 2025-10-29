@@ -6,7 +6,7 @@ import { getAuthenticatedPartnerProfile } from "@/src/lib/partner/header/data/ge
 import { createClient } from "@/src/lib/supabase/server";
 import { LogoutButton } from "@/src/components/logout-button";
 
-const actualURL = "/aliado";
+const actualURL = "/partner";
 
 const navigationLinks: NavLink[] = [
   {
