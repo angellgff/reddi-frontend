@@ -15,7 +15,7 @@ import { UserHeaderData } from "@/src/lib/finalUser/type";
 import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { createClient } from "@/src/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
@@ -31,6 +31,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false); // menú hamburguesa para < xl
   const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
   const cartCount = useAppSelector(selectCartCount);
@@ -48,6 +49,15 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     setIsAddressMenuVisible(!isAddressMenuVisible);
   };
   const toggleNav = () => setIsNavOpen((p) => !p);
+
+  // Navigation helpers
+  const go = (href: string) => {
+    router.push(href);
+    setIsNavOpen(false);
+  };
+  const goOrders = () => go("/user/orders");
+  const goFavorites = () => go("/user/favorites");
+  const goAddresses = () => go("/user/checkout/address");
 
   const onToggleCart = () => dispatch(toggleCart());
 
@@ -216,7 +226,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
           <div className="flex items-center gap-6 lg:gap-10 min-w-0">
             <div className="flex items-center flex-shrink-0">
               {/* Placeholder for logo - replace with real Logo component if available */}
-              <span className="text-3xl font-bold text-primary select-none">
+              <span
+                className="text-3xl font-bold text-primary select-none"
+                onClick={() => {
+                  router.push("/user/home");
+                }}
+              >
                 Reddi
               </span>
             </div>
@@ -251,12 +266,20 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 <NavPill
                   icon={<ShoppingBag size={20} />}
                   label="Mis pedidos"
-                  active
+                  active={pathname?.startsWith("/user/orders")}
+                  onClick={goOrders}
                 />
-                <NavPill icon={<Heart size={20} />} label="Favoritos" />
+                <NavPill
+                  icon={<Heart size={20} />}
+                  label="Favoritos"
+                  active={pathname === "/user/favorites"}
+                  onClick={goFavorites}
+                />
                 <NavPill
                   icon={<MapPin size={20} />}
                   label="Direcciones guardadas"
+                  active={pathname === "/user/checkout/address"}
+                  onClick={goAddresses}
                 />
               </div>
             </div>
@@ -321,12 +344,20 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 <NavPill
                   icon={<ShoppingBag size={20} />}
                   label="Mis pedidos"
-                  active
+                  active={pathname?.startsWith("/user/orders")}
+                  onClick={goOrders}
                 />
-                <NavPill icon={<Heart size={20} />} label="Favoritos" />
+                <NavPill
+                  icon={<Heart size={20} />}
+                  label="Favoritos"
+                  active={pathname === "/user/favorites"}
+                  onClick={goFavorites}
+                />
                 <NavPill
                   icon={<MapPin size={20} />}
                   label="Direcciones guardadas"
+                  active={pathname === "/user/checkout/address"}
+                  onClick={goAddresses}
                 />
               </div>
               <div className="h-px bg-gray-200" />
@@ -386,14 +417,17 @@ function NavPill({
   icon,
   label,
   active = false,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   active?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <button
       type="button"
+      onClick={onClick}
       className={`flex flex-col justify-center items-center px-2 py-1 gap-1 h-9 rounded-[10px] bg-gray-100/70 min-w-[117px] ${
         active ? "ring-2 ring-transparent" : ""
       }`}

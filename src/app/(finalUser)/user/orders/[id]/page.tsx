@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
@@ -24,13 +24,188 @@ const ORDER_STEPS = [
 
 type OrderStepKey = (typeof ORDER_STEPS)[number]["key"];
 
+type DeliveryInfo = {
+  assigned: boolean;
+  name?: string;
+  avatar_url?: string | null;
+  phone?: string | null;
+};
+
+type MinimalProfile = {
+  id?: string;
+  full_name?: string;
+  name?: string;
+  first_name?: string;
+  email?: string;
+  avatar_url?: string | null;
+  phone?: string | null;
+};
+
+type OrderItem = {
+  id: string;
+  quantity: number;
+  unit_price: number;
+  products?: {
+    name?: string;
+    image_url?: string | null;
+    unit?: string;
+  } | null;
+};
+
+type OrderData = {
+  id: string;
+  status?: OrderStepKey;
+  subtotal?: number | null;
+  delivery_fee?: number | null;
+  discount_amount?: number | null;
+  total_amount?: number | null;
+  tip_amount?: number | null;
+  instructions?: string | null;
+  user_addresses?: {
+    id: string;
+    location_type?: string | null;
+    location_number?: string | null;
+  } | null;
+  partners?: {
+    name?: string;
+    image_url?: string | null;
+    address?: string | null;
+  } | null;
+  order_detail?: OrderItem[];
+} | null;
+
+function displayName(user: MinimalProfile | null | undefined): string {
+  const emailPrefix =
+    typeof user?.email === "string" ? user.email.split("@")[0] : "";
+  return (
+    user?.full_name ||
+    user?.name ||
+    user?.first_name ||
+    emailPrefix ||
+    "Repartidor"
+  );
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v !== null && typeof v === "object"
+    ? (v as Record<string, unknown>)
+    : null;
+}
+
+function firstObj(v: unknown): Record<string, unknown> | null {
+  if (Array.isArray(v)) return asRecord(v[0]);
+  return asRecord(v);
+}
+
+function normalizeOrder(data: unknown): OrderData {
+  const rec = asRecord(data);
+  if (!rec) return null;
+
+  const partnersRec = firstObj(rec["partners"]);
+  const partners = partnersRec
+    ? {
+        name:
+          typeof partnersRec["name"] === "string"
+            ? (partnersRec["name"] as string)
+            : undefined,
+        image_url:
+          typeof partnersRec["image_url"] === "string"
+            ? (partnersRec["image_url"] as string)
+            : null,
+        address:
+          typeof partnersRec["address"] === "string"
+            ? (partnersRec["address"] as string)
+            : null,
+      }
+    : null;
+
+  const addrRec = firstObj(rec["user_addresses"]);
+  const user_addresses = addrRec
+    ? {
+        id: String(addrRec["id"] ?? ""),
+        location_type:
+          typeof addrRec["location_type"] === "string"
+            ? (addrRec["location_type"] as string)
+            : null,
+        location_number:
+          typeof addrRec["location_number"] === "string"
+            ? (addrRec["location_number"] as string)
+            : null,
+      }
+    : null;
+
+  const od = Array.isArray(rec["order_detail"])
+    ? (rec["order_detail"] as unknown[])
+    : [];
+  const order_detail: OrderItem[] = od
+    .map(asRecord)
+    .filter((x): x is Record<string, unknown> => !!x)
+    .map((it) => {
+      const p = asRecord(it["products"]);
+      return {
+        id: String(it["id"] ?? ""),
+        quantity: Number(it["quantity"] ?? 0),
+        unit_price: Number(it["unit_price"] ?? 0),
+        products: p
+          ? {
+              name:
+                typeof p["name"] === "string"
+                  ? (p["name"] as string)
+                  : undefined,
+              image_url:
+                typeof p["image_url"] === "string"
+                  ? (p["image_url"] as string)
+                  : null,
+              unit:
+                typeof p["unit"] === "string"
+                  ? (p["unit"] as string)
+                  : undefined,
+            }
+          : undefined,
+      } as OrderItem;
+    });
+
+  return {
+    id: String(rec["id"] ?? ""),
+    status:
+      typeof rec["status"] === "string"
+        ? (rec["status"] as OrderStepKey)
+        : undefined,
+    subtotal:
+      typeof rec["subtotal"] === "number" ? (rec["subtotal"] as number) : null,
+    delivery_fee:
+      typeof rec["delivery_fee"] === "number"
+        ? (rec["delivery_fee"] as number)
+        : null,
+    discount_amount:
+      typeof rec["discount_amount"] === "number"
+        ? (rec["discount_amount"] as number)
+        : null,
+    total_amount:
+      typeof rec["total_amount"] === "number"
+        ? (rec["total_amount"] as number)
+        : null,
+    tip_amount:
+      typeof rec["tip_amount"] === "number"
+        ? (rec["tip_amount"] as number)
+        : null,
+    instructions:
+      typeof rec["instructions"] === "string"
+        ? (rec["instructions"] as string)
+        : null,
+    user_addresses,
+    partners,
+    order_detail,
+  };
+}
+
 export default function OrderStatusPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params?.id as string;
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<OrderData>(null);
+  const [delivery, setDelivery] = useState<DeliveryInfo | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -47,9 +222,100 @@ export default function OrderStatusPage() {
           .eq("id", id)
           .single();
         if (error) throw error;
-        if (mounted) setOrder(data);
-      } catch (err: any) {
-        setError(err?.message ?? "No se pudo cargar el pedido");
+        if (mounted) setOrder(normalizeOrder(data));
+        // Try to load delivery assignment info in a best-effort manner.
+        // 1) Attempt to read a potential delivery_user (FK to profiles) directly from orders.
+        // 2) Fallback to common join tables if present.
+        // 3) If any step fails or no data, mock as not assigned.
+        try {
+          // Reuse client
+          let assigned: DeliveryInfo | null = null;
+
+          // Try: orders with delivery_user_id -> profiles
+          try {
+            const { data: ordWithDriver, error: driverErr } = await supabase
+              .from("orders")
+              .select(
+                "id, delivery_user:profiles!orders_delivery_user_id_fkey(id, full_name, name, first_name, email, avatar_url, phone)"
+              )
+              .eq("id", id)
+              .single();
+            const u = (
+              ordWithDriver as { delivery_user?: MinimalProfile | null } | null
+            )?.delivery_user;
+            if (!driverErr && ordWithDriver && u) {
+              assigned = {
+                assigned: true,
+                name: displayName(u),
+                avatar_url: u?.avatar_url ?? null,
+                phone: u?.phone ?? null,
+              };
+            }
+          } catch {
+            // ignore; relationship or column may not exist yet
+          }
+
+          // Try: delivery_assignments with profiles
+          if (!assigned) {
+            try {
+              const { data: da, error: daErr } = await supabase
+                .from("delivery_assignments")
+                .select(
+                  "id, order_id, delivery_user:profiles(id, full_name, name, first_name, email, avatar_url, phone)"
+                )
+                .eq("order_id", id)
+                .maybeSingle();
+              const u = (da as { delivery_user?: MinimalProfile | null } | null)
+                ?.delivery_user;
+              if (!daErr && da && u) {
+                assigned = {
+                  assigned: true,
+                  name: displayName(u),
+                  avatar_url: u?.avatar_url ?? null,
+                  phone: u?.phone ?? null,
+                };
+              }
+            } catch {
+              // ignore; table or relationship may not exist yet
+            }
+          }
+
+          // Try: deliveries with driver profile
+          if (!assigned) {
+            try {
+              const { data: del, error: delErr } = await supabase
+                .from("deliveries")
+                .select(
+                  "id, order_id, driver:profiles(id, full_name, name, first_name, email, avatar_url, phone)"
+                )
+                .eq("order_id", id)
+                .maybeSingle();
+              const u = (del as { driver?: MinimalProfile | null } | null)
+                ?.driver;
+              if (!delErr && del && u) {
+                assigned = {
+                  assigned: true,
+                  name: displayName(u),
+                  avatar_url: u?.avatar_url ?? null,
+                  phone: u?.phone ?? null,
+                };
+              }
+            } catch {
+              // ignore; table or relationship may not exist yet
+            }
+          }
+
+          if (mounted) {
+            setDelivery(assigned ?? { assigned: false });
+          }
+        } catch {
+          // As a safety net, mark as not assigned
+          if (mounted) setDelivery({ assigned: false });
+        }
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "No se pudo cargar el pedido";
+        setError(message);
       } finally {
         setLoading(false);
       }
@@ -120,8 +386,8 @@ export default function OrderStatusPage() {
 
         {/* Info banner */}
         <div className="w-full max-w-[862px] rounded-xl border border-[#04BD88] bg-[#CDF7E7] p-4 flex items-center gap-4">
-          <div className="h-9 w-9 rounded-full border-l border-black/100 pl-3 flex items-center justify-center">
-            <span className="sr-only">Info</span>
+          <div className="h-9 w-9 pl-3 flex items-center justify-center">
+            <Image src="/clock.png" width={28} height={28} alt="Info" />
           </div>
           <div>
             <div className="font-semibold text-[#04BD88] text-sm">
@@ -139,20 +405,42 @@ export default function OrderStatusPage() {
       <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: map and driver */}
         <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)]">
-          <div className="h-[300px] w-full rounded-xl bg-[url('/placeholder-map.png')] bg-cover bg-center" />
+          <div className="h-[400px] w-full rounded-xl bg-[url('/placeholder-map.png')] bg-cover bg-center" />
           <div className="mt-4 flex items-center justify-between rounded-xl border border-[#9BA1AE] bg-[rgba(240,242,245,0.72)] p-3">
             <div className="flex items-center gap-3">
-              <div className="h-16 w-16 rounded-full bg-gray-300 overflow-hidden" />
+              <div className="h-16 w-16 rounded-full bg-gray-300 overflow-hidden relative">
+                {delivery?.assigned && delivery?.avatar_url ? (
+                  <Image
+                    src={delivery.avatar_url}
+                    alt={delivery.name ?? "Repartidor"}
+                    fill
+                    className="object-cover"
+                  />
+                ) : null}
+              </div>
               <div>
                 <div className="text-[16px] leading-5 font-medium text-[#171717]">
-                  Carlos Mendez
+                  {delivery?.assigned
+                    ? delivery?.name
+                    : "Sin repartidor asignado"}
                 </div>
                 <div className="text-[14px] leading-[18px] text-[#292929]">
-                  Repartidor asignado
+                  {delivery?.assigned
+                    ? "Repartidor asignado"
+                    : "Esperando asignación"}
                 </div>
               </div>
             </div>
-            <button className="inline-flex items-center justify-center rounded-full border border-[#04BD88] bg-[#CDF7E7] h-[51px] w-[51px]">
+            <button
+              className={
+                delivery?.assigned
+                  ? "inline-flex items-center justify-center rounded-full border border-[#04BD88] bg-[#CDF7E7] h-[51px] w-[51px]"
+                  : "inline-flex items-center justify-center rounded-full border border-[#D9DCE3] bg-[#F0F2F5] h-[51px] w-[51px] opacity-60 cursor-not-allowed"
+              }
+              disabled={!delivery?.assigned}
+              aria-disabled={!delivery?.assigned}
+              title={delivery?.assigned ? "Contactar" : "Aún sin repartidor"}
+            >
               <span className="sr-only">Contactar</span>
             </button>
           </div>
@@ -178,7 +466,7 @@ export default function OrderStatusPage() {
               {order?.partners?.image_url ? (
                 <Image
                   src={order.partners.image_url}
-                  alt={order.partners.name}
+                  alt={order?.partners?.name ?? "Tienda"}
                   width={60}
                   height={60}
                   className="rounded-md object-cover"
@@ -199,7 +487,7 @@ export default function OrderStatusPage() {
 
           {/* Items */}
           <div className="mt-4 divide-y divide-[#D9DCE3]">
-            {order?.order_detail?.map((d: any) => (
+            {order?.order_detail?.map((d: OrderItem) => (
               <div key={d.id} className="py-4 flex items-center gap-4">
                 <div className="h-20 w-20 rounded-md bg-gray-200 relative overflow-hidden">
                   {d.products?.image_url ? (
