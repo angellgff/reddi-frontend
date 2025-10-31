@@ -4,6 +4,7 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createClient } from "@/src/lib/supabase/client";
 import type { Tables } from "@/src/lib/database.types";
 import { setSelectedAddress as setSelectedAddressAction } from "@/src/lib/finalUser/addresses/actions";
+import { withTimeout } from "@/src/lib/utils";
 
 export type UserAddress = Tables<"user_addresses">;
 
@@ -27,37 +28,68 @@ export const fetchUserAddresses = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const supabase = createClient();
-      const { data: auth, error: authError } = await supabase.auth.getUser();
-      if (authError) throw authError;
-      if (!auth.user) {
+      // Soft-timeout: si getSession se demora, asumimos no autenticado SIN lanzar error
+      const sessionOrTimeout = (await Promise.race([
+        supabase.auth.getSession(),
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 900)
+        ),
+      ])) as any;
+      const user = sessionOrTimeout?.data?.session?.user || null;
+      if (!user) {
         return {
           addresses: [] as UserAddress[],
           selectedAddressId: null as string | null,
         };
       }
 
-      const [addrRes, profileRes] = await Promise.all([
-        supabase
-          .from("user_addresses")
-          .select("id, location_type, location_number, created_at, user_id")
-          .eq("user_id", auth.user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("profiles")
-          .select("selected_address")
-          .eq("id", auth.user.id)
-          .single(),
+      const [addrRes, profileRes] = await Promise.allSettled([
+        withTimeout(
+          (async () =>
+            await supabase
+              .from("user_addresses")
+              .select("id, location_type, location_number, created_at, user_id")
+              .eq("user_id", user.id)
+              .order("created_at", { ascending: false }))(),
+          3000,
+          "addr-timeout"
+        ),
+        withTimeout(
+          (async () =>
+            await supabase
+              .from("profiles")
+              .select("selected_address")
+              .eq("id", user.id)
+              .single())(),
+          3000,
+          "profile-timeout"
+        ),
       ]);
 
-      if (addrRes.error) throw addrRes.error;
-      if (profileRes.error && profileRes.error.code !== "PGRST116") {
+      // Parse results with graceful fallbacks
+      const addrOk =
+        addrRes.status === "fulfilled" && !(addrRes.value as any).error;
+      const profileOk =
+        profileRes.status === "fulfilled" && !(profileRes.value as any).error;
+
+      if (addrRes.status === "fulfilled" && (addrRes.value as any).error) {
+        throw (addrRes.value as any).error;
+      }
+      if (
+        profileRes.status === "fulfilled" &&
+        (profileRes.value as any).error &&
+        (profileRes.value as any).error.code !== "PGRST116"
+      ) {
         // ignore not found single row code, otherwise throw
-        throw profileRes.error;
+        throw (profileRes.value as any).error;
       }
 
-      const addresses = (addrRes.data as UserAddress[]) || [];
-      let selectedAddressId: string | null =
-        (profileRes.data as any)?.selected_address ?? null;
+      const addresses: UserAddress[] = addrOk
+        ? ((addrRes as any).value.data as UserAddress[]) || []
+        : [];
+      let selectedAddressId: string | null = profileOk
+        ? (profileRes as any).value.data?.selected_address ?? null
+        : null;
 
       if (!selectedAddressId && addresses.length > 0) {
         selectedAddressId = addresses[0].id as unknown as string; // ids are uuid strings

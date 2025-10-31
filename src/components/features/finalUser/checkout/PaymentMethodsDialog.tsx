@@ -13,6 +13,7 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { createClient } from "@/src/lib/supabase/client";
+import { withTimeout } from "@/src/lib/utils";
 import {
   addUserPaymentMethod,
   deleteUserPaymentMethod,
@@ -61,16 +62,26 @@ export function PaymentMethodsDialog({
     setError(null);
     try {
       const supabase = createClient();
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) {
+      const { data: sess } = await withTimeout(
+        supabase.auth.getSession(),
+        800,
+        "auth-timeout"
+      );
+      const user = sess?.session?.user || null;
+      if (!user) {
         setMethods([]);
         return;
       }
-      const { data, error } = await supabase
-        .from("user_payment_methods")
-        .select("*")
-        .eq("user_id", auth.user.id)
-        .order("created_at", { ascending: false });
+      const { data, error } = await withTimeout(
+        (async () =>
+          await supabase
+            .from("user_payment_methods")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false }))(),
+        3000,
+        "payment-methods-timeout"
+      );
       if (error) throw error;
       setMethods((data as any) || []);
     } catch (e: any) {

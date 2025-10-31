@@ -1,7 +1,7 @@
 import { UserHeaderData } from "@/src/lib/finalUser/type";
 
 // Utilidad para el tiempo de respuesta de la API
-import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
+import { getRandomNumberFrom1To10, withTimeout } from "@/src/lib/utils";
 import { createClient } from "@/src/lib/supabase/server";
 
 const apiDelay = 0; // sin delay artificial al usar sesión real
@@ -16,7 +16,11 @@ export default async function getHeaderData(): Promise<UserHeaderData> {
   }
 
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
+  const { data: userData } = await withTimeout(
+    supabase.auth.getUser(),
+    1200,
+    "auth-timeout"
+  );
   const user = userData.user;
   console.log("[getHeaderData] user", { user });
   const meta = (user?.user_metadata as Record<string, any>) || {};

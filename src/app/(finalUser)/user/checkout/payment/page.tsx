@@ -22,6 +22,7 @@ import {
   setTipPercent as setTipGlobal,
   ValidatedCoupon,
 } from "@/src/lib/store/checkoutSlice";
+import { withTimeout } from "@/src/lib/utils";
 
 export default function CheckoutPaymentPage() {
   const dispatch = useAppDispatch();
@@ -103,11 +104,12 @@ export default function CheckoutPaymentPage() {
     setCouponMsg(null);
 
     try {
-      const { data, error } = await supabase.functions.invoke(
-        "validate-coupon",
-        {
+      const { data, error } = await withTimeout(
+        supabase.functions.invoke("validate-coupon", {
           body: { couponCode: code, subtotal },
-        }
+        }),
+        4000,
+        "coupon-timeout"
       );
 
       if (error) throw new Error(error.message);

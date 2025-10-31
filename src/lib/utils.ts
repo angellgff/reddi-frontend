@@ -45,3 +45,17 @@ export function uuid(): string {
     return v.toString(16);
   });
 }
+
+// Race a promise against a timeout to prevent indefinite loading states
+export async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number,
+  label: string = "timeout"
+): Promise<T> {
+  return (await Promise.race<Promise<T>>([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(label)), ms)
+    ),
+  ])) as T;
+}

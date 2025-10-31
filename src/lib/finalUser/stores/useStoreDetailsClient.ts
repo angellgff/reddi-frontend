@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
+import { withTimeout } from "@/src/lib/utils";
 import type { Database } from "@/src/lib/database.types";
 
 type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
@@ -27,10 +28,15 @@ export function useStoreDetailsClient(partnerIds: string[]) {
         setLoading(true);
         setError(null);
         const supabase = createClient();
-        const { data, error } = await supabase
-          .from("partners")
-          .select("id,name,image_url,address,partner_type,phone")
-          .in("id", uniqueIds);
+        const { data, error } = await withTimeout(
+          (async () =>
+            await supabase
+              .from("partners")
+              .select("id,name,image_url,address,partner_type,phone")
+              .in("id", uniqueIds))(),
+          3000,
+          "partners-timeout"
+        );
         if (error) throw error;
         if (cancelled) return;
         const map: Record<string, StoreDetails> = {};

@@ -49,23 +49,40 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // 3. Obtener la sesión del usuario.
+  // 3. Obtener la sesión del usuario con un límite de tiempo corto para evitar bloqueos del middleware.
   // IMPORTANTE: Esto también puede refrescar el token y actualizar las cookies en `supabaseResponse`.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const withTimeout = async <T>(p: Promise<T>, ms: number): Promise<T> => {
+    return await Promise.race<T>([
+      p,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error("auth-timeout")), ms)
+      ),
+    ]);
+  };
+
+  let user: any = null;
+  try {
+    const {
+      data: { user: u },
+    } = (await withTimeout(supabase.auth.getUser(), 1200)) as any;
+    user = u || null;
+  } catch (e) {
+    // En caso de timeout u otro error, continuamos como no autenticado para no colgar la navegación.
+    if (process.env.NEXT_PUBLIC_DEBUG_AUTH) {
+      console.warn("[mw] getUser error/timeout", (e as Error)?.message);
+    }
+  }
 
   const path = request.nextUrl.pathname;
   const isAuthed = !!user;
 
+  // Evitar consultas a la base de datos en middleware (runtime Edge) para prevenir bloqueos intermitentes.
+  // Derivamos un rol "rápido" desde metadata del JWT si existe; los layouts harán la validación fuerte contra la DB.
   let role: string | null = null;
   if (isAuthed) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-    role = profile?.role || null;
+    const am = (user?.app_metadata as any) || {};
+    const um = (user?.user_metadata as any) || {};
+    role = am.user_role || am.role || um.user_role || um.role || null;
   }
 
   // console.log(`[mw] Path: ${path}, Authed: ${isAuthed}, Role: ${role}`);
@@ -115,23 +132,28 @@ export async function updateSession(request: NextRequest) {
       );
     };
 
-    if (path.startsWith("/admin") && role !== "admin") {
+    // Si no pudimos derivar rol rápidamente, no bloqueamos en middleware; los layouts harán el guard.
+    if (role && path.startsWith("/admin") && role !== "admin") {
       return denyAccessAndRedirect("Admin area requires 'admin' role");
     }
-    if (path.startsWith("/partner/market") && role !== "market") {
+    if (role && path.startsWith("/partner/market") && role !== "market") {
       return denyAccessAndRedirect(
         "Partner Market area requires 'market' role"
       );
     }
-    if (path.startsWith("/partner/restaurant") && role !== "restaurant") {
+    if (
+      role &&
+      path.startsWith("/partner/restaurant") &&
+      role !== "restaurant"
+    ) {
       return denyAccessAndRedirect(
         "Partner Restaurant area requires 'restaurant' role"
       );
     }
-    if (path.startsWith("/repartidor") && role !== "delivery") {
+    if (role && path.startsWith("/repartidor") && role !== "delivery") {
       return denyAccessAndRedirect("Repartidor area requires 'delivery' role");
     }
-    if (path.startsWith("/user")) {
+    if (role && path.startsWith("/user")) {
       const specialRoles = ["admin", "market", "restaurant", "delivery"];
       if (specialRoles.includes(role as string)) {
         return denyAccessAndRedirect(
