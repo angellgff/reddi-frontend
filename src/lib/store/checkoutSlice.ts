@@ -36,6 +36,7 @@ export interface CheckoutState {
     durationSeconds: number;
     originCoordinates: { longitude: number; latitude: number };
     destinationCoordinates: { longitude: number; latitude: number };
+    routeGeoJson?: { type: "LineString"; coordinates: [number, number][] };
   } | null;
   // ELIMINADO: 'discountPct' es redundante, lo calcularemos desde el objeto 'coupon'.
 }

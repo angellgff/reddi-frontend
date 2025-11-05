@@ -14,6 +14,7 @@ import {
 import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
 import type { Enums } from "@/src/lib/database.types";
 import Select from "@/src/components/ui/Select";
+import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 
 export default function CheckoutAddressPage() {
   const dispatch = useAppDispatch();
@@ -89,6 +90,7 @@ export default function CheckoutAddressPage() {
               durationSeconds: Number(json.durationSeconds ?? 0),
               originCoordinates: json.originCoordinates,
               destinationCoordinates: json.destinationCoordinates,
+              routeGeoJson: json.routeGeoJson ?? null,
             })
           );
         }
@@ -292,6 +294,18 @@ export default function CheckoutAddressPage() {
               </div>
             )}
           </div>
+
+          {/* Mapa de ruta */}
+          {checkout.shippingEstimate ? (
+            <div className="mt-4">
+              <RouteMap
+                origin={checkout.shippingEstimate.originCoordinates}
+                destination={checkout.shippingEstimate.destinationCoordinates}
+                routeGeoJson={checkout.shippingEstimate.routeGeoJson}
+                height={280}
+              />
+            </div>
+          ) : null}
         </div>
       </div>
 

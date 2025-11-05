@@ -7,6 +7,7 @@ export interface ShipmentDetails {
   shippingCost: number;
   originCoordinates: { longitude: number; latitude: number };
   destinationCoordinates: { longitude: number; latitude: number };
+  routeGeoJson?: { type: "LineString"; coordinates: [number, number][] };
 }
 
 // GeoJSON Point as returned by Supabase for PostGIS geography(Point)
@@ -235,7 +236,7 @@ export async function calculateShipmentDetails(
     `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${originParam};${destinationParam}`
   );
   url.searchParams.set("alternatives", "false");
-  url.searchParams.set("overview", "false");
+  url.searchParams.set("overview", "full");
   url.searchParams.set("geometries", "geojson");
   url.searchParams.set("access_token", token);
 
@@ -322,5 +323,9 @@ export async function calculateShipmentDetails(
     shippingCost,
     originCoordinates: origin,
     destinationCoordinates: destination,
+    routeGeoJson: firstRoute.geometry as {
+      type: "LineString";
+      coordinates: [number, number][];
+    },
   };
 }
