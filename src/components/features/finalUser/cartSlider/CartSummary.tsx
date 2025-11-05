@@ -6,24 +6,32 @@ import {
   selectShippingFee,
   selectServiceFee,
 } from "@/src/lib/store/chargesSlice";
+import { useMemo } from "react";
 
 export default function CartSummary() {
   const items = useAppSelector(selectCartItems);
   const subtotal = useAppSelector(selectCartSubtotal);
   const shipping = useAppSelector(selectShippingFee);
   const serviceFee = useAppSelector(selectServiceFee);
-  const total = subtotal + shipping + serviceFee;
+  // Tip percent from global context (Redux checkout slice)
+  const tipPercent = useAppSelector((s) => s.checkout.tipPercent);
+  const tip = useMemo(
+    () => (subtotal * (tipPercent || 0)) / 100,
+    [subtotal, tipPercent]
+  );
+  const total = subtotal + shipping + serviceFee + tip;
 
   return (
     <div className="space-y-2">
       <Row label="Productos" value={`$${subtotal.toFixed(2)}`} />
       <Row label="Envío" value={`$${shipping.toFixed(2)}`} />
       <Row label="Tarifa de servicio" value={`$${serviceFee.toFixed(2)}`} />
+      <Row label="Propina" value={`$${tip.toFixed(2)}`} />
       <div className="border-t pt-2">
         <Row label="Subtotal" value={`$${total.toFixed(2)}`} bold />
       </div>
       <a
-        href={items.length === 0 ? undefined : "/user/payment"}
+        href={items.length === 0 ? undefined : "/user/checkout/payment"}
         className={`mt-3 block w-full text-center bg-primary text-white font-medium py-3 rounded-xl ${
           items.length === 0 ? "pointer-events-none opacity-60" : ""
         }`}

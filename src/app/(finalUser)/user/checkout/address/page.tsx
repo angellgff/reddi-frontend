@@ -15,6 +15,7 @@ import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
 import type { Enums } from "@/src/lib/database.types";
 import Select from "@/src/components/ui/Select";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
+import { setShippingFee } from "@/src/lib/store/chargesSlice";
 
 export default function CheckoutAddressPage() {
   const dispatch = useAppDispatch();
@@ -68,6 +69,8 @@ export default function CheckoutAddressPage() {
     async function run() {
       if (!addressId || !partnerId) {
         dispatch(setShippingEstimate(null));
+        // También reflejar en cargos del carrito
+        dispatch(setShippingFee(0));
         return;
       }
       try {
@@ -93,6 +96,8 @@ export default function CheckoutAddressPage() {
               routeGeoJson: json.routeGeoJson ?? null,
             })
           );
+          // Propagar costo al carrito/summary
+          dispatch(setShippingFee(Number(json.shippingCost ?? 0)));
         }
       } catch (e: any) {
         if (!cancelled) {
@@ -100,6 +105,7 @@ export default function CheckoutAddressPage() {
             typeof e?.message === "string" ? e.message : "Error inesperado"
           );
           dispatch(setShippingEstimate(null));
+          dispatch(setShippingFee(0));
         }
       } finally {
         if (!cancelled) setShippingLoading(false);

@@ -84,6 +84,19 @@ export default function CheckoutConfirmPage() {
         couponId: checkout.coupon?.id ?? null, // Se envía solo el ID del cupón
         tipPercent: checkout.tipPercent,
         payment: checkout.payment,
+        // Enviar costo de envío utilizado en el cálculo del total del cliente
+        shippingCost: shipping,
+        // Meta opcional para auditoría/ruta (si la función acepta JSON flexible)
+        shippingMeta: checkout.shippingEstimate
+          ? {
+              cost: checkout.shippingEstimate.cost,
+              distanceMeters: checkout.shippingEstimate.distanceMeters,
+              durationSeconds: checkout.shippingEstimate.durationSeconds,
+              origin: checkout.shippingEstimate.originCoordinates,
+              destination: checkout.shippingEstimate.destinationCoordinates,
+              routeGeoJson: checkout.shippingEstimate.routeGeoJson ?? null,
+            }
+          : null,
       };
       // --- FIN DE CAMBIO ---
 

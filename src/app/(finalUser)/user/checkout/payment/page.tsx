@@ -46,7 +46,11 @@ export default function CheckoutPaymentPage() {
   }, [status, dispatch]);
 
   const partnerIds = useMemo(() => items.map((i) => i.partnerId), [items]);
-  const { data: storesMap } = useStoreDetailsClient(partnerIds);
+  const {
+    data: storesMap,
+    loading: storesLoading,
+    error: storesError,
+  } = useStoreDetailsClient(partnerIds);
   const firstStore = useMemo(() => {
     for (const id of partnerIds) {
       const s = storesMap?.[id];
@@ -54,6 +58,22 @@ export default function CheckoutPaymentPage() {
     }
     return null;
   }, [partnerIds, storesMap]);
+
+  // Debug logs to trace potential freezes
+  useEffect(() => {
+    console.debug("CheckoutPayment: partnerIds", partnerIds);
+  }, [partnerIds.join(",")]);
+  useEffect(() => {
+    console.debug("CheckoutPayment: stores state", {
+      loading: storesLoading,
+      error: storesError,
+      keys: storesMap ? Object.keys(storesMap) : [],
+    });
+  }, [
+    storesLoading,
+    storesError,
+    storesMap && Object.keys(storesMap).join(","),
+  ]);
 
   // --- Estado Local para la UI ---
   const [couponInput, setCouponInput] = useState("");
@@ -161,16 +181,33 @@ export default function CheckoutPaymentPage() {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-semibold truncate">
-                  {firstStore?.name || "Cargando tienda..."}
+                  {firstStore?.name ||
+                    (storesLoading
+                      ? "Cargando tienda..."
+                      : storesError
+                      ? "Tienda no disponible"
+                      : "Sin datos de tienda")}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
-                  {firstStore?.address || "Cargando dirección..."}
+                  {firstStore?.address ||
+                    (storesLoading
+                      ? "Cargando dirección..."
+                      : storesError
+                      ? "—"
+                      : "—")}
                 </div>
               </div>
               <div className="text-xs text-gray-500 whitespace-nowrap">
                 {items.length} producto(s)
               </div>
             </div>
+
+            {storesError ? (
+              <div className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+                No se pudo cargar la información de la tienda. Detalle:{" "}
+                {String(storesError)}
+              </div>
+            ) : null}
 
             <div className="mt-4 rounded-xl border p-3 flex items-center justify-between">
               <div className="text-sm">
