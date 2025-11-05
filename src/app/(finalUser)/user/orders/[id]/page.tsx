@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
+import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 
 function currency(n: number | null | undefined) {
   const v = typeof n === "number" && isFinite(n) ? n : 0;
@@ -50,17 +51,27 @@ type OrderItem = {
     image_url?: string | null;
     unit?: string;
   } | null;
+  extras?: {
+    id: string;
+    product_extra_id?: string | null;
+    name?: string;
+    image_url?: string | null;
+    quantity: number;
+    unit_price: number;
+  }[];
 };
 
 type OrderData = {
   id: string;
   status?: OrderStepKey;
   subtotal?: number | null;
-  delivery_fee?: number | null;
+  delivery_fee?: number | null; // mapped from shipping_fee
   discount_amount?: number | null;
   total_amount?: number | null;
   tip_amount?: number | null;
   instructions?: string | null;
+  partner_id?: string | null;
+  user_address_id?: string | null;
   user_addresses?: {
     id: string;
     location_type?: string | null;
@@ -142,6 +153,21 @@ function normalizeOrder(data: unknown): OrderData {
     .filter((x): x is Record<string, unknown> => !!x)
     .map((it) => {
       const p = asRecord(it["products"]);
+      const exArr = Array.isArray(it["order_detail_extras"])
+        ? (it["order_detail_extras"] as unknown[])
+        : [];
+      const extras = exArr
+        .map(asRecord)
+        .filter((x): x is Record<string, unknown> => !!x)
+        .map((ex) => ({
+          id: String(ex["id"] ?? ""),
+          product_extra_id:
+            typeof ex["product_extra_id"] === "string"
+              ? (ex["product_extra_id"] as string)
+              : null,
+          quantity: Number(ex["quantity"] ?? 0),
+          unit_price: Number(ex["unit_price"] ?? 0),
+        }));
       return {
         id: String(it["id"] ?? ""),
         quantity: Number(it["quantity"] ?? 0),
@@ -162,6 +188,7 @@ function normalizeOrder(data: unknown): OrderData {
                   : undefined,
             }
           : undefined,
+        extras,
       } as OrderItem;
     });
 
@@ -173,9 +200,10 @@ function normalizeOrder(data: unknown): OrderData {
         : undefined,
     subtotal:
       typeof rec["subtotal"] === "number" ? (rec["subtotal"] as number) : null,
+    // DB uses shipping_fee; map it to delivery_fee for UI
     delivery_fee:
-      typeof rec["delivery_fee"] === "number"
-        ? (rec["delivery_fee"] as number)
+      typeof rec["shipping_fee"] === "number"
+        ? (rec["shipping_fee"] as number)
         : null,
     discount_amount:
       typeof rec["discount_amount"] === "number"
@@ -193,6 +221,14 @@ function normalizeOrder(data: unknown): OrderData {
       typeof rec["instructions"] === "string"
         ? (rec["instructions"] as string)
         : null,
+    partner_id:
+      typeof rec["partner_id"] === "string"
+        ? (rec["partner_id"] as string)
+        : null,
+    user_address_id:
+      typeof rec["user_address_id"] === "string"
+        ? (rec["user_address_id"] as string)
+        : null,
     user_addresses,
     partners,
     order_detail,
@@ -206,6 +242,14 @@ export default function OrderStatusPage() {
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderData>(null);
   const [delivery, setDelivery] = useState<DeliveryInfo | null>(null);
+  const [route, setRoute] = useState<{
+    origin?: { longitude: number; latitude: number } | null;
+    destination?: { longitude: number; latitude: number } | null;
+    routeGeoJson?: {
+      type: "LineString";
+      coordinates: [number, number][];
+    } | null;
+  }>({});
 
   useEffect(() => {
     let mounted = true;
@@ -217,12 +261,82 @@ export default function OrderStatusPage() {
         const { data, error } = await supabase
           .from("orders")
           .select(
-            "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit))"
+            "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))"
           )
           .eq("id", id)
           .single();
         if (error) throw error;
-        if (mounted) setOrder(normalizeOrder(data));
+        let normalized = normalizeOrder(data);
+
+        // Enrich extras with product_extras details (name, image)
+        try {
+          const extraIds = Array.from(
+            new Set(
+              (normalized?.order_detail || [])
+                .flatMap((it) => it.extras || [])
+                .map((e) => e.product_extra_id)
+                .filter((x): x is string => typeof x === "string" && !!x)
+            )
+          );
+          if (extraIds.length > 0) {
+            const { data: extrasRows } = await supabase
+              .from("product_extras")
+              .select("id,name,image_url,default_price")
+              .in("id", extraIds);
+            const byId = new Map((extrasRows || []).map((r) => [r.id, r]));
+            normalized = normalized
+              ? {
+                  ...normalized,
+                  order_detail: (normalized.order_detail || []).map((it) => ({
+                    ...it,
+                    extras: (it.extras || []).map((e) => {
+                      const info = e.product_extra_id
+                        ? byId.get(e.product_extra_id)
+                        : undefined;
+                      return {
+                        ...e,
+                        name: info?.name ?? e.name,
+                        image_url: info?.image_url ?? e.image_url ?? null,
+                        unit_price: Number(
+                          (e.unit_price ?? 0) || info?.default_price || 0
+                        ),
+                      };
+                    }),
+                  })),
+                }
+              : null;
+          }
+        } catch {
+          // ignore enrichment errors
+        }
+
+        if (mounted) setOrder(normalized);
+
+        // Load Mapbox route (best-effort)
+        try {
+          const partnerId = (normalized?.partner_id ?? null) as string | null;
+          const userAddressId = (normalized?.user_address_id ??
+            normalized?.user_addresses?.id ??
+            null) as string | null;
+          if (partnerId && userAddressId) {
+            const resp = await fetch("/api/shipping/calculate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ partnerId, userAddressId }),
+            });
+            if (resp.ok) {
+              const details = await resp.json();
+              if (mounted)
+                setRoute({
+                  origin: details.originCoordinates || null,
+                  destination: details.destinationCoordinates || null,
+                  routeGeoJson: details.routeGeoJson || null,
+                });
+            }
+          }
+        } catch {
+          // ignore map failures
+        }
         // Try to load delivery assignment info in a best-effort manner.
         // 1) Attempt to read a potential delivery_user (FK to profiles) directly from orders.
         // 2) Fallback to common join tables if present.
@@ -405,7 +519,16 @@ export default function OrderStatusPage() {
       <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left: map and driver */}
         <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)]">
-          <div className="h-[400px] w-full rounded-xl bg-[url('/placeholder-map.png')] bg-cover bg-center" />
+          {route?.origin && route?.destination ? (
+            <RouteMap
+              origin={route.origin}
+              destination={route.destination}
+              routeGeoJson={route.routeGeoJson ?? undefined}
+              height={400}
+            />
+          ) : (
+            <div className="h-[400px] w-full rounded-xl bg-[url('/placeholder-map.png')] bg-cover bg-center" />
+          )}
           <div className="mt-4 flex items-center justify-between rounded-xl border border-[#9BA1AE] bg-[rgba(240,242,245,0.72)] p-3">
             <div className="flex items-center gap-3">
               <div className="h-16 w-16 rounded-full bg-gray-300 overflow-hidden relative">
@@ -488,28 +611,63 @@ export default function OrderStatusPage() {
           {/* Items */}
           <div className="mt-4 divide-y divide-[#D9DCE3]">
             {order?.order_detail?.map((d: OrderItem) => (
-              <div key={d.id} className="py-4 flex items-center gap-4">
-                <div className="h-20 w-20 rounded-md bg-gray-200 relative overflow-hidden">
-                  {d.products?.image_url ? (
-                    <Image
-                      src={d.products.image_url}
-                      alt={d.products?.name ?? "producto"}
-                      fill
-                      className="object-cover"
-                    />
-                  ) : null}
-                </div>
-                <div className="flex-1">
-                  <div className="font-medium">
-                    {d.products?.name ?? "Producto"}
+              <div key={d.id} className="py-4">
+                <div className="flex items-center gap-4">
+                  <div className="h-20 w-20 rounded-md bg-gray-200 relative overflow-hidden">
+                    {d.products?.image_url ? (
+                      <Image
+                        src={d.products.image_url}
+                        alt={d.products?.name ?? "producto"}
+                        fill
+                        className="object-cover"
+                      />
+                    ) : null}
                   </div>
-                  <div className="text-sm">
-                    {d.quantity} {d.products?.unit ?? "ud"}
+                  <div className="flex-1">
+                    <div className="font-medium">
+                      {d.products?.name ?? "Producto"}
+                    </div>
+                    <div className="text-sm">
+                      {d.quantity} {d.products?.unit ?? "ud"}
+                    </div>
+                  </div>
+                  <div className="text-right font-semibold">
+                    {currency(d.unit_price * d.quantity)}
                   </div>
                 </div>
-                <div className="text-right font-semibold">
-                  {currency(d.unit_price * d.quantity)}
-                </div>
+                {/* Extras list */}
+                {d.extras && d.extras.length > 0 ? (
+                  <div className="mt-2 ml-24 space-y-1">
+                    {d.extras.map((ex) => (
+                      <div
+                        key={ex.id}
+                        className="flex items-center justify-between text-sm text-gray-700"
+                      >
+                        <div className="flex items-center gap-2">
+                          {ex.image_url ? (
+                            <div className="h-6 w-6 rounded bg-gray-200 overflow-hidden relative">
+                              <Image
+                                src={ex.image_url}
+                                alt={ex.name ?? "extra"}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
+                          ) : (
+                            <div className="h-6 w-6 rounded bg-gray-100" />
+                          )}
+                          <span>
+                            + {ex.name ?? "Extra"}
+                            {ex.quantity > 1 ? ` x${ex.quantity}` : ""}
+                          </span>
+                        </div>
+                        <span className="text-gray-900">
+                          {currency(ex.unit_price * ex.quantity)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
