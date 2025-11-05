@@ -217,7 +217,7 @@ export default function OrderStatusPage() {
         const { data, error } = await supabase
           .from("orders")
           .select(
-            "id,status,subtotal,delivery_fee,discount_amount,total_amount,tip_amount,instructions, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit))"
+            "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit))"
           )
           .eq("id", id)
           .single();

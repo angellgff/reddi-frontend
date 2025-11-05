@@ -33,6 +33,24 @@ export default function CheckoutConfirmPage() {
   const shipping = useAppSelector(selectShippingFee);
   const serviceFee = useAppSelector(selectServiceFee);
   const checkout = useAppSelector((s) => s.checkout);
+  const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
+
+  // Dirección seleccionada efectiva (checkout.addressId tiene prioridad)
+  const effectiveAddressId = checkout.addressId || selectedAddressId || null;
+  const selectedAddress = useMemo(
+    () =>
+      effectiveAddressId
+        ? addresses.find((a) => String(a.id) === String(effectiveAddressId)) ||
+          null
+        : null,
+    [addresses, effectiveAddressId]
+  );
+  const addressType = selectedAddress?.location_type
+    ? String(selectedAddress.location_type)
+    : null;
+  const addressNumber = selectedAddress?.location_number
+    ? String(selectedAddress.location_number)
+    : null;
 
   // --- INICIO DE CAMBIO: Lógica de cálculo actualizada ---
   // Se calcula el descuento a partir del objeto 'coupon' en lugar de 'discountPct'
@@ -100,6 +118,15 @@ export default function CheckoutConfirmPage() {
       };
       // --- FIN DE CAMBIO ---
 
+      console.log("--- Payload para supabase.rpc('create_order') ---");
+      console.log("Argumento 'cart_items':");
+      // Usamos JSON.stringify para ver el objeto completo sin que la consola lo abrevie
+      console.log(JSON.stringify(cart_items, null, 2));
+
+      console.log("\nArgumento 'checkout_data':");
+      console.log(JSON.stringify(checkout_data, null, 2));
+      console.log("-------------------------------------------------");
+
       const { data, error } = await supabase.rpc("create_order", {
         cart_items,
         checkout_data,
@@ -150,9 +177,15 @@ export default function CheckoutConfirmPage() {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">Tipo de lugar</span>
               <span className="text-right capitalize">
-                {checkout.placeType || "—"}
+                {addressType || checkout.placeType || "—"}
               </span>
             </div>
+            {addressNumber ? (
+              <div className="flex items-center justify-between text-sm">
+                <span className="font-medium">Número</span>
+                <span className="text-right">{addressNumber}</span>
+              </div>
+            ) : null}
             <div className="flex items-start justify-between text-sm">
               <span className="font-medium">
                 Instrucciones especiales para la entrega
