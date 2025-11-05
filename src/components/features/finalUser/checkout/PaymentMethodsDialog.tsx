@@ -62,16 +62,22 @@ export function PaymentMethodsDialog({
     setError(null);
     try {
       const supabase = createClient();
-      const { data: sess } = await withTimeout(
+
+      // Evita fallar por timeouts agresivos al obtener la sesión.
+      // Si tarda demasiado, asumimos anónimo en vez de lanzar error.
+      const sessionOrTimeout = (await Promise.race([
         supabase.auth.getSession(),
-        800,
-        "auth-timeout"
-      );
-      const user = sess?.session?.user || null;
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ data: { session: null } }), 4000)
+        ),
+      ])) as any;
+
+      const user = sessionOrTimeout?.data?.session?.user || null;
       if (!user) {
         setMethods([]);
         return;
       }
+
       const { data, error } = await withTimeout(
         (async () =>
           await supabase
@@ -79,13 +85,18 @@ export function PaymentMethodsDialog({
             .select("*")
             .eq("user_id", user.id)
             .order("created_at", { ascending: false }))(),
-        3000,
+        5000,
         "payment-methods-timeout"
       );
       if (error) throw error;
       setMethods((data as any) || []);
     } catch (e: any) {
-      setError(e?.message || "No se pudieron cargar los métodos");
+      // Si el error proviene de un timeout, muestra un mensaje más claro
+      const msg =
+        e?.message === "auth-timeout"
+          ? "La sesión tardó en responder. Intenta nuevamente."
+          : e?.message || "No se pudieron cargar los métodos";
+      setError(msg);
     } finally {
       setLoading(false);
     }

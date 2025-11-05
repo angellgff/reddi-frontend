@@ -5,6 +5,7 @@ import { createClient } from "@/src/lib/supabase/client";
 import type { Tables } from "@/src/lib/database.types";
 import { setSelectedAddress as setSelectedAddressAction } from "@/src/lib/finalUser/addresses/actions";
 import { withTimeout } from "@/src/lib/utils";
+import type { RootState } from ".";
 
 export type UserAddress = Tables<"user_addresses">;
 
@@ -13,6 +14,7 @@ export type AddressState = {
   selectedAddressId: string | null;
   status: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  lastFetched: number | null;
 };
 
 const initialState: AddressState = {
@@ -20,51 +22,107 @@ const initialState: AddressState = {
   selectedAddressId: null,
   status: "idle",
   error: null,
+  lastFetched: null,
 };
 
 // Fetch addresses and selected address in parallel
+let fetchInFlight = false;
+
 export const fetchUserAddresses = createAsyncThunk(
   "addresses/fetchUserAddresses",
   async (_, { rejectWithValue }) => {
+    const DEBUG =
+      process.env.NEXT_PUBLIC_DEBUG_ADDRESSES === "1" ||
+      (typeof window !== "undefined" &&
+        window.localStorage.getItem("debugAddresses") === "1");
+    const now = () =>
+      typeof performance !== "undefined" && performance.now
+        ? performance.now()
+        : Date.now();
+    const tStart = now();
+    if (DEBUG) console.log("[addresses] ▶ Inicio fetchUserAddresses");
+
     try {
+      if (fetchInFlight) {
+        if (DEBUG)
+          console.log(
+            "[addresses] ⏭️ Ya hay una petición en curso. Saltando duplicado."
+          );
+        // Evita pisar el estado con una respuesta vacía
+        throw new Error("__skip__");
+      }
+      fetchInFlight = true;
+
       const supabase = createClient();
       // Soft-timeout: si getSession se demora, asumimos no autenticado SIN lanzar error
+      const tSess0 = now();
       const sessionOrTimeout = (await Promise.race([
         supabase.auth.getSession(),
         new Promise((resolve) =>
-          setTimeout(() => resolve({ data: { session: null } }), 900)
+          setTimeout(() => resolve({ data: { session: null } }), 4000)
         ),
       ])) as any;
+      const tSess1 = now();
+      if (DEBUG)
+        console.log(
+          "[addresses] ⏱️ getSession(ms)=",
+          Math.round(tSess1 - tSess0),
+          sessionOrTimeout?.data?.session ? "(con sesión)" : "(sin sesión)"
+        );
       const user = sessionOrTimeout?.data?.session?.user || null;
       if (!user) {
+        if (DEBUG)
+          console.log(
+            "[addresses] ⚠️ Usuario no autenticado. No se consultan direcciones."
+          );
         return {
           addresses: [] as UserAddress[],
           selectedAddressId: null as string | null,
         };
       }
 
+      // Preparar consultas en paralelo con medición de tiempo
+      const tAddr0 = now();
+      const addrPromise = withTimeout(
+        (async () =>
+          await supabase
+            .from("user_addresses")
+            .select("id, location_type, location_number, created_at, user_id")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false }))(),
+        3000,
+        "addr-timeout"
+      );
+      const tProf0 = now();
+      const profilePromise = withTimeout(
+        (async () =>
+          await supabase
+            .from("profiles")
+            .select("selected_address")
+            .eq("id", user.id)
+            .single())(),
+        3000,
+        "profile-timeout"
+      );
+
       const [addrRes, profileRes] = await Promise.allSettled([
-        withTimeout(
-          (async () =>
-            await supabase
-              .from("user_addresses")
-              .select("id, location_type, location_number, created_at, user_id")
-              .eq("user_id", user.id)
-              .order("created_at", { ascending: false }))(),
-          3000,
-          "addr-timeout"
-        ),
-        withTimeout(
-          (async () =>
-            await supabase
-              .from("profiles")
-              .select("selected_address")
-              .eq("id", user.id)
-              .single())(),
-          3000,
-          "profile-timeout"
-        ),
+        addrPromise,
+        profilePromise,
       ]);
+      const tAddr1 = now();
+      const tProf1 = now();
+      if (DEBUG) {
+        console.log(
+          "[addresses] ⏱️ user_addresses(ms)=",
+          Math.round(tAddr1 - tAddr0),
+          addrRes
+        );
+        console.log(
+          "[addresses] ⏱️ profile.selected_address(ms)=",
+          Math.round(tProf1 - tProf0),
+          profileRes
+        );
+      }
 
       // Parse results with graceful fallbacks
       const addrOk =
@@ -95,13 +153,48 @@ export const fetchUserAddresses = createAsyncThunk(
         selectedAddressId = addresses[0].id as unknown as string; // ids are uuid strings
       }
 
+      if (DEBUG)
+        console.log(
+          "[addresses] ✓ result ->",
+          { count: addresses.length, selectedAddressId },
+          "total(ms)=",
+          Math.round(now() - tStart)
+        );
+
       return { addresses, selectedAddressId } as {
         addresses: UserAddress[];
         selectedAddressId: string | null;
       };
     } catch (e: any) {
-      return rejectWithValue(e?.message || "Error al cargar direcciones");
+      const msg = e?.message || e;
+      if (msg === "__skip__") {
+        if (DEBUG) console.log("[addresses] ⏹️ skip (in-flight)");
+        return rejectWithValue("__skip__");
+      }
+      console.warn("[addresses] ✗ error:", msg);
+      return rejectWithValue(msg || "Error al cargar direcciones");
+    } finally {
+      fetchInFlight = false;
+      if (DEBUG)
+        console.log(
+          "[addresses] ■ fin fetchUserAddresses (ms)=",
+          Math.round(
+            (typeof performance !== "undefined" && performance.now
+              ? performance.now()
+              : Date.now()) - tStart
+          )
+        );
     }
+  },
+  {
+    // Evita spam: no ejecutar si ya hay una carga en curso o si se cargó hace < 30s
+    condition: (_, { getState }) => {
+      const s = (getState() as RootState).addresses;
+      if (s.status === "loading") return false;
+      if (fetchInFlight) return false;
+      if (s.lastFetched && Date.now() - s.lastFetched < 30000) return false;
+      return true;
+    },
   }
 );
 
@@ -147,9 +240,14 @@ const addressSlice = createSlice({
         state.status = "succeeded";
         state.addresses = action.payload.addresses;
         state.selectedAddressId = action.payload.selectedAddressId;
+        state.lastFetched = Date.now();
         state.error = null;
       })
       .addCase(fetchUserAddresses.rejected, (state, action) => {
+        if (action.payload === "__skip__") {
+          // Ignorar el rechazo por deduplicación
+          return;
+        }
         state.status = "failed";
         state.error =
           (action.payload as string) || action.error.message || null;

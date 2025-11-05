@@ -6,7 +6,11 @@ import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
 import ScheduleStep from "@/src/components/features/finalUser/checkout/ScheduleStep";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
-import { setAddressId, setSchedule } from "@/src/lib/store/checkoutSlice";
+import {
+  setAddressId,
+  setSchedule,
+  setShippingEstimate,
+} from "@/src/lib/store/checkoutSlice";
 import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
 import type { Enums } from "@/src/lib/database.types";
 import Select from "@/src/components/ui/Select";
@@ -17,6 +21,7 @@ export default function CheckoutAddressPage() {
     (s) => s.addresses
   );
   const checkout = useAppSelector((s) => s.checkout);
+  const cartItems = useAppSelector((s) => s.cart.items);
 
   useEffect(() => {
     if (status === "idle") dispatch(fetchUserAddresses());
@@ -42,6 +47,67 @@ export default function CheckoutAddressPage() {
   useEffect(() => {
     dispatch(setSchedule(schedule));
   }, [schedule, dispatch]);
+
+  // Derivar partnerId desde el carrito (asumimos un solo partner por pedido)
+  const partnerId: string | null = (() => {
+    if (!cartItems || cartItems.length === 0) return null;
+    const unique = Array.from(
+      new Set(cartItems.map((it: any) => it.partnerId))
+    );
+    if (unique.length === 1 && typeof unique[0] === "string") return unique[0];
+    return null; // múltiples partners o indefinido
+  })();
+
+  // Calcular costo de envío cuando hay address y partner definidos
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      if (!addressId || !partnerId) {
+        dispatch(setShippingEstimate(null));
+        return;
+      }
+      try {
+        setShippingLoading(true);
+        setShippingError(null);
+        const resp = await fetch("/api/shipping/calculate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ partnerId, userAddressId: addressId }),
+        });
+        const json = await resp.json();
+        if (!resp.ok || json?.error) {
+          throw new Error(json?.error || "No se pudo calcular el envío");
+        }
+        if (!cancelled) {
+          dispatch(
+            setShippingEstimate({
+              cost: Number(json.shippingCost ?? 0),
+              distanceMeters: Number(json.distanceMeters ?? 0),
+              durationSeconds: Number(json.durationSeconds ?? 0),
+              originCoordinates: json.originCoordinates,
+              destinationCoordinates: json.destinationCoordinates,
+            })
+          );
+        }
+      } catch (e: any) {
+        if (!cancelled) {
+          setShippingError(
+            typeof e?.message === "string" ? e.message : "Error inesperado"
+          );
+          dispatch(setShippingEstimate(null));
+        }
+      } finally {
+        if (!cancelled) setShippingLoading(false);
+      }
+    }
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [addressId, partnerId, dispatch]);
 
   // Si no hay addressId local, elegir la seleccionada del perfil o la primera disponible
   useEffect(() => {
@@ -197,6 +263,35 @@ export default function CheckoutAddressPage() {
         {/* Right: Programación de entrega */}
         <div className="lg:col-span-5">
           <ScheduleStep value={schedule} onChange={setScheduleLocal} />
+          {/* Resumen de envío */}
+          <div className="mt-4 rounded-xl border border-[#D9DCE3] p-4 text-sm">
+            <div className="font-medium mb-2">Costo de envío</div>
+            {shippingLoading ? (
+              <div>Calculando...</div>
+            ) : shippingError ? (
+              <div className="text-red-600">{shippingError}</div>
+            ) : checkout.shippingEstimate ? (
+              <div className="space-y-1">
+                <div>
+                  Estimado:{" "}
+                  <span className="font-semibold">
+                    ${checkout.shippingEstimate.cost.toFixed(2)}
+                  </span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  Distancia:{" "}
+                  {(checkout.shippingEstimate.distanceMeters / 1000).toFixed(2)}{" "}
+                  km · Tiempo:{" "}
+                  {Math.ceil(checkout.shippingEstimate.durationSeconds / 60)}{" "}
+                  min
+                </div>
+              </div>
+            ) : (
+              <div className="text-gray-500">
+                Selecciona una dirección para calcular el envío
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

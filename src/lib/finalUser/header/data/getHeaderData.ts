@@ -16,12 +16,19 @@ export default async function getHeaderData(): Promise<UserHeaderData> {
   }
 
   const supabase = await createClient();
-  const { data: userData } = await withTimeout(
-    supabase.auth.getUser(),
-    1200,
-    "auth-timeout"
-  );
-  const user = userData.user;
+  // Evitar que un timeout corto rompa el Header. Si tarda, seguimos como invitado.
+  let user: any = null;
+  try {
+    const raceResult = (await Promise.race([
+      supabase.auth.getUser(),
+      new Promise<{ data: { user: any | null } }>((resolve) =>
+        setTimeout(() => resolve({ data: { user: null } }), 5000)
+      ),
+    ])) as { data: { user: any | null } };
+    user = raceResult?.data?.user || null;
+  } catch (e) {
+    // Silenciar errores aquí para que el layout no falle
+  }
   console.log("[getHeaderData] user", { user });
   const meta = (user?.user_metadata as Record<string, any>) || {};
 

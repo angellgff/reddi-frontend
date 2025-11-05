@@ -29,6 +29,14 @@ export interface CheckoutState {
     last4: string | null;
     cardholder_name: string | null;
   } | null;
+  // NUEVO: estimación de envío calculada vía API
+  shippingEstimate: {
+    cost: number;
+    distanceMeters: number;
+    durationSeconds: number;
+    originCoordinates: { longitude: number; latitude: number };
+    destinationCoordinates: { longitude: number; latitude: number };
+  } | null;
   // ELIMINADO: 'discountPct' es redundante, lo calcularemos desde el objeto 'coupon'.
 }
 
@@ -42,6 +50,7 @@ const initialState: CheckoutState = {
   coupon: null,
   tipPercent: 9,
   payment: null,
+  shippingEstimate: null,
 };
 
 const checkoutSlice = createSlice({
@@ -74,6 +83,12 @@ const checkoutSlice = createSlice({
     setPayment(state, action: PayloadAction<CheckoutState["payment"]>) {
       state.payment = action.payload;
     },
+    setShippingEstimate(
+      state,
+      action: PayloadAction<CheckoutState["shippingEstimate"]>
+    ) {
+      state.shippingEstimate = action.payload ?? null;
+    },
     resetCheckout() {
       return initialState;
     },
@@ -88,6 +103,7 @@ export const {
   setCoupon,
   setTipPercent,
   setPayment,
+  setShippingEstimate,
   resetCheckout,
 } = checkoutSlice.actions;
 
