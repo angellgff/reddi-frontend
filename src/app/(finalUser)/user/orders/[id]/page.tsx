@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
+import OrderDeliveredRatingDialog from "@/src/components/features/finalUser/orders/OrderDeliveredRatingDialog";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 
 function currency(n: number | null | undefined) {
@@ -242,6 +243,7 @@ export default function OrderStatusPage() {
   const [error, setError] = useState<string | null>(null);
   const [order, setOrder] = useState<OrderData>(null);
   const [delivery, setDelivery] = useState<DeliveryInfo | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [route, setRoute] = useState<{
     origin?: { longitude: number; latitude: number } | null;
     destination?: { longitude: number; latitude: number } | null;
@@ -258,6 +260,13 @@ export default function OrderStatusPage() {
       setError(null);
       try {
         const supabase = createClient();
+        // Grab current user id to use for rating
+        try {
+          const {
+            data: { user },
+          } = await supabase.auth.getUser();
+          if (mounted) setUserId(user?.id ?? null);
+        } catch {}
         const { data, error } = await supabase
           .from("orders")
           .select(
@@ -741,6 +750,14 @@ export default function OrderStatusPage() {
           {error}
         </div>
       )}
+
+      {/* Rating dialog appears when delivered */}
+      <OrderDeliveredRatingDialog
+        orderId={id}
+        partnerId={order?.partner_id}
+        userId={userId}
+        delivered={order?.status === "delivered"}
+      />
     </div>
   );
 }
