@@ -1,7 +1,19 @@
 export default function DesktopHeroSearch() {
   return (
     <section className="hidden lg:block p-4 md:px-6 lg:px-8">
-      <div className="relative isolate mx-auto w-full rounded-[30px] bg-[#04BD88] shadow-[0px_1px_0.5px_0.05px_rgba(29,41,61,0.02)] flex flex-col items-center gap-6 px-[60px] py-6 h-[224px] overflow-hidden">
+      <div
+        className="
+          relative isolate mx-auto w-full rounded-[30px] bg-[#04BD88] 
+          shadow-[0px_1px_0.5px_0.05px_rgba(29,41,61,0.02)] 
+          flex flex-col items-center gap-6 px-[60px] py-6 h-[224px] overflow-hidden
+          
+          // --- Clases añadidas ---
+          bg-[url('/bg.svg')] 
+          bg-cover 
+          bg-center 
+          bg-no-repeat
+        "
+      >
         {/* Decorative overlay to emulate Figma isolation layer */}
         <div
           aria-hidden
