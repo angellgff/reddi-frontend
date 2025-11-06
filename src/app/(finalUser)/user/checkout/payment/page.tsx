@@ -20,6 +20,7 @@ import {
   setPayment as setPaymentGlobal,
   setCoupon as setCouponGlobal,
   setTipPercent as setTipGlobal,
+  setTipAmountManual,
   ValidatedCoupon,
 } from "@/src/lib/store/checkoutSlice";
 import { withTimeout } from "@/src/lib/utils";
@@ -38,6 +39,9 @@ export default function CheckoutPaymentPage() {
   const storedPayment = useAppSelector((s) => s.checkout.payment);
   const storedCoupon = useAppSelector((s) => s.checkout.coupon);
   const storedTipPercent = useAppSelector((s) => s.checkout.tipPercent);
+  const storedTipAmountManual = useAppSelector(
+    (s) => s.checkout.tipAmountManual
+  );
 
   // Estado para la dirección y la tienda
   const { status } = useAppSelector((s) => s.addresses);
@@ -62,24 +66,27 @@ export default function CheckoutPaymentPage() {
   // Debug logs to trace potential freezes
   useEffect(() => {
     console.debug("CheckoutPayment: partnerIds", partnerIds);
-  }, [partnerIds.join(",")]);
+  }, [partnerIds]);
   useEffect(() => {
     console.debug("CheckoutPayment: stores state", {
       loading: storesLoading,
       error: storesError,
       keys: storesMap ? Object.keys(storesMap) : [],
     });
-  }, [
-    storesLoading,
-    storesError,
-    storesMap && Object.keys(storesMap).join(","),
-  ]);
+  }, [storesLoading, storesError, storesMap]);
 
   // --- Estado Local para la UI ---
   const [couponInput, setCouponInput] = useState("");
   const [couponMsg, setCouponMsg] = useState<string | null>(null);
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [tipPercent, setTipPercent] = useState<number>(storedTipPercent || 9);
+  // Nuevo: permitir propina manual (monto fijo); si es > 0, tiene prioridad sobre el porcentaje
+  const [manualTipAmount, setManualTipAmount] = useState<number>(
+    storedTipAmountManual || 0
+  );
+  const [showManualTip, setShowManualTip] = useState<boolean>(
+    storedTipAmountManual ? true : false
+  );
   const [selectedMethod, setSelectedMethod] = useState(storedPayment);
 
   // Pre-rellenar el input si ya hay un cupón aplicado en Redux
@@ -104,10 +111,12 @@ export default function CheckoutPaymentPage() {
     return 0;
   }, [subtotal, storedCoupon]);
 
-  const tip = useMemo(
-    () => (subtotal * tipPercent) / 100,
-    [subtotal, tipPercent]
-  );
+  const tip = useMemo(() => {
+    // Si el usuario ingresó un monto manual positivo, usarlo
+    if (manualTipAmount > 0) return manualTipAmount;
+    // De lo contrario, usar porcentaje
+    return (subtotal * tipPercent) / 100;
+  }, [subtotal, tipPercent, manualTipAmount]);
 
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
 
@@ -141,7 +150,7 @@ export default function CheckoutPaymentPage() {
         setCouponMsg(data.message || "Cupón inválido");
         dispatch(setCouponGlobal(null));
       }
-    } catch (e: any) {
+    } catch (e) {
       setCouponMsg("Ocurrió un error al validar el cupón.");
       dispatch(setCouponGlobal(null));
       console.error("Error validating coupon:", e);
@@ -150,10 +159,19 @@ export default function CheckoutPaymentPage() {
     }
   };
 
-  // Persistir propina en Redux al cambiar
+  // Persistir porcentaje en Redux al cambiar
   useEffect(() => {
     dispatch(setTipGlobal(tipPercent));
   }, [tipPercent, dispatch]);
+
+  // Persistir monto manual en Redux cuando cambia
+  useEffect(() => {
+    if (manualTipAmount > 0) {
+      dispatch(setTipAmountManual(manualTipAmount));
+    } else {
+      dispatch(setTipAmountManual(null));
+    }
+  }, [manualTipAmount, dispatch]);
 
   const effectiveMethod = selectedMethod || storedPayment;
   const canProceed = items.length > 0 && !!effectiveMethod;
@@ -270,6 +288,71 @@ export default function CheckoutPaymentPage() {
               <div className="mt-3">
                 <TipSelector value={tipPercent} onChange={setTipPercent} />
               </div>
+              {/* Toggle propina manual */}
+              <div className="mt-4">
+                {!showManualTip && manualTipAmount === 0 ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowManualTip(true)}
+                    className="h-9 rounded-lg border px-3 text-xs hover:bg-gray-50"
+                  >
+                    Propina manual
+                  </button>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
+                    <div className="sm:col-span-2">
+                      <label className="text-xs text-gray-600">
+                        Propina manual (monto)
+                      </label>
+                      <div className="mt-1 flex items-center rounded-xl border px-3 h-10 bg-white focus-within:ring-2 focus-within:ring-primary/40">
+                        <span className="text-gray-500 mr-2 text-sm">$</span>
+                        <input
+                          type="number"
+                          min={0}
+                          step={0.5}
+                          inputMode="decimal"
+                          value={
+                            Number.isNaN(manualTipAmount) ? "" : manualTipAmount
+                          }
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const n = Number(raw.replace(/,/g, "."));
+                            if (!raw) {
+                              setManualTipAmount(0);
+                              return;
+                            }
+                            if (Number.isFinite(n) && n >= 0)
+                              setManualTipAmount(n);
+                          }}
+                          placeholder="Ingresa un monto (opcional)"
+                          className="flex-1 outline-none text-sm"
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-gray-500">
+                        Si ingresas un monto manual, se ignorará el porcentaje
+                        seleccionado.
+                      </p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setManualTipAmount(0);
+                          setShowManualTip(false);
+                        }}
+                        className="h-10 rounded-xl border px-3 text-xs hover:bg-gray-50"
+                      >
+                        Usar porcentaje
+                      </button>
+                      {manualTipAmount > 0 ? (
+                        <span className="text-[10px] text-emerald-600 text-center">
+                          Aplicando monto manual
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </section>
         </div>
@@ -289,7 +372,13 @@ export default function CheckoutPaymentPage() {
                 : []),
               { label: "Costo de envío", value: shipping },
               { label: "Tarifa de servicio", value: serviceFee },
-              { label: "Propina", value: tip },
+              {
+                label:
+                  manualTipAmount > 0
+                    ? "Propina (monto manual)"
+                    : `Propina (${tipPercent}%)`,
+                value: tip,
+              },
             ]}
             total={total}
             disabled={!canProceed}

@@ -25,6 +25,8 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
     <div className="space-y-6">
       <h2 className="font-bold text-lg">Detalles del pedido</h2>
 
+      {/* Mapa y repartidor se muestran en OrderTracking */}
+
       {/* SECCIÓN 1: INFORMACIÓN DE LA TIENDA */}
       <div className="flex items-center gap-4">
         <div className="relative h-16 w-16 bg-gray-200 rounded-lg overflow-hidden">
@@ -71,6 +73,39 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
                 <span> USD</span>
               </p>
             </div>
+            {/* Extras (visual similar to final user view) */}
+            {item.extras && item.extras.length > 0 && (
+              <div className="ml-24 mt-2 space-y-1">
+                {item.extras.map((ex) => (
+                  <div
+                    key={ex.id}
+                    className="flex items-center justify-between text-sm text-gray-700"
+                  >
+                    <div className="flex items-center gap-2">
+                      {ex.imageUrl ? (
+                        <div className="h-6 w-6 rounded bg-gray-200 overflow-hidden relative">
+                          <Image
+                            src={ex.imageUrl}
+                            alt={ex.name ?? "extra"}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="h-6 w-6 rounded bg-gray-100" />
+                      )}
+                      <span>
+                        + {ex.name ?? "Extra"}
+                        {ex.quantity > 1 ? ` x${ex.quantity}` : ""}
+                      </span>
+                    </div>
+                    <span className="text-gray-900">
+                      {formatPrice(ex.unit_price * ex.quantity)} USD
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
             <hr className="border-[#D9DCE3]" />
           </div>
         ))}
@@ -122,6 +157,9 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
         <div>
           <p className="font-medium text-primary">{order.address.title}</p>
           <p className="text-sm font-roboto">{order.address.details}</p>
+          {order.instructions && (
+            <p className="text-xs mt-1 opacity-80">{order.instructions}</p>
+          )}
         </div>
       </div>
     </div>

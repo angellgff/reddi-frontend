@@ -1,22 +1,24 @@
 "use client";
 
 import PhoneIcon from "@/src/components/icons/PhoneIcon";
-import Image from "next/image";
-import dynamic from "next/dynamic";
-
-// Cargar el mapa solo en cliente
-const OrderMap = dynamic(() => import("./OrderMap"), { ssr: false });
+import OrderMapAndDriver from "./OrderMapAndDriver";
 
 interface OrderTrackingProps {
   orderData: {
-    id: number;
+    id: number | string;
     customerName: string;
     paymentMethod: string;
-    deliveryName: string;
   };
+  // Nuevos props para mapa y repartidor
+  partnerId?: string | null;
+  userAddressId?: string | null;
 }
 
-export default function OrderTracking({ orderData }: OrderTrackingProps) {
+export default function OrderTracking({
+  orderData,
+  partnerId,
+  userAddressId,
+}: OrderTrackingProps) {
   return (
     <div className="flex flex-col space-y-6 h-full">
       {/* SECCIÓN 1: DATOS DEL CLIENTE */}
@@ -44,29 +46,12 @@ export default function OrderTracking({ orderData }: OrderTrackingProps) {
         </button>
       </div>
 
-      {/* SECCIÓN 2: MAPA DE SEGUIMIENTO */}
-      <OrderMap className="h-64 md:h-[420px] w-full rounded-2xl overflow-hidden" />
-
-      {/* SECCIÓN 3: DATOS DEL REPARTIDOR */}
-      <div className="flex items-center justify-between p-3 border-2 border-[#9BA1AE] rounded-2xl">
-        <div className="flex items-center gap-3">
-          <div className="relative h-16 w-16 bg-gray-200 rounded-full">
-            <Image
-              src="/carlosAvatar.svg"
-              alt={`Foto de Carlos Ramírez`}
-              fill={true}
-              className="object-cover"
-            />
-          </div>
-          <div>
-            <p className="font-medium">Carlos Ramírez</p>
-            <p className="text-sm font-roboto">Repartidor asignado</p>
-          </div>
-        </div>
-        <button className="border-[3px] border-primary rounded-full hover:bg-teal-200 transition-colors bg-[#CDF7E7]">
-          <PhoneIcon className="w-16 h-16 text-primary" />
-        </button>
-      </div>
+      {/* SECCIÓN 2 y 3: Mapa + Repartidor (componente unificado) */}
+      <OrderMapAndDriver
+        orderId={String(orderData.id)}
+        partnerId={partnerId}
+        userAddressId={userAddressId}
+      />
     </div>
   );
 }

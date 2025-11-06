@@ -24,6 +24,8 @@ export interface CheckoutState {
   // MODIFICADO: 'coupon' ahora es un objeto o null.
   coupon: ValidatedCoupon | null;
   tipPercent: number;
+  // NUEVO: monto manual de propina (si se establece, tiene prioridad sobre el porcentaje)
+  tipAmountManual: number | null;
   payment: {
     brand: string | null;
     last4: string | null;
@@ -50,6 +52,7 @@ const initialState: CheckoutState = {
   // MODIFICADO: El estado inicial para el cupón es null.
   coupon: null,
   tipPercent: 9,
+  tipAmountManual: null,
   payment: null,
   shippingEstimate: null,
 };
@@ -81,6 +84,9 @@ const checkoutSlice = createSlice({
     setTipPercent(state, action: PayloadAction<number>) {
       state.tipPercent = action.payload;
     },
+    setTipAmountManual(state, action: PayloadAction<number | null>) {
+      state.tipAmountManual = action.payload;
+    },
     setPayment(state, action: PayloadAction<CheckoutState["payment"]>) {
       state.payment = action.payload;
     },
@@ -103,6 +109,7 @@ export const {
   setSchedule,
   setCoupon,
   setTipPercent,
+  setTipAmountManual,
   setPayment,
   setShippingEstimate,
   resetCheckout,

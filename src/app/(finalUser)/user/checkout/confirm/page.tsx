@@ -12,7 +12,6 @@ import {
 } from "@/src/lib/store/chargesSlice";
 import { clearCart } from "@/src/lib/store/cartSlice";
 import { resetCheckout } from "@/src/lib/store/checkoutSlice";
-import { createClient } from "@/src/lib/supabase/client";
 
 function currency(n: number) {
   if (!isFinite(n)) return "$0.00";
@@ -68,7 +67,16 @@ export default function CheckoutConfirmPage() {
   }, [subtotal, checkout.coupon]);
   // --- FIN DE CAMBIO ---
 
-  const tip = (subtotal * checkout.tipPercent) / 100;
+  // Propina efectiva como número
+  const tip =
+    checkout.tipAmountManual && checkout.tipAmountManual > 0
+      ? checkout.tipAmountManual
+      : (subtotal * checkout.tipPercent) / 100;
+  // Si existe monto manual convertirlo a porcentaje para enviar al backend sin cambiar UX
+  const effectiveTipPercent =
+    subtotal > 0 && checkout.tipAmountManual && checkout.tipAmountManual > 0
+      ? (checkout.tipAmountManual / subtotal) * 100
+      : checkout.tipPercent;
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
 
   async function handleCreateOrder() {
@@ -76,7 +84,7 @@ export default function CheckoutConfirmPage() {
     setPlacing(true);
     setErrorMsg(null);
     try {
-      const supabase = createClient();
+      // Prepara los mismos datos que antes
       const cart_items = items.map((it) => ({
         productId: it.productId,
         partnerId: it.partnerId,
@@ -90,21 +98,16 @@ export default function CheckoutConfirmPage() {
         })),
       }));
 
-      // --- INICIO DE CAMBIO: Objeto de datos para el backend ---
-      // Se limpia el objeto para enviar solo los datos necesarios y seguros.
-      // El backend se encargará de recalcular todos los montos.
       const checkout_data = {
         addressId: checkout.addressId,
         placeType: checkout.placeType,
         placeNumber: checkout.placeNumber,
         instructions: checkout.instructions,
         schedule: checkout.schedule,
-        couponId: checkout.coupon?.id ?? null, // Se envía solo el ID del cupón
-        tipPercent: checkout.tipPercent,
+        couponId: checkout.coupon?.id ?? null,
+        tipPercent: effectiveTipPercent,
         payment: checkout.payment,
-        // Enviar costo de envío utilizado en el cálculo del total del cliente
         shippingCost: shipping,
-        // Meta opcional para auditoría/ruta (si la función acepta JSON flexible)
         shippingMeta: checkout.shippingEstimate
           ? {
               cost: checkout.shippingEstimate.cost,
@@ -116,36 +119,50 @@ export default function CheckoutConfirmPage() {
             }
           : null,
       };
-      // --- FIN DE CAMBIO ---
 
-      console.log("--- Payload para supabase.rpc('create_order') ---");
-      console.log("Argumento 'cart_items':");
-      // Usamos JSON.stringify para ver el objeto completo sin que la consola lo abrevie
-      console.log(JSON.stringify(cart_items, null, 2));
-
-      console.log("\nArgumento 'checkout_data':");
-      console.log(JSON.stringify(checkout_data, null, 2));
-      console.log("-------------------------------------------------");
-
-      const { data, error } = await supabase.rpc("create_order", {
-        cart_items,
-        checkout_data,
+      // --- INICIO DEL CAMBIO: LLAMADA A LA API ROUTE ---
+      const response = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cart_items,
+          checkout_data,
+        }),
       });
-      if (error) throw error;
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Si la respuesta no es 2xx, lanza un error con el mensaje del servidor
+        throw new Error(result.error || "No se pudo crear el pedido.");
+      }
+      // --- FIN DEL CAMBIO ---
 
       // Limpia estados locales
       dispatch(clearCart());
       dispatch(resetCheckout());
 
-      // Redirige al estado del pedido usando el id devuelto por la RPC
-      if (typeof data === "string" && data) {
-        router.push(`/user/orders/${data}`);
+      // Redirige al estado del pedido usando el ID devuelto por la API Route
+      const orderId = result.orderId;
+      if (typeof orderId === "string" && orderId) {
+        router.push(`/user/orders/${orderId}`);
       } else {
+        // Fallback por si la respuesta es exitosa pero no viene el ID
+        console.warn(
+          "Respuesta exitosa pero no se recibió orderId, redirigiendo a la lista de órdenes."
+        );
         router.push("/user/orders");
       }
-    } catch (err: any) {
-      console.error("create_order error", err);
-      setErrorMsg(err?.message ?? "No se pudo completar el pedido");
+    } catch (err) {
+      console.error("handleCreateOrder error:", err);
+      // El mensaje de error ahora vendrá de nuestra API Route, será más claro.
+      let extracted = "No se pudo completar el pedido. Inténtalo de nuevo.";
+      if (err instanceof Error) {
+        extracted = err.message;
+      }
+      setErrorMsg(extracted);
     } finally {
       setPlacing(false);
     }
@@ -216,8 +233,22 @@ export default function CheckoutConfirmPage() {
               <span className="text-right">
                 {checkout.schedule.mode === "now"
                   ? "—"
-                  : `${(checkout.schedule as any).date}, ${
-                      (checkout.schedule as any).time
+                  : `${
+                      (
+                        checkout.schedule as {
+                          mode: "later";
+                          date: string;
+                          time: string;
+                        }
+                      ).date
+                    }, ${
+                      (
+                        checkout.schedule as {
+                          mode: "later";
+                          date: string;
+                          time: string;
+                        }
+                      ).time
                     }`}
               </span>
             </div>

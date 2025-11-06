@@ -15,10 +15,11 @@ export default function CartSummary() {
   const serviceFee = useAppSelector(selectServiceFee);
   // Tip percent from global context (Redux checkout slice)
   const tipPercent = useAppSelector((s) => s.checkout.tipPercent);
-  const tip = useMemo(
-    () => (subtotal * (tipPercent || 0)) / 100,
-    [subtotal, tipPercent]
-  );
+  const tipAmountManual = useAppSelector((s) => s.checkout.tipAmountManual);
+  const tip = useMemo(() => {
+    if (tipAmountManual && tipAmountManual > 0) return tipAmountManual;
+    return (subtotal * (tipPercent || 0)) / 100;
+  }, [subtotal, tipPercent, tipAmountManual]);
   const total = subtotal + shipping + serviceFee + tip;
 
   return (

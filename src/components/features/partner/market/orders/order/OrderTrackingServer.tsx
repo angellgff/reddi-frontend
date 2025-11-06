@@ -1,4 +1,6 @@
-import OrderTrackingData from "@/src/lib/partner/orders/getOrderTrackingData";
+import OrderTrackingData, {
+  OrderTrackingInfo,
+} from "@/src/lib/partner/orders/getOrderTrackingData";
 import OrderTracking from "./OrderTracking";
 
 interface OrderTrackingServerProps {
@@ -8,6 +10,16 @@ interface OrderTrackingServerProps {
 export default async function OrderTrackingServer({
   id,
 }: OrderTrackingServerProps) {
-  const orderData = await OrderTrackingData(id);
-  return <OrderTracking orderData={orderData} />;
+  const orderData: OrderTrackingInfo = await OrderTrackingData(id);
+  return (
+    <OrderTracking
+      orderData={{
+        id: orderData.id,
+        customerName: orderData.customerName,
+        paymentMethod: orderData.paymentMethod,
+      }}
+      partnerId={orderData.partnerId}
+      userAddressId={orderData.userAddressId}
+    />
+  );
 }

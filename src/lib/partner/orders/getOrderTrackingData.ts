@@ -2,13 +2,24 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 
-export default async function OrderTrackingData(id: string) {
+export type OrderTrackingInfo = {
+  id: string;
+  customerName: string;
+  paymentMethod: string;
+  deliveryName: string;
+  partnerId: string | null;
+  userAddressId: string | null;
+};
+
+export default async function OrderTrackingData(
+  id: string
+): Promise<OrderTrackingInfo> {
   const supabase = await createClient();
 
   // Obtener order con user_id y payment info
   const { data: order, error } = await supabase
     .from("orders")
-    .select("id, user_id, payment_intent_id")
+    .select("id, user_id, payment_intent_id, user_address_id, partner_id")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -36,9 +47,11 @@ export default async function OrderTrackingData(id: string) {
   const deliveryName = "Repartidor no asignado";
 
   return {
-    id: 0, // No usado por el componente visual
+    id: order.id,
     customerName,
     paymentMethod,
     deliveryName,
+    partnerId: order.partner_id as string | null,
+    userAddressId: order.user_address_id as string | null,
   };
 }
