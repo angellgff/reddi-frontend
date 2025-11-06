@@ -14,7 +14,6 @@ import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlide
 import { UserHeaderData } from "@/src/lib/finalUser/type";
 import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
-import { createClient } from "@/src/lib/supabase/client";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
@@ -39,10 +38,27 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     (s) => s.addresses
   );
 
+  // En tu componente Header.tsx
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/login");
+    console.log("Iniciando cierre de sesión a través de la API route...");
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+
+      if (!response.ok) {
+        // Si la respuesta del servidor no fue exitosa (ej. status 500)
+        const data = await response.json();
+        throw new Error(data.error || "La respuesta del servidor no fue OK");
+      }
+
+      console.log("Logout request exitoso. Refrescando y redirigiendo...");
+
+      // router.refresh() podría ser suficiente, pero una recarga completa es más segura
+      // para garantizar que todo el estado del cliente (incluido Redux) se limpie.
+      window.location.href = "/login";
+    } catch (e) {
+      console.error("Error al llamar a la API de logout:", e);
+      // Opcional: Mostrar una notificación al usuario de que el logout falló.
+    }
   };
 
   const toggleAddressMenu = () => {

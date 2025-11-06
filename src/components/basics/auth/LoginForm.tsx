@@ -33,37 +33,54 @@ export default function LoginForm({
       case "admin":
         return "/admin/dashboard";
       case "market":
-        // ANTES: return "/aliado/dashboard";
-        return "/partner/market/dashboard"; // DESPUÉS: URL moderna y correcta
-      case "restaurant": // Buena práctica añadirlo para consistencia
+        return "/partner/market/dashboard";
+      case "restaurant":
         return "/partner/restaurant/dashboard";
       case "delivery":
         return "/repartidor/home";
       default:
+        // Si el rol es null o desconocido, va a la home de usuario estándar
         return "/user/home";
     }
   };
 
+  // --- FUNCIÓN `resolveRole` MODIFICADA ---
+  // Ahora solo consulta la tabla 'profiles' y NUNCA la metadata.
   const resolveRole = async (supabase: ReturnType<typeof createClient>) => {
-    const { data: sessionRes } = await supabase.auth.getSession();
-    const user = sessionRes.session?.user;
-    if (!user) return null;
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return null;
+    }
+
     try {
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
-        .select("role, user_role")
+        .select("role")
         .eq("id", user.id)
         .single();
-      if (!profileError) {
-        const pr = (profile as any) || {};
-        return pr.role || pr.user_role || null;
+
+      // Si hay un error en la consulta, lo registramos y devolvemos null
+      if (profileError) {
+        console.error("Error fetching user profile:", profileError.message);
+        return null;
       }
+
+      // Si se encuentra el perfil, se devuelve el rol priorizando 'user_role'.
+      // Si ambas columnas son null, el OR devolverá null.
+      if (profile) {
+        return profile.role || null;
+      }
+
+      // Si no se encuentra un perfil para el usuario, se devuelve null.
+      return null;
     } catch (e) {
-      // ignore and fallback
+      console.error("An unexpected error occurred in resolveRole:", e);
+      // Ante cualquier excepción inesperada, se devuelve null por seguridad.
+      return null;
     }
-    const am = (user.app_metadata as any) || {};
-    const um = (user.user_metadata as any) || {};
-    return am.user_role || am.role || um.user_role || um.role || null;
   };
 
   // Redirección si ya hay sesión activa (p. ej., al volver de OAuth)
@@ -74,7 +91,8 @@ export default function LoginForm({
       const { data } = await supabase.auth.getSession();
       if (mounted && data.session && !hasRedirectedRef.current) {
         const next = searchParams.get("next");
-        let to = next || homeForRole(await resolveRole(supabase));
+        const role = await resolveRole(supabase); // Usando la nueva función
+        const to = next || homeForRole(role);
         hasRedirectedRef.current = true;
         router.replace(to);
       }
@@ -84,7 +102,7 @@ export default function LoginForm({
         if (session && !hasRedirectedRef.current) {
           const handle = async () => {
             const next = searchParams.get("next");
-            const role = await resolveRole(supabase);
+            const role = await resolveRole(supabase); // Usando la nueva función
             const to = next || homeForRole(role);
             hasRedirectedRef.current = true;
             router.replace(to);
@@ -113,9 +131,8 @@ export default function LoginForm({
       });
       if (error) throw error;
       const next = searchParams.get("next");
-      const role = await resolveRole(supabase);
+      const role = await resolveRole(supabase); // Usando la nueva función
       const to = next || homeForRole(role);
-      // Recordarme: Supabase por defecto usa localStorage; si quieres sessionStorage podemos ajustarlo.
       router.replace(to);
     } catch (err: unknown) {
       setError(
