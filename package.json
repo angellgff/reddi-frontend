@@ -18,14 +18,15 @@
     "@supabase/supabase-js": "latest",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "pigeon-maps": "^0.21.5",
     "lucide-react": "^0.511.0",
     "mapbox-gl": "^3.7.0",
     "next": "latest",
     "next-themes": "^0.4.6",
+    "pigeon-maps": "^0.21.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-redux": "^9.1.2",
+    "resend": "^6.4.1",
     "tailwind-merge": "^3.3.0"
   },
   "devDependencies": {

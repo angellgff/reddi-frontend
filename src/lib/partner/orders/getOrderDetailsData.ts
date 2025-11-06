@@ -4,6 +4,12 @@ import { createClient } from "@/src/lib/supabase/server";
 
 export type OrderDetails = {
   orderId: string;
+  status:
+    | "pending"
+    | "preparing"
+    | "out_for_delivery"
+    | "delivered"
+    | "cancelled";
   estimatedTime: string;
   partnerId?: string | null;
   userAddressId?: string | null;
@@ -51,7 +57,7 @@ export default async function getOrderDetailsData(
   const { data, error } = await supabase
     .from("orders")
     .select(
-      `id, subtotal, shipping_fee, total_amount, tip_amount, discount_amount, scheduled_at, user_address_id, partner_id, instructions,
+      `id, status, subtotal, shipping_fee, total_amount, tip_amount, discount_amount, scheduled_at, user_address_id, partner_id, instructions,
        partners:partner_id(name, image_url),
        order_detail(id, quantity, unit_price, products:product_id(name, description, image_url), order_detail_extras(id, product_extra_id, quantity, unit_price))`
     )
@@ -62,6 +68,12 @@ export default async function getOrderDetailsData(
 
   type OrderRow = {
     id: string;
+    status:
+      | "pending"
+      | "preparing"
+      | "out_for_delivery"
+      | "delivered"
+      | "cancelled";
     subtotal: number | null;
     shipping_fee: number | null;
     total_amount: number | null;
@@ -194,6 +206,7 @@ export default async function getOrderDetailsData(
 
   return {
     orderId: data.id,
+    status: row.status,
     estimatedTime,
     partnerId: row.partner_id,
     userAddressId: row.user_address_id,

@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server"; // Usaremos el cliente de servidor
 import { NextResponse } from "next/server";
+import { sendOrderCreatedEmail } from "@/src/lib/notifications/email";
 
 export async function POST(request: Request) {
   // Crea un cliente de Supabase específico para esta petición, autenticado como el usuario
@@ -23,7 +24,7 @@ export async function POST(request: Request) {
   let body;
   try {
     body = await request.json();
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "El cuerpo de la petición no es un JSON válido." },
       { status: 400 }
@@ -69,7 +70,78 @@ export async function POST(request: Request) {
 
     // 5. Devolver una respuesta exitosa con el ID del pedido
     // La RPC debería devolver el ID de la nueva orden como texto.
-    return NextResponse.json({ orderId: data }, { status: 201 }); // 201 Created
+    const orderId = data as string;
+    console.info("[/api/orders/create] Pedido creado por RPC", {
+      orderId,
+      hasUser: Boolean(user?.id),
+      itemsCount: Array.isArray(cart_items) ? cart_items.length : 0,
+    });
+
+    // Email notification (non-blocking best-effort)
+    (async () => {
+      try {
+        // Intentar obtener correo del usuario (ya lo tenemos en user.email)
+        const userEmail = user.email || null;
+        console.info("[/api/orders/create] Preparando email de confirmación", {
+          orderId,
+          userEmail,
+        });
+        if (userEmail && orderId) {
+          // Construir resumen simple de ítems
+          const itemsSummary = Array.isArray(cart_items)
+            ? cart_items
+                .slice(0, 5)
+                .map(
+                  (c: { quantity?: number; productId?: string }) =>
+                    `${c.quantity ?? 1}x ${c.productId ?? "Producto"}`
+                )
+                .join(", ")
+            : "";
+          // Leer total desde la orden creada (best-effort)
+          let totalFormatted = "$0.00";
+          try {
+            const { data: ord } = await supabase
+              .from("orders")
+              .select("total_amount")
+              .eq("id", orderId)
+              .maybeSingle();
+            const total = Number(
+              (ord as { total_amount?: number } | null)?.total_amount || 0
+            );
+            totalFormatted = new Intl.NumberFormat("es-MX", {
+              style: "currency",
+              currency: "USD",
+            }).format(total);
+            console.info("[/api/orders/create] Total formateado", {
+              orderId,
+              total,
+              totalFormatted,
+            });
+          } catch {
+            // ignore
+          }
+          const emailResult = await sendOrderCreatedEmail({
+            orderId,
+            userEmail,
+            totalFormatted,
+            itemsSummary,
+          });
+          console.info("[/api/orders/create] Resultado de envío email", {
+            orderId,
+            result: emailResult,
+          });
+        } else {
+          console.warn(
+            "[/api/orders/create] Email NO enviado: falta userEmail u orderId",
+            { orderId, userEmail }
+          );
+        }
+      } catch (e) {
+        console.warn("[orders/create] Error enviando email de creación", e);
+      }
+    })();
+
+    return NextResponse.json({ orderId }, { status: 201 }); // 201 Created
   } catch (err) {
     console.error("API Route /api/orders/create error:", err);
     // Este es un error inesperado en el código de la API Route

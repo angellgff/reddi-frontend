@@ -2,6 +2,7 @@
 import Image from "next/image";
 import OrderVillageIcon from "@/src/components/icons/OrderVillageIcon";
 import { OrderDetails } from "@/src/lib/partner/orders/getOrderDetailsData";
+import OrderStatusControls from "@/src/components/features/partner/market/orders/order/OrderStatusControls";
 
 interface OrderDetailsCardProps {
   order: OrderDetails;
@@ -148,6 +149,12 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
         <p className="text-lg font-bold">Total</p>
         <p className="text-lg font-bold">{formatPrice(total)}</p>
       </div>
+
+      {/* Estado editable */}
+      <OrderStatusControls
+        orderId={order.orderId}
+        initialStatus={order.status}
+      />
 
       {/* SECCIÓN 4: DIRECCIÓN DE ENTREGA */}
       <div className="bg-black text-white p-4 rounded-2xl flex items-center gap-4">

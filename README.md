@@ -90,6 +90,40 @@ If you wish to just develop locally and not deploy to Vercel, [follow the steps 
 
    The starter kit should now be running on [localhost:3000](http://localhost:3000/).
 
+## Email notifications (Resend)
+
+Este proyecto envía correos transaccionales cuando:
+
+1. Un cliente crea un pedido (`POST /api/orders/create`).
+2. El partner cambia el estado de un pedido (`POST /api/orders/update-status`).
+
+También existe un endpoint genérico para pruebas (`POST /api/notifications/send-email`).
+
+### Configuración
+
+Agrega tu API key de Resend en `.env.local`:
+
+```
+RESEND_API_KEY=tu_api_key_de_resend
+```
+
+Si la variable no está definida, el flujo de creación / actualización no falla; simplemente se omite el envío y se registra un warning.
+
+### Personalización
+
+Edita remitente y HTML en `src/lib/notifications/email.ts`.
+
+### Prueba rápida del endpoint genérico
+
+```
+curl -X POST http://localhost:3000/api/notifications/send-email \
+  -H "Content-Type: application/json" \
+  -b "<cookies de sesión>" \
+  -d '{"to":"tu@correo.com","subject":"Test","html":"<p>Hola!</p>"}'
+```
+
+Debes estar autenticado para usarlo.
+
 6. This template comes with the default shadcn/ui style initialized. If you instead want other ui.shadcn styles, delete `components.json` and [re-install shadcn/ui](https://ui.shadcn.com/docs/installation/next)
 
 > Check out [the docs for Local Development](https://supabase.com/docs/guides/getting-started/local-development) to also run Supabase locally.
