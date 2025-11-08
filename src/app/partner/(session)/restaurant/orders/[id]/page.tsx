@@ -8,7 +8,7 @@ import OrderDetailsSkeleton from "@/src/components/features/partner/market/order
 export default async function OrderPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
   return (

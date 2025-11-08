@@ -33,7 +33,7 @@ function currency(n: number | null | undefined) {
 export default async function OrdersHistoryPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
   const supabase = await createClient();
   const {
@@ -51,7 +51,8 @@ export default async function OrdersHistoryPage({
     );
   }
 
-  const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  const resolvedSearchParams = await searchParams;
+  const page = Math.max(1, Number(resolvedSearchParams?.page ?? 1) || 1);
   const pageSize = 5; // muestra 5 por página como en el mock
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;

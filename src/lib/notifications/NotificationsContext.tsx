@@ -10,7 +10,8 @@ import React, {
   useState,
 } from "react";
 import { createClient } from "@/src/lib/supabase/client";
-import type { Database, Tables, Session } from "@/src/lib/database.types";
+import type { Database, Tables } from "@/src/lib/database.types";
+import type { Session } from "@supabase/supabase-js";
 
 // Types based on DB schema
 export type NotificationRow = Tables<"notifications">;

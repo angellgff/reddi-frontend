@@ -1,5 +1,6 @@
 import { NavLink } from "../../basics/dashboard/DashboardAside";
 import Link from "next/link";
+import { ComponentType } from "react";
 import Squares2X2Icon from "@/src/components/icons/Squares2X2Icon";
 import FinancesIcon from "../../icons/FinancesIcon";
 import SupportIcon from "../../icons/SupportIcon";
@@ -29,7 +30,7 @@ export default function SingleNavLink({
   isActive,
   onClick,
 }: SingleNavLinkProps) {
-  const IconComponent = (link.icon && iconMap[link.icon]) ?? Squares2X2Icon;
+  const IconComponent = (link.icon && iconMap[link.icon]) || Squares2X2Icon;
   return (
     <Link
       href={link.href}

@@ -4,16 +4,16 @@ import StoreHeaderSkeleton from "../../../../../components/features/finalUser/st
 import StoreMenuServer from "../../../../../components/features/finalUser/store/StoreMenuServer";
 import StoreMenuSkeleton from "../../../../../components/features/finalUser/store/StoreMenuSkeleton";
 
-// Page params come directly (not Promises) from Next.js App Router
+// Page params and searchParams are now Promises in Next.js 15
 export default async function StorePage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { id } = params;
-  const { category, q } = searchParams;
+  const { id } = await params;
+  const { category, q } = await searchParams;
 
   return (
     <div className="max-w-7xl mx-auto px-12 py-6 space-y-4">

@@ -12,7 +12,7 @@ import EditDishSkeleton from "@/src/components/features/partner/dashboard/menu/e
 export default async function EditDishPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
 

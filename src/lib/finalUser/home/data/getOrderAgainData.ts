@@ -12,6 +12,7 @@ export default async function getOrderAgainData(): Promise<SliderCardProps[]> {
   );
   const data: SliderCardProps[] = [
     {
+      id: "tacos-el-pastor",
       name: "Tacos de pollo y carne",
       imageUrl: "/tacos.svg",
       rating: 4.8,
@@ -21,6 +22,7 @@ export default async function getOrderAgainData(): Promise<SliderCardProps[]> {
       href: "/restaurantes/tacos-el-pastor",
     },
     {
+      id: "carniceria-san-juan",
       name: "Carnicería San Juan",
       imageUrl: "/sushi-carne.svg",
       rating: 4.9,
