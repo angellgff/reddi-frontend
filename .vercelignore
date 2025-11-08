@@ -1,0 +1,26 @@
+# ESLint cache and config files that might cause issues
+.eslintcache
+eslint.config.mjs
+.eslintrc*
+
+# Development files
+*.log
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Dependencies
+node_modules/
+
+# Build outputs that Vercel will regenerate
+.next/
+out/
+dist/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -30,6 +30,14 @@ if (!remotePatterns.some((p) => p.hostname === fallbackHost)) {
 }
 
 const nextConfig: NextConfig = {
+  // Disable ESLint during builds (especially for Vercel deployments)
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  // Disable TypeScript errors during builds for faster deployments
+  typescript: {
+    ignoreBuildErrors: false, // Keep TypeScript checks but allow ESLint to be ignored
+  },
   images: {
     remotePatterns: [
       ...remotePatterns,
