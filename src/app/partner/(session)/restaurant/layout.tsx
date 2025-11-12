@@ -32,7 +32,7 @@ const navigationLinks: NavLink[] = [
   },
   {
     name: "Historial",
-    href: "#",
+    href: `${actualURL}/history`,
     icon: "history", // ANTES: HistoryIcon
   },
   {

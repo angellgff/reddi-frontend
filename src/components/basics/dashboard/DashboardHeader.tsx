@@ -23,10 +23,25 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   const { unreadCount } = useNotifications();
 
   const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/admin/login"); // Ajusta la ruta si es necesario
-    router.refresh(); // Asegura que se limpie el estado del servidor
+    console.log("Iniciando cierre de sesión a través de la API route...");
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+
+      if (!response.ok) {
+        // Si la respuesta del servidor no fue exitosa (ej. status 500)
+        const data = await response.json();
+        throw new Error(data.error || "La respuesta del servidor no fue OK");
+      }
+
+      console.log("Logout request exitoso. Refrescando y redirigiendo...");
+
+      // router.refresh() podría ser suficiente, pero una recarga completa es más segura
+      // para garantizar que todo el estado del cliente (incluido Redux) se limpie.
+      window.location.href = "/login";
+    } catch (e) {
+      console.error("Error al llamar a la API de logout:", e);
+      // Opcional: Mostrar una notificación al usuario de que el logout falló.
+    }
   };
 
   // Usamos una imagen por defecto si no hay una URL de imagen del negocio
