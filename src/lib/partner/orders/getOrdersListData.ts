@@ -64,9 +64,9 @@ export default async function getOrdersListData(
   if (cat === "today") {
     query = query.gte("created_at", todayStart.toISOString());
   } else if (cat === "pending") {
-    query = query.in("status", ["confirmed"]);
+    query = query.in("status", ["pending"]);
   } else if (cat === "preparation") {
-    query = query.in("status", ["preparing", "on_the_way"]);
+    query = query.in("status", ["preparing", "out_for_delivery"]);
   } else if (cat === "delivered") {
     query = query.eq("status", "delivered");
   }
