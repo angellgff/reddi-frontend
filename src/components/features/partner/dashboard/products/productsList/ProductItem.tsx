@@ -39,7 +39,7 @@ export default function ProductItem({ product, onDelete }: ProductItemProps) {
         {/* Botones de acción */}
         <div className="flex items-center justify-center gap-2">
           <Link
-            href={`productos/editar/${product.id}`}
+            href={`/partner/market/productos/editar/${product.id}`}
             className="inline-flex items-center justify-center gap-2 py-2 text-sm font-medium bg-white border border-black rounded-xl hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 px-2"
           >
             <EditPartnerIcon className="h-4 w-4" />

@@ -44,7 +44,7 @@ export default async function getProductsData(): Promise<ProductData[]> {
       name: row.name || "Sin nombre",
       description: row.description || "",
       price: typeof row.base_price === "number" ? row.base_price : 0,
-      currency: "COP", // Assumption
+      currency: "USD", // Assumption
       imageUrl: row.image_url || "/placeholder-product.svg",
     })
   );
