@@ -91,18 +91,26 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
       <NewDishStep1
         onPreview={() => {
           // Create draft in sessionStorage and navigate to preview
-            const draftId = crypto.randomUUID();
-            if (typeof window !== 'undefined') {
-              const draftPayload = {
-                ...formData,
-                imageObjectUrl: formData.image instanceof File ? URL.createObjectURL(formData.image) : (formData.image as any),
-              };
-              try { sessionStorage.setItem(`marketPreview:${draftId}`, JSON.stringify(draftPayload)); } catch {}
-            }
-            // pass only productId if exists (creation: none) and draft id
-            const params = new URLSearchParams();
-            params.set('draft', draftId);
-            router.push(`/partner/market/productos/preview?${params.toString()}`);
+          const draftId = crypto.randomUUID();
+          if (typeof window !== "undefined") {
+            const draftPayload = {
+              ...formData,
+              imageObjectUrl:
+                formData.image instanceof File
+                  ? URL.createObjectURL(formData.image)
+                  : (formData.image as any),
+            };
+            try {
+              sessionStorage.setItem(
+                `marketPreview:${draftId}`,
+                JSON.stringify(draftPayload)
+              );
+            } catch {}
+          }
+          // pass only productId if exists (creation: none) and draft id
+          const params = new URLSearchParams();
+          params.set("draft", draftId);
+          router.push(`/partner/market/productos/preview?${params.toString()}`);
         }}
         onGoBack={() => router.push("/partner/market/productos")}
         formData={formData}

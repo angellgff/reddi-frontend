@@ -39,7 +39,8 @@ export default function ProductPreviewClient({
   const dispatch = useAppDispatch();
 
   const fromDraft = searchParams.get("draft");
-  const productId = searchParams.get("productId") || serverProduct?.id || undefined;
+  const productId =
+    searchParams.get("productId") || serverProduct?.id || undefined;
 
   const [draftData, setDraftData] = useState<DraftProduct | null>(null);
 
@@ -61,7 +62,9 @@ export default function ProductPreviewClient({
         name: draftData.name || "Producto sin nombre",
         description: draftData.description || "Sin descripción",
         basePrice: parseFloat(draftData.basePrice || "0") || 0,
-        previousPrice: draftData.previousPrice ? parseFloat(draftData.previousPrice) : null,
+        previousPrice: draftData.previousPrice
+          ? parseFloat(draftData.previousPrice)
+          : null,
         unit: draftData.unit || "/u",
         estimatedTimeRange: draftData.estimatedTimeRange || null,
         imageUrl: draftData.imageObjectUrl || null,
@@ -87,7 +90,8 @@ export default function ProductPreviewClient({
 
   const discountPercent = useMemo(() => {
     if (!data) return null;
-    if (!data.previousPrice || !data.basePrice || data.previousPrice <= 0) return null;
+    if (!data.previousPrice || !data.basePrice || data.previousPrice <= 0)
+      return null;
     const diff = data.previousPrice - data.basePrice;
     if (diff <= 0) return null;
     return Math.round((diff / data.previousPrice) * 100);
@@ -151,21 +155,32 @@ export default function ProductPreviewClient({
                 className="object-cover w-full h-full"
               />
             ) : (
-              <span className="text-xs text-gray-400 text-center px-2">Sin imagen</span>
+              <span className="text-xs text-gray-400 text-center px-2">
+                Sin imagen
+              </span>
             )}
           </div>
           <div className="flex flex-col gap-5 max-w-[465px]">
-            <h1 className="font-medium text-2xl leading-5 text-black">{data.name}</h1>
+            <h1 className="font-medium text-2xl leading-5 text-black">
+              {data.name}
+            </h1>
             <p className="font-medium text-2xl leading-5 text-black">
-              $ {data.basePrice.toFixed(2)} USD <span className="text-base">{data.unit}</span>
+              $ {data.basePrice.toFixed(2)} USD{" "}
+              <span className="text-base">{data.unit}</span>
             </p>
             <div className="flex flex-row gap-2 items-center text-sm leading-5">
-              <span className="text-gray-400">$ {data.basePrice.toFixed(2)} USD /und (1 Und)</span>
+              <span className="text-gray-400">
+                $ {data.basePrice.toFixed(2)} USD /und (1 Und)
+              </span>
               {data.previousPrice && (
-                <span className="text-gray-600 line-through">$ {data.previousPrice.toFixed(2)} USD</span>
+                <span className="text-gray-600 line-through">
+                  $ {data.previousPrice.toFixed(2)} USD
+                </span>
               )}
               {discountPercent && (
-                <span className="text-green-500 font-semibold text-base">-{discountPercent}%</span>
+                <span className="text-green-500 font-semibold text-base">
+                  -{discountPercent}%
+                </span>
               )}
             </div>
           </div>
@@ -174,7 +189,9 @@ export default function ProductPreviewClient({
         {/* Description */}
         <div className="flex flex-col gap-5">
           <h2 className="font-semibold text-xl">{data.name}</h2>
-            <p className="text-base leading-5 text-black whitespace-pre-line">{data.description}</p>
+          <p className="text-base leading-5 text-black whitespace-pre-line">
+            {data.description}
+          </p>
         </div>
         {/* Bottom controls */}
         <div className="flex flex-col lg:flex-row w-full items-center justify-between gap-6 bg-gray-100/70 border border-gray-300 rounded-xl px-5 py-5">
@@ -214,7 +231,10 @@ export default function ProductPreviewClient({
               onClick={handleAdd}
               className="h-11 px-4 rounded-xl flex items-center gap-4 bg-primary text-white text-sm font-medium"
             >
-              Agregar <span className="text-white">Subtotal: {subtotal.toFixed(2)} USD</span>
+              Agregar{" "}
+              <span className="text-white">
+                Subtotal: {subtotal.toFixed(2)} USD
+              </span>
             </button>
           </div>
         </div>

@@ -9,7 +9,10 @@ export default async function MarketProductPreviewPage({
 }: {
   searchParams: Record<string, string | string[] | undefined>;
 }) {
-  const productId = typeof searchParams.productId === "string" ? searchParams.productId : undefined;
+  const productId =
+    typeof searchParams.productId === "string"
+      ? searchParams.productId
+      : undefined;
   let serverProduct: any = null;
   if (productId) {
     const supabase = await createClient();
