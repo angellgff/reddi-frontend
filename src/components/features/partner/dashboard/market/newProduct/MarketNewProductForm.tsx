@@ -79,7 +79,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
       // market: force empty sections
       data.append("sections", JSON.stringify([]));
 
-  const { productId } = await createMarketProductAction(data);
+      const { productId } = await createMarketProductAction(data);
       router.push(`/partner/market/productos?created=${productId}`);
     } finally {
       setIsSubmitting(false);
