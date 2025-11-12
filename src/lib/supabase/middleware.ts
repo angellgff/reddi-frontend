@@ -85,13 +85,32 @@ export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   const isAuthed = !!user;
 
-  // Evitar consultas a la base de datos en middleware (runtime Edge) para prevenir bloqueos intermitentes.
-  // Derivamos un rol "rápido" desde metadata del JWT si existe; los layouts harán la validación fuerte contra la DB.
+  // Rol: fuente de verdad -> tabla 'profiles'. Evitar depender de metadata del JWT.
+  // Para minimizar latencia/riesgo en Edge, aplicamos un timeout corto y solo caemos a metadata si hay error/timeout.
   let role: string | null = null;
   if (isAuthed) {
-    const am = (user?.app_metadata as any) || {};
-    const um = (user?.user_metadata as any) || {};
-    role = am.user_role || am.role || um.user_role || um.role || null;
+    try {
+      const { data: profile } = (await withTimeout(
+        (supabase as any)
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single(),
+        1000
+      )) as any;
+      role = (profile as any)?.role ?? null;
+    } catch (e) {
+      // Fallback conservador: usar metadata solo si la consulta falla o expira
+      const am = (user?.app_metadata as any) || {};
+      const um = (user?.user_metadata as any) || {};
+      role = am.user_role || am.role || um.user_role || um.role || null;
+      if (process.env.NEXT_PUBLIC_DEBUG_AUTH) {
+        console.warn(
+          "[mw] profiles role lookup failed, falling back to metadata:",
+          (e as Error)?.message
+        );
+      }
+    }
   }
 
   // console.log(`[mw] Path: ${path}, Authed: ${isAuthed}, Role: ${role}`);
