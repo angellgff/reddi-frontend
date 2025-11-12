@@ -54,22 +54,46 @@ export const fetchUserAddresses = createAsyncThunk(
       fetchInFlight = true;
 
       const supabase = createClient();
-      // Soft-timeout: si getSession se demora, asumimos no autenticado SIN lanzar error
+      // Primero intentamos getSession (rápido, no hace network). Si viene vacío, intentamos getUser como fallback.
       const tSess0 = now();
-      const sessionOrTimeout = (await Promise.race([
+      const sessionRace = (await Promise.race([
         supabase.auth.getSession(),
         new Promise((resolve) =>
           setTimeout(() => resolve({ data: { session: null } }), 4000)
         ),
       ])) as any;
       const tSess1 = now();
+      let user = sessionRace?.data?.session?.user || null;
       if (DEBUG)
         console.log(
           "[addresses] ⏱️ getSession(ms)=",
           Math.round(tSess1 - tSess0),
-          sessionOrTimeout?.data?.session ? "(con sesión)" : "(sin sesión)"
+          user ? "(con sesión)" : "(sin sesión)"
         );
-      const user = sessionOrTimeout?.data?.session?.user || null;
+
+      // Fallback adicional: a veces getSession es null en el primer render aunque exista cookie.
+      // Intentamos getUser (hace network) con timeout corto para no colgar el header.
+      if (!user) {
+        const tUser0 = now();
+        try {
+          const userRace = (await Promise.race([
+            supabase.auth.getUser(),
+            new Promise((resolve) =>
+              setTimeout(() => resolve({ data: { user: null } }), 3500)
+            ),
+          ])) as any;
+          user = userRace?.data?.user || null;
+          if (DEBUG)
+            console.log(
+              "[addresses] ⏱️ getUser Fallback(ms)=",
+              Math.round(now() - tUser0),
+              user ? "(usuario encontrado)" : "(sin usuario)"
+            );
+        } catch (e) {
+          if (DEBUG)
+            console.log("[addresses] getUser fallback error silenciado", e);
+        }
+      }
       if (!user) {
         if (DEBUG)
           console.log(

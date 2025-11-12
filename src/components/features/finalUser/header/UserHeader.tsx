@@ -83,13 +83,6 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     setHydrated(true);
   }, []);
 
-  // Ensure addresses are loaded regardless of which component mounts first
-  useEffect(() => {
-    if (status === "idle") {
-      dispatch(fetchUserAddresses());
-    }
-  }, [status, dispatch]);
-
   const displayedAddress = useMemo(() => {
     const selected = addresses.find(
       (a) => (a.id as unknown as string) === selectedAddressId

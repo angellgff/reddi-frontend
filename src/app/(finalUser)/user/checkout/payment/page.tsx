@@ -45,9 +45,6 @@ export default function CheckoutPaymentPage() {
 
   // Estado para la dirección y la tienda
   const { status } = useAppSelector((s) => s.addresses);
-  useEffect(() => {
-    if (status === "idle") dispatch(fetchUserAddresses());
-  }, [status, dispatch]);
 
   const partnerIds = useMemo(() => items.map((i) => i.partnerId), [items]);
   const {
