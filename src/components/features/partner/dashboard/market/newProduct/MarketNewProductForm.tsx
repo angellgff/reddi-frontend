@@ -8,7 +8,7 @@ import {
   ProductSubCategory,
 } from "@/src/lib/partner/productTypes";
 import { validateStep1 } from "@/src/lib/partner/productUtils";
-import { createDishAction } from "@/src/components/features/partner/dashboard/menu/newDish/actions";
+import { createMarketProductAction } from "./actions";
 import { useRouter } from "next/navigation";
 
 type Props = {
@@ -79,7 +79,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
       // market: force empty sections
       data.append("sections", JSON.stringify([]));
 
-      const { productId } = await createDishAction(data);
+  const { productId } = await createMarketProductAction(data);
       router.push(`/partner/market/productos?created=${productId}`);
     } finally {
       setIsSubmitting(false);
