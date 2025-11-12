@@ -29,6 +29,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
   const [partnerName, setPartnerName] = useState<string>("Tu carrito");
   const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
   const [partnerAddress, setPartnerAddress] = useState<string>("");
+  const [isRestaurant, setIsRestaurant] = useState<boolean>(false);
 
   useEffect(() => {
     const doClose = () => {
@@ -49,18 +50,20 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
         setPartnerName("Tu carrito");
         setPartnerLogo(null);
         setPartnerAddress("");
+        setIsRestaurant(false);
         return;
       }
       const supabase = createClient();
       const { data } = await supabase
         .from("partners")
-        .select("name, image_url, address")
+        .select("name, image_url, address, partner_type")
         .eq("id", pId)
         .single();
       if (data) {
         setPartnerName(data.name || "");
         setPartnerLogo(data.image_url);
         setPartnerAddress(data.address || "");
+        setIsRestaurant(data.partner_type === "restaurant");
       }
     };
     loadPartner();
@@ -172,7 +175,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
             ) : (
               <div className="space-y-3">
                 {items.map((it: CartItemType) => (
-                  <CartItem key={it.id} item={it} />
+                  <CartItem key={it.id} item={it} enableExtras={isRestaurant} />
                 ))}
               </div>
             )}

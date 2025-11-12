@@ -19,10 +19,16 @@ import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import type { Tables } from "@/src/lib/database.types";
 
-export default function CartItem({ item }: { item: CartItemType }) {
+export default function CartItem({
+  item,
+  enableExtras = true,
+}: {
+  item: CartItemType;
+  enableExtras?: boolean;
+}) {
   const dispatch = useAppDispatch();
   const increase = () => {
-    if (item.extras.length > 0) {
+    if (enableExtras && item.extras.length > 0) {
       // Nueva regla: si el item tiene extras, agregar una nueva línea base en lugar de sumar cantidad.
       dispatch(
         addItem({
@@ -66,6 +72,12 @@ export default function CartItem({ item }: { item: CartItemType }) {
   const [loadingExtras, setLoadingExtras] = useState(false);
 
   useEffect(() => {
+    if (!enableExtras) {
+      // Si extras están deshabilitados para este partner, vaciamos y salimos
+      setSections([]);
+      setLoadingExtras(false);
+      return;
+    }
     let cancelled = false;
     const fetchSections = async () => {
       try {
@@ -132,15 +144,16 @@ export default function CartItem({ item }: { item: CartItemType }) {
       cancelled = true;
     };
     // item.productId es la dependencia; si cambia, volvemos a cargar
-  }, [item.productId]);
+  }, [item.productId, enableExtras]);
 
   const unitWithExtras = useMemo(() => {
+    if (!enableExtras) return item.unitPrice;
     const extras = item.extras.reduce(
       (sum, ex) => sum + (Number(ex.price) || 0) * (ex.quantity || 0),
       0
     );
     return item.unitPrice + extras;
-  }, [item.unitPrice, item.extras]);
+  }, [item.unitPrice, item.extras, enableExtras]);
 
   // Estado para editar nota
   const [editingNote, setEditingNote] = useState(false);
@@ -235,7 +248,7 @@ export default function CartItem({ item }: { item: CartItemType }) {
       </div>
 
       {/* Extras seleccionados */}
-      {item.extras.length > 0 && (
+      {enableExtras && item.extras.length > 0 && (
         <div className="mt-3">
           <div className="text-xs text-gray-600 mb-2">Editar</div>
           <div className="space-y-2">
@@ -318,81 +331,83 @@ export default function CartItem({ item }: { item: CartItemType }) {
       )}
 
       {/* Extras disponibles (una sola fila) */}
-      <div className="mt-3">
-        {loadingExtras ? (
-          <div className="text-xs text-gray-500">Cargando extras…</div>
-        ) : flatOptions.length > 0 ? (
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {flatOptions.map((opt) => {
-              const selected = item.extras.find(
-                (e) => e.extraId === opt.extraId
-              );
-              const priceLabel =
-                opt.price > 0 ? `$${opt.price.toFixed(2)}` : "Incluido";
-              return (
-                <div
-                  key={opt.optionId}
-                  className={`w-36 h-48 flex-none overflow-hidden rounded-lg border p-2 text-center hover:shadow transition flex flex-col ${
-                    selected ? "ring-2 ring-primary/60" : ""
-                  }`}
-                >
-                  <div className="h-16 w-full bg-gray-100 rounded mb-2 overflow-hidden">
-                    <Image
-                      src={opt.imageUrl || "/placeholder-food.png"}
-                      alt={opt.name}
-                      width={48}
-                      height={48}
-                      className="object-cover w-full h-full"
-                    />
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-xs font-medium truncate">
-                      {opt.name}
+      {enableExtras && (
+        <div className="mt-3">
+          {loadingExtras ? (
+            <div className="text-xs text-gray-500">Cargando extras…</div>
+          ) : flatOptions.length > 0 ? (
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {flatOptions.map((opt) => {
+                const selected = item.extras.find(
+                  (e) => e.extraId === opt.extraId
+                );
+                const priceLabel =
+                  opt.price > 0 ? `$${opt.price.toFixed(2)}` : "Incluido";
+                return (
+                  <div
+                    key={opt.optionId}
+                    className={`w-36 h-48 flex-none overflow-hidden rounded-lg border p-2 text-center hover:shadow transition flex flex-col ${
+                      selected ? "ring-2 ring-primary/60" : ""
+                    }`}
+                  >
+                    <div className="h-16 w-full bg-gray-100 rounded mb-2 overflow-hidden">
+                      <Image
+                        src={opt.imageUrl || "/placeholder-food.png"}
+                        alt={opt.name}
+                        width={48}
+                        height={48}
+                        className="object-cover w-full h-full"
+                      />
                     </div>
-                    <div className="text-[10px] text-gray-500">
-                      {priceLabel}
-                    </div>
-                    {/* Badge pequeña con el nombre de la sección para contexto */}
-                    <div className="mt-1 text-[10px] text-gray-400 truncate">
-                      {opt.sectionName}
-                      {opt.sectionRequired ? (
-                        <span className="ml-1 text-red-500">*</span>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div>
-                    {!selected ? (
-                      <button
-                        type="button"
-                        className="mt-2 w-full text-[11px] py-1 rounded border bg-white hover:bg-gray-50"
-                        onClick={() =>
-                          dispatch(
-                            addExtraToItem({
-                              id: item.id,
-                              extra: {
-                                imageUrl: opt.imageUrl,
-                                extraId: opt.extraId,
-                                name: opt.name,
-                                price: opt.price,
-                              },
-                            })
-                          )
-                        }
-                      >
-                        Agregar
-                      </button>
-                    ) : (
-                      <div className="mt-2 text-[11px] text-green-600">
-                        Agregado
+                    <div className="flex-1">
+                      <div className="text-xs font-medium truncate">
+                        {opt.name}
                       </div>
-                    )}
+                      <div className="text-[10px] text-gray-500">
+                        {priceLabel}
+                      </div>
+                      {/* Badge pequeña con el nombre de la sección para contexto */}
+                      <div className="mt-1 text-[10px] text-gray-400 truncate">
+                        {opt.sectionName}
+                        {opt.sectionRequired ? (
+                          <span className="ml-1 text-red-500">*</span>
+                        ) : null}
+                      </div>
+                    </div>
+                    <div>
+                      {!selected ? (
+                        <button
+                          type="button"
+                          className="mt-2 w-full text-[11px] py-1 rounded border bg-white hover:bg-gray-50"
+                          onClick={() =>
+                            dispatch(
+                              addExtraToItem({
+                                id: item.id,
+                                extra: {
+                                  imageUrl: opt.imageUrl,
+                                  extraId: opt.extraId,
+                                  name: opt.name,
+                                  price: opt.price,
+                                },
+                              })
+                            )
+                          }
+                        >
+                          Agregar
+                        </button>
+                      ) : (
+                        <div className="mt-2 text-[11px] text-green-600">
+                          Agregado
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      )}
 
       {/* Nota del producto */}
       <div className="mt-3 rounded-lg bg-gray-50 border p-2">
