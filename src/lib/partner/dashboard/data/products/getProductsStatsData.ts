@@ -1,17 +1,57 @@
-import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
 import { ProductsStatsData } from "../../type";
+import { createClient } from "@/src/lib/supabase/server";
 
-import { API_DELAY } from "@/src/lib/type";
+/**
+ * Devuelve estadísticas reales de productos para el partner autenticado.
+ * - active_products: cantidad con is_available = true
+ * - inactive_products: cantidad con is_available = false
+ * - most_sold: placeholder (0) hasta tener tabla de ventas
+ */
+export default async function getProductsStatsData(): Promise<
+  ProductsStatsData[]
+> {
+  const supabase = await createClient();
 
-const statsData: ProductsStatsData[] = [
-  { statKey: "active_products", value: "$350.4" },
-  { statKey: "most_sold", value: "$642.39" },
-  { statKey: "inactive_products", value: "2935" },
-];
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return [
+      { statKey: "active_products", value: "0" },
+      { statKey: "most_sold", value: "0" },
+      { statKey: "inactive_products", value: "0" },
+    ];
+  }
 
-export default async function getProductsStatsData() {
-  await new Promise((resolve) =>
-    setTimeout(resolve, API_DELAY * getRandomNumberFrom1To10())
-  );
-  return statsData;
+  const { data: partner, error: pErr } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+  if (pErr || !partner) {
+    return [
+      { statKey: "active_products", value: "0" },
+      { statKey: "most_sold", value: "0" },
+      { statKey: "inactive_products", value: "0" },
+    ];
+  }
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("id,is_available")
+    .eq("partner_id", partner.id)
+    .limit(5000);
+  if (error) {
+    console.error("getProductsStatsData: error fetching products", error);
+  }
+  const rows = data || [];
+  const active = rows.filter((r) => r.is_available).length;
+  const inactive = rows.filter((r) => !r.is_available).length;
+  const mostSold = 0; // TODO: calcular a partir de tabla de ventas cuando esté disponible
+
+  return [
+    { statKey: "active_products", value: String(active) },
+    { statKey: "most_sold", value: String(mostSold) },
+    { statKey: "inactive_products", value: String(inactive) },
+  ];
 }

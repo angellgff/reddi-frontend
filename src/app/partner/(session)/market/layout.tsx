@@ -5,39 +5,45 @@ import PartnerHeader from "@/src/components/basics/dashboard/DashboardHeader";
 import { getAuthenticatedPartnerProfile } from "@/src/lib/partner/header/data/getData";
 import { createClient } from "@/src/lib/supabase/server";
 import { LogoutButton } from "@/src/components/logout-button";
+import OrderIcon from "@/src/components/icons/OrderIcon";
+import ProductIcon from "@/src/components/icons/ProductIcon";
+import HistoryIcon from "@/src/components/icons/HistoryIcon";
+import SupportIcon from "@/src/components/icons/SupportIcon";
+import FinancesIcon from "@/src/components/icons/FinancesIcon";
 
-const actualURL = "/partner";
+// Base de rutas correcta para la sección Restaurant
+const actualURL = "/partner/market";
 
 const navigationLinks: NavLink[] = [
   {
     name: "Dashboard",
     href: `${actualURL}/dashboard`,
+    icon: "dashboard", // Usaremos un string
   },
   {
-    name: "Inventario",
+    name: "Pedidos",
+    href: `${actualURL}/orders`,
+    icon: "order", // ANTES: OrderIcon
+  },
+  {
+    name: "Productos",
     href: `${actualURL}/productos`,
-    subLinks: [
-      { name: "Productos", href: `${actualURL}/productos` },
-      { name: "Menú", href: `${actualURL}/menu` },
-    ],
+    icon: "product", // ANTES: ProductIcon
   },
   {
-    name: "Usuarios",
+    name: "Historial",
     href: "#",
-
-    subLinks: [
-      { name: "Clientes", href: `${actualURL}/clientes` },
-      { name: "Aliados", href: `${actualURL}/aliados` },
-      { name: "Repartidores", href: `${actualURL}/repartidores` },
-    ],
+    icon: "history", // ANTES: HistoryIcon
   },
   {
-    name: "Banner",
-    href: `${actualURL}/banner`,
+    name: "Soporte",
+    href: `${actualURL}/support`,
+    icon: "support", // ANTES: SupportIcon
   },
   {
     name: "Finanzas",
-    href: `${actualURL}/finanzas`,
+    href: `${actualURL}/finances`,
+    icon: "finances", // ANTES: FinancesIcon
   },
 ];
 

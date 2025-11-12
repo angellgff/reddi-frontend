@@ -1,62 +1,51 @@
-import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
 import { ProductData } from "@/src/lib/partner/dashboard/type";
+import { createClient } from "@/src/lib/supabase/server";
 
-import { API_DELAY } from "@/src/lib/type";
+/**
+ * Obtiene los productos REALES del partner autenticado.
+ * Fallback: si no hay sesión o partner devuelve [] para evitar errores en SSR.
+ * NOTE: Se asume moneda "COP" ya que el esquema no define currency. Ajusta si existe columna.
+ */
+export default async function getProductsData(): Promise<ProductData[]> {
+  const supabase = await createClient();
 
-const mockProducts: ProductData[] = [
-  {
-    id: "1",
-    name: "BANANA",
-    description: "UNIDAD FRESCA",
-    price: 0.5,
-    currency: "USD",
-    imageUrl: "/banana.svg",
-  },
-  {
-    id: "2",
-    name: "ALBAHACA FRESCA",
-    description: "BOLSA 50 gr",
-    price: 9.0,
-    currency: "USD",
-    imageUrl: "/albahaca.svg",
-  },
-  {
-    id: "3",
-    name: "RÁBANOS",
-    description: "MANOJO FRESCO",
-    price: 3.25,
-    currency: "USD",
-    imageUrl: "/cebolla.svg",
-  },
-  {
-    id: "4",
-    name: "ARÁNDANOS",
-    description: "CAJA 125 gr",
-    price: 4.5,
-    currency: "USD",
-    imageUrl: "/albahaca.svg",
-  },
-  {
-    id: "5",
-    name: "TOMATE CHONTO",
-    description: "BOLSA 500 gr",
-    price: 2.0,
-    currency: "USD",
-    imageUrl: "/uvas.svg",
-  },
-  {
-    id: "6",
-    name: "LECHUGA ROMANA",
-    description: "UNIDAD",
-    price: 1.8,
-    currency: "USD",
-    imageUrl: "/tomate.svg",
-  },
-];
+  // 1. Usuario
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
 
-export default async function getProductsData() {
-  await new Promise((resolve) =>
-    setTimeout(resolve, API_DELAY * getRandomNumberFrom1To10())
+  // 2. Partner
+  const { data: partner, error: pErr } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+  if (pErr || !partner) return [];
+
+  // 3. Productos del partner (limit de seguridad)
+  const { data, error } = await supabase
+    .from("products")
+    .select(
+      "id,name,description,base_price,previous_price,image_url,is_available,sub_category_id"
+    )
+    .eq("partner_id", partner.id)
+    .limit(1000);
+
+  if (error) {
+    console.error("getProductsData: error fetching products", error);
+    return [];
+  }
+
+  // 4. Mapear al tipo esperado por el frontend
+  return (data || []).map(
+    (row): ProductData => ({
+      id: row.id,
+      name: row.name || "Sin nombre",
+      description: row.description || "",
+      price: typeof row.base_price === "number" ? row.base_price : 0,
+      currency: "COP", // Assumption
+      imageUrl: row.image_url || "/placeholder-product.svg",
+    })
   );
-  return mockProducts;
 }
