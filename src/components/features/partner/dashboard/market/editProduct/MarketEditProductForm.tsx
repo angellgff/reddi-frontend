@@ -81,8 +81,19 @@ export default function MarketEditProductForm({
     <>
       <NewDishStep1
         onPreview={() => {
-          // Para market la vista de previsualización es innecesaria; guardamos directamente
-          submitIfValid();
+          // Save draft snapshot (including possibly new image) then navigate to preview with productId
+          const draftId = crypto.randomUUID();
+          if (typeof window !== 'undefined') {
+            const draftPayload = {
+              ...formData,
+              imageObjectUrl: formData.image instanceof File ? URL.createObjectURL(formData.image) : (formData.image as any),
+            };
+            try { sessionStorage.setItem(`marketPreview:${draftId}`, JSON.stringify(draftPayload)); } catch {}
+          }
+          const params = new URLSearchParams();
+          params.set('draft', draftId);
+          params.set('productId', productId);
+          router.push(`/partner/market/productos/preview?${params.toString()}`);
         }}
         onGoBack={() => router.push("/partner/market/productos")}
         formData={formData}
