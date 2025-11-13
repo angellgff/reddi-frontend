@@ -247,6 +247,19 @@ const addressSlice = createSlice({
     setSelectedAddressLocal(state, action: PayloadAction<string>) {
       state.selectedAddressId = action.payload;
     },
+    hydrateAddresses(
+      state,
+      action: PayloadAction<{
+        addresses: UserAddress[];
+        selectedAddressId: string | null;
+      }>
+    ) {
+      state.addresses = action.payload.addresses || [];
+      state.selectedAddressId = action.payload.selectedAddressId || null;
+      state.status = "succeeded";
+      state.error = null;
+      state.lastFetched = Date.now();
+    },
     clearAddresses(state) {
       state.addresses = [];
       state.selectedAddressId = null;
@@ -279,5 +292,6 @@ const addressSlice = createSlice({
   },
 });
 
-export const { setSelectedAddressLocal, clearAddresses } = addressSlice.actions;
+export const { setSelectedAddressLocal, clearAddresses, hydrateAddresses } =
+  addressSlice.actions;
 export default addressSlice.reducer;

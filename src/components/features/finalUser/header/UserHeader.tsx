@@ -83,7 +83,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     setHydrated(true);
   }, []);
 
-  const displayedAddress = useMemo(() => {
+  const serverAddressSnapshot = userData?.address?.[0]?.address || "";
+  const computedClientAddress = useMemo(() => {
     const selected = addresses.find(
       (a) => (a.id as unknown as string) === selectedAddressId
     );
@@ -91,9 +92,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       const label = (selected.location_type as string)?.toUpperCase?.() || "";
       return `${label} ${selected.location_number}`.trim();
     }
-    // Fallback to server-provided first address, if available
-    return userData?.address?.[0]?.address || "";
-  }, [addresses, selectedAddressId, userData]);
+    return serverAddressSnapshot;
+  }, [addresses, selectedAddressId, serverAddressSnapshot]);
+  // Keep server snapshot during hydration to avoid mismatches; switch after mount
+  const displayedAddress = hydrated
+    ? computedClientAddress
+    : serverAddressSnapshot;
 
   useEffect(() => {
     const handleScroll = () => {

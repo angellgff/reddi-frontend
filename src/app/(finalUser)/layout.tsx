@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import UserHeaderServer from "@/src/components/features/finalUser/header/UserHeaderServer";
 import UserHeaderSkeleton from "@/src/components/features/finalUser/header/UserHeaderSkeleton";
 import UserFooter from "@/src/components/basics/UserFooter";
-import UserDataInitializer from "@/src/components/providers/UserDataInitializer"; // <-- 1. Importa el nuevo componente
+import UserAddressesHydratorServer from "@/src/components/features/finalUser/addresses/UserAddressesHydratorServer";
 
 export default function UserLayout({
   children,
@@ -13,7 +13,7 @@ export default function UserLayout({
 }) {
   return (
     <>
-      <UserDataInitializer /> {/* <-- 2. Añádelo aquí */}
+      <UserAddressesHydratorServer />
       <Suspense fallback={<UserHeaderSkeleton />}>
         <UserHeaderServer />
       </Suspense>

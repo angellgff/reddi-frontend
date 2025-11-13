@@ -156,3 +156,44 @@ export async function setSelectedAddress(addressId: string) {
   revalidatePath("/user/payment");
   return { success: true } as const;
 }
+
+// Server fetch for addresses + selected address (for SSR/hydration)
+export async function getUserAddressesAndSelected() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return { success: true, addresses: [], selectedAddressId: null } as const;
+  }
+
+  const [addrRes, profileRes] = await Promise.all([
+    supabase
+      .from("user_addresses")
+      .select("id, location_type, location_number, created_at, user_id")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("profiles")
+      .select("selected_address")
+      .eq("id", user.id)
+      .single(),
+  ]);
+
+  if (addrRes.error) {
+    // Log but return empty to avoid SSR crash
+    console.warn("getUserAddresses error", addrRes.error);
+  }
+  if (profileRes.error && profileRes.error.code !== "PGRST116") {
+    console.warn("getUserAddresses profile error", profileRes.error);
+  }
+
+  const addresses = (addrRes.data as any[]) || [];
+  const selectedAddressId =
+    (profileRes.data as any)?.selected_address ??
+    (addresses[0]?.id as string | undefined) ??
+    null;
+
+  return { success: true, addresses, selectedAddressId } as const;
+}

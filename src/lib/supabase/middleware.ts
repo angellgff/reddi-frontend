@@ -84,6 +84,11 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isAuthed = !!user;
+  // Heuristic: if Supabase set any auth cookie, treat as likely authenticated
+  // This helps when getUser() times out and prevents landing on base '/'
+  const hasAuthCookie = request.cookies
+    .getAll()
+    .some((c) => c.name.includes("auth"));
 
   // Rol: fuente de verdad -> tabla 'profiles'. Evitar depender de metadata del JWT.
   // Para minimizar latencia/riesgo en Edge, aplicamos un timeout corto y solo caemos a metadata si hay error/timeout.
@@ -210,6 +215,13 @@ export async function updateSession(request: NextRequest) {
         supabaseResponse
       );
     }
+  }
+
+  // 5b. Si hay cookies de auth pero no logramos resolver al usuario (timeout),
+  // evitar caer en la página base '/' y redirigir a la home por rol (fallback user)
+  if (!isAuthed && hasAuthCookie && path === "/") {
+    const homeUrl = getHomeUrlForRole(role);
+    return redirectWithCookies(new URL(homeUrl, request.url), supabaseResponse);
   }
 
   // 6. Lógica para usuarios NO AUTENTICADOS
