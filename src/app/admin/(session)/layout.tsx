@@ -25,7 +25,7 @@ const navigationLinks: NavLink[] = [
     subLinks: [
       { name: "Clientes", href: `${actualURL}/customers` },
       { name: "Aliados", href: `${actualURL}/aliados` },
-      { name: "Repartidores", href: `${actualURL}/repartidores` },
+      { name: "Repartidores", href: `${actualURL}/drivers` },
     ],
   },
   {
