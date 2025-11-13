@@ -3,13 +3,13 @@
 import LogoutAsideIcon from "@/src/components/icons/LogoutAsideIcon";
 import CollapsibleNavLink from "../../features/admin/CollapsibleNavLink";
 import SingleNavLink from "../../features/admin/SingleNavLink";
-import { ReactNode, useState, type ComponentType } from "react";
+import { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 
 export type NavLink = {
   name: string;
   href: string;
-  icon?: string; // Un identificador de texto para el icono
+  icon?: ReactNode;
   subLinks?: Omit<NavLink, "subLinks">[];
 };
 
@@ -20,12 +20,9 @@ export default function Sidebar({
 }) {
   const pathname = usePathname();
 
-  // Helper: determine if link is active for current route
   const isLinkActive = (href: string) => {
     if (!href) return false;
-    // Exact match first
     if (pathname === href) return true;
-    // Otherwise check if current path is under the link base path
     const base = href.endsWith("/") ? href : `${href}/`;
     return pathname.startsWith(base);
   };
@@ -40,20 +37,19 @@ export default function Sidebar({
   return (
     <aside className="fixed w-[14rem] h-screen flex-col bg-white pt-[86px] -translate-x-full md:translate-x-0">
       <div className="flex flex-col p-4 h-full justify-between">
-        {/* Navegación Principal */}
         <nav className="space-y-2">
           {navigationLinks.map((link) => {
             if (link.subLinks) {
-              const isMenuActive = link.subLinks.some((sub) =>
-                isLinkActive(sub.href)
-              );
+              // Ya no necesitas 'isMenuActive' aquí, pero lo dejamos por si lo usas en otro lado.
+              // const isMenuActive = link.subLinks.some((sub) => isLinkActive(sub.href));
+
               return (
                 <CollapsibleNavLink
                   key={link.name}
                   link={link}
-                  // El menú está abierto si su nombre coincide con el estado O si está activo
-                  isOpen={openMenu === link.name || isMenuActive}
-                  activeSubLink={pathname}
+                  // ✨ LA CORRECCIÓN ESTÁ AQUÍ ✨
+                  isOpen={openMenu === link.name}
+                  activeSubLink={pathname} // Sigue pasando el pathname, es correcto
                   onToggle={() =>
                     setOpenMenu(openMenu === link.name ? "" : link.name)
                   }
@@ -68,13 +64,13 @@ export default function Sidebar({
                 key={link.name}
                 link={link}
                 isActive={isActive}
-                onClick={() => setOpenMenu("")}
+                onClick={() => setOpenMenu("")} // Esto es bueno, cierra cualquier menú abierto
               />
             );
           })}
         </nav>
 
-        {/* Botón de Logout */}
+        {/* ... resto del componente ... */}
         <div>
           <button
             className="

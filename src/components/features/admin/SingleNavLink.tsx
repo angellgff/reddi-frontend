@@ -6,6 +6,7 @@ import SupportIcon from "../../icons/SupportIcon";
 import HistoryIcon from "../../icons/HistoryIcon";
 import ProductIcon from "../../icons/ProductIcon";
 import OrderIcon from "../../icons/OrderIcon";
+import React, { ComponentType, isValidElement, cloneElement } from "react";
 
 const iconMap: {
   [key: string]: ComponentType<{ className?: string; fill?: string }>;
@@ -29,7 +30,31 @@ export default function SingleNavLink({
   isActive,
   onClick,
 }: SingleNavLinkProps) {
-  const IconComponent = (link.icon && iconMap[link.icon]) ?? Squares2X2Icon;
+  // If an icon React element is provided, clone and style it; otherwise use string map.
+  const renderIcon = () => {
+    if (link.icon && isValidElement(link.icon)) {
+      const el = link.icon as React.ReactElement<any>;
+      const prevClass = (el.props as any)?.className || "";
+      const prevFill = (el.props as any)?.fill;
+      const mergedProps: any = {
+        className: `h-5 w-5 ${prevClass} ${isActive ? "text-white" : ""}`,
+        fill: isActive ? "white" : prevFill,
+      };
+      return cloneElement<any>(el, mergedProps);
+    }
+    const key = typeof link.icon === "string" ? (link.icon as string) : "";
+    const IconComponent = ((key && iconMap[key]) ??
+      Squares2X2Icon) as ComponentType<{
+      className?: string;
+      fill?: string;
+    }>;
+    return (
+      <IconComponent
+        className="h-5 w-5"
+        fill={isActive ? "white" : "#6A6C71"}
+      />
+    );
+  };
   return (
     <Link
       href={link.href}
@@ -40,10 +65,7 @@ export default function SingleNavLink({
           : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
       }`}
     >
-      <IconComponent
-        className="h-5 w-5"
-        fill={isActive ? "white" : "#6A6C71"}
-      />
+      {renderIcon()}
       <span>{link.name}</span>
     </Link>
   );

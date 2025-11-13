@@ -25,6 +25,7 @@
     "pigeon-maps": "^0.21.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "react-inlinesvg": "^4.2.0",
     "react-redux": "^9.1.2",
     "recharts": "^3.4.1",
     "resend": "^6.4.1",
