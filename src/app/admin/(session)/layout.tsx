@@ -34,7 +34,7 @@ const navigationLinks: NavLink[] = [
   },
   {
     name: "Finanzas",
-    href: `${actualURL}/finanzas`,
+    href: `${actualURL}/finances`,
   },
 ];
 
