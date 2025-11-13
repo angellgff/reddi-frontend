@@ -1,33 +1,12 @@
 import CardShell from "../../CardShell";
-
-const orders = [
-  {
-    id: "#1247",
-    client: "María González",
-    total: "$45.90",
-    status: "Entregado",
-    time: "2 min",
-  },
-  {
-    id: "#1248",
-    client: "Carlos Ruiz",
-    total: "$32.50",
-    status: "En camino",
-    time: "5 min",
-  },
-  {
-    id: "#1249",
-    client: "Ana López",
-    total: "$67.80",
-    status: "Preparando",
-    time: "8 min",
-  },
-];
+import getRecentOrders from "@/src/lib/admin/data/dashboard/getRecentOrders";
 
 const statusStyles: { [key: string]: string } = {
-  Entregado: "bg-green-100 text-green-700",
-  "En camino": "bg-blue-100 text-blue-700",
-  Preparando: "bg-yellow-100 text-yellow-700",
+  delivered: "bg-green-100 text-green-700",
+  out_for_delivery: "bg-blue-100 text-blue-700",
+  preparing: "bg-yellow-100 text-yellow-700",
+  pending: "bg-gray-100 text-gray-700",
+  cancelled: "bg-red-100 text-red-700",
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -37,12 +16,28 @@ function StatusBadge({ status }: { status: string }) {
         statusStyles[status] || "bg-gray-100 text-gray-700"
       }`}
     >
-      {status}
+      {status.replace(/_/g, " ")}
     </span>
   );
 }
 
-export default function RecentOrdersTable() {
+function money(n: number) {
+  return `$${(n || 0).toFixed(2)}`;
+}
+
+function timeAgo(iso: string): string {
+  const d = new Date(iso);
+  const diffMs = Date.now() - d.getTime();
+  const mins = Math.floor(diffMs / 60000);
+  if (mins < 60) return `${mins} min`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `${hrs} h`;
+  const days = Math.floor(hrs / 24);
+  return `${days} d`;
+}
+
+export default async function RecentOrdersTable() {
+  const orders = await getRecentOrders(10);
   return (
     <CardShell title="Pedidos Recientes">
       <div className="overflow-x-auto overflow-y-auto max-h-72">
@@ -53,7 +48,7 @@ export default function RecentOrdersTable() {
                 ID
               </th>
               <th scope="col" className="px-4 py-3">
-                Cliente
+                Usuario
               </th>
               <th scope="col" className="px-4 py-3">
                 Total
@@ -67,17 +62,19 @@ export default function RecentOrdersTable() {
             </tr>
           </thead>
           <tbody className="overflow-y-auto">
-            {orders.map((order) => (
-              <tr key={order.id} className="border-b hover:bg-gray-50">
+            {orders.map((o) => (
+              <tr key={o.id} className="border-b hover:bg-gray-50">
                 <td className="px-4 py-3 font-medium text-gray-900">
-                  {order.id}
+                  {o.id.split("-")[0]}
                 </td>
-                <td className="px-4 py-3">{order.client}</td>
-                <td className="px-4 py-3">{order.total}</td>
+                <td className="px-4 py-3 truncate max-w-[200px]">
+                  {o.customerName || "—"}
+                </td>
+                <td className="px-4 py-3">{money(o.total_amount)}</td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={order.status} />
+                  <StatusBadge status={(o.status as any) || "pending"} />
                 </td>
-                <td className="px-4 py-3">{order.time}</td>
+                <td className="px-4 py-3">{timeAgo(o.created_at)}</td>
               </tr>
             ))}
           </tbody>

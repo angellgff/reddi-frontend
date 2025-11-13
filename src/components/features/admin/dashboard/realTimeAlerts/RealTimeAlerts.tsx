@@ -2,24 +2,7 @@ import CardShell from "../../CardShell";
 import DangerIcon from "@/src/components/icons/DangerIcon";
 import WarningIcon from "@/src/components/icons/WarningIcon";
 import InfoIcon from "@/src/components/icons/InfoIcon";
-
-const alerts = [
-  {
-    type: "danger",
-    title: "Pedido retrasado",
-    id: "#1245 - 15 min de retraso",
-  },
-  {
-    type: "warning",
-    title: "Repartidor inactivo",
-    id: "Juan P - Sin actividad 20 min",
-  },
-  {
-    type: "info",
-    title: "Nuevo aliado registrado",
-    id: 'Restaurante "La Cocina"',
-  },
-];
+import getRecentAlerts from "@/src/lib/admin/data/dashboard/getRecentAlerts";
 
 const alertStyles = {
   danger: { bg: "bg-red-50", text: "text-red-700", icon: <DangerIcon /> },
@@ -31,7 +14,8 @@ const alertStyles = {
   info: { bg: "bg-blue-50", text: "text-blue-700", icon: <InfoIcon /> },
 };
 
-export default function RealTimeAlerts() {
+export default async function RealTimeAlerts() {
+  const alerts = await getRecentAlerts(5);
   return (
     <CardShell title="Alertas en Tiempo Real">
       <div className="space-y-4">

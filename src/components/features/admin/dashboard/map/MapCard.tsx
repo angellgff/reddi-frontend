@@ -1,13 +1,11 @@
 import CardShell from "../../CardShell";
+import AdminMap from "./AdminMap";
+import type { AdminMapData } from "@/src/lib/admin/data/dashboard/getMapData";
 
-// De momento data es un string, pero en el futuro será un objeto con los datos necesarios para renderizar el mapa
-
-export default function MapCard({ data }: { data: string }) {
+export default function MapCard({ data }: { data: AdminMapData }) {
   return (
-    <CardShell title="Evolución de Ingresos">
-      <div className="bg-gray-200 h-80 rounded-lg flex items-center justify-center">
-        <p className="text-gray-500">{data}</p>
-      </div>
+    <CardShell title="Mapa de Operaciones (hoy)">
+      <AdminMap data={data} />
     </CardShell>
   );
 }
