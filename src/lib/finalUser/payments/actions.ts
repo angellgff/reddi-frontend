@@ -147,3 +147,28 @@ export async function setDefaultPaymentMethod(id: string) {
   revalidatePath("/user/payment");
   return { success: true } as const;
 }
+
+// Fetch the user's default payment method (server-side)
+export async function getUserDefaultPaymentMethod() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: true, method: null as UserPaymentMethod | null };
+
+  const { data, error } = await supabase
+    .from("user_payment_methods")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_default", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    console.warn("getUserDefaultPaymentMethod error", error);
+  }
+  return {
+    success: true,
+    method: (data as UserPaymentMethod) || null,
+  } as const;
+}

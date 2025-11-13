@@ -5,6 +5,7 @@ import UserHeaderServer from "@/src/components/features/finalUser/header/UserHea
 import UserHeaderSkeleton from "@/src/components/features/finalUser/header/UserHeaderSkeleton";
 import UserFooter from "@/src/components/basics/UserFooter";
 import UserAddressesHydratorServer from "@/src/components/features/finalUser/addresses/UserAddressesHydratorServer";
+import UserDefaultPaymentHydratorServer from "@/src/components/features/finalUser/payments/UserDefaultPaymentHydratorServer";
 
 export default function UserLayout({
   children,
@@ -14,6 +15,7 @@ export default function UserLayout({
   return (
     <>
       <UserAddressesHydratorServer />
+      <UserDefaultPaymentHydratorServer />
       <Suspense fallback={<UserHeaderSkeleton />}>
         <UserHeaderServer />
       </Suspense>
