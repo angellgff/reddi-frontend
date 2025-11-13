@@ -23,8 +23,13 @@ export default async function AdminCustomersPage({
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       <h1 className="font-semibold">Gestión de usuarios</h1>
-      <h2 className="font-roboto font-normal mb-5">Aquí está el resumen de hoy</h2>
-      <ClientsClientShell totalCount={total} tableBody={<CustomerListServer searchParams={searchParams} />} />
+      <h2 className="font-roboto font-normal mb-5">
+        Aquí está el resumen de hoy
+      </h2>
+      <ClientsClientShell
+        totalCount={total}
+        tableBody={<CustomerListServer searchParams={searchParams} />}
+      />
     </div>
   );
 }

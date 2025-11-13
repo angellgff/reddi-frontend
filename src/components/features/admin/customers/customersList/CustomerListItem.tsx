@@ -25,12 +25,22 @@ export default function CustomerListItem({ customer }: { customer: Customer }) {
 
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50 font-roboto">
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">#{customer.id.slice(0, 6)}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{customer.fullName}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        #{customer.id.slice(0, 6)}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {customer.fullName}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">-</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{customer.phone ?? "-"}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{created}</td>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{currency}</td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {customer.phone ?? "-"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {created}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {currency}
+      </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex items-center space-x-4 text-gray-500">
           <Link href={`/admin/customers/${customer.id}`}>

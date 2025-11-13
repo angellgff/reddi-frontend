@@ -30,8 +30,14 @@ export default function FiltersSection({
           </div>
           {/* Placeholder de 'Estados' omitido por requerimiento */}
           <div className="flex flex-col w-full md:w-1/2 gap-2">
-            <label className="text-sm text-[#292929] font-roboto">Estados</label>
-            <input disabled className="h-10 px-4 border border-[#D9DCE3] rounded-xl bg-gray-50" placeholder="(Ignorado)" />
+            <label className="text-sm text-[#292929] font-roboto">
+              Estados
+            </label>
+            <input
+              disabled
+              className="h-10 px-4 border border-[#D9DCE3] rounded-xl bg-gray-50"
+              placeholder="(Ignorado)"
+            />
           </div>
         </div>
         <div className="flex gap-3">

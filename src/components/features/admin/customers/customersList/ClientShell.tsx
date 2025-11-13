@@ -13,7 +13,10 @@ export interface ClientShellProps {
 
 const ITEMS_PER_PAGE = 10;
 
-export default function ClientsClientShell({ totalCount, tableBody }: ClientShellProps) {
+export default function ClientsClientShell({
+  totalCount,
+  tableBody,
+}: ClientShellProps) {
   const formattedTotal = new Intl.NumberFormat("es-CO").format(totalCount);
   const router = useRouter();
   const pathname = usePathname();
@@ -26,7 +29,9 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
     const params = new URLSearchParams(searchParams);
     if (query) params.set("q", query);
     else params.delete("q");
-    startTransition(() => router.push(`${pathname}?${params.toString()}`, { scroll: false }));
+    startTransition(() =>
+      router.push(`${pathname}?${params.toString()}`, { scroll: false })
+    );
   }, [query, searchParams, router, pathname]);
 
   const handleClearFilters = useCallback(() => {
@@ -41,7 +46,13 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
       const params = new URLSearchParams(searchParams);
       let nextOrderDirection: OrderDir | null;
       if (currentSortBy !== columnKey) nextOrderDirection = "asc";
-      else nextOrderDirection = currentSortDirection === "asc" ? "desc" : currentSortDirection === "desc" ? null : "asc";
+      else
+        nextOrderDirection =
+          currentSortDirection === "asc"
+            ? "desc"
+            : currentSortDirection === "desc"
+            ? null
+            : "asc";
       if (nextOrderDirection) {
         params.set("orderBy", columnKey);
         params.set("order", nextOrderDirection);
@@ -49,7 +60,9 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
         params.delete("orderBy");
         params.delete("order");
       }
-      startTransition(() => router.push(`${pathname}?${params.toString()}`, { scroll: false }));
+      startTransition(() =>
+        router.push(`${pathname}?${params.toString()}`, { scroll: false })
+      );
     },
     [searchParams, router, pathname, currentSortBy, currentSortDirection]
   );
@@ -60,7 +73,9 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
     (newPage: number) => {
       const params = new URLSearchParams(searchParams);
       params.set("page", String(newPage));
-      startTransition(() => router.push(`${pathname}?${params.toString()}`, { scroll: false }));
+      startTransition(() =>
+        router.push(`${pathname}?${params.toString()}`, { scroll: false })
+      );
     },
     [searchParams, router, pathname]
   );
@@ -76,8 +91,12 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
       />
       <div className="bg-white rounded-lg overflow-hidden mt-6 px-6">
         <div className="py-4 flex justify-between items-center">
-          <h1 className="text-lg font-semibold text-gray-800 font-montserrat">Lista de Usuarios</h1>
-          <span className="text-sm text-[#6A6C71] font-roboto">{formattedTotal} usuarios encontrados</span>
+          <h1 className="text-lg font-semibold text-gray-800 font-montserrat">
+            Lista de Usuarios
+          </h1>
+          <span className="text-sm text-[#6A6C71] font-roboto">
+            {formattedTotal} usuarios encontrados
+          </span>
         </div>
         <div className="overflow-x-auto border border-[#D9DCE3] rounded-xl">
           <table className="w-full text-center">
@@ -91,7 +110,8 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
         </div>
         <div className="p-4 flex items-center justify-between border-t border-gray-200">
           <p className="text-sm text-gray-700">
-            {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalCount)} - {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} de {totalCount}
+            {Math.min((currentPage - 1) * ITEMS_PER_PAGE + 1, totalCount)} -{" "}
+            {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} de {totalCount}
           </p>
           <div className="flex items-center gap-2">
             <button
@@ -101,10 +121,14 @@ export default function ClientsClientShell({ totalCount, tableBody }: ClientShel
             >
               Anterior
             </button>
-            <span className="text-sm">{currentPage} / {totalPages || 1}</span>
+            <span className="text-sm">
+              {currentPage} / {totalPages || 1}
+            </span>
             <button
               className="px-3 py-1 rounded border disabled:opacity-50"
-              onClick={() => handlePageChange(Math.min(totalPages || 1, currentPage + 1))}
+              onClick={() =>
+                handlePageChange(Math.min(totalPages || 1, currentPage + 1))
+              }
               disabled={isPending || currentPage >= (totalPages || 1)}
             >
               Siguiente

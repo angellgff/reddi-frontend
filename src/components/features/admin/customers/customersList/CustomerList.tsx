@@ -5,7 +5,10 @@ export default function CustomerList({ customers }: { customers: Customer[] }) {
     return (
       <tbody>
         <tr>
-          <td colSpan={7} className="px-6 py-6 text-center text-sm text-gray-500">
+          <td
+            colSpan={7}
+            className="px-6 py-6 text-center text-sm text-gray-500"
+          >
             No hay clientes disponibles
           </td>
         </tr>

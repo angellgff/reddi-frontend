@@ -3,9 +3,15 @@
 import CustomerList from "./CustomerList";
 import getCustomersPage from "@/src/lib/admin/data/customers/getCustomersPage";
 
-export type SearchParams = Promise<{ [key: string]: string | string[] | undefined }>;
+export type SearchParams = Promise<{
+  [key: string]: string | string[] | undefined;
+}>;
 
-export default async function CustomerListServer({ searchParams }: { searchParams: SearchParams }) {
+export default async function CustomerListServer({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
   const params = await searchParams;
   const page = params.page ? parseInt(params.page as string) : 1;
   const q = (params.q as string) || "";
