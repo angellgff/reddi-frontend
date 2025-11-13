@@ -23,7 +23,7 @@ const navigationLinks: NavLink[] = [
     name: "Usuarios",
     href: "#",
     subLinks: [
-      { name: "Clientes", href: `${actualURL}/clientes` },
+      { name: "Clientes", href: `${actualURL}/customers` },
       { name: "Aliados", href: `${actualURL}/aliados` },
       { name: "Repartidores", href: `${actualURL}/repartidores` },
     ],
