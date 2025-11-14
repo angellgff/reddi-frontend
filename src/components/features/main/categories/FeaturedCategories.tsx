@@ -42,12 +42,7 @@ const FeaturedCategories: React.FC = ({
       </div>
       {/* Contenedor con scroll horizontal */}
       <div
-        className="
-          flex w-full items-start gap-4 
-          overflow-x-auto 
-          sm:px-6 
-          scrollbar-hide
-        "
+        className="flex w-full items-start gap-4 overflow-x-auto sm:px-6 scrollbar-hide snap-x snap-mandatory"
         id="featured-categories-row"
       >
         {/* 2. Mapea los datos y renderiza cada CategoryCard */}
@@ -57,6 +52,7 @@ const FeaturedCategories: React.FC = ({
             name={category.name}
             imageUrl={category.imageUrl}
             href={category.href}
+            className="snap-start"
           />
         ))}
       </div>

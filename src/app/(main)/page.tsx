@@ -16,36 +16,44 @@ import UserFooter from "@/src/components/basics/UserFooter";
 export default function Home() {
   return (
     <>
-      <div className="mx-auto max-w-7xl pb-[4.45rem] pt-[9rem]">
+      <div className="mx-auto max-w-7xl w-full pb-[4.45rem] pt-32 md:pt-36 overflow-x-hidden">
         {/* Hero desktop-only search banner */}
         <DesktopHeroSearch />
         {/* Categorías: mobile grandes + pequeñas; desktop combinado */}
-        <section className="p-4 md:px-6 lg:px-8 md:hidden">
+        <section className="px-4 sm:px-6 lg:px-8 md:hidden">
           <LargeCategoryGrid />
         </section>
-        <section className="p-4 md:px-6 lg:px-8 md:hidden">
+        <section className="px-4 sm:px-6 lg:px-8 md:hidden mt-6 overflow-x-hidden">
           <FeaturedCategories />
         </section>
-        <section className="p-4 md:px-6 lg:px-8">
+        <section className="px-4 sm:px-6 lg:px-8 mt-8">
           <DesktopFeaturedCategories />
         </section>
-        {/* Recomendaciones */}
-        <section className="p-4 md:px-6 lg:px-8">
-          <Suspense fallback={<SliderSectionSkeleton />}>
-            <RecommendedSectionServer />
-          </Suspense>
-        </section>
         {/* Promociones */}
-        <section className="p-4 md:px-6 lg:px-8">
+        <section className="px-4 sm:px-6 lg:px-8 mt-12">
           <Suspense fallback={<PromoSliderSkeleton />}>
             <PromoSliderServer />
           </Suspense>
         </section>
-        {/* Secciones marketing: Cómo funciona & Beneficios */}
-        <div className="space-y-12 md:space-y-16">
+        {/* Recomendaciones */}
+        <section className="px-4 sm:px-6 lg:px-8 mt-10">
+          <Suspense fallback={<SliderSectionSkeleton />}>
+            <RecommendedSectionServer />
+          </Suspense>
+        </section>
+        {/* Pedidos anteriores */}
+        <section className="px-4 sm:px-6 lg:px-8 mt-10">
+          <Suspense fallback={<SliderSectionSkeleton />}>
+            <OrderAgainServer />
+          </Suspense>
+        </section>
+        {/* Marketing: Cómo funciona & Beneficios */}
+        <section className="px-4 sm:px-6 lg:px-8 mt-16 overflow-x-hidden">
           <HowItWorksSection />
+        </section>
+        <section className="px-4 sm:px-6 lg:px-8 mt-14 overflow-x-hidden">
           <BenefitsSection />
-        </div>
+        </section>
       </div>
       <UserFooter />
     </>

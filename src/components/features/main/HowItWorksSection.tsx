@@ -23,33 +23,35 @@ export default function HowItWorksSection() {
   ];
 
   return (
-    <section className="w-full bg-white px-6 md:px-12 py-8 md:py-10 flex flex-col gap-8">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <h2 className="font-bold text-2xl md:text-3xl text-[#111827]">
+    <div className="flex flex-col gap-10 py-10">
+      {/* Heading */}
+      <div className="flex flex-col items-center gap-3 text-center">
+        <h2 className="font-bold text-2xl sm:text-3xl leading-tight text-[#111827]">
           Cómo funciona
         </h2>
-        <p className="text-base md:text-lg text-gray-600 max-w-2xl">
+        <p className="text-sm sm:text-base md:text-lg text-gray-600 max-w-2xl">
           Tres simples pasos para recibir todo lo que necesitas
         </p>
       </div>
-      <div className="grid gap-6 md:gap-4 md:grid-cols-3">
+      {/* Steps Grid */}
+      <div className="grid gap-6 sm:gap-5 md:gap-6 sm:grid-cols-2 md:grid-cols-3">
         {steps.map((s) => (
           <div
             key={s.title}
-            className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow-[0_16px_32px_-4px_rgba(12,12,13,0.1),0_4px_4px_-4px_rgba(12,12,13,0.05)] px-6 py-6 text-center"
+            className="flex flex-col items-center justify-center bg-white border border-gray-200 rounded-lg shadow-[0_16px_32px_-4px_rgba(12,12,13,0.1),0_4px_4px_-4px_rgba(12,12,13,0.05)] px-5 sm:px-6 py-6 min-h-[184px] text-center"
           >
-            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#222222] mb-4 text-white">
+            <div className="flex items-center justify-center w-14 h-14 rounded-full bg-[#222222] mb-4 text-white shrink-0">
               {s.icon}
             </div>
-            <h3 className="font-semibold text-lg md:text-xl mb-2 text-black">
+            <h3 className="font-semibold text-base sm:text-lg md:text-xl mb-2 text-black leading-snug">
               {s.title}
             </h3>
-            <p className="text-sm md:text-base text-gray-600 leading-snug">
+            <p className="text-xs sm:text-sm md:text-base text-gray-600 leading-snug">
               {s.desc}
             </p>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

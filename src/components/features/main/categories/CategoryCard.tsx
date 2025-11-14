@@ -7,6 +7,7 @@ type CategoryCardProps = {
   imageUrl: string;
   href: string;
   size?: "small" | "large";
+  className?: string;
 };
 
 const CategoryCard: React.FC<CategoryCardProps> = ({
@@ -14,6 +15,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   imageUrl,
   href,
   size = "small",
+  className = "",
 }) => {
   const isLarge = size === "large";
 
@@ -31,12 +33,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   return (
     <Link
       href={href}
-      className={`
-        flex flex-col items-center 
-        transition-transform duration-200 
-        hover:scale-105 active:scale-95 bg-[#f3f3f3] rounded-2xl
-        ${containerClasses} 
-      `}
+      className={`flex flex-col items-center transition-transform duration-200 hover:scale-105 active:scale-95 bg-[#f3f3f3] rounded-2xl ${containerClasses} ${className}`}
     >
       {/* Contenedor de la imagen */}
       <div

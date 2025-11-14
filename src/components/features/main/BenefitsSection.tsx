@@ -22,32 +22,35 @@ const benefits = [
 
 export default function BenefitsSection() {
   return (
-    <section className="w-full flex flex-col lg:flex-row items-center gap-10 md:gap-12 px-6 md:px-20 py-12 md:py-14">
-      <div className="w-full lg:w-auto max-w-md lg:max-w-none">
+    <div className="w-full bg-[#F9FAFB] py-12 md:py-16 flex flex-col lg:flex-row items-center gap-10 md:gap-14">
+      {/* Imagen */}
+      <div className="w-full lg:w-[570px] flex-shrink-0 max-w-full">
         <Image
-          src="/girl.png"
+          src="/enjoy-free.jpg"
           alt="Persona disfrutando mientras espera su pedido"
           width={570}
           height={488}
-          className="rounded-xl object-cover w-full h-auto"
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 570px"
+          className="rounded-xl object-cover w-full h-[260px] sm:h-[320px] md:h-[420px] lg:h-[488px] max-w-full"
           priority
         />
       </div>
-      <div className="flex flex-col gap-10 max-w-xl lg:max-w-[594px] w-full">
-        <h2 className="font-bold text-2xl md:text-3xl text-[#111827]">
+      {/* Lista de beneficios */}
+      <div className="flex flex-col gap-8 max-w-xl lg:max-w-[594px] w-full">
+        <h2 className="font-bold text-2xl sm:text-3xl text-[#111827] leading-tight">
           Beneficios de <span className="text-[#00C48C]">Reddi</span>
         </h2>
         <div className="flex flex-col gap-6">
           {benefits.map((b) => (
             <div key={b.title} className="flex items-start gap-3">
-              <div className="flex items-center justify-center bg-[#00C48C] rounded-full w-7 h-7 mt-1">
-                <CheckIcon className="w-3.5 h-3.5 text-white" />
+              <div className="flex items-center justify-center bg-[#00C48C] rounded-full w-8 h-8 mt-1">
+                <CheckIcon className="w-4 h-4 text-white" />
               </div>
               <div className="flex-1 flex flex-col gap-1">
-                <h3 className="font-semibold text-lg md:text-xl text-black leading-tight">
+                <h3 className="font-semibold text-base sm:text-lg md:text-xl text-black leading-tight">
                   {b.title}
                 </h3>
-                <p className="text-sm md:text-base text-gray-600 leading-snug">
+                <p className="text-xs sm:text-sm md:text-base text-gray-600 leading-snug">
                   {b.desc}
                 </p>
               </div>
@@ -55,6 +58,6 @@ export default function BenefitsSection() {
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
