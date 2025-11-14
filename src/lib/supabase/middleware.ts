@@ -2,13 +2,18 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function updateSession(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  console.log(
+    `\n\n--- [MW-DEBUG] INICIO Petición a: ${request.method} ${path} ---`
+  );
+
   // Helper: create a redirect response and propagate any cookies Supabase asked us to set
   function redirectWithCookies(target: URL, base: NextResponse) {
     const res = NextResponse.redirect(target);
-    // copy cookies that may have been set during auth refresh into the redirect response
     base.cookies.getAll().forEach(({ name, value }) => {
       res.cookies.set(name, value);
     });
+    console.log(`[MW-DEBUG] 🚀 Redirigiendo a: ${target.href}`);
     return res;
   }
   function getHomeUrlForRole(role: string | null): string {
@@ -26,16 +31,13 @@ export async function updateSession(request: NextRequest) {
         return "/user/home";
     }
   }
-  // console.log("[mw] ->", request.method, request.nextUrl.pathname, request.nextUrl.search);
 
-  // 1. Crear una respuesta base que se usará para pasar a través o para redirigir.
-  // Esto es crucial porque contendrá las cookies de sesión actualizadas.
+  // 1. Crear una respuesta base
   let supabaseResponse = NextResponse.next({
     request,
   });
 
-  // 2. Crear el cliente de Supabase para el servidor.
-  // Este cliente leerá y escribirá cookies según sea necesario.
+  // 2. Crear el cliente de Supabase
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_OR_ANON_KEY!,
@@ -43,7 +45,6 @@ export async function updateSession(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
-          // Cuando Supabase necesite establecer cookies, las adjuntamos a nuestra respuesta base.
           cookiesToSet.forEach(({ name, value, options }) =>
             request.cookies.set(name, value)
           );
@@ -58,8 +59,7 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // 3. Obtener la sesión del usuario con un límite de tiempo corto para evitar bloqueos del middleware.
-  // IMPORTANTE: Esto también puede refrescar el token y actualizar las cookies en `supabaseResponse`.
+  // 3. Obtener la sesión del usuario
   const withTimeout = async <T>(p: Promise<T>, ms: number): Promise<T> => {
     return await Promise.race<T>([
       p,
@@ -76,22 +76,15 @@ export async function updateSession(request: NextRequest) {
     } = (await withTimeout(supabase.auth.getUser(), 1200)) as any;
     user = u || null;
   } catch (e) {
-    // En caso de timeout u otro error, continuamos como no autenticado para no colgar la navegación.
-    if (process.env.NEXT_PUBLIC_DEBUG_AUTH) {
-      console.warn("[mw] getUser error/timeout", (e as Error)?.message);
-    }
+    console.warn(
+      "[MW-DEBUG] Error o timeout en getUser:",
+      (e as Error)?.message
+    );
   }
 
-  const path = request.nextUrl.pathname;
   const isAuthed = !!user;
-  // Heuristic: if Supabase set any auth cookie, treat as likely authenticated
-  // This helps when getUser() times out and prevents landing on base '/'
-  const hasAuthCookie = request.cookies
-    .getAll()
-    .some((c) => c.name.includes("auth"));
+  // const hasAuthCookie = request.cookies.getAll().some((c) => c.name.includes("auth")); // Ya no es necesario para la lógica principal
 
-  // Rol: fuente de verdad -> tabla 'profiles'. Evitar depender de metadata del JWT.
-  // Para minimizar latencia/riesgo en Edge, aplicamos un timeout corto y solo caemos a metadata si hay error/timeout.
   let role: string | null = null;
   if (isAuthed) {
     try {
@@ -105,20 +98,19 @@ export async function updateSession(request: NextRequest) {
       )) as any;
       role = (profile as any)?.role ?? null;
     } catch (e) {
-      // Fallback conservador: usar metadata solo si la consulta falla o expira
       const am = (user?.app_metadata as any) || {};
       const um = (user?.user_metadata as any) || {};
       role = am.user_role || am.role || um.user_role || um.role || null;
-      if (process.env.NEXT_PUBLIC_DEBUG_AUTH) {
-        console.warn(
-          "[mw] profiles role lookup failed, falling back to metadata:",
-          (e as Error)?.message
-        );
-      }
+      console.warn(
+        "[MW-DEBUG] Fallo al buscar rol en 'profiles', usando metadata:",
+        (e as Error)?.message
+      );
     }
   }
 
-  // console.log(`[mw] Path: ${path}, Authed: ${isAuthed}, Role: ${role}`);
+  console.log(
+    `[MW-DEBUG] Estado de autenticación: isAuthed=${isAuthed}, role=${role}`
+  );
 
   // 4. Definir rutas públicas y de autenticación
   const publicPaths = [
@@ -139,62 +131,65 @@ export async function updateSession(request: NextRequest) {
   const isPublicPath = publicPaths.includes(path);
   const isAuthPath = authPaths.some((p) => path.startsWith(p));
 
+  console.log(
+    `[MW-DEBUG] Análisis de ruta: isPublicPath=${isPublicPath}, isAuthPath=${isAuthPath}`
+  );
+
   // --- LÓGICA DE REDIRECCIÓN ---
 
   // 5. Lógica para usuarios YA AUTENTICADOS
   if (isAuthed) {
-    // Si un usuario autenticado está en una página de inicio de sesión o en la home pública,
-    // redirigirlo a su dashboard correspondiente.
+    console.log("[MW-DEBUG] Analizando lógica para usuario AUTENTICADO.");
     if (isAuthPath || path === "/") {
       const homeUrl = getHomeUrlForRole(role);
-      // console.log(`[mw] Redirecting authed user from auth/public page to: ${homeUrl}`);
+      console.log(
+        `[MW-DEBUG] Usuario autenticado en ruta pública/auth ('${path}'). Redirigiendo a su home: ${homeUrl}`
+      );
       return redirectWithCookies(
         new URL(homeUrl, request.url),
         supabaseResponse
       );
     }
 
-    // --- Control de acceso basado en roles ---
-
+    // --- Control de acceso basado en roles (sin cambios) ---
+    // ... (El resto de la lógica de roles permanece igual)
     const denyAccessAndRedirect = (reason: string) => {
       const homeUrl = getHomeUrlForRole(role);
-      // console.log(`[mw] DENY: ${reason}. Role: '${role}', Path: '${path}'. Redirecting to: ${homeUrl}`);
+      console.log(
+        `[MW-DEBUG] ACCESO DENEGADO: ${reason}. Rol: '${role}', Path: '${path}'. Redirigiendo a: ${homeUrl}`
+      );
       return redirectWithCookies(
         new URL(homeUrl, request.url),
         supabaseResponse
       );
     };
 
-    // Si la ruta es de admin, solo 'admin' puede acceder
     if (path.startsWith("/admin") && role !== "admin") {
-      return denyAccessAndRedirect("Admin area requires 'admin' role");
+      return denyAccessAndRedirect("Área de admin requiere rol 'admin'");
     }
-    // Enforce that only 'market' role can access /partner/market and any nested routes
     if (path.startsWith("/partner/market") && role !== "market") {
       return denyAccessAndRedirect(
-        "Partner Market area requires 'market' role"
+        "Área de Partner Market requiere rol 'market'"
       );
     }
-    // Solo 'restaurant' puede acceder a /partner/restaurant y subrutas
     if (path.startsWith("/partner/restaurant") && role !== "restaurant") {
       return denyAccessAndRedirect(
-        "Partner Restaurant area requires 'restaurant' role"
+        "Área de Partner Restaurant requiere rol 'restaurant'"
       );
     }
-    // Solo 'delivery' puede acceder a /repartidor y subrutas
     if (path.startsWith("/repartidor") && role !== "delivery") {
-      return denyAccessAndRedirect("Repartidor area requires 'delivery' role");
+      return denyAccessAndRedirect(
+        "Área de Repartidor requiere rol 'delivery'"
+      );
     }
     if (role && path.startsWith("/user")) {
       const specialRoles = ["admin", "market", "restaurant", "delivery"];
       if (specialRoles.includes(role as string)) {
         return denyAccessAndRedirect(
-          "Special roles cannot access general user area"
+          "Roles especiales no pueden acceder al área de usuario general"
         );
       }
     }
-
-    // Backward-compat: redirige /aliado/* a /partner/ROLE/*
     if (path.startsWith("/aliado")) {
       const base =
         role === "restaurant" ? "/partner/restaurant" : "/partner/market";
@@ -203,13 +198,16 @@ export async function updateSession(request: NextRequest) {
         sub && sub !== "" ? `${base}${sub}` : `${base}/dashboard`;
       const target = new URL(targetPath, request.url);
       target.search = request.nextUrl.search;
-      // console.log(`[mw] Redirect legacy '/aliado' -> ${target.pathname}`);
+      console.log(
+        `[MW-DEBUG] Redirigiendo ruta legacy '/aliado' a -> ${target.pathname}`
+      );
       return redirectWithCookies(target, supabaseResponse);
     }
-
-    // Si un partner entra a /partner sin especificar, llévalo a su dashboard
     if (path === "/partner" || path === "/partner/") {
       const homeUrl = getHomeUrlForRole(role);
+      console.log(
+        `[MW-DEBUG] Usuario partner en ruta genérica '/partner'. Redirigiendo a su home: ${homeUrl}`
+      );
       return redirectWithCookies(
         new URL(homeUrl, request.url),
         supabaseResponse
@@ -217,31 +215,40 @@ export async function updateSession(request: NextRequest) {
     }
   }
 
-  // 5b. Si hay cookies de auth pero no logramos resolver al usuario (timeout),
-  // evitar caer en la página base '/' y redirigir a la home por rol (fallback user)
+  // 5b. Lógica para cookie existente pero sesión no resuelta (timeout)
+  // Se comenta este bloque para basar la decisión únicamente en la sesión real (isAuthed)
+  // y no en la mera existencia de una cookie. Esto evita bucles de redirección con
+  // cookies expiradas o inválidas.
+  /*
   if (!isAuthed && hasAuthCookie && path === "/") {
-    const homeUrl = getHomeUrlForRole(role);
+    console.log("[MW-DEBUG] ¡Caso especial! Cookie de auth existe pero no se resolvió el usuario (timeout). Redirigiendo desde '/' para evitar página pública.");
+    const homeUrl = getHomeUrlForRole(role); // role es null -> /user/home
     return redirectWithCookies(new URL(homeUrl, request.url), supabaseResponse);
   }
+  */
 
   // 6. Lógica para usuarios NO AUTENTICADOS
   if (!isAuthed && !isPublicPath) {
-    // console.log(`[mw] Redirecting unauthenticated user from protected route: ${path}`);
-
-    // Redirige al login más relevante
+    console.log(
+      `[MW-DEBUG] Usuario NO autenticado intentando acceder a ruta protegida: '${path}'.`
+    );
     const loginPath = path.startsWith("/admin")
       ? "/admin/login"
       : path.startsWith("/partner") || path.startsWith("/aliado")
       ? "/admin/login" // <-- CORREGIDO
       : "/login";
 
+    console.log(
+      `[MW-DEBUG] Redirigiendo a la página de login relevante: ${loginPath}`
+    );
     const loginUrl = new URL(loginPath, request.url);
     loginUrl.searchParams.set("next", path);
     return redirectWithCookies(loginUrl, supabaseResponse);
   }
 
-  // 7. Si ninguna regla de redirección se aplicó, permite el acceso.
-  // Esta respuesta ya contiene las cookies actualizadas si las hubo.
-  // console.log(`[mw] Allowing access to: ${path}`);
+  // 7. Si ninguna regla se aplicó, permite el acceso
+  console.log(
+    `[MW-DEBUG] ✅ Acceso permitido a: ${path}. No se aplicó ninguna regla de redirección.`
+  );
   return supabaseResponse;
 }

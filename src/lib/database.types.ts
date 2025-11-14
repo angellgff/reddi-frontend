@@ -32,6 +32,112 @@ export type Database = {
         }
         Relationships: []
       }
+      banner_clicks: {
+        Row: {
+          banner_id: string
+          clicked_at: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          banner_id: string
+          clicked_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          banner_id?: string
+          clicked_at?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banner_clicks_banner_id_fkey"
+            columns: ["banner_id"]
+            isOneToOne: false
+            referencedRelation: "banners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banner_clicks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      banners: {
+        Row: {
+          action_link: string | null
+          category_id: string | null
+          coupon_id: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          end_date: string
+          id: string
+          image_url: string
+          is_active: boolean
+          placement: Database["public"]["Enums"]["banner_placement"] | null
+          start_date: string
+          title: string
+        }
+        Insert: {
+          action_link?: string | null
+          category_id?: string | null
+          coupon_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_date: string
+          id?: string
+          image_url: string
+          is_active?: boolean
+          placement?: Database["public"]["Enums"]["banner_placement"] | null
+          start_date: string
+          title: string
+        }
+        Update: {
+          action_link?: string | null
+          category_id?: string | null
+          coupon_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          image_url?: string
+          is_active?: boolean
+          placement?: Database["public"]["Enums"]["banner_placement"] | null
+          start_date?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "banners_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banners_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "banners_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "admins"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -2150,6 +2256,7 @@ export type Database = {
     Enums: {
       address_location_type: "villa" | "yate"
       app_role: "user" | "admin" | "market" | "restaurant" | "delivery"
+      banner_placement: "home_top" | "home_middle" | "category_page"
       coupon_discount_type: "percentage" | "fixed_amount"
       coupon_status: "active" | "inactive" | "expired"
       driver_status:
@@ -2327,6 +2434,7 @@ export const Constants = {
     Enums: {
       address_location_type: ["villa", "yate"],
       app_role: ["user", "admin", "market", "restaurant", "delivery"],
+      banner_placement: ["home_top", "home_middle", "category_page"],
       coupon_discount_type: ["percentage", "fixed_amount"],
       coupon_status: ["active", "inactive", "expired"],
       driver_status: [
