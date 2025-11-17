@@ -15,7 +15,7 @@ const navItems = [
   { href: "/discover", label: "Descubrir", icon: CompassIcon },
   { href: "/grocery", label: "Grocery", icon: GroceryCarIcon },
   { href: "/orders", label: "Pedidos", icon: OrdersIcon },
-  { href: "/profile", label: "Perfil", icon: UserIcon },
+  { href: "/user/profile", label: "Perfil", icon: UserIcon },
 ];
 
 export default function Footer() {

@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import getProductDetails from "@/src/lib/finalUser/stores/getProductDetails";
 import ProductDetailsClient from "../../../../../../../components/features/finalUser/productDetails/ProductDetailsClient";
 import getStoreDetails from "@/src/lib/finalUser/stores/getStoreDetails";
+import RecommendedProductsSectionServer from "@/src/components/features/finalUser/productDetails/RecommendedProductsSectionServer";
 
 export default async function ProductDetailsPage({
   params,
@@ -25,6 +26,14 @@ export default async function ProductDetailsPage({
       <Suspense>
         <ProductDetailsClient details={data} partnerType={store.partner_type} />
       </Suspense>
+      {/* Recommended products from the same store */}
+      <div className="mt-6">
+        <RecommendedProductsSectionServer
+          partnerId={id}
+          currentProductId={productId}
+          partnerType={store.partner_type}
+        />
+      </div>
     </div>
   );
 }
