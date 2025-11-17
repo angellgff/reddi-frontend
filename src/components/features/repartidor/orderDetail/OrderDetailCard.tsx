@@ -2,6 +2,9 @@
 
 import Image from "next/image";
 import OrderDetailRouteMap from "./OrderDetailRouteMap";
+import { useState } from "react";
+import ConfirmModal from "@/src/components/basics/ConfirmModal";
+import Toast from "@/src/components/basics/Toast";
 
 interface Props {
   data: {
@@ -30,6 +33,11 @@ export default function OrderDetailCard({ data }: Props) {
       </div>
     );
   }
+
+  const [delivered, setDelivered] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
 
   return (
     <div className="flex flex-col p-[18px] gap-3 w-[352px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] rounded-xl">
@@ -75,10 +83,10 @@ export default function OrderDetailCard({ data }: Props) {
       />
 
       {/* Accept button when unassigned */}
-      {data.canAccept ? <AcceptButton orderId={data.id} /> : null}
+      {data.canAccept && !delivered ? <AcceptButton orderId={data.id} /> : null}
 
       {/* Contact button */}
-      {data.canContact && data.customerPhone ? (
+      {data.canContact && data.customerPhone && !delivered ? (
         <a
           href={`tel:${data.customerPhone}`}
           className="flex items-center justify-center gap-2 w-full h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
@@ -97,48 +105,123 @@ export default function OrderDetailCard({ data }: Props) {
       )}
 
       {/* Delivered button */}
-      <button
-        type="button"
-        disabled={!data.canMarkDelivered}
-        className={
-          data.canMarkDelivered
-            ? "flex items-center justify-center gap-2 w-full h-9 bg-[#04BD88] rounded-xl text-[14px] font-medium text-white"
-            : "flex items-center justify-center gap-2 w-full h-9 rounded-xl text-[14px] font-medium bg-gray-200 text-gray-500 cursor-not-allowed"
-        }
-        onClick={() => {}}
-        title={
-          data.canMarkDelivered
-            ? "Marcar como entregado"
-            : "Solo disponible para el repartidor asignado"
-        }
-      >
-        Marcar como Entregado
-      </button>
+      <CompleteButton
+        enabled={data.canMarkDelivered && !delivered}
+        onRequest={() => setConfirmOpen(true)}
+      />
+
+      {/* Confirm complete modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="¿Marcar como entregado?"
+        description="Esta acción no se puede deshacer. ¿Deseas continuar?"
+        confirmText="Sí, marcar"
+        cancelText="Cancelar"
+        loading={confirmLoading}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={async () => {
+          try {
+            setConfirmLoading(true);
+            const resp = await fetch("/api/delivery/complete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ orderId: data.id }),
+            });
+            if (resp.ok) {
+              setDelivered(true);
+              setSuccessOpen(true);
+            }
+          } finally {
+            setConfirmLoading(false);
+            setConfirmOpen(false);
+          }
+        }}
+      />
+
+      {/* Success info modal */}
+      <ConfirmModal
+        open={successOpen}
+        title="Pedido entregado"
+        description="El pedido se ha marcado como entregado."
+        confirmText="Cerrar"
+        cancelText="Cerrar"
+        onConfirm={() => setSuccessOpen(false)}
+        onCancel={() => setSuccessOpen(false)}
+      />
+      {/* Placeholder Toast wiring to keep API consistent; hidden by default */}
+      <Toast open={false} message="" onClose={() => {}} />
     </div>
   );
 }
 
 function AcceptButton({ orderId }: { orderId: string }) {
-  const onClick = async () => {
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+
+  const requestAccept = async () => {
     try {
+      setConfirmLoading(true);
       const resp = await fetch("/api/delivery/accept", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ orderId }),
       });
       if (resp.ok) {
-        // Best-effort refresh
         if (typeof window !== "undefined") window.location.reload();
       }
-    } catch {}
+    } finally {
+      setConfirmLoading(false);
+      setConfirmOpen(false);
+    }
   };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => setConfirmOpen(true)}
+        className="flex items-center justify-center gap-2 w-full h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
+      >
+        Aceptar pedido
+      </button>
+      <ConfirmModal
+        open={confirmOpen}
+        title="¿Aceptar este pedido?"
+        description="Te asignarás como repartidor de este envío."
+        confirmText="Sí, aceptar"
+        cancelText="Cancelar"
+        loading={confirmLoading}
+        onCancel={() => setConfirmOpen(false)}
+        onConfirm={requestAccept}
+      />
+    </>
+  );
+}
+
+function CompleteButton({
+  enabled,
+  onRequest,
+}: {
+  enabled: boolean;
+  onRequest: () => void;
+}) {
   return (
     <button
       type="button"
-      onClick={onClick}
-      className="flex items-center justify-center gap-2 w-full h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
+      disabled={!enabled}
+      className={
+        enabled
+          ? "flex items-center justify-center gap-2 w-full h-9 bg-[#04BD88] rounded-xl text-[14px] font-medium text-white"
+          : "flex items-center justify-center gap-2 w-full h-9 rounded-xl text-[14px] font-medium bg-gray-200 text-gray-500 cursor-not-allowed"
+      }
+      onClick={enabled ? onRequest : undefined}
+      title={
+        enabled
+          ? "Marcar como entregado"
+          : "Solo disponible para el repartidor asignado"
+      }
     >
-      Aceptar pedido
+      Marcar como Entregado
     </button>
   );
 }

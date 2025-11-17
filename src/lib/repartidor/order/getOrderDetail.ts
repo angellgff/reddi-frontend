@@ -94,6 +94,26 @@ export default async function getOrderDetail(
       throw new Error("Usuario no autenticado");
     }
 
+    // --- INICIO DE CAMBIOS ---
+    // Primero, obtenemos el ID del repartidor (de la tabla 'drivers') asociado al usuario actual.
+    // Este ID es el que se usa en la tabla 'shipments'.
+    const { data: driverProfile, error: driverError } = await supabase
+      .from("drivers")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (driverError) {
+      console.error(
+        "Error al buscar el perfil de repartidor:",
+        driverError.message
+      );
+      throw new Error("No se pudo verificar el perfil de repartidor.");
+    }
+
+    const currentUserDriverId = driverProfile?.id ?? null;
+    // --- FIN DE CAMBIOS ---
+
     const { data, error } = await supabase
       .from("orders")
       .select(
@@ -118,14 +138,11 @@ export default async function getOrderDetail(
       throw new Error("Pedido no encontrado");
     }
 
-    // --- INICIO DE CAMBIOS ---
     const profile = (data as any).profiles;
-    // Combinamos first_name y last_name para crear el nombre completo
     const customerName =
       [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
       "Cliente";
     const customerPhone = profile?.phone_number ?? null;
-    // --- FIN DE CAMBIOS ---
 
     const orderStatus: string | null = (data as any).status ?? null;
     const statusLabel = mapDbStatusToDeliveryLabel(orderStatus);
@@ -147,19 +164,42 @@ export default async function getOrderDetail(
     const shipmentDriverId: string | null =
       (data as any)?.shipments?.driver_id ?? null;
 
+    // --- LÓGICA DE PERMISOS CORREGIDA ---
     const isCancelled =
       (orderStatus ?? "").toLowerCase() === "cancelled" ||
       (orderStatus ?? "").toLowerCase() === "canceled";
-    const assignedToCurrent = shipmentDriverId === user.id;
+
+    // La comparación ahora usa el ID de la tabla 'drivers' del usuario actual
+    const assignedToCurrent =
+      currentUserDriverId && shipmentDriverId === currentUserDriverId;
+
     const canAccept = !shipmentDriverId && !isCancelled;
     const canContact = assignedToCurrent;
     const canMarkDelivered = assignedToCurrent && !isCancelled;
+    // --- FIN DE LÓGICA CORREGIDA ---
+
+    // Logs opcionales para verificar (puedes quitarlos después)
+    console.log(
+      `--- VERIFICACIÓN [canMarkDelivered] para Pedido ID: ${id} ---`
+    );
+    console.log(
+      `- ID del driver en el envío (shipmentDriverId): '${shipmentDriverId}'`
+    );
+    console.log(
+      `- ID de repartidor del usuario actual (currentUserDriverId): '${currentUserDriverId}'`
+    );
+    console.log(
+      `- El pedido está asignado a este usuario (assignedToCurrent): ${assignedToCurrent}`
+    );
+    console.log(`- El pedido está cancelado (isCancelled): ${isCancelled}`);
+    console.log(`- RESULTADO FINAL: canMarkDelivered es: ${canMarkDelivered}`);
+    console.log("----------------------------------------------------------");
 
     return {
       id: String((data as any).id),
       statusLabel,
-      customerName, // Usamos la variable creada
-      customerPhone, // Usamos la variable creada
+      customerName,
+      customerPhone,
       partnerId: (data as any)?.partner_id ?? null,
       userAddressId: (data as any)?.user_address_id ?? null,
       restaurantName,
@@ -181,7 +221,8 @@ export default async function getOrderDetail(
 
     if (
       error.message === "Pedido no encontrado" ||
-      error.message === "Usuario no autenticado"
+      error.message === "Usuario no autenticado" ||
+      error.message === "No se pudo verificar el perfil de repartidor."
     ) {
       throw error;
     }
