@@ -42,14 +42,14 @@ export default function StoreHeader({
       </div>
 
       {/* 2. Logo superpuesto */}
-      <div className="absolute left-6 top-24 md:left-20 md:top-40 z-10">
+      <div className="absolute left-6 top-[136px] md:left-20 md:top-40 z-10">
         {logo ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={logo}
             alt={store.name}
             // 3. Clases clave para el logo
-            className="w-24 h-24 md:w-40 md:h-40 rounded-full object-cover ring-4 ring-primary shadow-lg"
+            className="w-28 h-28 md:w-40 md:h-40 rounded-full object-cover ring-4 ring-primary shadow-lg"
           />
         ) : (
           <div className="w-24 h-24 md:w-40 md:h-40 rounded-full bg-gray-200 ring-1 ring-primary shadow-lg" />
@@ -57,7 +57,7 @@ export default function StoreHeader({
       </div>
 
       {/* 4. Fila de información */}
-      <div className="px-5 py-4 flex flex-col md:flex-row md:items-end gap-4">
+      <div className="ml-40 md:px-5 py-4 flex flex-col md:flex-row md:items-end gap-4">
         {/* 5. Contenedor de texto con padding a la izquierda para no chocar con el logo */}
         <div className="md:pl-[240px] w-full">
           <h1 className="text-2xl font-bold">{store.name}</h1>

@@ -19,7 +19,9 @@ export default function UserLayout({
       <Suspense fallback={<UserHeaderSkeleton />}>
         <UserHeaderServer />
       </Suspense>
-      <main className="pt-[9rem] sm:pt-[1rem] pb-[4.45rem]">{children}</main>
+      <main className="pt-[9rem] sm:pt-[1rem] pb-[4.45rem] md:pb-0">
+        {children}
+      </main>
       <UserFooter />
     </>
   );
