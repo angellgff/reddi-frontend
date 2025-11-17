@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import ClockIcon from "@/src/components/icons/OrderClockIcon";
 import HomeIcon from "@/src/components/icons/OrderHomeIcon";
 
@@ -59,10 +60,13 @@ export default function OrderCard({
             />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-800">
+            <Link
+              href={`/repartidor/orders/${orderId}`}
+              className="text-lg font-bold text-gray-800 hover:underline"
+            >
               <span className="text-emerald-500">Pedido</span> #
               {orderId.split("-")[0]}
-            </h2>
+            </Link>
             <p className="text-sm text-gray-500 font-roboto">
               {restaurantName}
             </p>
