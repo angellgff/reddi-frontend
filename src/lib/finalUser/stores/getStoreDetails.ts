@@ -4,7 +4,14 @@ import type { Database } from "@/src/lib/database.types";
 type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
 export type StoreDetails = Pick<
   PartnerRow,
-  "id" | "name" | "image_url" | "address" | "partner_type"
+  | "id"
+  | "name"
+  | "image_url"
+  | "address"
+  | "partner_type"
+  | "phone"
+  | "average_rating"
+  | "total_ratings"
 >;
 
 export default async function getStoreDetails(
@@ -13,7 +20,9 @@ export default async function getStoreDetails(
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("partners")
-    .select("id, name, image_url, address, partner_type, phone")
+    .select(
+      "id, name, image_url, address, partner_type, phone, average_rating, total_ratings"
+    )
     .eq("id", id)
     .single();
 

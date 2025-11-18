@@ -30,11 +30,11 @@ export default function ProductCardRestaurant({
 }: Props) {
   return (
     <div
-      className="flex flex-row items-center gap-2.5 bg-white rounded-xl shadow-sm hover:shadow-md transition cursor-pointer"
+      className="flex flex-row items-center gap-2.5 bg-white rounded-xl shadow-sm hover:shadow-md transition cursor-pointer flex-shrink-0 w-[260px]"
       onClick={() => onOpen(p)}
     >
       {/* Image Section */}
-      <div className="relative flex-shrink-0 w-[153px] h-[89px]">
+      <div className="relative flex-shrink-0 w-[120px] h-[89px]">
         {p.image_url ? (
           <Image
             src={p.image_url}
@@ -49,7 +49,7 @@ export default function ProductCardRestaurant({
       </div>
 
       {/* Text Content Section */}
-      <div className="flex flex-col self-stretch flex-1 py-1 pr-2 gap-1">
+      <div className="flex flex-col self-stretch flex-1 py-1 pr-2 gap-1 min-w-0">
         <p className="font-bold text-black text-base leading-tight truncate">
           {p.name}
         </p>

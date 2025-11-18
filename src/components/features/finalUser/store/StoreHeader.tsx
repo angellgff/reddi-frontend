@@ -8,8 +8,6 @@ import type { StoreDetails as BaseStoreDetails } from "@/src/lib/finalUser/store
 type ExtendedStoreDetails = BaseStoreDetails & {
   banner_url?: string | null;
   logo_url?: string | null;
-  rating?: number | null;
-  phone?: string | null;
   delivery_time?: string | null;
 };
 
@@ -20,7 +18,10 @@ export default function StoreHeader({
 }) {
   const banner = store.banner_url || store.image_url || "";
   const logo = store.logo_url || store.image_url || "";
-  const rating = store.rating ?? 4.8; // placeholder si no existe
+  const rating =
+    typeof store.average_rating === "number"
+      ? Number(store.average_rating.toFixed(1))
+      : 0;
   const phone = store.phone || "--";
   const deliveryTime = store.delivery_time || "25-35 min"; // fallback
 
@@ -66,6 +67,11 @@ export default function StoreHeader({
             <span className="inline-flex items-center font-semibold">
               Valoraciones
               <span className="font-bold text-black ml-1"> {rating} ⭐</span>
+              {typeof store.total_ratings === "number" && (
+                <span className="text-xs text-gray-600 ml-2">
+                  ({store.total_ratings})
+                </span>
+              )}
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF6FF] text-[#1C398E] border border-[#BEDBFF]">
               {deliveryTime}

@@ -202,7 +202,7 @@ export default function StoreMenu({
                     openDetails(product as any);
 
                   return (
-                    <div key={p.id} className="min-w-[153px]">
+                    <div key={p.id} className="flex-shrink-0">
                       {isRestaurant ? (
                         <ProductCardRestaurant
                           product={p as any}

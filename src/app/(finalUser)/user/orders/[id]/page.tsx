@@ -1,12 +1,11 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { createClient } from "@/src/lib/supabase/client";
 import OrderDeliveredRatingDialog from "@/src/components/features/finalUser/orders/OrderDeliveredRatingDialog";
-import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
+import OrderLiveStatusClient from "@/src/components/features/finalUser/orders/OrderLiveStatusClient";
+import { getOrderDetails } from "@/src/lib/finalUser/orders/getOrderDetails";
+import { getRouteDetails } from "@/src/lib/finalUser/orders/getRouteDetails";
+import { createClient } from "@/src/lib/supabase/server";
+import type { NormalizedOrder } from "@/src/lib/finalUser/orders/getOrderDetails";
 
 function currency(n: number | null | undefined) {
   const v = typeof n === "number" && isFinite(n) ? n : 0;
@@ -26,436 +25,31 @@ const ORDER_STEPS = [
 
 type OrderStepKey = (typeof ORDER_STEPS)[number]["key"];
 
-type DeliveryInfo = {
-  assigned: boolean;
-  name?: string;
-  avatar_url?: string | null;
-  phone?: string | null;
-};
+function currentIndex(status?: OrderStepKey) {
+  const s = status ?? "confirmed";
+  const idx = ORDER_STEPS.findIndex((x) => x.key === s);
+  return idx >= 0 ? idx : 0;
+}
 
-type MinimalProfile = {
-  id?: string;
-  full_name?: string;
-  name?: string;
-  first_name?: string;
-  email?: string;
-  avatar_url?: string | null;
-  phone?: string | null;
-};
-
-type OrderItem = {
-  id: string;
-  quantity: number;
-  unit_price: number;
-  products?: {
-    name?: string;
-    image_url?: string | null;
-    unit?: string;
-  } | null;
-  extras?: {
-    id: string;
-    product_extra_id?: string | null;
-    name?: string;
-    image_url?: string | null;
-    quantity: number;
-    unit_price: number;
-  }[];
-};
-
-type OrderData = {
-  id: string;
-  status?: OrderStepKey;
-  subtotal?: number | null;
-  delivery_fee?: number | null; // mapped from shipping_fee
-  discount_amount?: number | null;
-  total_amount?: number | null;
-  tip_amount?: number | null;
-  instructions?: string | null;
-  partner_id?: string | null;
-  user_address_id?: string | null;
-  user_addresses?: {
-    id: string;
-    location_type?: string | null;
-    location_number?: string | null;
-  } | null;
-  partners?: {
-    name?: string;
-    image_url?: string | null;
-    address?: string | null;
-  } | null;
-  order_detail?: OrderItem[];
-} | null;
-
-function displayName(user: MinimalProfile | null | undefined): string {
-  const emailPrefix =
-    typeof user?.email === "string" ? user.email.split("@")[0] : "";
-  return (
-    user?.full_name ||
-    user?.name ||
-    user?.first_name ||
-    emailPrefix ||
-    "Repartidor"
+export default async function OrderStatusPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const id = params.id;
+  const order: NormalizedOrder = await getOrderDetails(id);
+  const route = await getRouteDetails(
+    order?.partner_id,
+    order?.user_address_id || order?.user_addresses?.id
   );
-}
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = user?.id ?? null;
+  const idx = currentIndex(order?.status as OrderStepKey | undefined);
 
-function asRecord(v: unknown): Record<string, unknown> | null {
-  return v !== null && typeof v === "object"
-    ? (v as Record<string, unknown>)
-    : null;
-}
-
-function firstObj(v: unknown): Record<string, unknown> | null {
-  if (Array.isArray(v)) return asRecord(v[0]);
-  return asRecord(v);
-}
-
-function normalizeOrder(data: unknown): OrderData {
-  const rec = asRecord(data);
-  if (!rec) return null;
-
-  const partnersRec = firstObj(rec["partners"]);
-  const partners = partnersRec
-    ? {
-        name:
-          typeof partnersRec["name"] === "string"
-            ? (partnersRec["name"] as string)
-            : undefined,
-        image_url:
-          typeof partnersRec["image_url"] === "string"
-            ? (partnersRec["image_url"] as string)
-            : null,
-        address:
-          typeof partnersRec["address"] === "string"
-            ? (partnersRec["address"] as string)
-            : null,
-      }
-    : null;
-
-  const addrRec = firstObj(rec["user_addresses"]);
-  const user_addresses = addrRec
-    ? {
-        id: String(addrRec["id"] ?? ""),
-        location_type:
-          typeof addrRec["location_type"] === "string"
-            ? (addrRec["location_type"] as string)
-            : null,
-        location_number:
-          typeof addrRec["location_number"] === "string"
-            ? (addrRec["location_number"] as string)
-            : null,
-      }
-    : null;
-
-  const od = Array.isArray(rec["order_detail"])
-    ? (rec["order_detail"] as unknown[])
-    : [];
-  const order_detail: OrderItem[] = od
-    .map(asRecord)
-    .filter((x): x is Record<string, unknown> => !!x)
-    .map((it) => {
-      const p = asRecord(it["products"]);
-      const exArr = Array.isArray(it["order_detail_extras"])
-        ? (it["order_detail_extras"] as unknown[])
-        : [];
-      const extras = exArr
-        .map(asRecord)
-        .filter((x): x is Record<string, unknown> => !!x)
-        .map((ex) => ({
-          id: String(ex["id"] ?? ""),
-          product_extra_id:
-            typeof ex["product_extra_id"] === "string"
-              ? (ex["product_extra_id"] as string)
-              : null,
-          quantity: Number(ex["quantity"] ?? 0),
-          unit_price: Number(ex["unit_price"] ?? 0),
-        }));
-      return {
-        id: String(it["id"] ?? ""),
-        quantity: Number(it["quantity"] ?? 0),
-        unit_price: Number(it["unit_price"] ?? 0),
-        products: p
-          ? {
-              name:
-                typeof p["name"] === "string"
-                  ? (p["name"] as string)
-                  : undefined,
-              image_url:
-                typeof p["image_url"] === "string"
-                  ? (p["image_url"] as string)
-                  : null,
-              unit:
-                typeof p["unit"] === "string"
-                  ? (p["unit"] as string)
-                  : undefined,
-            }
-          : undefined,
-        extras,
-      } as OrderItem;
-    });
-
-  return {
-    id: String(rec["id"] ?? ""),
-    status:
-      typeof rec["status"] === "string"
-        ? (rec["status"] as OrderStepKey)
-        : undefined,
-    subtotal:
-      typeof rec["subtotal"] === "number" ? (rec["subtotal"] as number) : null,
-    // DB uses shipping_fee; map it to delivery_fee for UI
-    delivery_fee:
-      typeof rec["shipping_fee"] === "number"
-        ? (rec["shipping_fee"] as number)
-        : null,
-    discount_amount:
-      typeof rec["discount_amount"] === "number"
-        ? (rec["discount_amount"] as number)
-        : null,
-    total_amount:
-      typeof rec["total_amount"] === "number"
-        ? (rec["total_amount"] as number)
-        : null,
-    tip_amount:
-      typeof rec["tip_amount"] === "number"
-        ? (rec["tip_amount"] as number)
-        : null,
-    instructions:
-      typeof rec["instructions"] === "string"
-        ? (rec["instructions"] as string)
-        : null,
-    partner_id:
-      typeof rec["partner_id"] === "string"
-        ? (rec["partner_id"] as string)
-        : null,
-    user_address_id:
-      typeof rec["user_address_id"] === "string"
-        ? (rec["user_address_id"] as string)
-        : null,
-    user_addresses,
-    partners,
-    order_detail,
-  };
-}
-
-export default function OrderStatusPage() {
-  const params = useParams();
-  const id = params?.id as string;
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [order, setOrder] = useState<OrderData>(null);
-  const [delivery, setDelivery] = useState<DeliveryInfo | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
-  const [route, setRoute] = useState<{
-    origin?: { longitude: number; latitude: number } | null;
-    destination?: { longitude: number; latitude: number } | null;
-    routeGeoJson?: {
-      type: "LineString";
-      coordinates: [number, number][];
-    } | null;
-  }>({});
-
-  useEffect(() => {
-    let mounted = true;
-    async function load() {
-      setLoading(true);
-      setError(null);
-      try {
-        const supabase = createClient();
-        // Grab current user id to use for rating
-        try {
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
-          if (mounted) setUserId(user?.id ?? null);
-        } catch {}
-        const { data, error } = await supabase
-          .from("orders")
-          .select(
-            "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))"
-          )
-          .eq("id", id)
-          .single();
-        if (error) throw error;
-        let normalized = normalizeOrder(data);
-
-        // Enrich extras with product_extras details (name, image)
-        try {
-          const extraIds = Array.from(
-            new Set(
-              (normalized?.order_detail || [])
-                .flatMap((it) => it.extras || [])
-                .map((e) => e.product_extra_id)
-                .filter((x): x is string => typeof x === "string" && !!x)
-            )
-          );
-          if (extraIds.length > 0) {
-            const { data: extrasRows } = await supabase
-              .from("product_extras")
-              .select("id,name,image_url,default_price")
-              .in("id", extraIds);
-            const byId = new Map((extrasRows || []).map((r) => [r.id, r]));
-            normalized = normalized
-              ? {
-                  ...normalized,
-                  order_detail: (normalized.order_detail || []).map((it) => ({
-                    ...it,
-                    extras: (it.extras || []).map((e) => {
-                      const info = e.product_extra_id
-                        ? byId.get(e.product_extra_id)
-                        : undefined;
-                      return {
-                        ...e,
-                        name: info?.name ?? e.name,
-                        image_url: info?.image_url ?? e.image_url ?? null,
-                        unit_price: Number(
-                          (e.unit_price ?? 0) || info?.default_price || 0
-                        ),
-                      };
-                    }),
-                  })),
-                }
-              : null;
-          }
-        } catch {
-          // ignore enrichment errors
-        }
-
-        if (mounted) setOrder(normalized);
-
-        // Load Mapbox route (best-effort)
-        try {
-          const partnerId = (normalized?.partner_id ?? null) as string | null;
-          const userAddressId = (normalized?.user_address_id ??
-            normalized?.user_addresses?.id ??
-            null) as string | null;
-          if (partnerId && userAddressId) {
-            const resp = await fetch("/api/shipping/calculate", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ partnerId, userAddressId }),
-            });
-            if (resp.ok) {
-              const details = await resp.json();
-              if (mounted)
-                setRoute({
-                  origin: details.originCoordinates || null,
-                  destination: details.destinationCoordinates || null,
-                  routeGeoJson: details.routeGeoJson || null,
-                });
-            }
-          }
-        } catch {
-          // ignore map failures
-        }
-        // Try to load delivery assignment info in a best-effort manner.
-        // 1) Attempt to read a potential delivery_user (FK to profiles) directly from orders.
-        // 2) Fallback to common join tables if present.
-        // 3) If any step fails or no data, mock as not assigned.
-        try {
-          // Reuse client
-          let assigned: DeliveryInfo | null = null;
-
-          // Try: orders with delivery_user_id -> profiles
-          try {
-            const { data: ordWithDriver, error: driverErr } = await supabase
-              .from("orders")
-              .select(
-                "id, delivery_user:profiles!orders_delivery_user_id_fkey(id, full_name, name, first_name, email, avatar_url, phone)"
-              )
-              .eq("id", id)
-              .single();
-            const u = (
-              ordWithDriver as { delivery_user?: MinimalProfile | null } | null
-            )?.delivery_user;
-            if (!driverErr && ordWithDriver && u) {
-              assigned = {
-                assigned: true,
-                name: displayName(u),
-                avatar_url: u?.avatar_url ?? null,
-                phone: u?.phone ?? null,
-              };
-            }
-          } catch {
-            // ignore; relationship or column may not exist yet
-          }
-
-          // Try: delivery_assignments with profiles
-          if (!assigned) {
-            try {
-              const { data: da, error: daErr } = await supabase
-                .from("delivery_assignments")
-                .select(
-                  "id, order_id, delivery_user:profiles(id, full_name, name, first_name, email, avatar_url, phone)"
-                )
-                .eq("order_id", id)
-                .maybeSingle();
-              const u = (da as { delivery_user?: MinimalProfile | null } | null)
-                ?.delivery_user;
-              if (!daErr && da && u) {
-                assigned = {
-                  assigned: true,
-                  name: displayName(u),
-                  avatar_url: u?.avatar_url ?? null,
-                  phone: u?.phone ?? null,
-                };
-              }
-            } catch {
-              // ignore; table or relationship may not exist yet
-            }
-          }
-
-          // Try: deliveries with driver profile
-          if (!assigned) {
-            try {
-              const { data: del, error: delErr } = await supabase
-                .from("deliveries")
-                .select(
-                  "id, order_id, driver:profiles(id, full_name, name, first_name, email, avatar_url, phone)"
-                )
-                .eq("order_id", id)
-                .maybeSingle();
-              const u = (del as { driver?: MinimalProfile | null } | null)
-                ?.driver;
-              if (!delErr && del && u) {
-                assigned = {
-                  assigned: true,
-                  name: displayName(u),
-                  avatar_url: u?.avatar_url ?? null,
-                  phone: u?.phone ?? null,
-                };
-              }
-            } catch {
-              // ignore; table or relationship may not exist yet
-            }
-          }
-
-          if (mounted) {
-            setDelivery(assigned ?? { assigned: false });
-          }
-        } catch {
-          // As a safety net, mark as not assigned
-          if (mounted) setDelivery({ assigned: false });
-        }
-      } catch (err: unknown) {
-        const message =
-          err instanceof Error ? err.message : "No se pudo cargar el pedido";
-        setError(message);
-      } finally {
-        setLoading(false);
-      }
-    }
-    if (id) load();
-    return () => {
-      mounted = false;
-    };
-  }, [id]);
-
-  const currentIndex = useMemo(() => {
-    const s = (order?.status as OrderStepKey | undefined) ?? "confirmed";
-    const idx = ORDER_STEPS.findIndex((x) => x.key === s);
-    return idx >= 0 ? idx : 0;
-  }, [order?.status]);
-
-  if (!id) {
+  if (!order) {
     return (
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <div className="text-sm">Pedido no encontrado</div>
@@ -478,14 +72,14 @@ export default function OrderStatusPage() {
             <div key={step.key} className="flex flex-col items-center w-[86px]">
               <div
                 className={
-                  i <= currentIndex
+                  i <= idx
                     ? "h-12 w-12 rounded-full border border-[#04BD88] opacity-80 grid place-items-center"
                     : "h-12 w-12 rounded-full border border-[#9BA1AE] grid place-items-center"
                 }
               >
                 <div
                   className={
-                    i <= currentIndex
+                    i <= idx
                       ? "h-5 w-5 rounded-full bg-[#04BD88]"
                       : "h-5 w-5 rounded-full border border-[#9BA1AE]"
                   }
@@ -493,7 +87,7 @@ export default function OrderStatusPage() {
               </div>
               <div
                 className={
-                  i <= currentIndex
+                  i <= idx
                     ? "mt-2 text-[14px] leading-[18px] text-[#525252]"
                     : "mt-2 text-[14px] leading-[18px] text-[#9BA1AE]"
                 }
@@ -525,87 +119,30 @@ export default function OrderStatusPage() {
       </section>
 
       {/* Main content */}
-      <section className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left: map and driver */}
-        <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)]">
-          {route?.origin && route?.destination ? (
-            <RouteMap
-              origin={route.origin}
-              destination={route.destination}
-              routeGeoJson={route.routeGeoJson ?? undefined}
-              height={400}
-            />
-          ) : (
-            <div className="h-[400px] w-full rounded-xl bg-[url('/placeholder-map.png')] bg-cover bg-center" />
-          )}
-          <div className="mt-4 flex items-center justify-between rounded-xl border border-[#9BA1AE] bg-[rgba(240,242,245,0.72)] p-3">
-            <div className="flex items-center gap-3">
-              <div className="h-16 w-16 rounded-full bg-gray-300 overflow-hidden relative">
-                {delivery?.assigned && delivery?.avatar_url ? (
-                  <Image
-                    src={delivery.avatar_url}
-                    alt={delivery.name ?? "Repartidor"}
-                    fill
-                    className="object-cover"
-                  />
-                ) : null}
-              </div>
-              <div>
-                <div className="text-[16px] leading-5 font-medium text-[#171717]">
-                  {delivery?.assigned
-                    ? delivery?.name
-                    : "Sin repartidor asignado"}
-                </div>
-                <div className="text-[14px] leading-[18px] text-[#292929]">
-                  {delivery?.assigned
-                    ? "Repartidor asignado"
-                    : "Esperando asignación"}
-                </div>
-              </div>
-            </div>
-            <button
-              className={
-                delivery?.assigned
-                  ? "inline-flex items-center justify-center rounded-full border border-[#04BD88] bg-[#CDF7E7] h-[51px] w-[51px]"
-                  : "inline-flex items-center justify-center rounded-full border border-[#D9DCE3] bg-[#F0F2F5] h-[51px] w-[51px] opacity-60 cursor-not-allowed"
-              }
-              disabled={!delivery?.assigned}
-              aria-disabled={!delivery?.assigned}
-              title={delivery?.assigned ? "Contactar" : "Aún sin repartidor"}
-            >
-              <span className="sr-only">Contactar</span>
-            </button>
-          </div>
-          <div className="mt-4 flex gap-4">
-            <a
-              className="inline-flex items-center justify-center rounded-xl bg-[#04BD88] px-5 py-2.5 text-white text-sm font-medium"
-              href="#"
-            >
-              Contactar Restaurante
-            </a>
-            <button className="inline-flex items-center justify-center rounded-xl border border-black px-5 py-2.5 text-sm font-medium">
-              Cancelar Pedido
-            </button>
-          </div>
+      <section className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Live status (client) */}
+        <div className="lg:col-span-2">
+          <OrderLiveStatusClient
+            orderId={id}
+            delivered={order.status === "delivered"}
+            initialRoute={route}
+          />
         </div>
-
-        {/* Right: order details */}
-        <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)]">
+        {/* Order details */}
+        <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)] lg:col-span-2">
           <div className="text-[16px] font-bold">Detalles del pedido</div>
           {/* Partner */}
           <div className="mt-4 flex items-center gap-4">
-            <div className="h-15 w-15">
+            <div className="h-[60px] w-[60px] rounded-md bg-gray-200 overflow-hidden">
               {order?.partners?.image_url ? (
                 <Image
                   src={order.partners.image_url}
                   alt={order?.partners?.name ?? "Tienda"}
                   width={60}
                   height={60}
-                  className="rounded-md object-cover"
+                  className="object-cover"
                 />
-              ) : (
-                <div className="h-[60px] w-[60px] rounded-md bg-gray-200" />
-              )}
+              ) : null}
             </div>
             <div>
               <div className="text-[16px] leading-5 font-medium">
@@ -619,7 +156,7 @@ export default function OrderStatusPage() {
 
           {/* Items */}
           <div className="mt-4 divide-y divide-[#D9DCE3]">
-            {order?.order_detail?.map((d: OrderItem) => (
+            {order?.order_detail?.map((d) => (
               <div key={d.id} className="py-4">
                 <div className="flex items-center gap-4">
                   <div className="h-20 w-20 rounded-md bg-gray-200 relative overflow-hidden">
@@ -739,17 +276,6 @@ export default function OrderStatusPage() {
           Volver al inicio
         </Link>
       </div>
-
-      {loading && (
-        <div className="fixed inset-x-0 bottom-4 mx-auto w-max rounded bg-black/80 text-white text-sm px-3 py-1">
-          Cargando pedido…
-        </div>
-      )}
-      {error && (
-        <div className="fixed inset-x-0 bottom-4 mx-auto w-max rounded bg-red-600 text-white text-sm px-3 py-1">
-          {error}
-        </div>
-      )}
 
       {/* Rating dialog appears when delivered */}
       <OrderDeliveredRatingDialog

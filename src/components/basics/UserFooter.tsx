@@ -12,9 +12,9 @@ import NavItem from "../features/finalUser/NavItem";
 // Definimos los elementos de navegación en un array para que sea fácil de mantener
 const navItems = [
   { href: "/user/home", label: "Inicio", icon: HomeIcon },
-  { href: "/discover", label: "Descubrir", icon: CompassIcon },
-  { href: "/grocery", label: "Grocery", icon: GroceryCarIcon },
-  { href: "/orders", label: "Pedidos", icon: OrdersIcon },
+  { href: "/user/discover", label: "Descubrir", icon: CompassIcon },
+  { href: "/user/grocery", label: "Grocery", icon: GroceryCarIcon },
+  { href: "/user/orders", label: "Pedidos", icon: OrdersIcon },
   { href: "/user/profile", label: "Perfil", icon: UserIcon },
 ];
 

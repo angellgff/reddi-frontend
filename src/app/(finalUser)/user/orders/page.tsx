@@ -108,15 +108,15 @@ export default async function OrdersHistoryPage({
   return (
     <div className="max-w-[1440px] mx-auto">
       {/* Header */}
-      <header className="flex flex-col justify-center items-start px-[50px] py-8 gap-4 bg-white">
-        <h1 className="text-[22px] font-bold">Historial de pedidos</h1>
-        <p className="text-sm text-[#6C7280]">
+      <header className="flex flex-col justify-center items-start px-4 sm:px-6 lg:px-12 py-6 sm:py-8 gap-3 bg-white">
+        <h1 className="text-xl sm:text-2xl font-bold">Historial de pedidos</h1>
+        <p className="text-xs sm:text-sm text-[#6C7280] max-w-prose">
           Revisa tus pedidos anteriores y vuelve a pedir fácilmente
         </p>
       </header>
 
       {/* List section */}
-      <section className="flex flex-col items-start gap-6 bg-white px-[50px] pt-[30px] pb-[50px]">
+      <section className="flex flex-col items-start gap-6 bg-white px-4 sm:px-6 lg:px-12 pt-6 sm:pt-8 pb-10">
         <div className="flex items-center gap-3 text-sm">
           <span className="text-[#6C7280]">Mis pedidos anteriores</span>
           <span className="inline-flex h-6 items-center rounded-full bg-[#ECFDF5] px-2 text-xs font-medium text-[#047857]">
@@ -139,7 +139,7 @@ export default async function OrdersHistoryPage({
             return (
               <div
                 key={it.id}
-                className="py-4 flex items-center justify-between gap-4"
+                className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
               >
                 {/* left: store info */}
                 <div className="flex items-center gap-3 min-w-0">
@@ -160,13 +160,15 @@ export default async function OrdersHistoryPage({
                     <div className="text-sm font-semibold truncate">
                       {it.partner?.name ?? "Tienda"}
                     </div>
-                    <div className="text-xs text-[#6C7280] flex items-center gap-2">
-                      <span>4.8</span>
-                      <span>(245)</span>
-                      <span>•</span>
+                    <div className="text-[11px] sm:text-xs text-[#6C7280] flex flex-wrap items-center gap-1 sm:gap-2">
+                      <span className="inline-flex items-center gap-1">
+                        <span>4.8</span>
+                        <span className="text-[#9BA1AE]">(245)</span>
+                      </span>
+                      <span className="hidden xs:inline">•</span>
                       <span>25-35 min</span>
-                      <span>•</span>
-                      <span>$0 tarifa de envío</span>
+                      <span className="hidden xs:inline">•</span>
+                      <span>$0 envío</span>
                     </div>
                     <div className="text-[11px] text-[#0F766E]">
                       {currency(it.total_amount)}
@@ -175,7 +177,7 @@ export default async function OrdersHistoryPage({
                 </div>
 
                 {/* right: actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <Link
                     href={`/user/orders/${it.id}`}
                     className="h-9 inline-flex items-center justify-center rounded-xl border border-[#9BA1AE] px-4 text-xs font-medium hover:bg-gray-50"
