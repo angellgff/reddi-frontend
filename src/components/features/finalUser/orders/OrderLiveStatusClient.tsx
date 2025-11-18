@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { createClient } from "@/src/lib/supabase/client";
+import { getAssignedDriverForOrder } from "./actions";
 import RouteMap from "../checkout/RouteMap";
 
 interface Props {
@@ -74,8 +74,6 @@ export default function OrderLiveStatusClient({
       );
       setLoadingDriver(true);
       try {
-        const supabase = await createClient();
-
         // Maneja éxito de forma consistente
         const handleSuccess = (user: any, source: string) => {
           console.log(
@@ -94,36 +92,12 @@ export default function OrderLiveStatusClient({
           return true;
         };
 
-        // Único intento: shipments -> drivers -> profiles (según tipos generados)
-        try {
-          console.log(
-            "    [Intento único] Consultando 'shipments' con joins..."
-          );
-          const { data: ship, error: shipErr } = await supabase
-            .from("shipments")
-            .select(
-              `id, order_id, driver_id,
-               driver:drivers!shipments_driver_id_fkey(
-                 id,
-                 user:profiles!drivers_user_id_fkey(
-                   id, first_name, last_name, email, phone_number
-                 )
-               )`
-            )
-            .eq("order_id", orderId)
-            .maybeSingle();
-
-          console.log("    [Intento único] Respuesta:", {
-            ship,
-            error: shipErr,
-          });
-
-          const user = (ship as any)?.driver?.user;
-          if (!shipErr && ship && user) {
-            if (handleSuccess(user, "shipments")) return;
-          }
-        } catch (e) {
-          console.error("    [Intento único] Ocurrió una excepción:", e);
+        // Server action: consulta si hay repartidor asignado para el pedido
+        console.log("    [Server Action] Consultando repartidor asignado...");
+        const result = await getAssignedDriverForOrder(orderId);
+        console.log("    [Server Action] Respuesta:", result);
+        if (result?.assigned && result.user) {
+          if (handleSuccess(result.user, "server-action")) return;
         }
 
         console.log("   [FIN] No se encontró un repartidor asignado aún.");

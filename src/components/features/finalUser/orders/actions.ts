@@ -139,3 +139,56 @@ export async function createRatingAction(
   );
   return { success: true };
 }
+
+// --- Order live status: driver lookup ---
+export interface AssignedDriverResult {
+  assigned: boolean;
+  user?: {
+    id?: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    email?: string | null;
+    phone_number?: string | null;
+  };
+}
+
+export async function getAssignedDriverForOrder(
+  orderId: string
+): Promise<AssignedDriverResult> {
+  console.log(`[getAssignedDriverForOrder] - orderId: ${orderId}`);
+  if (!orderId) return { assigned: false };
+
+  const supabase = await createClient();
+  const { data: ship, error } = await supabase
+    .from("shipments")
+    .select(
+      `id, order_id, driver_id,
+       driver:drivers!shipments_driver_id_fkey(
+         id,
+         user:profiles!drivers_user_id_fkey(
+           id, first_name, last_name, email, phone_number
+         )
+       )`
+    )
+    .eq("order_id", orderId)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[getAssignedDriverForOrder] - Supabase error", error);
+    return { assigned: false };
+  }
+
+  const user = (ship as any)?.driver?.user;
+  if (!ship || !user) return { assigned: false };
+
+  return {
+    assigned: true,
+    user: {
+      id: user?.id ?? undefined,
+      first_name: user?.first_name ?? null,
+      last_name: user?.last_name ?? null,
+      email: user?.email ?? null,
+      phone_number: user?.phone_number ?? null,
+    },
+  };
+}
