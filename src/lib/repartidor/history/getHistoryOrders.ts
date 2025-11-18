@@ -10,6 +10,8 @@ export interface HistoryOrderItem {
   logoUrl: string;
 }
 
+// Helper functions (formatAddress, formatDeliveredTime, formatTip) remain the same...
+
 function formatAddress(
   addr?: {
     location_type?: string | null;
@@ -31,7 +33,9 @@ function formatDeliveredTime(ts?: string | null): string {
       hour: "2-digit",
       minute: "2-digit",
     });
-    return sameDay ? `Hoy,${time}` : `${d.toLocaleDateString("es-MX")} ${time}`;
+    return sameDay
+      ? `Hoy, ${time}`
+      : `${d.toLocaleDateString("es-MX")} ${time}`;
   } catch {
     return "";
   }
@@ -51,38 +55,75 @@ export default async function getHistoryOrders(): Promise<HistoryOrderItem[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return [];
 
-  // Buscar pedidos entregados asignados a este repartidor.
-  // Asumimos que shipment_id referencia a shipments que tiene driver_id.
+  if (!user) {
+    console.log("getHistoryOrders: No user found. Returning empty array.");
+    return [];
+  }
+
+  // --- PASO 1: Encontrar el ID del perfil del repartidor (driver) usando el ID del usuario ---
+  const { data: driverProfile, error: driverError } = await supabase
+    .from("drivers")
+    .select("id") // Solo necesitamos el ID del repartidor
+    .eq("user_id", user.id) // Unimos la tabla 'drivers' con el usuario autenticado
+    .single(); // Esperamos un único perfil de repartidor por usuario
+
+  if (driverError || !driverProfile) {
+    console.error(
+      `Error finding driver profile for user ${user.id}:`,
+      driverError
+    );
+    // Si el usuario no tiene un perfil de repartidor, no tiene historial.
+    return [];
+  }
+
+  const driverId = driverProfile.id; // Este es el ID que debemos usar en la tabla 'shipments'
+
+  // --- PASO 2: Usar el ID del repartidor para obtener sus envíos (shipments) ---
   const { data, error } = await supabase
-    .from("orders")
+    .from("shipments")
     .select(
-      `id, status, delivered_at, tip_amount, partners(name,image_url), user_addresses(location_type,location_number), shipments(driver_id)`
+      `
+      actual_delivery_at,
+      orders!shipments_order_id_fkey (
+        id,
+        status,
+        tip_amount,
+        partners (name, image_url),
+        user_addresses (location_type, location_number)
+      )
+    `
     )
-    .eq("status", "delivered")
-    .order("delivered_at", { ascending: false })
+    .eq("driver_id", driverId) // ¡Ahora usamos el ID correcto!
+    .eq("orders.status", "delivered")
+    .order("actual_delivery_at", { ascending: false })
     .limit(50);
 
-  if (error) throw error;
+  if (error) {
+    console.error(
+      "Supabase query error details:",
+      JSON.stringify(error, null, 2)
+    );
+    throw error;
+  }
 
+  // El resto del mapeo ya era correcto.
   const list: HistoryOrderItem[] = (data ?? [])
-    .filter((o: any) => {
-      // Solo mostrar si el shipment tiene driver igual al usuario.
-      const driver = o.shipments?.driver_id;
-      return !driver || driver === user.id; // si no hay driver filtramos? aquí permitimos mostrar entregados sin driver por seguridad.
-    })
-    .map((o: any) => {
+    .map((shipment: any) => {
+      const o = shipment.orders;
+      if (!o) return null;
+
       return {
         orderId: String(o.id),
         restaurantName: o.partners?.name ?? "Negocio",
         address: formatAddress(o.user_addresses ?? undefined),
-        deliveredAt: formatDeliveredTime(o.delivered_at),
+        deliveredAt: formatDeliveredTime(shipment.actual_delivery_at),
         tip: formatTip(o.tip_amount),
         statusLabel: "Finalizado",
         logoUrl: o.partners?.image_url ?? "/steakhouseorder.svg",
       } satisfies HistoryOrderItem;
-    });
+    })
+    .filter((item): item is HistoryOrderItem => item !== null);
 
   return list;
 }

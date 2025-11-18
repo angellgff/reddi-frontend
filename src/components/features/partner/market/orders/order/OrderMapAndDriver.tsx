@@ -5,41 +5,41 @@ import Image from "next/image";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 import { createClient } from "@/src/lib/supabase/client";
 
+// --- TIPOS ---
 type DeliveryInfo = {
   assigned: boolean;
   name?: string;
-  avatar_url?: string | null;
-  phone?: string | null;
+  phone_number?: string | null;
 };
 
 type MinimalProfile = {
-  id?: string;
-  full_name?: string;
-  name?: string;
-  first_name?: string;
-  email?: string;
-  avatar_url?: string | null;
-  phone?: string | null;
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  phone_number?: string | null;
 };
 
+// --- FUNCIÓN DE UTILIDAD ---
 function displayName(user: MinimalProfile | null | undefined): string {
+  if (!user) return "Repartidor";
+
+  const fullName = `${user.first_name || ""} ${user.last_name || ""}`.trim();
+  if (fullName) return fullName;
+
   const emailPrefix =
-    typeof user?.email === "string" ? user.email.split("@")[0] : "";
-  return (
-    user?.full_name ||
-    user?.name ||
-    user?.first_name ||
-    emailPrefix ||
-    "Repartidor"
-  );
+    typeof user.email === "string" ? user.email.split("@")[0] : "";
+  return emailPrefix || "Repartidor";
 }
 
-export default function OrderMapAndDriver(props: {
+// --- COMPONENTE PRINCIPAL ---
+export default function MarketOrderMapAndDriver(props: {
   orderId: string;
   partnerId?: string | null;
   userAddressId?: string | null;
 }) {
   const { orderId, partnerId, userAddressId } = props;
+
   const [route, setRoute] = useState<{
     origin?: { longitude: number; latitude: number } | null;
     destination?: { longitude: number; latitude: number } | null;
@@ -71,98 +71,78 @@ export default function OrderMapAndDriver(props: {
             });
           }
         }
-      } catch {
-        // ignore
+      } catch (error) {
+        console.error("Error al cargar la ruta:", error);
       }
     }
 
     async function loadDelivery() {
+      if (!orderId) return;
+
       try {
         const supabase = createClient();
-        let assigned: DeliveryInfo | null = null;
 
-        // Try: orders with delivery_user_id -> profiles
-        try {
-          const { data: ordWithDriver, error: driverErr } = await supabase
-            .from("orders")
-            .select(
-              "id, delivery_user:profiles!orders_delivery_user_id_fkey(id, full_name, name, first_name, email, avatar_url, phone)"
-            )
-            .eq("id", orderId)
-            .single();
-          const u = (
-            ordWithDriver as { delivery_user?: MinimalProfile | null } | null
-          )?.delivery_user;
-          if (!driverErr && ordWithDriver && u) {
-            assigned = {
+        // 1. Obtener el shipment_id de la orden
+        const { data: orderData, error: orderError } = await supabase
+          .from("orders")
+          .select("shipment_id")
+          .eq("id", orderId)
+          .single();
+
+        if (orderError || !orderData?.shipment_id) {
+          throw new Error(
+            `No se encontró un envío para la orden ${orderId}. Error: ${
+              orderError?.message || "shipment_id es nulo"
+            }`
+          );
+        }
+
+        // 2. Con el shipment_id, buscar el driver y su perfil anidado
+        const { data: shipmentData, error: shipmentError } = await supabase
+          .from("shipments")
+          .select(
+            `
+                id,
+                driver:drivers (
+                    user:profiles (
+                        id,
+                        first_name,
+                        last_name,
+                        email,
+                        phone_number
+                    )
+                )
+            `
+          )
+          .eq("id", orderData.shipment_id)
+          .single();
+
+        if (shipmentError) throw shipmentError;
+
+        // Extraer el perfil del repartidor de la estructura anidada
+        const driverProfile = (shipmentData as any)?.driver
+          ?.user as MinimalProfile | null;
+
+        if (mounted) {
+          if (driverProfile) {
+            setDelivery({
               assigned: true,
-              name: displayName(u),
-              avatar_url: u?.avatar_url ?? null,
-              phone: u?.phone ?? null,
-            };
-          }
-        } catch {
-          // ignore
-        }
-
-        // Try: delivery_assignments with profiles
-        if (!assigned) {
-          try {
-            const { data: da, error: daErr } = await supabase
-              .from("delivery_assignments")
-              .select(
-                "id, order_id, delivery_user:profiles(id, full_name, name, first_name, email, avatar_url, phone)"
-              )
-              .eq("order_id", orderId)
-              .maybeSingle();
-            const u = (da as { delivery_user?: MinimalProfile | null } | null)
-              ?.delivery_user;
-            if (!daErr && da && u) {
-              assigned = {
-                assigned: true,
-                name: displayName(u),
-                avatar_url: u?.avatar_url ?? null,
-                phone: u?.phone ?? null,
-              };
-            }
-          } catch {
-            // ignore
+              name: displayName(driverProfile),
+              phone_number: driverProfile.phone_number,
+            });
+          } else {
+            setDelivery({ assigned: false });
           }
         }
-
-        // Try: deliveries with driver profile
-        if (!assigned) {
-          try {
-            const { data: del, error: delErr } = await supabase
-              .from("deliveries")
-              .select(
-                "id, order_id, driver:profiles(id, full_name, name, first_name, email, avatar_url, phone)"
-              )
-              .eq("order_id", orderId)
-              .maybeSingle();
-            const u = (del as { driver?: MinimalProfile | null } | null)
-              ?.driver;
-            if (!delErr && del && u) {
-              assigned = {
-                assigned: true,
-                name: displayName(u),
-                avatar_url: u?.avatar_url ?? null,
-                phone: u?.phone ?? null,
-              };
-            }
-          } catch {
-            // ignore
-          }
-        }
-
-        if (mounted) setDelivery(assigned ?? { assigned: false });
-      } catch {
+      } catch (error) {
+        console.error("Error al cargar la información del repartidor:", error);
         if (mounted) setDelivery({ assigned: false });
       }
     }
 
     loadRoute();
     loadDelivery();
+
     return () => {
       mounted = false;
     };
@@ -183,18 +163,11 @@ export default function OrderMapAndDriver(props: {
 
       <div className="mt-4 flex items-center justify-between rounded-xl border border-[#9BA1AE] bg-[rgba(240,242,245,0.72)] p-3">
         <div className="flex items-center gap-3">
-          <div className="h-16 w-16 rounded-full bg-gray-300 overflow-hidden relative">
-            {delivery?.assigned && delivery?.avatar_url ? (
-              <Image
-                src={delivery.avatar_url}
-                alt={delivery.name ?? "Repartidor"}
-                fill
-                className="object-cover"
-              />
-            ) : null}
+          <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-full bg-gray-300">
+            {/* Opcional: Añadir un SVG genérico de un usuario o repartidor aquí */}
           </div>
           <div>
-            <div className="text-[16px] leading-5 font-medium text-[#171717]">
+            <div className="text-[16px] font-medium leading-5 text-[#171717]">
               {delivery?.assigned ? delivery?.name : "Sin repartidor asignado"}
             </div>
             <div className="text-[14px] leading-[18px] text-[#292929]">
@@ -204,18 +177,26 @@ export default function OrderMapAndDriver(props: {
             </div>
           </div>
         </div>
-        <button
-          className={
-            delivery?.assigned
-              ? "inline-flex items-center justify-center rounded-full border border-[#04BD88] bg-[#CDF7E7] h-[51px] w-[51px]"
-              : "inline-flex items-center justify-center rounded-full border border-[#D9DCE3] bg-[#F0F2F5] h-[51px] w-[51px] opacity-60 cursor-not-allowed"
-          }
-          disabled={!delivery?.assigned}
-          aria-disabled={!delivery?.assigned}
-          title={delivery?.assigned ? "Contactar" : "Aún sin repartidor"}
-        >
-          <span className="sr-only">Contactar</span>
-        </button>
+        {delivery?.assigned && delivery?.phone_number ? (
+          <a
+            href={`tel:${delivery.phone_number}`}
+            className="inline-flex h-[51px] w-[51px] items-center justify-center rounded-full border border-[#04BD88] bg-[#CDF7E7]"
+            title="Llamar al repartidor"
+          >
+            <span className="sr-only">Llamar al repartidor</span>
+            {/* Opcional: Añadir un ícono de teléfono aquí */}
+          </a>
+        ) : (
+          <button
+            className="inline-flex h-[51px] w-[51px] cursor-not-allowed items-center justify-center rounded-full border border-[#D9DCE3] bg-[#F0F2F5] opacity-60"
+            disabled
+            aria-disabled
+            title="Aún sin repartidor"
+          >
+            <span className="sr-only">Contactar</span>
+            {/* Opcional: Añadir un ícono de teléfono deshabilitado aquí */}
+          </button>
+        )}
       </div>
     </div>
   );
