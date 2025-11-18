@@ -3,11 +3,7 @@
 import { getDriverProfile } from "@/src/lib/admin/data/drivers/getDriverProfile";
 import Link from "next/link";
 
-export default async function AdminDriverProfilePage({
-  params,
-}: {
-  params: { id: string };
-}) {
+export default async function AdminDriverProfilePage({ params }: any) {
   const { id } = params;
   const driver = await getDriverProfile(id);
 

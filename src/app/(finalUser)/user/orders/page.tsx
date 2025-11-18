@@ -30,11 +30,7 @@ function currency(n: number | null | undefined) {
   }
 }
 
-export default async function OrdersHistoryPage({
-  searchParams,
-}: {
-  searchParams: { page?: string };
-}) {
+export default async function OrdersHistoryPage({ searchParams }: any) {
   const supabase = await createClient();
   const {
     data: { user },

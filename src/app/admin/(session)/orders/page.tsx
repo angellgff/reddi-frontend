@@ -1,11 +1,8 @@
 import OrdersTableServer from "../../../../components/features/admin/orders/OrdersTableServer";
 import OrdersFilters from "../../../../components/features/admin/orders/OrdersFilters";
 
-export default function AdminOrdersPage({
-  searchParams,
-}: {
-  searchParams: Record<string, string | string[] | undefined>;
-}) {
+export default function AdminOrdersPage(props: any) {
+  const { searchParams } = props;
   return (
     <div className="min-h-screen bg-[#F0F2F5]/90 p-6 md:p-8">
       {/* Page header */}

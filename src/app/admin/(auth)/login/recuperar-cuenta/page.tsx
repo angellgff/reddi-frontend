@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import RecoveryWizard from "@/src/components/basics/auth/RecoveryWizard";
 import Image from "next/image";
 import logo from "@/src/assets/images/logo.svg";
@@ -7,7 +8,9 @@ export default function PasswordRecoveryPage() {
     <>
       <div className="md:w-4/5">
         <Image src={logo} alt="logo text" className="my-6 mx-auto" />
-        <RecoveryWizard />
+        <Suspense fallback={<div>Loading...</div>}>
+          <RecoveryWizard />
+        </Suspense>
       </div>
     </>
   );

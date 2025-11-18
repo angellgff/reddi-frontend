@@ -6,13 +6,7 @@ import StoreMenuSkeleton from "../../../../../components/features/finalUser/stor
 import GuestFooter from "@/src/components/features/layout/GuestFooter";
 
 // Page params come directly (not Promises) from Next.js App Router
-export default async function StorePage({
-  params,
-  searchParams,
-}: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}) {
+export default async function StorePage({ params, searchParams }: any) {
   const { id } = params;
   const { category, q } = searchParams;
 

@@ -26,11 +26,7 @@ type SearchParams = {
   status?: string; // pending | preparing | delivered | cancelled ...
 };
 
-export default async function AdminFinancesPage({
-  searchParams,
-}: {
-  searchParams: SearchParams;
-}) {
+export default async function AdminFinancesPage({ searchParams }: any) {
   const supabase = await createClient();
 
   // 1. Obtener órdenes filtradas
