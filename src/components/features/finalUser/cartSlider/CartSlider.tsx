@@ -13,7 +13,7 @@ import { closeCart, selectCartOpen } from "@/src/lib/store/uiSlice";
 import CartHeader from "./CartHeader";
 import CartItem from "./CartItem";
 import CartSummary from "./CartSummary";
-import { createClient } from "@/src/lib/supabase/client";
+import { fetchPartnerBasics } from "./actions";
 
 type CartSliderProps = {
   isOpen?: boolean;
@@ -31,6 +31,18 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
   const [partnerAddress, setPartnerAddress] = useState<string>("");
   const [isRestaurant, setIsRestaurant] = useState<boolean>(false);
 
+  // <<< LOG AÑADIDO 1: Muestra todos los items del carrito desde Redux
+  useEffect(() => {
+    console.log("🛒 [CartSlider] Items en el carrito (desde Redux):", items);
+  }, [items]);
+
+  // <<< LOG AÑADIDO 2: Muestra el estado de isRestaurant cada vez que cambia
+  useEffect(() => {
+    console.log(
+      `🍔 [CartSlider] ¿Es un restaurante? -> ${isRestaurant}. La prop 'enableExtras' se basará en esto.`
+    );
+  }, [isRestaurant]);
+
   useEffect(() => {
     const doClose = () => {
       if (onClose) onClose();
@@ -44,29 +56,27 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
   }, [effectiveOpen, onClose, dispatch]);
 
   useEffect(() => {
+    let cancelled = false;
     const loadPartner = async () => {
       const pId = items[0]?.partnerId;
-      if (!pId) {
+      const data = await fetchPartnerBasics(pId);
+      if (cancelled) return;
+      if (!data) {
         setPartnerName("Tu carrito");
         setPartnerLogo(null);
         setPartnerAddress("");
         setIsRestaurant(false);
         return;
       }
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("partners")
-        .select("name, image_url, address, partner_type")
-        .eq("id", pId)
-        .single();
-      if (data) {
-        setPartnerName(data.name || "");
-        setPartnerLogo(data.image_url);
-        setPartnerAddress(data.address || "");
-        setIsRestaurant(data.partner_type === "restaurant");
-      }
+      setPartnerName(data.name || "Tu carrito");
+      setPartnerLogo(data.image_url || null);
+      setPartnerAddress(data.address || "");
+      setIsRestaurant(data.partner_type === "restaurant");
     };
     loadPartner();
+    return () => {
+      cancelled = true;
+    };
   }, [items]);
 
   return (
@@ -174,9 +184,23 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {items.map((it: CartItemType) => (
-                  <CartItem key={it.id} item={it} enableExtras={isRestaurant} />
-                ))}
+                {items.map((it: CartItemType) => {
+                  // <<< LOG AÑADIDO 3: Muestra los datos de cada item ANTES de renderizarlo
+                  console.log(
+                    `  - [CartSlider] Renderizando CartItem para '${it.name}'. Datos pasados:`,
+                    {
+                      item: it,
+                      enableExtras: isRestaurant,
+                    }
+                  );
+                  return (
+                    <CartItem
+                      key={it.id}
+                      item={it}
+                      enableExtras={isRestaurant}
+                    />
+                  );
+                })}
               </div>
             )}
           </main>

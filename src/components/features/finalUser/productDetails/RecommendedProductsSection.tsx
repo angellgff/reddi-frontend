@@ -86,7 +86,7 @@ export default function RecommendedProductsSection({
   };
 
   return (
-    <section className="w-full mt-6">
+    <section className="w-full max-w-6xl mx-auto mt-6">
       {/* Header */}
       <div className="flex items-center justify-between px-2 md:px-0">
         <h3 className="text-[20px] md:text-[28px] font-semibold text-black leading-6 md:leading-8">

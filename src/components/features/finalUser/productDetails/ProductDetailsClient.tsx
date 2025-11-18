@@ -8,6 +8,132 @@ import { addItem } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
 import { useRouter } from "next/navigation";
 
+// Componente para renderizar la sección de extras y la nota.
+// Lo creamos para no repetir el mismo bloque de código en móvil y escritorio.
+const ExtrasAndNoteSection = ({
+  details,
+  selected,
+  collapsed,
+  toggleSection,
+  incOption,
+  decOption,
+  note,
+  setNote,
+}: {
+  details: ProductDetails;
+  selected: Record<string, number>;
+  collapsed: Record<string, boolean>;
+  toggleSection: (id: string) => void;
+  incOption: (extraId: string) => void;
+  decOption: (extraId: string) => void;
+  note: string;
+  setNote: (note: string) => void;
+}) => (
+  <div className="space-y-4 mt-4">
+    {/* --- INICIO DEL CÓDIGO REINSERTADO --- */}
+    {details.sections.length === 0 ? (
+      <div className="text-sm text-gray-500">
+        Este producto no tiene extras disponibles.
+      </div>
+    ) : (
+      details.sections.map((s) => {
+        const isCollapsed = collapsed[s.id];
+        return (
+          <div key={s.id} className="rounded-xl border overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggleSection(s.id)}
+              className="w-full px-4 py-2 bg-gray-50 flex items-center justify-between text-left"
+            >
+              <span className="text-sm font-medium flex items-center gap-2">
+                {s.name}
+                {s.isRequired ? (
+                  <span className="text-[11px] text-emerald-600 font-normal">
+                    Requerido
+                  </span>
+                ) : null}
+              </span>
+              <span className="text-xs text-gray-500">
+                {isCollapsed ? "Mostrar" : "Ocultar"}
+              </span>
+            </button>
+            {!isCollapsed && (
+              <ul className="divide-y">
+                {s.options.map((o) => {
+                  const qty = selected[o.extraId] || 0;
+                  return (
+                    <li
+                      key={o.id}
+                      className="px-4 py-3 flex items-center gap-3 justify-between"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        {o.imageUrl ? (
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
+                            <Image
+                              src={o.imageUrl}
+                              alt={o.name}
+                              fill
+                              className="object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-100 rounded-md" />
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium truncate">
+                            {o.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            + ${o.price.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          className="w-8 h-8 rounded-full border text-lg leading-none disabled:opacity-50"
+                          onClick={() => decOption(o.extraId)}
+                          disabled={qty === 0}
+                        >
+                          −
+                        </button>
+                        <span className="w-6 text-center text-sm">{qty}</span>
+                        <button
+                          className="w-8 h-8 rounded-full border text-lg leading-none"
+                          onClick={() => incOption(o.extraId)}
+                        >
+                          +
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+        );
+      })
+    )}
+
+    {/* Input de la nota */}
+    <div className="mt-4">
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        Nota para el pedido (opcional)
+      </label>
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder="Ej. Sin cebolla, salsa aparte…"
+        rows={3}
+        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
+      />
+      <div className="mt-1 text-[11px] text-gray-500">
+        La nota se guardará junto con este producto en tu carrito.
+      </div>
+    </div>
+    {/* --- FIN DEL CÓDIGO REINSERTADO --- */}
+  </div>
+);
+
 export default function ProductDetailsClient({
   details,
   partnerType,
@@ -163,13 +289,26 @@ export default function ProductDetailsClient({
             {/* Description, Extras, and Note Block */}
             <div className="order-3 md:order-2">
               <hr className="my-5 border-gray-200 md:hidden" />
-              {/* Mobile Description */}
+              {/* Mobile Description & Extras */}
               <div className="space-y-3 md:hidden">
                 <h2 className="text-xl font-semibold">{details.name}</h2>
                 {details.description && (
                   <p className="text-base text-black/90">
                     {details.description}
                   </p>
+                )}
+                {/* // <-- AÑADIDO: Lógica de extras y nota para móvil */}
+                {isRestaurant && (
+                  <ExtrasAndNoteSection
+                    details={details}
+                    selected={selected}
+                    collapsed={collapsed}
+                    toggleSection={toggleSection}
+                    incOption={incOption}
+                    decOption={decOption}
+                    note={note}
+                    setNote={setNote}
+                  />
                 )}
               </div>
 
@@ -183,14 +322,26 @@ export default function ProductDetailsClient({
                 {details.description ? (
                   <p className="text-sm text-gray-600">{details.description}</p>
                 ) : null}
-                {/* Extras and Note logic from original component for desktop */}
+                {/* // <-- AÑADIDO: Lógica de extras y nota para escritorio */}
+                {isRestaurant && (
+                  <ExtrasAndNoteSection
+                    details={details}
+                    selected={selected}
+                    collapsed={collapsed}
+                    toggleSection={toggleSection}
+                    incOption={incOption}
+                    decOption={decOption}
+                    note={note}
+                    setNote={setNote}
+                  />
+                )}
               </div>
             </div>
 
             {/* Controls Block */}
             <div className="order-2 md:order-3 md:mt-auto md:pt-6">
               {/* Mobile Controls */}
-              <div className="md:hidden p-4 space-y-3 rounded-2xl bg-gray-100/70 border border-gray-200">
+              <div className="md:hidden mt-4 p-4 space-y-3 rounded-2xl bg-gray-100/70 border border-gray-200">
                 <div className="flex items-center justify-between">
                   <span className="font-medium text-base">Cantidad</span>
                   <div className="flex items-center gap-4 border rounded-full bg-white px-3 py-2 text-center">
@@ -222,7 +373,7 @@ export default function ProductDetailsClient({
                   onClick={() => addToCartHandler(true)}
                 >
                   <span>Agregar</span>
-                  <span>Subtotal: {subtotal.toFixed(0)} USD</span>
+                  <span>Subtotal: {subtotal.toFixed(2)} USD</span>
                 </button>
               </div>
 
