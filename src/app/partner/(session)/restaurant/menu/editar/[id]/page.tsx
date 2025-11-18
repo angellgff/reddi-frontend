@@ -5,15 +5,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import EditDishSkeleton from "@/src/components/features/partner/dashboard/menu/editDish/EditDishSkeleton";
 
-// Necesitarás una función que obtenga los datos del partner. La crearemos para reutilizarla.
-// Puedes crear este archivo: src/lib/partner/dashboard/data/products/getPartnerDataForProductForms.ts
-// (El código para esta función está más abajo)
-
 export default async function EditDishPage({
   params,
 }: {
-  params: { id: string };
+  // 1. Aquí está el cambio: se define 'params' como una Promise
+  params: Promise<{ id: string }>;
 }) {
+  // Tu uso de 'await' ya era correcto
   const { id } = await params;
 
   try {

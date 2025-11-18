@@ -7,11 +7,13 @@ import { notFound } from "next/navigation";
 export default async function MarketProductPreviewPage({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  // 2. El tipo de 'searchParams' se define como una Promise
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const searchParamsResolved = await searchParams;
   const productId =
-    typeof searchParams.productId === "string"
-      ? searchParams.productId
+    typeof searchParamsResolved.productId === "string"
+      ? searchParamsResolved.productId
       : undefined;
   let serverProduct: any = null;
   if (productId) {

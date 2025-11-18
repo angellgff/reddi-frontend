@@ -74,7 +74,7 @@ export default function OrderLiveStatusClient({
       );
       setLoadingDriver(true);
       try {
-        const supabase = createClient();
+        const supabase = await createClient();
 
         // Maneja éxito de forma consistente
         const handleSuccess = (user: any, source: string) => {
@@ -140,7 +140,6 @@ export default function OrderLiveStatusClient({
     if (delivered) {
       // LOG: Si el pedido ya fue entregado, no se hace sondeo.
       console.log("📦 Pedido ya entregado, no se iniciará el sondeo.");
-      return;
     }
 
     // Limpiar cualquier intervalo anterior antes de crear uno nuevo.

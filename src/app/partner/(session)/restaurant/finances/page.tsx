@@ -1,9 +1,11 @@
 import FinancesServer from "@/src/components/features/partner/finances/FinancesServer";
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
-  searchParams?: { [key: string]: string | string[] | undefined };
+  // 2. El tipo de 'searchParams' se define como una Promise
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  return <FinancesServer searchParams={searchParams || {}} />;
+  const resolvedSearchParams = await searchParams;
+  return <FinancesServer searchParams={resolvedSearchParams || {}} />;
 }

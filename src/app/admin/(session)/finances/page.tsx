@@ -27,10 +27,12 @@ type SearchParams = {
 };
 
 export default async function AdminFinancesPage({
-  searchParams,
+  searchParams: searchParamsPromise, // Renombramos la prop para evitar conflictos
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams>; // 1. Actualizamos el tipo a Promise<SearchParams>
 }) {
+  // 2. Esperamos a que la promesa se resuelva
+  const searchParams = await searchParamsPromise;
   const supabase = await createClient();
 
   // 1. Obtener órdenes filtradas
@@ -40,6 +42,7 @@ export default async function AdminFinancesPage({
       "id,total_amount,shipping_fee,status,created_at,partner:partners(partner_type)"
     );
 
+  // 3. Usamos la variable resuelta 'searchParams'
   if (searchParams.status) {
     ordersQ = ordersQ.eq("status", searchParams.status);
   }
@@ -210,8 +213,8 @@ export default async function AdminFinancesPage({
                 <Image
                   src={c.imageUrl}
                   alt={c.name}
-                  width={c.name === "Farmacia" ? 70 : 100} // <-- CAMBIO AQUÍ
-                  height={c.name === "Farmacia" ? 70 : 100} // <-- Y AQUÍ
+                  width={c.name === "Farmacia" ? 70 : 100}
+                  height={c.name === "Farmacia" ? 70 : 100}
                   className="object-contain"
                 />
               </div>

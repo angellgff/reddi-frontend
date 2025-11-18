@@ -3,12 +3,14 @@
 import { getDriverProfile } from "@/src/lib/admin/data/drivers/getDriverProfile";
 import Link from "next/link";
 
+// Se actualiza el tipo de 'params' para que sea una promesa
 export default async function AdminDriverProfilePage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  const { id } = params;
+  // Se utiliza 'await' para resolver la promesa y obtener el valor de 'params'
+  const { id } = await params;
   const driver = await getDriverProfile(id);
 
   const fullName =

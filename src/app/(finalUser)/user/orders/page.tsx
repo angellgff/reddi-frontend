@@ -30,11 +30,15 @@ function currency(n: number | null | undefined) {
   }
 }
 
+// 1. Cambiamos la firma de la función para que acepte `props` como una promesa.
 export default async function OrdersHistoryPage({
   searchParams,
 }: {
-  searchParams: { page?: string };
+  searchParams: Promise<{ page?: string }>;
 }) {
+  // 2. Usamos `await` para resolver la promesa y obtener el objeto de props.
+  const resolvedParams = await searchParams;
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -51,7 +55,8 @@ export default async function OrdersHistoryPage({
     );
   }
 
-  const page = Math.max(1, Number(searchParams?.page ?? 1) || 1);
+  // 3. A partir de aquí, el resto del código funciona igual porque `searchParams` ya es un objeto normal.
+  const page = Math.max(1, Number(resolvedParams?.page ?? 1) || 1);
   const pageSize = 5; // muestra 5 por página como en el mock
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
@@ -143,10 +148,6 @@ export default async function OrdersHistoryPage({
               >
                 {/* left: store info */}
                 <div className="flex items-center gap-3 min-w-0">
-                  {/* --- CAMBIO 1 ---
-      Se eliminó "grid place-items-center".
-      Esto evita que el layout del contenedor interfiera con el tamaño de la imagen.
-  */}
                   <div className="h-[74px] w-[126px] sm:h-[66px] sm:w-[66px] flex-shrink-0 overflow-hidden rounded-xl border border-[#D9DCE3] bg-[#F0F2F5]">
                     {it.partner?.image_url ? (
                       <Image
@@ -154,21 +155,15 @@ export default async function OrdersHistoryPage({
                         alt={it.partner?.name ?? "Tienda"}
                         width={126}
                         height={74}
-                        /* --- CAMBIO 2 (EL MÁS IMPORTANTE) ---
-            - "object-contain": Asegura que la imagen completa quepa dentro del contenedor sin cortarse.
-            - "sm:object-cover": En pantallas más grandes, volvemos a cortar la imagen para que llene el espacio cuadrado sin distorsionarse.
-        */
                         className="object-contain sm:object-cover h-full w-full"
                       />
                     ) : (
-                      // Añadimos flexbox aquí para centrar el texto "Logo" ahora que quitamos el grid
                       <div className="flex h-full w-full items-center justify-center text-xs text-[#9BA1AE]">
                         Logo
                       </div>
                     )}
                   </div>
                   <div className="min-w-0">
-                    {/* ...el resto del código sigue igual... */}
                     <div className="text-sm font-semibold truncate">
                       {it.partner?.name ?? "Tienda"}
                     </div>
@@ -189,10 +184,6 @@ export default async function OrdersHistoryPage({
                 </div>
 
                 {/* right: actions */}
-                {/* --- CAMBIO AQUÍ --- 
-                    El contenedor de botones ahora ocupa el ancho completo en móviles (w-full) y vuelve a su tamaño automático en 'sm' (sm:w-auto).
-                    Los botones usan flex-1 para compartir el espacio equitativamente.
-                */}
                 <div className="w-full sm:w-auto flex items-center gap-2">
                   <Link
                     href={`/user/orders/${it.id}`}

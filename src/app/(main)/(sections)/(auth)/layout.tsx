@@ -1,6 +1,7 @@
 import Image from "next/image";
 import loginImage from "@/src/assets/images/loginUser.svg";
 import logo from "@/src/assets/images/logo.svg";
+import { Suspense } from "react";
 
 export default function UserLayout({
   children,
@@ -21,7 +22,7 @@ export default function UserLayout({
         </div>
         <div className="flex flex-col items-center gap-4 w-full">
           <Image src={logo} alt="logo text" className="my-6" />
-          {children}
+          <Suspense fallback={<div>Cargando...</div>}>{children}</Suspense>
         </div>
       </section>
     </>

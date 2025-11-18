@@ -43,6 +43,7 @@ export default function OrderDetailMap({ origin, destination, eta }: Props) {
           type: "geojson",
           data: {
             type: "Feature",
+            properties: {},
             geometry: {
               type: "LineString",
               coordinates: [origin, destination],

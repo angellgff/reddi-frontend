@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createClient } from "@/src/lib/supabase/client";
+import { checkExistingRating, createRatingAction } from "./actions";
 import {
   Dialog,
   DialogContent,
@@ -36,20 +36,12 @@ export default function OrderDeliveredRatingDialog({
 
   // Auto-open when delivered & not yet rated.
   useEffect(() => {
-    async function checkExisting() {
+    async function check() {
       if (!delivered || !orderId || !userId) return;
-      const supabase = createClient();
-      const { data, error } = await supabase
-        .from("ratings")
-        .select("id")
-        .eq("order_id", orderId)
-        .eq("user_id", userId)
-        .maybeSingle();
-      if (!error && !data) {
-        setOpen(true);
-      }
+      const exists = await checkExistingRating({ orderId, userId });
+      if (!exists) setOpen(true);
     }
-    checkExisting();
+    check();
   }, [delivered, orderId, userId]);
 
   async function handleSubmit() {
@@ -64,23 +56,15 @@ export default function OrderDeliveredRatingDialog({
     setSubmitting(true);
     setError(null);
     try {
-      // Prefer API route to centralize validation and server auth
-      const resp = await fetch("/api/ratings/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId,
-          partnerId,
-          ratingValue: stars,
-          comment: comment.trim() || undefined,
-        }),
+      const { success, error: err } = await createRatingAction({
+        orderId,
+        partnerId,
+        userId,
+        ratingValue: stars,
+        comment: comment.trim() || undefined,
       });
-      if (!resp.ok) {
-        const data = await resp.json().catch(() => ({}));
-        throw new Error(data?.error || "Error guardando calificación");
-      }
+      if (!success) throw new Error(err || "Error guardando calificación");
       setSuccess(true);
-      // Close after short delay
       setTimeout(() => setOpen(false), 1200);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e ?? "");

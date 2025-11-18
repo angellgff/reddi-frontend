@@ -8,8 +8,10 @@ import MarketOrderDetailsSkeleton from "@/src/components/features/partner/market
 export default async function MarketOrderPage({
   params,
 }: {
-  params: { id: string };
+  // 1. Actualiza el tipo para que sea una Promise
+  params: Promise<{ id: string }>;
 }) {
+  // Tu uso de 'await' ya es correcto
   const { id } = await params;
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">

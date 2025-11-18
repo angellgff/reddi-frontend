@@ -49,13 +49,24 @@ export default async function getCustomersPage(
   const total = data[0].total_records || 0;
 
   // Mapeamos los resultados para asegurar que el tipo `total_amount` sea un número
-  const customers: CustomerListItem[] = data.map((row) => ({
-    id: row.id,
-    fullName: row.fullname, // Ojo: postgres devuelve todo en minúsculas por defecto
-    phone: row.phone,
-    created_at: row.created_at,
-    total_amount: Number(row.total_amount || 0),
-  }));
+  interface GetCustomersPageRow {
+    id: string;
+    fullname: string;
+    phone: string | null;
+    created_at: string | null;
+    total_amount: number | string | null;
+    total_records?: number;
+  }
+
+  const customers: CustomerListItem[] = (data as GetCustomersPageRow[]).map(
+    (row: GetCustomersPageRow): CustomerListItem => ({
+      id: row.id,
+      fullName: row.fullname,
+      phone: row.phone,
+      created_at: row.created_at,
+      total_amount: Number(row.total_amount || 0),
+    })
+  );
 
   return { customers, total };
 }

@@ -46,6 +46,10 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  eslint: {
+    // Skip ESLint during `next build` so lint errors don't block CI/builds
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;

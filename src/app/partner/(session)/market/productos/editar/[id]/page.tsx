@@ -2,12 +2,16 @@ import { createClient } from "@/src/lib/supabase/server";
 import MarketEditProductForm from "@/src/components/features/partner/dashboard/market/editProduct/MarketEditProductForm";
 import { notFound } from "next/navigation";
 
+// 1. Se actualiza la interfaz para que 'params' sea una Promise
 interface EditPageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditMarketProductPage({ params }: EditPageProps) {
+  // 2. Se usa 'await' para resolver la promesa y obtener el 'id'
+  const { id } = await params;
   const supabase = await createClient();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -21,13 +25,13 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     .single();
   if (!partner) notFound();
 
-  // Traer producto asegurando que pertenece al partner
+  // Traer producto asegurando que pertenece al partner (usando el 'id' resuelto)
   const { data: productRow, error: productError } = await supabase
     .from("products")
     .select(
       `id, name, description, base_price, previous_price, unit, estimated_time, sub_category_id, is_available, tax_included, image_url`
     )
-    .eq("id", params.id)
+    .eq("id", id) // Se usa la variable 'id'
     .eq("partner_id", partner.id)
     .single();
   if (productError || !productRow) notFound();

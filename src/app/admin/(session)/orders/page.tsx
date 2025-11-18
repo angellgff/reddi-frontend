@@ -1,11 +1,16 @@
 import OrdersTableServer from "../../../../components/features/admin/orders/OrdersTableServer";
 import OrdersFilters from "../../../../components/features/admin/orders/OrdersFilters";
 
-export default function AdminOrdersPage({
+// 1. La función del componente ahora es 'async'
+export default async function AdminOrdersPage({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  // 2. El tipo de 'searchParams' se define como una Promise
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  // 3. Se resuelve la promesa para obtener el objeto de searchParams
+  const resolvedSearchParams = await searchParams;
+
   return (
     <div className="min-h-screen bg-[#F0F2F5]/90 p-6 md:p-8">
       {/* Page header */}
@@ -33,7 +38,8 @@ export default function AdminOrdersPage({
             Lista de Pedidos
           </h2>
         </div>
-        <OrdersTableServer searchParams={searchParams} />
+        {/* 4. Se pasa el objeto resuelto al componente hijo */}
+        <OrdersTableServer searchParams={resolvedSearchParams} />
       </div>
     </div>
   );

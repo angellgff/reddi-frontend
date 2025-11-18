@@ -69,6 +69,9 @@ export default async function getRecentOrders(
     user_id: o.user_id,
     // El perfil viene anidado en la respuesta.
     // 'o.profiles' puede ser null si la relación no encuentra una coincidencia.
-    customerName: deriveName(o.profiles, o.user_id),
+    customerName: deriveName(
+      Array.isArray(o.profiles) ? o.profiles[0] : o.profiles,
+      o.user_id
+    ),
   }));
 }

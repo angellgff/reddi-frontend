@@ -2,22 +2,16 @@ import OrderDetailServer from "@/src/components/features/repartidor/orderDetail/
 import Link from "next/link";
 import ArrowLeftIcon from "@/src/components/icons/ArrowLeftIcon";
 
+// 1. Corrige la interfaz para que espere una Promise
 interface Props {
-  params: { orderId: string };
+  params: Promise<{ orderId: string }>;
 }
 
 export default async function OrderDetailPage({ params }: Props) {
-  // 1. Para poder usar "await", convertimos `params` en una Promise que se resuelve inmediatamente.
-  //    Esto es lo que pediste: tiparlo como Promise y meterle el await.
-  const paramsAsPromise: Promise<{ orderId: string }> = Promise.resolve(params);
+  // 2. Usa 'await' directamente sobre la prop 'params' para obtener su valor
+  const { orderId } = await params;
 
-  // 2. Ahora sí podemos usar `await` para "esperar" a que esa Promise se resuelva.
-  const resolvedParams = await paramsAsPromise;
-
-  // 3. Una vez resueltos los parámetros, extraemos el orderId.
-  const orderId = resolvedParams.orderId;
-
-  // 4. Render con botón de volver y detalle del pedido.
+  // 3. El resto del componente funciona igual con el 'orderId' ya resuelto
   return (
     <div className="px-4 pt-4">
       <div className="mb-2">

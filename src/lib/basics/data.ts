@@ -8,25 +8,6 @@ export async function getRecommendedData(): Promise<SliderCardProps[]> {
   await new Promise((resolve) =>
     setTimeout(resolve, API_DELAY * getRandomNumberFrom1To10())
   );
-  const data: SliderCardProps[] = [
-    {
-      name: "Tacos de pollo y carne",
-      imageUrl: "/tacos.svg",
-      rating: 4.8,
-      reviewCount: 254,
-      deliveryTime: "25-35 min",
-      deliveryFee: "$0 tarifa de envío",
-      href: "/restaurantes/tacos-el-pastor",
-    },
-    {
-      name: "Carnicería San Juan",
-      imageUrl: "/sushi-carne.svg",
-      rating: 4.9,
-      reviewCount: 512,
-      deliveryTime: "30-40 min",
-      deliveryFee: "$0 tarifa de envío",
-      href: "/tiendas/carniceria-san-juan",
-    },
-  ];
+  const data: SliderCardProps[] = [];
   return data;
 }

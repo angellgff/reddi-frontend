@@ -5,16 +5,15 @@ import StoreMenuServer from "../../../../../components/features/finalUser/store/
 import StoreMenuSkeleton from "../../../../../components/features/finalUser/store/StoreMenuSkeleton";
 import GuestFooter from "@/src/components/features/layout/GuestFooter";
 
-// Page params come directly (not Promises) from Next.js App Router
 export default async function StorePage({
   params,
   searchParams,
 }: {
-  params: { id: string };
-  searchParams: { [key: string]: string | string[] | undefined };
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { id } = params;
-  const { category, q } = searchParams;
+  const { id } = await params;
+  const { category, q } = await searchParams;
 
   return (
     <>

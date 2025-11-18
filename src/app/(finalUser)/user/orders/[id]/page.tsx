@@ -7,6 +7,10 @@ import { getRouteDetails } from "@/src/lib/finalUser/orders/getRouteDetails";
 import { createClient } from "@/src/lib/supabase/server";
 import type { NormalizedOrder } from "@/src/lib/finalUser/orders/getOrderDetails";
 
+type PageProps = {
+  params: Promise<{ [key: string]: string }>;
+};
+
 function currency(n: number | null | undefined) {
   const v = typeof n === "number" && isFinite(n) ? n : 0;
   return v.toLocaleString("es-MX", {
@@ -31,12 +35,10 @@ function currentIndex(status?: OrderStepKey) {
   return idx >= 0 ? idx : 0;
 }
 
-export default async function OrderStatusPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const id = params.id;
+export default async function OrderStatusPage({ params }: PageProps) {
+  // Usamos `await` para resolver la promesa y obtener los `params`.
+  const resolvedParams = await params;
+  const id = resolvedParams.id;
   const order: NormalizedOrder = await getOrderDetails(id);
   const route = await getRouteDetails(
     order?.partner_id,

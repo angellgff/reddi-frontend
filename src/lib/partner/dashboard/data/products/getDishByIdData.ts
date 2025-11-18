@@ -1,9 +1,8 @@
 import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
-import { IDishFormState } from "@/src/components/features/partner/dashboard/menu/newDish/NewDishWizard";
 import { API_DELAY } from "@/src/lib/type";
 import { cache } from "react";
 
-const mockDishes: Array<{ id: string; dish: IDishFormState }> = [
+const mockDishes: Array<{ id: string; dish: any }> = [
   {
     id: "1",
     dish: {
