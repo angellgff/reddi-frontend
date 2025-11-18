@@ -73,7 +73,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   };
   const goOrders = () => go("/user/orders");
   const goFavorites = () => go("/user/favorites");
-  const goAddresses = () => go("/user/checkout/address");
+  const goAddresses = () => go("/user/profile");
 
   const onToggleCart = () => dispatch(toggleCart());
 
@@ -291,7 +291,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 <NavPill
                   icon={<MapPin size={20} />}
                   label="Direcciones guardadas"
-                  active={pathname === "/user/checkout/address"}
+                  active={pathname === "/user/profile"}
                   onClick={goAddresses}
                 />
               </div>
@@ -369,7 +369,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 <NavPill
                   icon={<MapPin size={20} />}
                   label="Direcciones guardadas"
-                  active={pathname === "/user/checkout/address"}
+                  active={pathname === "/user/profile"}
                   onClick={goAddresses}
                 />
               </div>
