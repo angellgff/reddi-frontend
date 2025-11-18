@@ -96,7 +96,9 @@ export default function OrderLiveStatusClient({
 
         // Único intento: shipments -> drivers -> profiles (según tipos generados)
         try {
-          console.log("    [Intento único] Consultando 'shipments' con joins...");
+          console.log(
+            "    [Intento único] Consultando 'shipments' con joins..."
+          );
           const { data: ship, error: shipErr } = await supabase
             .from("shipments")
             .select(
@@ -111,7 +113,10 @@ export default function OrderLiveStatusClient({
             .eq("order_id", orderId)
             .maybeSingle();
 
-          console.log("    [Intento único] Respuesta:", { ship, error: shipErr });
+          console.log("    [Intento único] Respuesta:", {
+            ship,
+            error: shipErr,
+          });
 
           const user = (ship as any)?.driver?.user;
           if (!shipErr && ship && user) {
