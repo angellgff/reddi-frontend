@@ -143,20 +143,32 @@ export default async function OrdersHistoryPage({
               >
                 {/* left: store info */}
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-[66px] w-[66px] overflow-hidden rounded-xl border border-[#D9DCE3] bg-[#F0F2F5] grid place-items-center">
+                  {/* --- CAMBIO 1 ---
+      Se eliminó "grid place-items-center".
+      Esto evita que el layout del contenedor interfiera con el tamaño de la imagen.
+  */}
+                  <div className="h-[74px] w-[126px] sm:h-[66px] sm:w-[66px] flex-shrink-0 overflow-hidden rounded-xl border border-[#D9DCE3] bg-[#F0F2F5]">
                     {it.partner?.image_url ? (
                       <Image
                         src={it.partner.image_url}
                         alt={it.partner?.name ?? "Tienda"}
-                        width={66}
-                        height={66}
-                        className="object-cover h-full w-full"
+                        width={126}
+                        height={74}
+                        /* --- CAMBIO 2 (EL MÁS IMPORTANTE) ---
+            - "object-contain": Asegura que la imagen completa quepa dentro del contenedor sin cortarse.
+            - "sm:object-cover": En pantallas más grandes, volvemos a cortar la imagen para que llene el espacio cuadrado sin distorsionarse.
+        */
+                        className="object-contain sm:object-cover h-full w-full"
                       />
                     ) : (
-                      <div className="text-xs text-[#9BA1AE]">Logo</div>
+                      // Añadimos flexbox aquí para centrar el texto "Logo" ahora que quitamos el grid
+                      <div className="flex h-full w-full items-center justify-center text-xs text-[#9BA1AE]">
+                        Logo
+                      </div>
                     )}
                   </div>
                   <div className="min-w-0">
+                    {/* ...el resto del código sigue igual... */}
                     <div className="text-sm font-semibold truncate">
                       {it.partner?.name ?? "Tienda"}
                     </div>
@@ -177,24 +189,28 @@ export default async function OrdersHistoryPage({
                 </div>
 
                 {/* right: actions */}
-                <div className="flex flex-wrap items-center gap-2">
+                {/* --- CAMBIO AQUÍ --- 
+                    El contenedor de botones ahora ocupa el ancho completo en móviles (w-full) y vuelve a su tamaño automático en 'sm' (sm:w-auto).
+                    Los botones usan flex-1 para compartir el espacio equitativamente.
+                */}
+                <div className="w-full sm:w-auto flex items-center gap-2">
                   <Link
                     href={`/user/orders/${it.id}`}
-                    className="h-9 inline-flex items-center justify-center rounded-xl border border-[#9BA1AE] px-4 text-xs font-medium hover:bg-gray-50"
+                    className="h-9 flex flex-1 items-center justify-center rounded-xl border border-[#9BA1AE] px-4 text-xs font-medium hover:bg-gray-50"
                   >
                     Ver detalle
                   </Link>
                   {active && (
                     <Link
                       href={`/user/orders/${it.id}`}
-                      className="h-9 inline-flex items-center justify-center rounded-xl border border-[#04BD88] text-[#047857] px-4 text-xs font-medium bg-[#ECFDF5] hover:bg-[#D1FAE5]"
+                      className="h-9 flex flex-1 items-center justify-center rounded-xl border border-[#04BD88] text-[#047857] px-4 text-xs font-medium bg-[#ECFDF5] hover:bg-[#D1FAE5]"
                     >
                       Hacer seguimiento
                     </Link>
                   )}
                   <Link
                     href={storeHref}
-                    className="h-9 inline-flex items-center justify-center rounded-xl border border-black px-4 text-xs font-medium hover:bg-gray-50"
+                    className="h-9 flex flex-1 items-center justify-center rounded-xl border border-black px-4 text-xs font-medium hover:bg-gray-50"
                   >
                     Pedir otra vez
                   </Link>
