@@ -12,9 +12,10 @@ import Image from "next/image";
 import BasicInput from "@/src/components/basics/BasicInput";
 import TagsTabs from "@/src/components/features/partner/TagsTabs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useAppDispatch } from "@/src/lib/store/hooks";
-import { addItem } from "@/src/lib/store/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
+import Toast from "@/src/components/basics/Toast";
 import { useRouter as useNextRouter } from "next/navigation";
 import ProductCardRestaurant, {
   ProductCardBase,
@@ -42,6 +43,7 @@ export default function StoreMenu({
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const currentPartnerId = useAppSelector(selectCartPartnerId);
   const scrollersRef = useRef<Record<string, HTMLDivElement | null>>({});
 
   const [query, setQuery] = useState(searchParams.get("q") || "");
@@ -81,6 +83,14 @@ export default function StoreMenu({
 
   type ProductCard = StoreMenuType["groups"][number]["products"][number];
   const handleAddToCart = (p: ProductCard) => {
+    if (currentPartnerId && currentPartnerId !== partnerId) {
+      setToast({
+        open: true,
+        msg: "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
+        type: "error",
+      });
+      return;
+    }
     const base = Number(p.base_price) || 0;
     const discount = p.discount_percentage ? Number(p.discount_percentage) : 0;
     const unit = discount ? base * (1 - discount / 100) : base;
@@ -105,9 +115,18 @@ export default function StoreMenu({
   };
 
   const isRestaurant = partnerType === "restaurant";
+  const [toast, setToast] = useState<{ open: boolean; msg: string; type: "success" | "error" | "info" }>(
+    { open: false, msg: "", type: "info" }
+  );
 
   return (
     <div className="space-y-8">
+      <Toast
+        open={toast.open}
+        message={toast.msg}
+        type={toast.type}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
       {/* Search + Categories Bar */}
       <div className="space-y-4">
         <div className="relative">

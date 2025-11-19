@@ -303,5 +303,8 @@ export const selectCartCount = (s: { cart: CartState }) =>
   s.cart.items.reduce((acc, it) => acc + it.quantity, 0);
 export const selectCartSubtotal = (s: { cart: CartState }) =>
   s.cart.items.reduce((acc, it) => acc + calcItemTotal(it), 0);
+// Nuevo selector: partner actual (primera línea del carrito) o null si vacío
+export const selectCartPartnerId = (s: { cart: CartState }) =>
+  s.cart.items.length > 0 ? s.cart.items[0].partnerId : null;
 
 export default cartSlice.reducer;

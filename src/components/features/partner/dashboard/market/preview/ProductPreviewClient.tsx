@@ -2,9 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { useAppDispatch } from "@/src/lib/store/hooks";
-import { addItem } from "@/src/lib/store/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
 import ArrowLeftIcon from "@/src/components/icons/ArrowLeftIcon";
+import Toast from "@/src/components/basics/Toast";
 
 interface ServerProduct {
   id: string;
@@ -37,6 +38,7 @@ export default function ProductPreviewClient({
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const currentPartnerId = useAppSelector(selectCartPartnerId);
 
   const fromDraft = searchParams.get("draft");
   const productId =
@@ -118,6 +120,15 @@ export default function ProductPreviewClient({
 
   const handleAdd = () => {
     if (!data) return;
+    if (currentPartnerId && currentPartnerId !== data.partnerId) {
+      setToast({
+        open: true,
+        message:
+          "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
+        type: "error",
+      });
+      return;
+    }
     dispatch(
       addItem({
         productId: productId || "temp", // if new product still not created
@@ -131,8 +142,20 @@ export default function ProductPreviewClient({
     );
   };
 
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "info" as "success" | "error" | "info",
+  });
+
   return (
     <div className="flex flex-col items-center px-12 pt-10 pb-16 gap-8 bg-white min-h-screen">
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
       <button
         type="button"
         onClick={() => router.back()}

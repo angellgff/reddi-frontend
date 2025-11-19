@@ -3,10 +3,11 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import type { ProductDetails } from "@/src/lib/finalUser/stores/getProductDetails";
-import { useAppDispatch } from "@/src/lib/store/hooks";
-import { addItem } from "@/src/lib/store/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
 import { useRouter } from "next/navigation";
+import Toast from "@/src/components/basics/Toast";
 
 // Componente para renderizar la sección de extras y la nota.
 // Lo creamos para no repetir el mismo bloque de código en móvil y escritorio.
@@ -143,6 +144,7 @@ export default function ProductDetailsClient({
 }) {
   const isRestaurant = partnerType === "restaurant";
   const dispatch = useAppDispatch();
+  const currentPartnerId = useAppSelector(selectCartPartnerId);
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, number>>({});
@@ -193,6 +195,16 @@ export default function ProductDetailsClient({
     });
 
   const addToCartHandler = (openAfter: boolean) => {
+    // Bloqueo: solo permitir productos de la misma tienda
+    if (currentPartnerId && currentPartnerId !== details.partnerId) {
+      setToast({
+        open: true,
+        message:
+          "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
+        type: "error",
+      });
+      return;
+    }
     const extras = !isRestaurant
       ? []
       : details.sections.flatMap((s) =>
@@ -227,9 +239,21 @@ export default function ProductDetailsClient({
   const toggleSection = (id: string) =>
     setCollapsed((m) => ({ ...m, [id]: !m[id] }));
   const prepTime = isRestaurant ? details.estimated_time : "";
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "info" as "success" | "error" | "info",
+  });
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* Toast de errores de restricción de tienda */}
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
       <div className="p-4">
         <button
           className="px-3 py-2 rounded-lg border text-sm"

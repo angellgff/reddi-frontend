@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import ArrowLeftIcon from "@/src/components/icons/ArrowLeftIcon";
 import ArrowRightIcon from "@/src/components/icons/ArrowRightIcon";
@@ -9,10 +9,11 @@ import ProductCardRestaurant, {
 } from "@/src/components/features/finalUser/store/productCards/ProductCardRestaurant";
 import ProductCardMarket from "@/src/components/features/finalUser/store/productCards/ProductCardMarket";
 import type { RecommendedProduct } from "@/src/lib/finalUser/stores/getRecommendedProducts";
-import { useAppDispatch } from "@/src/lib/store/hooks";
-import { addItem } from "@/src/lib/store/cartSlice";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
 import { useRouter } from "next/navigation";
+import Toast from "@/src/components/basics/Toast";
 
 type PartnerType =
   | "market"
@@ -34,6 +35,7 @@ export default function RecommendedProductsSection({
 }) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const dispatch = useAppDispatch();
+  const currentPartnerId = useAppSelector(selectCartPartnerId);
   const router = useRouter();
 
   const isRestaurant = partnerType === "restaurant";
@@ -60,6 +62,14 @@ export default function RecommendedProductsSection({
 
   const onAdd = (product: ProductCardBase, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (currentPartnerId && currentPartnerId !== partnerId) {
+      setToast({
+        open: true,
+        message: "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
+        type: "error",
+      });
+      return;
+    }
     const base = Number(product.base_price) || 0;
     const d = product.discount_percentage
       ? Number(product.discount_percentage)
@@ -85,8 +95,20 @@ export default function RecommendedProductsSection({
     router.push(`/user/stores/${partnerId}/product/${product.id}`);
   };
 
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "info" as "success" | "error" | "info",
+  });
+
   return (
     <section className="w-full max-w-6xl mx-auto mt-6">
+      <Toast
+        open={toast.open}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast((t: typeof toast) => ({ ...t, open: false }))}
+      />
       {/* Header */}
       <div className="flex items-center justify-between px-2 md:px-0">
         <h3 className="text-[20px] md:text-[28px] font-semibold text-black leading-6 md:leading-8">
