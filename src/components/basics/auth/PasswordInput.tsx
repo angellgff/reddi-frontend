@@ -42,6 +42,7 @@ export default function PasswordInput({
           type={isPasswordDisplayed ? "text" : "password"}
           autoComplete={autoComplete}
           id={id}
+          name={id}
           value={passwordValue}
           onChange={(e) => myOnChange(e.target.value)}
           placeholder="Ingresa tu contraseña"

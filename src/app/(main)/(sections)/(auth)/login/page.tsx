@@ -10,6 +10,7 @@ import FormTitle from "@/src/components/basics/auth/FormTitle";
 import { createClient } from "@/src/lib/supabase/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { loginWithGoogleAction } from "@/src/lib/actions/auth";
 
 const sessionsButtonData = [
   {
@@ -51,55 +52,14 @@ export default function Login() {
     try {
       setIsLoading(true);
       const next = searchParams.get("next") || "/user/home";
-      // Redirigimos a una ruta pública (auth/login) con parámetro next
-      const redirectPublic = siteUrl
-        ? `${siteUrl}/login?next=/user/home`
-        : undefined;
-      if (debug)
-        console.log("[login/google] start", {
-          next,
-          siteUrl,
-          redirectPublic,
-          location:
-            typeof window !== "undefined" ? window.location.href : "ssr",
-        });
-
-      if (debug) console.log("[login/google] calling signInWithOAuth");
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-          redirectTo: redirectPublic,
-          queryParams: {
-            prompt: "select_account",
-          },
-        },
-      });
-      if (debug)
-        console.log("[login/google] signInWithOAuth result", {
-          hasUrl: !!data?.url,
-          error: error?.message,
-        });
-      if (error) throw error;
-      if (data?.url) {
-        if (debug)
-          console.log("[login/google] navigating to data.url", data.url);
-        window.location.href = data.url;
-        return;
-      }
-      // Fallback: if no redirect happened for some reason
-      if (debug)
-        console.warn(
-          "[login/google] no data.url returned, using router.replace",
-          next
-        );
-      router.replace(next);
+      await loginWithGoogleAction(next);
     } catch (e) {
       const err = e as Error;
       console.error("[login/google] error", err?.message);
     } finally {
       setIsLoading(false);
     }
-  }, [router, searchParams, supabase]);
+  }, []);
 
   // Debug auth lifecycle on this page (optional, controlled by env)
   // Also handle in-page redirect after OAuth callback returns here.

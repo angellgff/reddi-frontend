@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import PasswordInput from "./PasswordInput";
 import UserLoginIcon from "@/src/components/icons/UserLoginIcon";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/client";
 import { useRouter, useSearchParams } from "next/navigation";
+import { loginAction } from "@/src/lib/actions/auth";
 
 const recoveryAccountLink = "/auth/forgot-password";
 
@@ -19,8 +20,8 @@ export default function LoginForm({
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const [state, formAction, isPending] = useActionState(loginAction, null);
 
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -119,31 +120,7 @@ export default function LoginForm({
   }, [router, searchParams]);
 
   // --- HANDLERS ---
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-    const supabase = createClient();
-    try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) throw error;
-      const next = searchParams.get("next");
-      const role = await resolveRole(supabase); // Usando la nueva función
-      const to = next || homeForRole(role);
-      router.replace(to);
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Ocurrió un error al iniciar sesión"
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // handleSubmit removed in favor of server action
 
   return (
     <>
@@ -153,7 +130,12 @@ export default function LoginForm({
       </h1>
 
       {/* --- FORMULARIO --- */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form action={formAction} className="space-y-6">
+        <input
+          type="hidden"
+          name="next"
+          value={searchParams.get("next") || ""}
+        />
         {/* --- CAMPO DE NOMBRE/EMAIL --- */}
         <div>
           <label
@@ -170,12 +152,13 @@ export default function LoginForm({
               autoComplete="email"
               type="email"
               id="email"
+              name="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Ingresa tu correo"
               className="w-full pl-10 pr-4 py-3 border border-gray-400 rounded-xl font-roboto"
               required
-              disabled={isLoading}
+              disabled={isPending}
             />
           </div>
         </div>
@@ -187,13 +170,13 @@ export default function LoginForm({
           displayPassword={setShowPassword}
           myOnChange={setPassword}
           label="Contraseña"
-          disabled={isLoading}
+          disabled={isPending}
         />
 
         {/* --- MENSAJE DE ERROR --- */}
-        {error && (
+        {state?.error && (
           <p className="text-sm text-red-600 px-2" role="alert">
-            {error}
+            {state.error}
           </p>
         )}
 
@@ -206,7 +189,7 @@ export default function LoginForm({
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
               className="h-4 w-4 text-emerald-600 border-gray-300 rounded "
-              disabled={isLoading}
+              disabled={isPending}
             />
             <label htmlFor="remember" className="text-gray-600">
               Recordarme
@@ -224,9 +207,9 @@ export default function LoginForm({
         <button
           type="submit"
           className="w-full bg-primary text-white font-medium py-2 px-4 rounded-xl hover:bg-emerald-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors duration-300 disabled:opacity-70"
-          disabled={isLoading}
+          disabled={isPending}
         >
-          {isLoading ? "Ingresando..." : "Iniciar Sesión"}
+          {isPending ? "Ingresando..." : "Iniciar Sesión"}
         </button>
       </form>
 

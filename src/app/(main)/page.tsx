@@ -55,7 +55,6 @@ export default function Home() {
           <BenefitsSection />
         </section>
       </div>
-      <UserFooter />
     </>
   );
 }
