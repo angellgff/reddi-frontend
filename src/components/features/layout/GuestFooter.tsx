@@ -27,7 +27,11 @@ const sectionsData = [
     title: "Legal",
     links: [
       { href: "/terminos-y-condiciones", label: "Términos y condiciones" },
-      { href: "/privacidad", label: "Privacidad" },
+      { href: "/privacidad", label: "Políticas de privacidad" },
+      { href: "/protocolo-respuesta-incidentes-irp", label: "Protocolo de respuesta a incidentes (IRP)" },
+      { href: "/politicas-seguridad-transmision-datos-tarjetas", label: "Políticas de seguridad (datos de tarjetas)" },
+      { href: "/politica-entrega", label: "Política de entrega" },
+      { href: "/politica-reembolsos-devoluciones-cancelaciones", label: "Política de reembolsos, devoluciones y cancelaciones" },
     ],
   },
 ];

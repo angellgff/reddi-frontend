@@ -12,6 +12,7 @@ import BenefitsSection from "@/src/components/features/main/BenefitsSection";
 import { Suspense } from "react";
 // Keeping footer for consistency with existing (main) UX; remove if not desired.
 import UserFooter from "@/src/components/basics/UserFooter";
+import GuestFooter from "@/src/components/features/layout/GuestFooter";
 
 export default function Home() {
   return (
@@ -55,6 +56,7 @@ export default function Home() {
           <BenefitsSection />
         </section>
       </div>
+      <GuestFooter />
     </>
   );
 }

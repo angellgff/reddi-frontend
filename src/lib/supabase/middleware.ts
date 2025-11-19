@@ -119,6 +119,12 @@ export async function updateSession(request: NextRequest) {
     "/admin/login",
     "/partner/login",
     "/partner/registro",
+    "/politica-entrega",
+    "/politica-reembolsos-devoluciones-cancelaciones",
+    "/terminos-y-condiciones",
+    "/privacidad",
+    "/protocolo-respuesta-incidentes-irp",
+    "/politicas-seguridad-transmision-datos-tarjetas",
   ];
   const authPaths = [
     "/login",
