@@ -2,7 +2,14 @@ import "./globals.css";
 import "mapbox-gl/dist/mapbox-gl.css";
 // Mapa: pigeon-maps no requiere CSS global
 // Importanción de fuentes
-import { Poppins, Roboto, Inter, Manrope, Montserrat } from "next/font/google";
+import {
+  Poppins,
+  Roboto,
+  Inter,
+  Manrope,
+  Montserrat,
+  Rubik,
+} from "next/font/google";
 import ReduxProvider from "@/src/lib/store/ReduxProvider";
 import { NotificationsProvider } from "@/src/lib/notifications/NotificationsContext";
 
@@ -37,6 +44,12 @@ const montserrat = Montserrat({
   variable: "--font-montserrat",
 });
 
+const rubik = Rubik({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-rubik",
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -45,7 +58,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${poppins.variable} ${roboto.variable} ${inter.variable} ${manrope.variable} ${montserrat.variable}`}
+      className={`${poppins.variable} ${roboto.variable} ${inter.variable} ${manrope.variable} ${montserrat.variable} ${rubik.variable}`}
     >
       <body className="flex flex-col min-h-screen font-poppins">
         <ReduxProvider>

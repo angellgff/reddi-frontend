@@ -105,7 +105,10 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
         >
           {/* Header */}
           <header className="flex items-center justify-between p-4 border-b border-gray-200">
-            <h2 id="cart-panel-title" className="text-lg font-semibold">
+            <h2
+              id="cart-panel-title"
+              className="text-lg font-semibold font-rubik"
+            >
               Tu carrito
             </h2>
             <button
