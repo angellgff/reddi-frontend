@@ -14,6 +14,7 @@ export default function Home() {
     <div className="mx-auto max-w-7xl">
       {/* Hero desktop-only search banner */}
       <DesktopHeroSearch />
+
       {/* Categorías: en mobile mostramos ambos componentes actuales; en desktop, uno solo combinado */}
       {/* Mobile: grandes */}
       <section className="p-4 md:px-6 lg:px-8 md:hidden">
@@ -23,22 +24,26 @@ export default function Home() {
       <section className="p-4 md:px-6 lg:px-8 md:hidden">
         <FeaturedCategories />
       </section>
-      {/* Desktop: único componente */}
-      <section className="p-4 md:px-6 lg:px-8">
-        <DesktopFeaturedCategories />
-      </section>
+      <DesktopFeaturedCategories />
+      {/* Línea de separación añadida */}
+      <div className="px-4 md:px-6 lg:px-8">
+        <hr className="border-gray-200 my-4" />
+      </div>
+
       {/*Sección de promociones*/}
       <section className="p-4 md:px-6 lg:px-8">
         <Suspense fallback={<PromoSliderSkeleton />}>
           <PromoSliderServer />
         </Suspense>
       </section>
+
       {/*Sección de recomendaciones*/}
       <section className="p-4 md:px-6 lg:px-8">
         <Suspense fallback={<SliderSectionSkeleton />}>
           <RecommendedSectionServer />
         </Suspense>
       </section>
+
       {/*Sección de pedidos anteriores*/}
       <section className="p-4 md:px-6 lg:px-8">
         <Suspense fallback={<SliderSectionSkeleton />}>

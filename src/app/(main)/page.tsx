@@ -27,9 +27,12 @@ export default function Home() {
         <section className="px-4 sm:px-6 lg:px-8 md:hidden mt-6 overflow-x-hidden">
           <FeaturedCategories />
         </section>
-        <section className="px-4 sm:px-6 lg:px-8 mt-8">
-          <DesktopFeaturedCategories />
-        </section>
+
+        <DesktopFeaturedCategories />
+
+        <div className="px-4 md:px-6 lg:px-8">
+          <hr className="border-gray-200 my-4" />
+        </div>
         {/* Promociones */}
         <section className="px-4 sm:px-6 lg:px-8 mt-12">
           <Suspense fallback={<PromoSliderSkeleton />}>

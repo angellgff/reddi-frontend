@@ -119,8 +119,10 @@ export default function GuestHeader() {
           </div>
         </div>
 
-        {/* --- Fila Inferior: Búsqueda y Filtros --- */}
-        {showSearchBar && <SearchBar isVisible={isSearchBarVisible} />}
+        {/* --- Fila Inferior: Búsqueda y Filtros (solo móvil) --- */}
+        <div className="sm:hidden">
+          {showSearchBar && <SearchBar isVisible={isSearchBarVisible} />}
+        </div>
       </div>
       <GuestMenu
         isOpen={isMenuOpen}
