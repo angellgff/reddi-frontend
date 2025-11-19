@@ -27,8 +27,7 @@ export default function PromoCard({
   const containerSizeClass =
     variant === "desktop" ? "w-[317px] h-[146px]" : "w-[23rem] h-40";
   return (
-    <Link
-      href={href}
+    <div
       className={`
         relative
         ${containerSizeClass}
@@ -83,6 +82,6 @@ export default function PromoCard({
           </div>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

@@ -127,6 +127,7 @@ export async function updateSession(request: NextRequest) {
     "/privacidad",
     "/protocolo-respuesta-incidentes-irp",
     "/politicas-seguridad-transmision-datos-tarjetas",
+    "/auth/callback",
   ];
   const authPaths = [
     "/login",

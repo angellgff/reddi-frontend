@@ -31,8 +31,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   const textSize = isLarge ? "text-base font-bold" : "text-sm font-medium";
 
   return (
-    <Link
-      href={href}
+    <div
       className={`flex flex-col items-center transition-transform duration-200 hover:scale-105 active:scale-95 bg-[#f3f3f3] rounded-2xl ${containerClasses} ${className}`}
     >
       {/* Contenedor de la imagen */}
@@ -50,7 +49,7 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
 
       {/* Nombre de la categoría */}
       <span className={`text-gray-800 text-center ${textSize}`}>{name}</span>
-    </Link>
+    </div>
   );
 };
 

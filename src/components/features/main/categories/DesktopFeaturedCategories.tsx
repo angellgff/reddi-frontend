@@ -83,9 +83,8 @@ export default function DesktopFeaturedCategories({
           role="list"
         >
           {categories.map((c) => (
-            <Link
+            <div
               key={c.name}
-              href={c.href}
               role="listitem"
               className="flex-none flex flex-col justify-center items-center p-5 gap-2 w-[146px] h-[169px] bg-[#F0F2F5]/70 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-transform"
             >
@@ -104,7 +103,7 @@ export default function DesktopFeaturedCategories({
                   {c.name}
                 </span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
