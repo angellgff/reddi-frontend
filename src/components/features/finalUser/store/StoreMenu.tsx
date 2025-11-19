@@ -115,9 +115,11 @@ export default function StoreMenu({
   };
 
   const isRestaurant = partnerType === "restaurant";
-  const [toast, setToast] = useState<{ open: boolean; msg: string; type: "success" | "error" | "info" }>(
-    { open: false, msg: "", type: "info" }
-  );
+  const [toast, setToast] = useState<{
+    open: boolean;
+    msg: string;
+    type: "success" | "error" | "info";
+  }>({ open: false, msg: "", type: "info" });
 
   return (
     <div className="space-y-8">

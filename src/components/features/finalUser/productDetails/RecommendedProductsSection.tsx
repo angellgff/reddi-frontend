@@ -65,7 +65,8 @@ export default function RecommendedProductsSection({
     if (currentPartnerId && currentPartnerId !== partnerId) {
       setToast({
         open: true,
-        message: "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
+        message:
+          "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
         type: "error",
       });
       return;
