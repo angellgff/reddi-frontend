@@ -62,17 +62,20 @@ export async function loginAction(prevState: any, formData: FormData) {
 export async function loginWithGoogleAction(nextPath: string = "/user/home") {
   const supabase = await createClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  
+
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+      redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(
+        nextPath
+      )}`,
       queryParams: {
         access_type: "offline",
         prompt: "consent",
       },
     },
-  });  if (error) {
+  });
+  if (error) {
     return { error: error.message };
   }
 
