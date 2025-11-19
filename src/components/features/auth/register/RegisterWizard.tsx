@@ -42,7 +42,6 @@ export default function RegisterWizard() {
     console.log("Se está enviando el código", codeValue);
     // Llamada a la API
     setIsPhoneVerified(true);
-    router.push("/registro/celular?step=3");
   };
 
   if (!["1", "2", "3"].includes(currentStep || "")) {

@@ -159,7 +159,7 @@ export default function Login() {
       <p className="text-center">
         ¿Todavía no tienes una cuenta?{" "}
         <Link
-          href="/auth/sign-up"
+          href="/registro"
           className="text-primary font-bold font-roboto hover:underline"
         >
           Regístrate

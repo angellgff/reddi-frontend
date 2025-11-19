@@ -19,7 +19,7 @@ const categories = [
   },
   {
     name: "Farmacia",
-    imageUrl: "/group.svg", // Ruta de ejemplo
+    imageUrl: "//Pharma.svg", // Ruta de ejemplo
     href: "/categorias/farmacia",
   },
   {

@@ -116,6 +116,8 @@ export async function updateSession(request: NextRequest) {
   const publicPaths = [
     "/",
     "/login",
+    "/registro",
+    "/registro/celular",
     "/admin/login",
     "/partner/login",
     "/partner/registro",
@@ -128,6 +130,8 @@ export async function updateSession(request: NextRequest) {
   ];
   const authPaths = [
     "/login",
+    "/registro",
+    "/registro/celular",
     "/admin/login",
     "/partner/login",
     "/partner/registro",
