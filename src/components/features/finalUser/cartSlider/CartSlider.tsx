@@ -7,7 +7,6 @@ import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import {
   selectCartItems,
   CartItem as CartItemType,
-  addItem,
 } from "@/src/lib/store/cartSlice";
 import { closeCart, selectCartOpen } from "@/src/lib/store/uiSlice";
 import CartHeader from "./CartHeader";
@@ -146,41 +145,6 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
             {items.length === 0 ? (
               <div className="text-sm text-gray-600">
                 Tu carrito está vacío por ahora.
-                <div className="mt-3">
-                  <button
-                    onClick={() =>
-                      dispatch(
-                        addItem({
-                          productId: "demo-product",
-                          partnerId: "partner-1",
-                          name: "Combi truffles",
-                          imageUrl: null,
-                          unitPrice: 299,
-                          quantity: 1,
-                          extras: [
-                            {
-                              id: "ex-1-c1",
-                              extraId: "ex-1",
-                              name: "Papas fritas",
-                              price: 9,
-                              quantity: 1,
-                            },
-                            {
-                              id: "ex-2-c1",
-                              extraId: "ex-2",
-                              name: "Nuggets",
-                              price: 9,
-                              quantity: 1,
-                            },
-                          ],
-                        })
-                      )
-                    }
-                    className="px-3 py-2 rounded-lg border text-xs"
-                  >
-                    Agregar item demo
-                  </button>
-                </div>
               </div>
             ) : (
               <div className="space-y-3">

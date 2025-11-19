@@ -174,14 +174,6 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              <button className="relative" aria-label="Notificaciones">
-                <BellIcon fill="white" />
-                <Badge
-                  count={userData.notificationCount}
-                  color={badgeColor}
-                  className="rounded-full"
-                />
-              </button>
               <button
                 className="relative"
                 onClick={onToggleCart}
@@ -320,16 +312,6 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               </div>
             </button>
             <div className="hidden xl:flex items-center gap-4 lg:gap-6">
-              <IconSquareButton aria-label="Notificaciones">
-                <div className="relative">
-                  <BellIcon />
-                  <Badge
-                    count={userData.notificationCount}
-                    color={badgeColor}
-                    className="rounded-full absolute -top-1 -right-1"
-                  />
-                </div>
-              </IconSquareButton>
               <IconSquareButton
                 aria-label="Cerrar sesión"
                 title="Cerrar sesión"
@@ -393,20 +375,6 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                   />
                 </div>
               </button>
-              <IconSquareButton
-                aria-label="Notificaciones"
-                className="w-full justify-start px-3 py-2"
-              >
-                <div className="relative flex items-center gap-2">
-                  <BellIcon />
-                  <span className="text-sm">Notificaciones</span>
-                  <Badge
-                    count={userData.notificationCount}
-                    color={badgeColor}
-                    className="rounded-full"
-                  />
-                </div>
-              </IconSquareButton>
               <IconSquareButton
                 aria-label="Cerrar sesión"
                 onClick={handleLogout}

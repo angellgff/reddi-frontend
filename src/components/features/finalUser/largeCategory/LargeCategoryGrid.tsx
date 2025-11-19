@@ -3,12 +3,12 @@ import CategoryCard from "@/src/components/features/main/categories/CategoryCard
 const largeCategories = [
   {
     name: "Mercado",
-    imageUrl: "/Market.svg",
+    imageUrl: "/market.png",
     href: "/mercado",
   },
   {
     name: "Restaurantes",
-    imageUrl: "/Restaurants.svg",
+    imageUrl: "/restaurant.png",
     href: "/restaurantes",
   },
 ];

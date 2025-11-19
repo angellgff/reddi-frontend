@@ -11,11 +11,21 @@ import NavItem from "../features/finalUser/NavItem";
 
 // Definimos los elementos de navegación en un array para que sea fácil de mantener
 const navItems = [
-  { href: "/user/home", label: "Inicio", icon: HomeIcon },
-  { href: "/user/discover", label: "Descubrir", icon: CompassIcon },
-  { href: "/user/grocery", label: "Grocery", icon: GroceryCarIcon },
-  { href: "/user/orders", label: "Pedidos", icon: OrdersIcon },
-  { href: "/user/profile", label: "Perfil", icon: UserIcon },
+  { href: "/user/home", label: "Inicio", icon: HomeIcon, enabled: true },
+  {
+    href: "/user/discover",
+    label: "Descubrir",
+    icon: CompassIcon,
+    enabled: false,
+  },
+  {
+    href: "/user/grocery",
+    label: "Grocery",
+    icon: GroceryCarIcon,
+    enabled: false,
+  },
+  { href: "/user/orders", label: "Pedidos", icon: OrdersIcon, enabled: true },
+  { href: "/user/profile", label: "Perfil", icon: UserIcon, enabled: true },
 ];
 
 export default function Footer() {
@@ -41,6 +51,7 @@ export default function Footer() {
             label={item.label}
             icon={item.icon}
             isActive={pathname === item.href}
+            disabled={item.enabled === false}
           />
         ))}
       </nav>

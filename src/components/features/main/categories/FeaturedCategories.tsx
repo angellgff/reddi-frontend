@@ -9,7 +9,7 @@ import HorizontalScrollButtons from "@/src/components/basics/itemsSlider/Horizon
 const categories = [
   {
     name: "Mandao´",
-    imageUrl: "/mandao.svg", // Ruta de ejemplo
+    imageUrl: "/mandao.png", // Ruta de ejemplo
     href: "/categorias/mandao",
   },
   {

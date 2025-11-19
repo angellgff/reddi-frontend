@@ -14,21 +14,21 @@ type Category = {
 const categories: Category[] = [
   {
     name: "Mercado",
-    imageUrl: "/Market.svg",
+    imageUrl: "/market.png",
     href: "/mercado",
     imageW: 111,
     imageH: 79,
   },
   {
     name: "Restaurantes",
-    imageUrl: "/Restaurants.svg",
+    imageUrl: "/restaurant.png",
     href: "/restaurantes",
     imageW: 86,
     imageH: 108,
   },
   {
     name: "Mandao’",
-    imageUrl: "/mandao.svg",
+    imageUrl: "/mandao.png",
     href: "/mandao",
     imageW: 109,
     imageH: 109,

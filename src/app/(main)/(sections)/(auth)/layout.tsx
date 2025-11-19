@@ -1,5 +1,4 @@
 import Image from "next/image";
-import loginImage from "@/src/assets/images/loginUser.svg";
 import logo from "@/src/assets/images/logo.svg";
 import { Suspense } from "react";
 
@@ -14,7 +13,7 @@ export default function UserLayout({
         <div className="relative w-full md:w-3/4 md:aspect-square aspect-video ">
           <Image
             priority={true}
-            src={loginImage}
+            src={"/login.png"}
             alt="login del usuario"
             fill={true}
             className="object-cover  rounded-2xl md:rounded-[32px]"
