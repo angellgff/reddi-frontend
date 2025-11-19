@@ -34,7 +34,7 @@ const businessTypes: {
   },
   {
     name: "Farmacia",
-    imageUrl: "/Pharma.svg",
+    imageUrl: "/farmacia.png",
     value: "pharmacy",
   },
   {

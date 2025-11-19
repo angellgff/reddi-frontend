@@ -42,7 +42,7 @@ const categories: Category[] = [
   },
   {
     name: "Farmacia",
-    imageUrl: "/Pharma.svg",
+    imageUrl: "/farmacia.png",
     href: "/farmacia",
     imageW: 80,
     imageH: 80,

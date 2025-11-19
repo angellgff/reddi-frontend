@@ -16,7 +16,7 @@ const CATEGORY_PRESETS: Omit<CategoryCard, "percent">[] = [
   { name: "Restaurantes", imageUrl: "/Restaurants.svg" },
   { name: "Mandao’", imageUrl: "/mandao.svg" },
   { name: "Alcohol", imageUrl: "/alcohol.svg" },
-  { name: "Farmacia", imageUrl: "/Pharma.svg" },
+  { name: "Farmacia", imageUrl: "/farmacia.png" },
   { name: "Tabaco", imageUrl: "/Tobacco.svg" },
 ];
 
