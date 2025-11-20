@@ -172,3 +172,24 @@ export async function getUserDefaultPaymentMethod() {
     method: (data as UserPaymentMethod) || null,
   } as const;
 }
+// Fetch all user payment methods (server-side)
+export async function getUserPaymentMethods() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { success: false, error: "No autenticado" } as const;
+
+  const { data, error } = await supabase
+    .from("user_payment_methods")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("getUserPaymentMethods error", error);
+    return { success: false, error: "No se pudieron cargar los métodos" } as const;
+  }
+
+  return { success: true, data: (data as UserPaymentMethod[]) || [] } as const;
+}

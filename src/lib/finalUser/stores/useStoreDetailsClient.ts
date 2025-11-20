@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@/src/lib/supabase/client";
-import type { Database } from "@/src/lib/database.types";
+import { getStoresByIds, type StoreDetails } from "./actions";
 
-type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
-export type StoreDetails = Pick<
-  PartnerRow,
-  "id" | "name" | "image_url" | "address" | "partner_type" | "phone"
->;
+
 
 export function useStoreDetailsClient(partnerIds: string[]) {
   const uniqueIds = useMemo(
@@ -38,42 +33,14 @@ export function useStoreDetailsClient(partnerIds: string[]) {
           ids: uniqueIds,
           count: uniqueIds.length,
         });
-        const supabase = createClient();
-
-        // Helper to run a query with AbortController-based timeout
-        const runWithAbort = async (
-          ids: string[],
-          ms: number
-        ): Promise<{ data: any[]; error: any }> => {
-          const ctrl = new AbortController();
-          const timer = setTimeout(() => ctrl.abort("partners-timeout"), ms);
-          try {
-            // Prefer eq when single id; otherwise IN
-            const qb =
-              ids.length === 1
-                ? supabase
-                    .from("partners")
-                    .select("id,name,image_url,address,partner_type,phone")
-                    .eq("id", ids[0])
-                : supabase
-                    .from("partners")
-                    .select("id,name,image_url,address,partner_type,phone")
-                    .in("id", ids);
-            const { data, error } = await qb.abortSignal(ctrl.signal);
-            return { data: (data as any[]) || [], error };
-          } finally {
-            clearTimeout(timer);
-          }
-        };
-
-        // If many IDs, chunk to reduce IN payload and isolate slow ones
+        // If many IDs, chunk to reduce payload
         const CHUNK_SIZE = 10;
         const chunks: string[][] = [];
         for (let i = 0; i < uniqueIds.length; i += CHUNK_SIZE) {
           chunks.push(uniqueIds.slice(i, i + CHUNK_SIZE));
         }
 
-        const collected: any[] = [];
+        const collected: StoreDetails[] = [];
         for (let idx = 0; idx < chunks.length; idx++) {
           const part = chunks[idx];
           console.debug(
@@ -84,16 +51,11 @@ export function useStoreDetailsClient(partnerIds: string[]) {
             part
           );
           try {
-            let { data: rows, error: qError } = await runWithAbort(part, 3500);
-            if (qError || !Array.isArray(rows)) {
-              console.warn(
-                "useStoreDetailsClient: chunk error/invalid, retrying",
-                qError
-              );
-              ({ data: rows, error: qError } = await runWithAbort(part, 6000));
+            const res = await getStoresByIds(part);
+            if (!res.success) {
+              throw new Error(res.error);
             }
-            if (qError) throw qError;
-            collected.push(...rows);
+            collected.push(...res.data);
           } catch (e: any) {
             // Surface first failure; UI will show banner
             console.error("useStoreDetailsClient: chunk failed", e);
@@ -105,11 +67,11 @@ export function useStoreDetailsClient(partnerIds: string[]) {
         const rows = collected;
         if (cancelled) return;
         const map: Record<string, StoreDetails> = {};
-        (rows || []).forEach((p: any) => {
-          map[p.id] = p as StoreDetails;
+        (rows || []).forEach((p) => {
+          map[p.id] = p;
         });
         console.debug("useStoreDetailsClient: success", {
-          received: Array.isArray(rows) ? rows.length : 0,
+          received: rows.length,
           keys: Object.keys(map),
         });
         setData(map);

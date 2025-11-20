@@ -1,5 +1,6 @@
 import Image from "next/image";
 import CheckIcon from "@/src/components/icons/CheckIcon";
+import { CheckCheck, CheckCircle, CheckLine } from "lucide-react";
 
 const benefits = [
   {
@@ -26,7 +27,7 @@ export default function BenefitsSection() {
       {/* Imagen */}
       <div className="w-full lg:w-[570px] flex-shrink-0 max-w-full">
         <Image
-          src="/enjoy-free.jpg"
+          src="/landing-woman.png"
           alt="Persona disfrutando mientras espera su pedido"
           width={570}
           height={488}
@@ -44,7 +45,7 @@ export default function BenefitsSection() {
           {benefits.map((b) => (
             <div key={b.title} className="flex items-start gap-3">
               <div className="flex items-center justify-center bg-[#00C48C] rounded-full w-8 h-8 mt-1">
-                <CheckIcon className="w-4 h-4 text-white" />
+                <CheckCircle className="text-white w-4 h-4" />
               </div>
               <div className="flex-1 flex flex-col gap-1">
                 <h3 className="font-semibold text-base sm:text-lg md:text-xl text-black leading-tight">

@@ -21,10 +21,10 @@ export default function PromoSlider({
       {/* Mobile slider (unchanged) */}
       <div
         id={safeId}
-        className="flex space-x-4 overflow-x-auto scrollbar-hide md:hidden"
+        className="flex space-x-4 px-2 overflow-x-auto scrollbar-hide md:hidden"
       >
         {promotions.map((promo) => (
-          <div key={promo.title} className="flex-none w-3/4 sm:w-1/2">
+          <div key={promo.title} className="flex-none">
             <PromoCard
               title={promo.title}
               subtitle={promo.subtitle}

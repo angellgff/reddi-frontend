@@ -12,12 +12,12 @@ import {
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
-import { createClient } from "@/src/lib/supabase/client";
-import { withTimeout } from "@/src/lib/utils";
+
 import {
   addUserPaymentMethod,
   deleteUserPaymentMethod,
   setDefaultPaymentMethod,
+  getUserPaymentMethods,
   type UserPaymentMethod,
 } from "@/src/lib/finalUser/payments/actions";
 import Image from "next/image";
@@ -61,42 +61,13 @@ export function PaymentMethodsDialog({
     setLoading(true);
     setError(null);
     try {
-      const supabase = createClient();
-
-      // Evita fallar por timeouts agresivos al obtener la sesión.
-      // Si tarda demasiado, asumimos anónimo en vez de lanzar error.
-      const sessionOrTimeout = (await Promise.race([
-        supabase.auth.getSession(),
-        new Promise((resolve) =>
-          setTimeout(() => resolve({ data: { session: null } }), 4000)
-        ),
-      ])) as any;
-
-      const user = sessionOrTimeout?.data?.session?.user || null;
-      if (!user) {
-        setMethods([]);
-        return;
+      const res = await getUserPaymentMethods();
+      if (!res.success) {
+        throw new Error(res.error);
       }
-
-      const { data, error } = await withTimeout(
-        (async () =>
-          await supabase
-            .from("user_payment_methods")
-            .select("*")
-            .eq("user_id", user.id)
-            .order("created_at", { ascending: false }))(),
-        5000,
-        "payment-methods-timeout"
-      );
-      if (error) throw error;
-      setMethods((data as any) || []);
+      setMethods(res.data || []);
     } catch (e: any) {
-      // Si el error proviene de un timeout, muestra un mensaje más claro
-      const msg =
-        e?.message === "auth-timeout"
-          ? "La sesión tardó en responder. Intenta nuevamente."
-          : e?.message || "No se pudieron cargar los métodos";
-      setError(msg);
+      setError(e?.message || "No se pudieron cargar los métodos");
     } finally {
       setLoading(false);
     }
@@ -301,16 +272,28 @@ function AddCardForm({
             placeholder="mm/aaaa"
             value={exp}
             onChange={(e) => {
-              const digits = e.target.value.replace(/\D/g, "").slice(0, 6);
-              const mm = digits.slice(0, 2);
-              const yyyy = digits.slice(2);
-              const mNum = Math.max(
-                1,
-                Math.min(12, parseInt(mm || "0", 10) || 0)
-              )
-                .toString()
-                .padStart(2, "0");
-              setExp(yyyy ? `${mNum}/${yyyy}` : mNum);
+              let raw = e.target.value.replace(/\D/g, "").slice(0, 6);
+              
+              if (raw.length === 1 && parseInt(raw) > 1) {
+                raw = "0" + raw;
+              }
+
+              if (raw.length >= 2) {
+                let mm = parseInt(raw.slice(0, 2), 10);
+                if (mm > 12) mm = 12;
+                if (mm === 0) mm = 1;
+                
+                const mmStr = mm.toString().padStart(2, "0");
+                const yy = raw.slice(2);
+                
+                if (yy.length > 0) {
+                  setExp(`${mmStr}/${yy}`);
+                } else {
+                  setExp(mmStr);
+                }
+              } else {
+                setExp(raw);
+              }
             }}
           />
         </div>

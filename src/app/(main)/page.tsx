@@ -77,10 +77,10 @@ export default async function Home() {
         {/* Hero desktop-only search banner */}
         <DesktopHeroSearch />
         {/* Categorías: mobile grandes + pequeñas; desktop combinado */}
-        <section className="px-4 sm:px-6 lg:px-8 md:hidden">
+        <section className="p-4 sm:px-6 lg:px-8 md:hidden">
           <LargeCategoryGrid />
         </section>
-        <section className="px-4 sm:px-6 lg:px-8 md:hidden mt-6 overflow-x-hidden">
+        <section className="p-4 sm:px-6 lg:px-8 md:hidden overflow-x-hidden">
           <FeaturedCategories />
         </section>
 
@@ -90,28 +90,28 @@ export default async function Home() {
           <hr className="border-gray-200 my-4" />
         </div>
         {/* Promociones */}
-        <section className="px-4 sm:px-6 lg:px-8 mt-12">
+        <section className="p-4 sm:px-6 lg:px-8">
           <Suspense fallback={<PromoSliderSkeleton />}>
             <PromoSliderServer />
           </Suspense>
         </section>
         {/* Recomendaciones */}
-        <section className="px-4 sm:px-6 lg:px-8 mt-10">
+        <section className="p-4 sm:px-6 lg:px-8 ">
           <Suspense fallback={<SliderSectionSkeleton />}>
             <RecommendedSectionServer />
           </Suspense>
         </section>
         {/* Pedidos anteriores */}
-        <section className="px-4 sm:px-6 lg:px-8 mt-10">
+        <section className="p-4 sm:px-6 lg:px-8 ">
           <Suspense fallback={<SliderSectionSkeleton />}>
             <OrderAgainServer />
           </Suspense>
         </section>
         {/* Marketing: Cómo funciona & Beneficios */}
-        <section className="px-4 sm:px-6 lg:px-8 mt-16 overflow-x-hidden">
+        <section className="p-4 sm:px-6 lg:px-8 overflow-x-hidden">
           <HowItWorksSection />
         </section>
-        <section className="px-4 sm:px-6 lg:px-8 mt-14 overflow-x-hidden">
+        <section className="p-4 sm:px-6 lg:px-8 overflow-x-hidden">
           <BenefitsSection />
         </section>
       </div>

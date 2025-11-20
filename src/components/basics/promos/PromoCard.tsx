@@ -25,7 +25,7 @@ export default function PromoCard({
   variant = "mobile",
 }: PromoCardProps) {
   const containerSizeClass =
-    variant === "desktop" ? "w-[317px] h-[146px]" : "w-[23rem] h-40";
+    variant === "desktop" ? "w-[317px] h-[146px]" : "w-[375px] h-40";
   return (
     <div
       className={`
