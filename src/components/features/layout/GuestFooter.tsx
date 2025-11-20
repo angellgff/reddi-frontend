@@ -5,6 +5,7 @@ import AccordionSection from "@/src/components/features/layout/AccordionSection"
 import FacebookIcon from "../../icons/socials/FacebookIcon";
 import InstagramIcon from "../../icons/socials/InstagramIcon";
 import XIcon from "../../icons/socials/XIcon";
+import Image from "next/image";
 
 const sectionsData = [
   {
@@ -77,7 +78,7 @@ export default function RootFooter() {
         {/* Fila inferior: Copyright y Redes Sociales */}
         <div className="mt-6 flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
           <p className="text-sm text-gray-400">
-            © 2024 Reddi. Todos los derechos reservados.
+            © 2025 Reddi. Todos los derechos reservados.
           </p>
           <nav className="flex flex-row gap-5">
             <a
@@ -102,6 +103,29 @@ export default function RootFooter() {
               <XIcon className="h-6 w-6 text-gray-400 transition-colors hover:text-primary" />
             </a>
           </nav>
+          <div className="flex flex-row items-center gap-4">
+            <Image
+              src="/logos-visa-mastercard.png"
+              alt="Visa and Mastercard"
+              width={80}
+              height={30}
+              className="h-8 w-auto object-contain"
+            />
+            <Image
+              src="/mastercard-id-check.png"
+              alt="Mastercard ID Check"
+              width={80}
+              height={30}
+              className="h-8 w-auto object-contain"
+            />
+            <Image
+              src="/verified-by-visa.png"
+              alt="Verified by Visa"
+              width={80}
+              height={30}
+              className="h-8 w-auto object-contain"
+            />
+          </div>
         </div>
       </div>
     </footer>

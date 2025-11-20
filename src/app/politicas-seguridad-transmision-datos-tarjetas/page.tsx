@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function Page() {
   return (
     <main className="max-w-3xl mx-auto py-12 px-4 space-y-8 text-gray-800">
@@ -316,6 +318,29 @@ export default function Page() {
         </ul>
         <p>Se avisará a usuarios y comercios antes de aplicar cambios.</p>
       </section>
-    </main>
+      <div className="flex flex-row items-center gap-4 pt-8 border-t">
+        <Image
+          src="/logos-visa-mastercard.png"
+          alt="Visa and Mastercard"
+          width={80}
+          height={30}
+          className="h-8 w-auto object-contain"
+        />
+        <Image
+          src="/mastercard-id-check.png"
+          alt="Mastercard ID Check"
+          width={80}
+          height={30}
+          className="h-8 w-auto object-contain"
+        />
+        <Image
+          src="/verified-by-visa.png"
+          alt="Verified by Visa"
+          width={80}
+          height={30}
+          className="h-8 w-auto object-contain"
+        />
+      </div>
+    </main >
   );
 }
