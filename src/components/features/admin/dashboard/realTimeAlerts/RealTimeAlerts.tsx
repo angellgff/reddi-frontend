@@ -4,17 +4,16 @@ import WarningIcon from "@/src/components/icons/WarningIcon";
 import InfoIcon from "@/src/components/icons/InfoIcon";
 import getRecentAlerts from "@/src/lib/admin/data/dashboard/getRecentAlerts";
 
-const alertStyles = {
-  danger: { bg: "bg-red-50", text: "text-red-700", icon: <DangerIcon /> },
-  warning: {
-    bg: "bg-yellow-50",
-    text: "text-yellow-700",
-    icon: <WarningIcon />,
-  },
-  info: { bg: "bg-blue-50", text: "text-blue-700", icon: <InfoIcon /> },
-};
-
 export default async function RealTimeAlerts() {
+  const alertStyles = {
+    danger: { bg: "bg-red-50", text: "text-red-700", icon: <DangerIcon /> },
+    warning: {
+      bg: "bg-yellow-50",
+      text: "text-yellow-700",
+      icon: <WarningIcon />,
+    },
+    info: { bg: "bg-blue-50", text: "text-blue-700", icon: <InfoIcon /> },
+  };
   const alerts = await getRecentAlerts(5);
   return (
     <CardShell title="Alertas en Tiempo Real">
