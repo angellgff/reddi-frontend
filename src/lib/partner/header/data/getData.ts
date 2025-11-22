@@ -13,7 +13,6 @@ export interface PartnerProfile {
 }
 
 export async function getAuthenticatedPartnerProfile(): Promise<PartnerProfile> {
-  const cookieStore = cookies();
   const supabase = await createClient();
 
   // 1. Obtener la sesión del usuario

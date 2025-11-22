@@ -81,7 +81,7 @@ export default async function AdminFinancesPage({
     // Sumar total_amount por tipo de partner
     const revenueByType: Record<string, number> = {};
     let totalRevenue = 0;
-    for (const o of orders as any[]) {
+    for (const o of orders) {
       const typeKey = o.partner?.partner_type as string | undefined;
       if (!typeKey) continue;
       const displayName = partnerTypeToDisplay[typeKey];

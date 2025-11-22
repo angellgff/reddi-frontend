@@ -61,10 +61,11 @@ export async function POST(req: Request) {
           { status: 500 }
         );
     }
-  } catch (e: any) {
-    console.error("Handler Exception:", e.message);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unexpected error";
+    console.error("Handler Exception:", message);
     return NextResponse.json(
-      { error: e?.message || "Unexpected error" },
+      { error: message },
       { status: 500 }
     );
   }

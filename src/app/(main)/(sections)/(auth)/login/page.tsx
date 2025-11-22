@@ -42,12 +42,6 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const hasRedirectedRef = useRef(false);
   const debug = !!process.env.NEXT_PUBLIC_DEBUG_AUTH;
-  // Construir URL base para redirecciones (permite override por env)
-  const siteUrl =
-    (typeof window !== "undefined" &&
-      (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)) ||
-    undefined;
-
   const handleGoogleLogin = useCallback(async () => {
     try {
       setIsLoading(true);
@@ -59,6 +53,7 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Debug auth lifecycle on this page (optional, controlled by env)

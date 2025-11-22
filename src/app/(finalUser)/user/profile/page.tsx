@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import Link from "next/link";
 import PaymentMethodsSection from "@/src/components/features/finalUser/profile/PaymentMethodsSection";
 import AddressesSection from "@/src/components/features/finalUser/profile/AddressesSection";
+import type { Tables } from "@/src/lib/database.types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,13 +18,13 @@ export default async function ProfilePage() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      if (!user) return [] as any[];
+      if (!user) return [] as Tables<"user_payment_methods">[];
       const { data } = await supabase
         .from("user_payment_methods")
         .select("*")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
-      return (data as any[]) || [];
+      return (data as Tables<"user_payment_methods">[]) || [];
     })(),
   ]);
 
@@ -107,13 +108,13 @@ export default async function ProfilePage() {
 
       {/* Métodos de Pago */}
       <section className="mb-6 md:mb-8">
-        <PaymentMethodsSection initialMethods={paymentsRes as any} />
+        <PaymentMethodsSection initialMethods={paymentsRes} />
       </section>
 
       {/* Direcciones Guardadas */}
       <section>
         <AddressesSection
-          initialAddresses={addressesRes.addresses as any}
+          initialAddresses={addressesRes.addresses as Tables<"user_addresses">[]}
           selectedAddressId={addressesRes.selectedAddressId}
         />
       </section>

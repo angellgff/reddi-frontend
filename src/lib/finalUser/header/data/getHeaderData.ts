@@ -27,6 +27,7 @@ export default async function getHeaderData(): Promise<UserHeaderData> {
     ])) as { data: { user: any | null } };
     user = raceResult?.data?.user || null;
   } catch (e) {
+    console.log(e);
     // Silenciar errores aquí para que el layout no falle
   }
   console.log("[getHeaderData] user", { user });

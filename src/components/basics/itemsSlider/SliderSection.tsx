@@ -1,7 +1,6 @@
 // components/RecommendedSection.tsx
 
 import React from "react";
-import Link from "next/link";
 import { SliderCardProps } from "@/src/components/basics/itemsSlider/SliderItem";
 import RestaurantCard from "@/src/components/basics/itemsSlider/SliderItem";
 import HorizontalScrollButtons from "@/src/components/basics/itemsSlider/HorizontalScrollButtons";
@@ -9,7 +8,6 @@ import HorizontalScrollButtons from "@/src/components/basics/itemsSlider/Horizon
 export default function SliderSection({
   cards,
   title,
-  href,
 }: {
   cards: SliderCardProps[];
   title: string;

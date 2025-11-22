@@ -1,10 +1,15 @@
+import Link from "next/link";
+
 export default function Page() {
   return (
     <main className="max-w-3xl mx-auto py-12 px-4 space-y-8 text-gray-800">
       {/* Botón de Volver */}
-      <a href="/" className="text-blue-600 hover:text-blue-800 hover:underline">
+      <Link
+        href="/"
+        className="text-blue-600 hover:text-blue-800 hover:underline"
+      >
         &larr; Volver
-      </a>
+      </Link>
 
       <div className="text-center">
         <p className="text-sm text-gray-500 mb-2">
@@ -65,7 +70,7 @@ export default function Page() {
         <h2 className="text-2xl font-semibold mb-3">
           3. ¿Qué se considera un incidente de seguridad?
         </h2>
-        <p>Un "incidente de seguridad” puede incluir, entre otros:</p>
+        <p>Un incidente de seguridad puede incluir, entre otros:</p>
         <div>
           <h3 className="text-lg font-semibold">Accesos no autorizados</h3>
           <ul className="list-disc list-inside space-y-1 mt-2">

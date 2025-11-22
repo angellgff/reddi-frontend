@@ -4,8 +4,6 @@ import {
   OrderStatus,
 } from "@/src/components/features/partner/market/orders/main/PartnerOrderCard";
 
-type Category = "" | "today" | "pending" | "preparation" | "delivered";
-
 // Mapear estados de orders.status (cliente) -> estados de tarjeta del partner
 function mapStatus(s: string | null | undefined): OrderStatus {
   const v = (s ?? "").toLowerCase();
@@ -81,7 +79,7 @@ export default async function getOrdersListData(
 
   // Join manual con profiles para obtener el nombre del cliente
   const userIds = Array.from(
-    new Set((data ?? []).map((o: any) => o.user_id).filter(Boolean))
+    new Set((data ?? []).map((o) => o.user_id).filter(Boolean))
   );
   const profilesMap = new Map<
     string,
@@ -93,7 +91,7 @@ export default async function getOrdersListData(
       .select("id, first_name, last_name")
       .in("id", userIds);
     if (profErr) throw profErr;
-    (profs ?? []).forEach((p: any) => {
+    (profs ?? []).forEach((p) => {
       profilesMap.set(p.id, {
         first_name: p.first_name ?? null,
         last_name: p.last_name ?? null,
@@ -102,10 +100,10 @@ export default async function getOrdersListData(
   }
 
   // Adaptar al shape de PartnerOrderCardProps
-  const list: PartnerOrderCardProps[] = (data ?? []).map((o: any) => {
+  const list: PartnerOrderCardProps[] = (data ?? []).map((o) => {
     const items = Array.isArray(o.order_detail) ? o.order_detail : [];
     const productsCount = items.reduce(
-      (s: number, it: any) => s + (it.quantity ?? 0),
+      (s: number, it) => s + (it.quantity ?? 0),
       0
     );
     const paymentMethod = o.payment_intent_id ? "Tarjeta" : "Débito";

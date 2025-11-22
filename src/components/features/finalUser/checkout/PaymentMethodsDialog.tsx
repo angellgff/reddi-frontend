@@ -66,8 +66,10 @@ export function PaymentMethodsDialog({
         throw new Error(res.error);
       }
       setMethods(res.data || []);
-    } catch (e: any) {
-      setError(e?.message || "No se pudieron cargar los métodos");
+    } catch (e: unknown) {
+      setError(
+        e instanceof Error ? e.message : "No se pudieron cargar los métodos"
+      );
     } finally {
       setLoading(false);
     }

@@ -1,12 +1,16 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Page() {
   return (
     <main className="max-w-3xl mx-auto py-12 px-4 space-y-8 text-gray-800">
       {/* Botón de Volver */}
-      <a href="/" className="text-blue-600 hover:text-blue-800 hover:underline">
+      <Link
+        href="/"
+        className="text-blue-600 hover:text-blue-800 hover:underline"
+      >
         &larr; Volver
-      </a>
+      </Link>
 
       <h1 className="text-4xl font-bold border-b pb-4">
         Políticas de seguridad para la transmisión de datos de tarjetas
@@ -341,6 +345,6 @@ export default function Page() {
           className="h-8 w-auto object-contain"
         />
       </div>
-    </main >
+    </main>
   );
 }

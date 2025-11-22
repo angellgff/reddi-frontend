@@ -5,7 +5,7 @@ interface IconProps {
   fill?: string;
 }
 
-export default function AdminOrdersIcon({ className, fill }: IconProps) {
+export default function AdminOrdersIcon({ className }: IconProps) {
   return (
     <svg
       width="14"

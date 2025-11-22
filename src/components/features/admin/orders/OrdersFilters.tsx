@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { Listbox, Transition } from "@headlessui/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 

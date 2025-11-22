@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 
 // Server wrapper: if productId provided fetch persisted product fields (edit preview)
 // Otherwise rely entirely on draft query params handled client-side.
-export default async function MarketProductPreviewPage({
+import type { Tables } from "@/src/lib/database.types";
+
+export default async function ProductPreviewPage({
   searchParams,
 }: {
   // 2. El tipo de 'searchParams' se define como una Promise
@@ -15,7 +17,7 @@ export default async function MarketProductPreviewPage({
     typeof searchParamsResolved.productId === "string"
       ? searchParamsResolved.productId
       : undefined;
-  let serverProduct: any = null;
+  let serverProduct: Tables<"products"> | null = null;
   if (productId) {
     const supabase = await createClient();
     const {

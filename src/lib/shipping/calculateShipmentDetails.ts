@@ -88,7 +88,7 @@ async function geocodeWithMapbox(
     url.searchParams.set("limit", "1");
     const resp = await fetch(url.toString());
     if (!resp.ok) return null;
-    const json: any = await resp.json();
+    const json = await resp.json();
     const feat = json?.features?.[0];
     const center = feat?.center;
     if (
@@ -178,7 +178,7 @@ export async function calculateShipmentDetails(
     console.log(
       "[shipping] Origin coordinates missing or invalid, attempting fallback geocoding."
     );
-    const partnerAddress = (partnerRes.data as any)?.address as string | null;
+    const partnerAddress = partnerRes.data?.address;
     if (partnerAddress && typeof partnerAddress === "string") {
       console.log("[shipping] geocoding partner by address", {
         partnerAddress,
@@ -190,7 +190,7 @@ export async function calculateShipmentDetails(
         // Best-effort persist back to DB (ignore errors)
         await supabase
           .from("partners")
-          .update({ coordinates: point(geo.longitude, geo.latitude) } as any)
+          .update({ coordinates: point(geo.longitude, geo.latitude) })
           .eq("id", partnerId);
       } else {
         console.warn("[shipping] partner geocoding failed");
@@ -202,8 +202,8 @@ export async function calculateShipmentDetails(
     console.log(
       "[shipping] Destination coordinates missing or invalid, attempting fallback geocoding."
     );
-    const lt = (addressRes.data as any)?.location_type as string | undefined;
-    const ln = (addressRes.data as any)?.location_number as string | undefined;
+    const lt = addressRes.data?.location_type;
+    const ln = addressRes.data?.location_number;
     if (lt && ln) {
       const query = `${lt} ${ln}, Cap Cana, Punta Cana, Dominican Republic`;
       console.log("[shipping] geocoding user address", { query, lt, ln });
@@ -213,7 +213,7 @@ export async function calculateShipmentDetails(
         destination = geo;
         await supabase
           .from("user_addresses")
-          .update({ coordinates: point(geo.longitude, geo.latitude) } as any)
+          .update({ coordinates: point(geo.longitude, geo.latitude) })
           .eq("id", userAddressId);
       } else {
         console.warn("[shipping] address geocoding failed");
@@ -248,7 +248,7 @@ export async function calculateShipmentDetails(
     url: urlForLog.toString(),
   });
 
-  let routeJson: any;
+  let routeJson: { code?: string; routes?: any[] };
   try {
     const resp = await fetch(url.toString(), { method: "GET" });
     if (!resp.ok) {
@@ -257,8 +257,9 @@ export async function calculateShipmentDetails(
     }
     routeJson = await resp.json();
     console.log("[shipping] directions response code", routeJson?.code);
-  } catch (e: any) {
-    console.error("[shipping] directions failed", e?.message);
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
+    console.error("[shipping] directions failed", message);
     throw new Error("Failed to calculate the route.");
   }
 
@@ -300,9 +301,9 @@ export async function calculateShipmentDetails(
   }
 
   const distanceKm = distanceMeters / 1000;
-  const base = Number((rule as any).base_fee ?? 0);
-  const perKm = Number((rule as any).fee_per_kilometer ?? 0);
-  const minFee = Number((rule as any).min_fee ?? 0);
+  const base = Number(rule.base_fee ?? 0);
+  const perKm = Number(rule.fee_per_kilometer ?? 0);
+  const minFee = Number(rule.min_fee ?? 0);
 
   let computed = base + distanceKm * perKm;
   computed = Math.max(computed, minFee);

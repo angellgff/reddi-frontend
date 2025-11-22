@@ -67,15 +67,16 @@ function formatAddress(
   return [t, n].filter(Boolean).join(" ") || "Dirección";
 }
 
-function extractPoint(geo: any): [number, number] | null {
+function extractPoint(geo: unknown): [number, number] | null {
   // Accept GeoJSON { type: 'Point', coordinates: [lng, lat] } or PostGIS text not handled
   if (
     geo &&
     typeof geo === "object" &&
-    Array.isArray(geo.coordinates) &&
-    geo.coordinates.length >= 2
+    "coordinates" in geo &&
+    Array.isArray((geo as any).coordinates) &&
+    (geo as any).coordinates.length >= 2
   ) {
-    const [lng, lat] = geo.coordinates;
+    const [lng, lat] = (geo as any).coordinates;
     if (typeof lng === "number" && typeof lat === "number") return [lng, lat];
   }
   return null;
@@ -138,31 +139,31 @@ export default async function getOrderDetail(
       throw new Error("Pedido no encontrado");
     }
 
-    const profile = (data as any).profiles;
+    const profile = data.profiles;
     const customerName =
       [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
       "Cliente";
     const customerPhone = profile?.phone_number ?? null;
 
-    const orderStatus: string | null = (data as any).status ?? null;
+    const orderStatus: string | null = data.status ?? null;
     const statusLabel = mapDbStatusToDeliveryLabel(orderStatus);
-    const restaurantName = (data as any).partners?.name ?? "Negocio";
+    const restaurantName = data.partners?.name ?? "Negocio";
     const restaurantAddress =
-      (data as any).partners?.address ?? "Dirección del negocio";
+      data.partners?.address ?? "Dirección del negocio";
     const restaurantLogo =
-      (data as any).partners?.image_url ?? "/steakhouseorder.svg";
-    const deliveryAddress = formatAddress((data as any).user_addresses);
+      data.partners?.image_url ?? "/steakhouseorder.svg";
+    const deliveryAddress = formatAddress(data.user_addresses);
     const originCoords =
-      extractPoint((data as any).shipments?.origin_coordinates) ||
-      extractPoint((data as any).partners?.coordinates);
+      extractPoint(data.shipments?.origin_coordinates) ||
+      extractPoint(data.partners?.coordinates);
     const destinationCoords =
-      extractPoint((data as any).shipments?.destination_coordinates) ||
-      extractPoint((data as any).user_addresses?.coordinates);
-    const eta = formatEta((data as any).created_at, (data as any).scheduled_at);
+      extractPoint(data.shipments?.destination_coordinates) ||
+      extractPoint(data.user_addresses?.coordinates);
+    const eta = formatEta(data.created_at, data.scheduled_at);
 
-    const shipmentId: string | null = (data as any)?.shipments?.id ?? null;
+    const shipmentId: string | null = data.shipments?.id ?? null;
     const shipmentDriverId: string | null =
-      (data as any)?.shipments?.driver_id ?? null;
+      data.shipments?.driver_id ?? null;
 
     // --- LÓGICA DE PERMISOS CORREGIDA ---
     const isCancelled =
@@ -196,12 +197,12 @@ export default async function getOrderDetail(
     console.log("----------------------------------------------------------");
 
     return {
-      id: String((data as any).id),
+      id: String(data.id),
       statusLabel,
       customerName,
       customerPhone,
-      partnerId: (data as any)?.partner_id ?? null,
-      userAddressId: (data as any)?.user_address_id ?? null,
+      partnerId: data.partner_id ?? null,
+      userAddressId: data.user_address_id ?? null,
       restaurantName,
       restaurantAddress,
       deliveryAddress,
@@ -216,8 +217,9 @@ export default async function getOrderDetail(
       canContact,
       canMarkDelivered,
     };
-  } catch (error: any) {
-    console.error(`Fallo al obtener detalle del pedido ${id}:`, error.message);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : "Error desconocido";
+    console.error(`Fallo al obtener detalle del pedido ${id}:`, message);
 
     if (
       error.message === "Pedido no encontrado" ||

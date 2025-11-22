@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { type User } from "@supabase/supabase-js";
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -45,7 +46,7 @@ export async function updateSession(request: NextRequest) {
       cookies: {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) =>
+          cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
           supabaseResponse = NextResponse.next({
@@ -60,7 +61,10 @@ export async function updateSession(request: NextRequest) {
   );
 
   // 3. Obtener la sesión del usuario
-  const withTimeout = async <T>(p: Promise<T>, ms: number): Promise<T> => {
+  const withTimeout = async <T>(
+    p: Promise<T> | PromiseLike<T>,
+    ms: number
+  ): Promise<T> => {
     return await Promise.race<T>([
       p,
       new Promise<T>((_, reject) =>
@@ -69,11 +73,11 @@ export async function updateSession(request: NextRequest) {
     ]);
   };
 
-  let user: any = null;
+  let user: User | null = null;
   try {
     const {
       data: { user: u },
-    } = (await withTimeout(supabase.auth.getUser(), 1200)) as any;
+    } = await withTimeout(supabase.auth.getUser(), 1200);
     user = u || null;
   } catch (e) {
     console.warn(
@@ -86,21 +90,23 @@ export async function updateSession(request: NextRequest) {
   // const hasAuthCookie = request.cookies.getAll().some((c) => c.name.includes("auth")); // Ya no es necesario para la lógica principal
 
   let role: string | null = null;
-  if (isAuthed) {
+  if (user) {
     try {
-      const { data: profile } = (await withTimeout(
-        (supabase as any)
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single(),
+      const result = await withTimeout(
+        supabase.from("profiles").select("role").eq("id", user.id).single(),
         1000
-      )) as any;
-      role = (profile as any)?.role ?? null;
+      );
+      const profile = result.data;
+      role = profile?.role ?? null;
     } catch (e) {
-      const am = (user?.app_metadata as any) || {};
-      const um = (user?.user_metadata as any) || {};
-      role = am.user_role || am.role || um.user_role || um.role || null;
+      const am = (user?.app_metadata as Record<string, unknown>) || {};
+      const um = (user?.user_metadata as Record<string, unknown>) || {};
+      role =
+        (am.user_role as string) ||
+        (am.role as string) ||
+        (um.user_role as string) ||
+        (um.role as string) ||
+        null;
       console.warn(
         "[MW-DEBUG] Fallo al buscar rol en 'profiles', usando metadata:",
         (e as Error)?.message

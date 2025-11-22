@@ -46,7 +46,7 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
   const subCategories = (subCatsData || []).map((c) => ({
     id: c.id,
     name: c.name,
-    categoryId: null as any,
+    categoryId: null as string | null,
   }));
 
   const initialFormData = {

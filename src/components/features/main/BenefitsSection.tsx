@@ -1,6 +1,5 @@
 import Image from "next/image";
-import CheckIcon from "@/src/components/icons/CheckIcon";
-import { CheckCheck, CheckCircle, CheckLine } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 
 const benefits = [
   {

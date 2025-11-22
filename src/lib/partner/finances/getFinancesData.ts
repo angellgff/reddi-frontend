@@ -118,7 +118,7 @@ export async function getFinancesData(params: {
     console.error("getFinancesData error", error);
   }
 
-  const rows: RawFinanceRow[] = (data ?? []).map((r: any) => ({
+  const rows: RawFinanceRow[] = (data ?? []).map((r) => ({
     id: r.id,
     created_at: r.created_at,
     total_amount: r.total_amount ?? 0,
@@ -141,6 +141,7 @@ export async function getFinancesData(params: {
 
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deliveredFilter = (q: any) =>
     q.eq("partner_id", partnerId).eq("status", "delivered");
 
@@ -164,7 +165,7 @@ export async function getFinancesData(params: {
     ).gte("created_at", startOfMonth.toISOString()),
   ]);
 
-  const sum = (arr: any[] | null | undefined, key: string) =>
+  const sum = (arr: Record<string, any>[] | null | undefined, key: string) =>
     (arr ?? []).reduce((acc, x) => acc + (x?.[key] || 0), 0);
 
   const todayIncome = sum(today, "total_amount");

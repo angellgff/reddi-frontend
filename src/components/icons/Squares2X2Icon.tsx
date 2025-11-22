@@ -5,7 +5,7 @@ interface IconProps {
   fill?: string;
 }
 
-export default function Squares2X2Icon({ className, fill }: IconProps) {
+export default function Squares2X2Icon({ className }: IconProps) {
   return (
     <svg
       width="14"

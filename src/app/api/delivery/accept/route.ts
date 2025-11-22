@@ -66,18 +66,20 @@ export async function POST(req: Request) {
 
     console.log("Datos recibidos de la RPC:", JSON.stringify(data, null, 2));
 
-    if (data && (data as any).error) {
+    if (data && typeof data === "object" && "error" in data) {
       // Manejar errores lógicos devueltos por nuestra función SQL
-      console.log(`Error lógico de la función SQL: ${(data as any).error}`);
-      return NextResponse.json({ error: (data as any).error }, { status: 400 });
+      const err = (data as { error: string }).error;
+      console.log(`Error lógico de la función SQL: ${err}`);
+      return NextResponse.json({ error: err }, { status: 400 });
     }
 
     console.log("--- Solicitud completada exitosamente ---");
     return NextResponse.json({ ok: true }, { status: 200 });
-  } catch (e: any) {
+  } catch (e: unknown) {
     console.error("--- Error inesperado en el bloque catch ---:", e);
+    const message = e instanceof Error ? e.message : "Unexpected server error";
     return NextResponse.json(
-      { error: e?.message || "Unexpected server error" },
+      { error: message },
       { status: 500 }
     );
   }

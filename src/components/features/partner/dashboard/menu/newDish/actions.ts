@@ -3,7 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/src/lib/supabase/server";
 import {
-  CreateProductPayload,
   CreateDishResult,
   ProductExtra,
   ProductSectionForm,
@@ -177,10 +176,7 @@ export async function createDishAction(
 }
 
 // Stub de subida de imagen (por implementar si se requiere en este ciclo)
-export async function uploadProductImageAction(
-  _productId: string,
-  _file: File
-) {
+export async function uploadProductImageAction() {
   // TODO: Implementar subida a storage y update products.image_url
   return { imageUrl: null };
 }

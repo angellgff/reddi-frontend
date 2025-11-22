@@ -99,7 +99,7 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
                 <p className="text-sm text-red-600">{error}</p>
               ) : (
                 <div className="space-y-4">
-                  {mergedData.map((item: any) => (
+                  {mergedData.map((item: { _rawId?: string; id: string; label: string }) => (
                     <div
                       key={item._rawId || item.id}
                       className="flex items-center gap-2"

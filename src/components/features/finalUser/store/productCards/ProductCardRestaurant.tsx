@@ -24,8 +24,6 @@ interface Props {
 export default function ProductCardRestaurant({
   product: p,
   discountedPrice,
-  isPending,
-  onAdd,
   onOpen,
 }: Props) {
   return (

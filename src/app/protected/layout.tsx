@@ -1,6 +1,4 @@
 import { DeployButton } from "@/src/components/deploy-button";
-import { EnvVarWarning } from "@/src/components/env-var-warning";
-import { AuthButton } from "@/src/components/auth-button";
 import { ThemeSwitcher } from "@/src/components/theme-switcher";
 import Link from "next/link";
 

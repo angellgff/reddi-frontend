@@ -3,13 +3,12 @@
 import { useMemo, useState } from "react";
 import { useNotifications } from "@/src/lib/notifications/NotificationsContext";
 import { toUINotification } from "@/src/lib/notifications/adapters";
-import BellIcon from "@/src/components/icons/BellIcon";
 import type { Tables } from "@/src/lib/database.types";
 
 type FilterKey = "all" | "orders" | "payments";
 
 function getCategory(row: Tables<"notifications">): FilterKey | "other" {
-  const meta = (row.metadata || {}) as any;
+  const meta = (row.metadata || {}) as Record<string, unknown>;
   const tokens = [row.type, meta?.type, meta?.category]
     .map((v) => String(v || "").toLowerCase())
     .filter(Boolean);
@@ -40,7 +39,7 @@ function getCategory(row: Tables<"notifications">): FilterKey | "other" {
 }
 
 export default function RestaurantNotificationsPage() {
-  const { notifications, unreadCount, loading, error, markAllAsRead } =
+  const { notifications, loading, error, markAllAsRead } =
     useNotifications();
   const [filter, setFilter] = useState<FilterKey>("all");
 

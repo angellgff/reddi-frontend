@@ -72,7 +72,7 @@ export default async function RecentOrdersTable() {
                 </td>
                 <td className="px-4 py-3">{money(o.total_amount)}</td>
                 <td className="px-4 py-3">
-                  <StatusBadge status={(o.status as any) || "pending"} />
+                  <StatusBadge status={(o.status as string) || "pending"} />
                 </td>
                 <td className="px-4 py-3">{timeAgo(o.created_at)}</td>
               </tr>

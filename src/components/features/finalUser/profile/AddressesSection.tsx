@@ -8,7 +8,6 @@ import { Input } from "@/src/components/ui/input";
 import {
   createUserAddress,
   updateUserAddress,
-  deleteUserAddress,
 } from "@/src/lib/finalUser/addresses/actions";
 import VillageIcon from "@/src/components/icons/VillageIcon";
 import BoatIcon from "@/src/components/icons/BoatIcon";
@@ -28,13 +27,12 @@ export type Address = {
 
 export default function AddressesSection({
   initialAddresses,
-  selectedAddressId,
 }: {
   initialAddresses: Address[];
   selectedAddressId: string | null;
 }) {
   const [addOpen, setAddOpen] = useState(false);
-  const [addresses, setAddresses] = useState<Address[]>(initialAddresses || []);
+  const [addresses] = useState<Address[]>(initialAddresses || []);
 
   function Icon({ type }: { type: Address["location_type"] }) {
     return type === "yate" ? (
@@ -43,12 +41,6 @@ export default function AddressesSection({
       <VillageIcon className="h-5 w-5 text-primary" />
     );
   }
-
-  const reloadAfter = async (fn: () => Promise<any>) => {
-    await fn();
-    // naive reload: simplest re-fetch using supabase client avoided for now, mutate locally
-    // In real app we'd refetch; here we approximate by removing/adding from state in-place
-  };
 
   return (
     <Card className="border-gray-200 rounded-2xl">

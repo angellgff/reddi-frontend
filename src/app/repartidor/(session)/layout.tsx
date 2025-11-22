@@ -27,13 +27,18 @@ export default async function DeliveryLayout({
     .eq("id", user.id)
     .single();
 
-  role = (profile as any)?.role || null;
+  role = profile?.role || null;
 
   // Opcional: Fallback a metadata si es necesario, pero la DB es la fuente de verdad.
   if (!role) {
-    const am = (user.app_metadata as any) || {};
-    const um = (user.user_metadata as any) || {};
-    role = am.user_role || am.role || um.user_role || um.role || null;
+    const am = (user.app_metadata as Record<string, unknown>) || {};
+    const um = (user.user_metadata as Record<string, unknown>) || {};
+    role =
+      (am.user_role as string) ||
+      (am.role as string) ||
+      (um.user_role as string) ||
+      (um.role as string) ||
+      null;
   }
 
   // --- CONSISTENCIA DE ROLES ---

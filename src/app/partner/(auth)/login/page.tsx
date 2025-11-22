@@ -1,4 +1,3 @@
-import LoginForm from "@/src/components/basics/auth/LoginForm";
 import Image from "next/image";
 import logo from "@/src/assets/images/logo.svg";
 //<LoginForm title="Controla y organiza todo desde aquí." />

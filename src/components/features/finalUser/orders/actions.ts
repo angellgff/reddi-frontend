@@ -178,7 +178,7 @@ export async function getAssignedDriverForOrder(
     return { assigned: false };
   }
 
-  const user = (ship as any)?.driver?.user;
+  const user = (ship as unknown as { driver: { user: any } })?.driver?.user;
   if (!ship || !user) return { assigned: false };
 
   return {

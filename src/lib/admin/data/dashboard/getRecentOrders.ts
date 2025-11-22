@@ -1,5 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
-import type { Database, Tables } from "@/src/lib/database.types"; // <-- Asegúrate de que esta ruta sea correcta
+import type { Tables } from "@/src/lib/database.types"; // <-- Asegúrate de que esta ruta sea correcta
 
 // Alias para los tipos de fila para mayor claridad
 type OrderRow = Tables<"orders">;

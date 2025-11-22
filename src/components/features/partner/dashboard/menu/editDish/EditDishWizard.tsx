@@ -162,7 +162,7 @@ export default function EditDishWizard({
 
       // Loggear el contenido de FormData (no se puede loggear directamente)
       console.log("Contenido de FormData que se enviará:");
-      for (let [key, value] of data.entries()) {
+      for (const [key, value] of data.entries()) {
         // Para el archivo, solo mostramos su nombre para no llenar la consola
         if (value instanceof File) {
           console.log(`  ${key}:`, {

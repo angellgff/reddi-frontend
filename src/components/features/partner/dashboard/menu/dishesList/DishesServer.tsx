@@ -1,7 +1,6 @@
 import DishesSection from "./DishesSection";
 import getRealDishesData from "@/src/lib/partner/dashboard/data/products/getRealDishesData";
 import getSubCategories from "@/src/lib/partner/dashboard/data/products/getSubCategories";
-import { dishesTags } from "@/src/lib/type"; // Keep mock tags (no tag system yet)
 import { createClient } from "@/src/lib/supabase/server";
 
 interface DishesServerProps {

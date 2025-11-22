@@ -51,8 +51,8 @@ export default async function Home() {
       }
 
       if (!role) {
-        const appMeta = (user.app_metadata as Record<string, any>) || {};
-        const userMeta = (user.user_metadata as Record<string, any>) || {};
+        const appMeta = (user.app_metadata as Record<string, unknown>) || {};
+        const userMeta = (user.user_metadata as Record<string, unknown>) || {};
         role =
           (appMeta?.user_role as string) ||
           (appMeta?.role as string) ||

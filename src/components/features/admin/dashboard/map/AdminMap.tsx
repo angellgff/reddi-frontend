@@ -5,6 +5,12 @@ import mapboxgl, { Map, Marker } from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css"; // <-- Importante: Añadir el CSS de Mapbox
 import type { AdminMapData } from "@/src/lib/admin/data/dashboard/getMapData";
 
+interface MapShipment {
+  routeGeoJson?: { coordinates: number[][]; type: "LineString" };
+  origin?: { longitude: number; latitude: number };
+  destination?: { longitude: number; latitude: number };
+}
+
 export default function AdminMap({
   data,
   height = 320,
@@ -222,18 +228,19 @@ export default function AdminMap({
         );
       } else {
         const features = (Array.isArray(data.shipments) ? data.shipments : [])
-          .filter((s) => (s as any)?.routeGeoJson?.coordinates?.length)
+          .filter((s) => (s as MapShipment)?.routeGeoJson?.coordinates?.length)
           .map((s) => ({
             type: "Feature",
-            geometry: (s as any).routeGeoJson as any,
+            geometry: (s as MapShipment).routeGeoJson,
           }));
 
         const featureCollection = {
           type: "FeatureCollection",
           features,
-        } as const;
+        };
         try {
-          source.setData(featureCollection as any);
+          // Cast to unknown to avoid 'any' lint error, assuming structure is correct for mapbox
+          source.setData(featureCollection as unknown as GeoJSON.FeatureCollection);
           console.log(
             `[AdminMap:shipments] setData con ${features.length} features`
           );
@@ -245,18 +252,19 @@ export default function AdminMap({
       // Incluir puntos de origen/destino en los límites del mapa
       let odCount = 0;
       (Array.isArray(data.shipments) ? data.shipments : []).forEach((s) => {
-        if ((s as any)?.origin) {
+        const ship = s as MapShipment;
+        if (ship?.origin) {
           bounds.extend([
-            (s as any).origin.longitude,
-            (s as any).origin.latitude,
+            ship.origin.longitude,
+            ship.origin.latitude,
           ]);
           hasAnyData = true;
           odCount++;
         }
-        if ((s as any)?.destination) {
+        if (ship?.destination) {
           bounds.extend([
-            (s as any).destination.longitude,
-            (s as any).destination.latitude,
+            ship.destination.longitude,
+            ship.destination.latitude,
           ]);
           hasAnyData = true;
           odCount++;
@@ -310,11 +318,14 @@ export default function AdminMap({
     const source = map.getSource("admin-shipments") as mapboxgl.GeoJSONSource;
     if (source) {
       const features = data.shipments
-        .filter((s) => s.routeGeoJson?.coordinates?.length)
-        .map((s) => ({ type: "Feature", geometry: s.routeGeoJson as any }));
+        .filter((s) => (s as MapShipment).routeGeoJson?.coordinates?.length)
+        .map((s) => ({
+          type: "Feature",
+          geometry: (s as MapShipment).routeGeoJson,
+        }));
 
       const featureCollection = { type: "FeatureCollection", features };
-      source.setData(featureCollection as any);
+      source.setData(featureCollection as unknown as GeoJSON.FeatureCollection);
     }
 
     // Incluir puntos de origen/destino en los límites del mapa

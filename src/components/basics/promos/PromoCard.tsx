@@ -1,7 +1,6 @@
 // components/promotions/PromoCard.tsx (Versión Final con Corte Diagonal)
 
 import Image from "next/image";
-import Link from "next/link";
 
 export type PromoCardProps = {
   title: string;
@@ -21,7 +20,7 @@ export default function PromoCard({
   buttonText,
   imageUrl,
   bgColor,
-  href,
+
   variant = "mobile",
 }: PromoCardProps) {
   const containerSizeClass =

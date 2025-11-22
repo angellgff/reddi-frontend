@@ -25,8 +25,8 @@ export default async function OrdersTableServer({
     search: getFirst(awaitedSearchParams.q) || undefined,
     from: getFirst(awaitedSearchParams.from) || undefined,
     to: getFirst(awaitedSearchParams.to) || undefined,
-    status: (getFirst(awaitedSearchParams.status) as any) || undefined,
-    category: (getFirst(awaitedSearchParams.category) as any) || undefined,
+    status: (getFirst(awaitedSearchParams.status) as string) || undefined,
+    category: (getFirst(awaitedSearchParams.category) as string) || undefined,
   };
 
   const { orders, total } = await getOrdersPage(filters, pageSize, page);

@@ -7,7 +7,7 @@ import { ChevronDown, ShoppingBag, Heart, MapPin, Menu, X } from "lucide-react";
 import Badge from "@/src/components/basics/header/Badge";
 import FiltersIcon from "@/src/components/icons/FiltersIcon";
 import SearchIcon from "@/src/components/icons/SearchIcon";
-import BellIcon from "@/src/components/icons/BellIcon";
+
 import UserCarIcon from "@/src/components/icons/UserCarIcon";
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
 import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
@@ -18,7 +18,6 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
-import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
 
 const badgeColor = "bg-red-500";
 
@@ -34,9 +33,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const dispatch = useAppDispatch();
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
   const cartCount = useAppSelector(selectCartCount);
-  const { addresses, selectedAddressId, status } = useAppSelector(
-    (s) => s.addresses
-  );
+  const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
 
   // En tu componente Header.tsx
   const handleLogout = async () => {

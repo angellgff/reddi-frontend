@@ -145,7 +145,6 @@ export default function OrderLiveStatusClient({
       console.log("🧹 Limpiando intervalo de sondeo.");
       if (pollRef.current) clearInterval(pollRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderId, delivered]);
 
   return (

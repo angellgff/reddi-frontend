@@ -15,8 +15,6 @@ export default async function DriversListServer({
   const params = await searchParams;
   const page = params.page ? parseInt(params.page as string) : 1;
   const q = (params.q as string) || "";
-  const orderBy = (params.orderBy as string) || "";
-  const order = (params.order as string) || "";
 
   const { drivers } = await getDriversPage({ q }, page, 10);
   return <DriversList drivers={drivers} />;

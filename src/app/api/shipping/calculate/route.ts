@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     const supabase = await createClient();
 
     const details = await calculateShipmentDetails(
-      supabase as any,
+      supabase,
       partnerId,
       userAddressId
     );
@@ -39,12 +39,10 @@ export async function POST(req: Request) {
       shippingCost: details.shippingCost,
     });
     return NextResponse.json(details, { status: 200 });
-  } catch (err: any) {
-    console.error("[shipping/calculate] Error: ", err?.message, err?.stack);
+  } catch (err: unknown) {
     const message =
-      typeof err?.message === "string" && err.message
-        ? err.message
-        : "Failed to calculate the route.";
+      err instanceof Error ? err.message : "Failed to calculate the route";
+    console.error("[shipping/calculate] Error: ", message);
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

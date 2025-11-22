@@ -11,7 +11,7 @@ export function getRandomNumberFrom1To10(): number {
 
 // Generate a UUID v4 in environments where crypto.randomUUID may not exist (browser/Turbopack)
 export function uuid(): string {
-  const g: any = globalThis as any;
+  const g = globalThis as unknown as { crypto?: { randomUUID?: () => string } };
   const c = g?.crypto;
   // Prefer native when available
   if (c && typeof c.randomUUID === "function") {

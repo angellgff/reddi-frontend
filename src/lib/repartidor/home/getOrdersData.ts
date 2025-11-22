@@ -76,7 +76,7 @@ export default async function getOrdersData(): Promise<OrderData[]> {
 
   if (error) throw error;
 
-  const list: OrderData[] = (data ?? []).map((o: any) => {
+  const list: OrderData[] = (data ?? []).map((o) => {
     const status = mapDbStatusToDeliveryLabel(o.status);
     const restaurantName: string = o.partners?.name ?? "Negocio";
     const logoUrl: string = o.partners?.image_url ?? "/steakhouseorder.svg";

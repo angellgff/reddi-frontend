@@ -5,7 +5,7 @@ export default async function UserAddressesHydratorServer() {
   const { addresses, selectedAddressId } = await getUserAddressesAndSelected();
   return (
     <UserAddressesHydratorClient
-      addresses={addresses as any}
+      addresses={addresses}
       selectedAddressId={selectedAddressId}
     />
   );

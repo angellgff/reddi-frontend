@@ -109,7 +109,7 @@ export default async function getHistoryOrders(): Promise<HistoryOrderItem[]> {
 
   // El resto del mapeo ya era correcto.
   const list: HistoryOrderItem[] = (data ?? [])
-    .map((shipment: any) => {
+    .map((shipment) => {
       const o = shipment.orders;
       if (!o) return null;
 

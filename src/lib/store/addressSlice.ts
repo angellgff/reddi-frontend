@@ -61,7 +61,7 @@ export const fetchUserAddresses = createAsyncThunk(
         new Promise((resolve) =>
           setTimeout(() => resolve({ data: { session: null } }), 4000)
         ),
-      ])) as any;
+      ])) as { data: { session: any } };
       const tSess1 = now();
       let user = sessionRace?.data?.session?.user || null;
       if (DEBUG)
@@ -81,7 +81,7 @@ export const fetchUserAddresses = createAsyncThunk(
             new Promise((resolve) =>
               setTimeout(() => resolve({ data: { user: null } }), 3500)
             ),
-          ])) as any;
+          ])) as { data: { user: any } };
           user = userRace?.data?.user || null;
           if (DEBUG)
             console.log(
@@ -150,27 +150,27 @@ export const fetchUserAddresses = createAsyncThunk(
 
       // Parse results with graceful fallbacks
       const addrOk =
-        addrRes.status === "fulfilled" && !(addrRes.value as any).error;
+        addrRes.status === "fulfilled" && !(addrRes.value as { error?: any }).error;
       const profileOk =
-        profileRes.status === "fulfilled" && !(profileRes.value as any).error;
+        profileRes.status === "fulfilled" && !(profileRes.value as { error?: any }).error;
 
-      if (addrRes.status === "fulfilled" && (addrRes.value as any).error) {
-        throw (addrRes.value as any).error;
+      if (addrRes.status === "fulfilled" && (addrRes.value as { error?: any }).error) {
+        throw (addrRes.value as { error?: any }).error;
       }
       if (
         profileRes.status === "fulfilled" &&
-        (profileRes.value as any).error &&
-        (profileRes.value as any).error.code !== "PGRST116"
+        (profileRes.value as { error?: any }).error &&
+        (profileRes.value as { error?: any }).error.code !== "PGRST116"
       ) {
         // ignore not found single row code, otherwise throw
-        throw (profileRes.value as any).error;
+        throw (profileRes.value as { error?: any }).error;
       }
 
       const addresses: UserAddress[] = addrOk
-        ? ((addrRes as any).value.data as UserAddress[]) || []
+        ? ((addrRes as PromiseFulfilledResult<{ data: UserAddress[] }>).value.data as UserAddress[]) || []
         : [];
       let selectedAddressId: string | null = profileOk
-        ? (profileRes as any).value.data?.selected_address ?? null
+        ? (profileRes as PromiseFulfilledResult<{ data: { selected_address: string | null } }>).value.data?.selected_address ?? null
         : null;
 
       if (!selectedAddressId && addresses.length > 0) {
@@ -189,8 +189,8 @@ export const fetchUserAddresses = createAsyncThunk(
         addresses: UserAddress[];
         selectedAddressId: string | null;
       };
-    } catch (e: any) {
-      const msg = e?.message || e;
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
       if (msg === "__skip__") {
         if (DEBUG) console.log("[addresses] ⏹️ skip (in-flight)");
         return rejectWithValue("__skip__");
@@ -234,8 +234,9 @@ export const updateSelectedAddress = createAsyncThunk(
       // Optimistic local update for instant UI feedback
       dispatch(setSelectedAddressLocal(addressId));
       return addressId;
-    } catch (e: any) {
-      return rejectWithValue(e?.message || "No se pudo seleccionar.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : "No se pudo seleccionar.";
+      return rejectWithValue(message);
     }
   }
 );

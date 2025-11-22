@@ -1,5 +1,3 @@
-import { ReactNode } from "react";
-
 export type NavLink = {
   name: string;
   href: string;

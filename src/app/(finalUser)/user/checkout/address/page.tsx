@@ -5,7 +5,7 @@ import { useEffect, useState, useTransition } from "react";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
 import ScheduleStep from "@/src/components/features/finalUser/checkout/ScheduleStep";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
-import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
+import { fetchUserAddresses, UserAddress } from "@/src/lib/store/addressSlice";
 import {
   setAddressId,
   setSchedule,
@@ -16,6 +16,7 @@ import type { Enums } from "@/src/lib/database.types";
 import Select from "@/src/components/ui/Select";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 import { setShippingFee } from "@/src/lib/store/chargesSlice";
+import { CartItem } from "@/src/lib/store/cartSlice";
 
 export default function CheckoutAddressPage() {
   const dispatch = useAppDispatch();
@@ -54,7 +55,7 @@ export default function CheckoutAddressPage() {
   const partnerId: string | null = (() => {
     if (!cartItems || cartItems.length === 0) return null;
     const unique = Array.from(
-      new Set(cartItems.map((it: any) => it.partnerId))
+      new Set(cartItems.map((it: CartItem) => it.partnerId))
     );
     if (unique.length === 1 && typeof unique[0] === "string") return unique[0];
     return null; // múltiples partners o indefinido
@@ -99,10 +100,10 @@ export default function CheckoutAddressPage() {
           // Propagar costo al carrito/summary
           dispatch(setShippingFee(Number(json.shippingCost ?? 0)));
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         if (!cancelled) {
           setShippingError(
-            typeof e?.message === "string" ? e.message : "Error inesperado"
+            e instanceof Error ? e.message : "Error inesperado"
           );
           dispatch(setShippingEstimate(null));
           dispatch(setShippingFee(0));
@@ -130,7 +131,7 @@ export default function CheckoutAddressPage() {
   const canProceed =
     addressId &&
     (schedule.mode === "now" ||
-      ((schedule as any).date && (schedule as any).time));
+      (schedule.mode === "later" && schedule.date && schedule.time));
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -158,11 +159,11 @@ export default function CheckoutAddressPage() {
                 }
                 const resultAction = await dispatch(fetchUserAddresses());
                 // Intentar auto-seleccionar la recién creada buscando por tipo+número
-                if ((resultAction as any)?.type?.endsWith("/fulfilled")) {
-                  const payload: any = (resultAction as any).payload;
+                if (fetchUserAddresses.fulfilled.match(resultAction)) {
+                  const payload = resultAction.payload;
                   const list = payload?.addresses || addresses || [];
                   const created = list.find(
-                    (a: any) =>
+                    (a: UserAddress) =>
                       String(a.location_type) === String(newLocationType) &&
                       String(a.location_number).trim() ===
                         String(newLocationNumber).trim()

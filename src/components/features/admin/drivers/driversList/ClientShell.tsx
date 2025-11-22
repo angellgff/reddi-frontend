@@ -41,7 +41,7 @@ export default function DriversClientShell({
   const currentSortBy = searchParams.get("orderBy") || null;
   const currentSortDirection = (searchParams.get("order") as OrderDir) || null;
   const handleSort = useCallback(
-    (columnKey: any) => {
+    (columnKey: string) => {
       const params = new URLSearchParams(searchParams);
       let nextOrderDirection: OrderDir | null;
       if (currentSortBy !== columnKey) nextOrderDirection = "asc";

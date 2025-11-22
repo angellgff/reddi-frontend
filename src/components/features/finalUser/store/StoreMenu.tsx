@@ -8,8 +8,6 @@ import React, {
   useRef,
 } from "react";
 import type { StoreMenu as StoreMenuType } from "@/src/lib/finalUser/stores/getStoreMenu";
-import Image from "next/image";
-import BasicInput from "@/src/components/basics/BasicInput";
 import TagsTabs from "@/src/components/features/partner/TagsTabs";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
@@ -46,7 +44,7 @@ export default function StoreMenu({
   const currentPartnerId = useAppSelector(selectCartPartnerId);
   const scrollersRef = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const [query] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || ""
   );

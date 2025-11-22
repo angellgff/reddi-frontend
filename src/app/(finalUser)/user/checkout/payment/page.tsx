@@ -9,7 +9,6 @@ import {
   selectServiceFee,
   selectShippingFee,
 } from "@/src/lib/store/chargesSlice";
-import { fetchUserAddresses } from "@/src/lib/store/addressSlice";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
 import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/PaymentMethodsDialog";
 import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCard";
@@ -44,7 +43,7 @@ export default function CheckoutPaymentPage() {
   );
 
   // Estado para la dirección y la tienda
-  const { status } = useAppSelector((s) => s.addresses);
+  // const { status } = useAppSelector((s) => s.addresses);
 
   const partnerIds = useMemo(() => items.map((i) => i.partnerId), [items]);
   const {

@@ -25,12 +25,12 @@ export default function ScheduleStep({
   };
 
   const setDate = (date: string) => {
-    const next: ScheduleValue = { ...(local as any), date, mode: "later" };
+    const next: ScheduleValue = { ...local, date, mode: "later" } as ScheduleValue;
     setLocal(next);
     onChange(next);
   };
   const setTime = (time: string) => {
-    const next: ScheduleValue = { ...(local as any), time, mode: "later" };
+    const next: ScheduleValue = { ...local, time, mode: "later" } as ScheduleValue;
     setLocal(next);
     onChange(next);
   };
@@ -69,7 +69,7 @@ export default function ScheduleStep({
           <div className="flex  items-center gap-2 border rounded-xl px-3 h-10">
             <input
               type="date"
-              value={(local as any).date || ""}
+              value={local.date || ""}
               onChange={(e) => setDate(e.target.value)}
               className="w-full h-8 outline-none text-sm"
             />
@@ -78,7 +78,7 @@ export default function ScheduleStep({
           <div className="flex items-center gap-2 border rounded-xl px-3 h-10">
             <input
               type="time"
-              value={(local as any).time || ""}
+              value={local.time || ""}
               onChange={(e) => setTime(e.target.value)}
               className="w-full h-8 outline-none text-sm"
             />

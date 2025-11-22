@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
       .filter((c) => c.name.includes("auth"));
     console.log("[root-mw] <- allow", request.nextUrl.pathname, {
       authCookies: authCookies.map((c) => c.name),
-      status: (res as any).status || 200,
+      status: res.status || 200,
     });
     return res;
   } catch (e) {

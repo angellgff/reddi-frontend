@@ -85,7 +85,7 @@ export async function getOrdersHistoryData(params: {
   const totalPages = count ? Math.max(1, Math.ceil(count / limit)) : 1;
 
   return {
-    rows: (data ?? []).map((r: any) => ({
+    rows: (data ?? []).map((r) => ({
       id: r.id,
       created_at: r.created_at,
       total_amount: r.total_amount ?? 0,

@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+
 import React from "react";
 
 type CategoryCardProps = {
@@ -13,7 +13,7 @@ type CategoryCardProps = {
 const CategoryCard: React.FC<CategoryCardProps> = ({
   name,
   imageUrl,
-  href,
+
   size = "small",
   className = "",
 }) => {
