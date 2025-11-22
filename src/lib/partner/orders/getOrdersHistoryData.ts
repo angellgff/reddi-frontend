@@ -59,12 +59,8 @@ export async function getOrdersHistoryData(params: {
     // mapear UI status -> internal statuses
     const s = status.toLowerCase();
     let internalStatuses: string[] | null = null;
-    if (s === "pendiente")
-      internalStatuses = [
-        "confirmed",
-        "new",
-        "pending",
-      ]; // confirmed & pending equivalentes
+    if (s === "pendiente") internalStatuses = ["confirmed", "new", "pending"];
+    // confirmed & pending equivalentes
     else if (s === "entregado") internalStatuses = ["delivered"];
     else if (s === "cancelado") internalStatuses = ["canceled"];
     if (internalStatuses) baseQuery = baseQuery.in("status", internalStatuses);

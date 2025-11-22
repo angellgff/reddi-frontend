@@ -240,7 +240,9 @@ export default function AdminMap({
         };
         try {
           // Cast to unknown to avoid 'any' lint error, assuming structure is correct for mapbox
-          source.setData(featureCollection as unknown as GeoJSON.FeatureCollection);
+          source.setData(
+            featureCollection as unknown as GeoJSON.FeatureCollection
+          );
           console.log(
             `[AdminMap:shipments] setData con ${features.length} features`
           );
@@ -254,10 +256,7 @@ export default function AdminMap({
       (Array.isArray(data.shipments) ? data.shipments : []).forEach((s) => {
         const ship = s as MapShipment;
         if (ship?.origin) {
-          bounds.extend([
-            ship.origin.longitude,
-            ship.origin.latitude,
-          ]);
+          bounds.extend([ship.origin.longitude, ship.origin.latitude]);
           hasAnyData = true;
           odCount++;
         }

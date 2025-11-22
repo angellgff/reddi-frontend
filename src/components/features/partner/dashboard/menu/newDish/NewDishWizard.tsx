@@ -10,11 +10,7 @@ import {
   ProductSubCategory,
   ProductExtra,
 } from "@/src/lib/partner/productTypes";
-import {
-  buildCreateProductPayload,
-  validateStep1,
-  validateStep2,
-} from "@/src/lib/partner/productUtils";
+import { validateStep1, validateStep2 } from "@/src/lib/partner/productUtils";
 import { createDishAction } from "./actions";
 import CreateCategoryModal from "./CreateCategoryModal";
 // Using named import to mitigate transient module resolution issue with default import

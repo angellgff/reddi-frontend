@@ -3,8 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getStoresByIds, type StoreDetails } from "./actions";
 
-
-
 export function useStoreDetailsClient(partnerIds: string[]) {
   const uniqueIds = useMemo(
     () => Array.from(new Set((partnerIds || []).filter(Boolean))),
@@ -90,6 +88,7 @@ export function useStoreDetailsClient(partnerIds: string[]) {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uniqueIds.join(",")]);
 
   return { data, loading, error } as const;

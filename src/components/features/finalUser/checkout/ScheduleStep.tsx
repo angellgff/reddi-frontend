@@ -25,12 +25,20 @@ export default function ScheduleStep({
   };
 
   const setDate = (date: string) => {
-    const next: ScheduleValue = { ...local, date, mode: "later" } as ScheduleValue;
+    const next: ScheduleValue = {
+      ...local,
+      date,
+      mode: "later",
+    } as ScheduleValue;
     setLocal(next);
     onChange(next);
   };
   const setTime = (time: string) => {
-    const next: ScheduleValue = { ...local, time, mode: "later" } as ScheduleValue;
+    const next: ScheduleValue = {
+      ...local,
+      time,
+      mode: "later",
+    } as ScheduleValue;
     setLocal(next);
     onChange(next);
   };

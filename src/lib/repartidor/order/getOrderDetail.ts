@@ -148,10 +148,8 @@ export default async function getOrderDetail(
     const orderStatus: string | null = data.status ?? null;
     const statusLabel = mapDbStatusToDeliveryLabel(orderStatus);
     const restaurantName = data.partners?.name ?? "Negocio";
-    const restaurantAddress =
-      data.partners?.address ?? "Dirección del negocio";
-    const restaurantLogo =
-      data.partners?.image_url ?? "/steakhouseorder.svg";
+    const restaurantAddress = data.partners?.address ?? "Dirección del negocio";
+    const restaurantLogo = data.partners?.image_url ?? "/steakhouseorder.svg";
     const deliveryAddress = formatAddress(data.user_addresses);
     const originCoords =
       extractPoint(data.shipments?.origin_coordinates) ||
@@ -162,8 +160,7 @@ export default async function getOrderDetail(
     const eta = formatEta(data.created_at, data.scheduled_at);
 
     const shipmentId: string | null = data.shipments?.id ?? null;
-    const shipmentDriverId: string | null =
-      data.shipments?.driver_id ?? null;
+    const shipmentDriverId: string | null = data.shipments?.driver_id ?? null;
 
     // --- LÓGICA DE PERMISOS CORREGIDA ---
     const isCancelled =
@@ -218,7 +215,8 @@ export default async function getOrderDetail(
       canMarkDelivered,
     };
   } catch (error: unknown) {
-    const message = error instanceof Error ? error.message : "Error desconocido";
+    const message =
+      error instanceof Error ? error.message : "Error desconocido";
     console.error(`Fallo al obtener detalle del pedido ${id}:`, message);
 
     if (

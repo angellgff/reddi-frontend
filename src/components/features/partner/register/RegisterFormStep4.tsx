@@ -75,18 +75,6 @@ export default function RegisterFormStep4({
     }
   }, [error]);
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Se verifica que al menos 1 día esté activo
-    if (!isAnyDayActive) {
-      setIsAnyDayActiveError(true);
-      return;
-    }
-    setIsAnyDayActiveError(false);
-    // Si todo está bien, se abre el modal de confirmación
-    setIsModalOpen(true);
-  };
-
   return (
     <>
       <StepperHeader

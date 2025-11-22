@@ -102,9 +102,7 @@ export default function CheckoutAddressPage() {
         }
       } catch (e: unknown) {
         if (!cancelled) {
-          setShippingError(
-            e instanceof Error ? e.message : "Error inesperado"
-          );
+          setShippingError(e instanceof Error ? e.message : "Error inesperado");
           dispatch(setShippingEstimate(null));
           dispatch(setShippingFee(0));
         }

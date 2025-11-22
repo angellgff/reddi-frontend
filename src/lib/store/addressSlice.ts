@@ -150,11 +150,16 @@ export const fetchUserAddresses = createAsyncThunk(
 
       // Parse results with graceful fallbacks
       const addrOk =
-        addrRes.status === "fulfilled" && !(addrRes.value as { error?: any }).error;
+        addrRes.status === "fulfilled" &&
+        !(addrRes.value as { error?: any }).error;
       const profileOk =
-        profileRes.status === "fulfilled" && !(profileRes.value as { error?: any }).error;
+        profileRes.status === "fulfilled" &&
+        !(profileRes.value as { error?: any }).error;
 
-      if (addrRes.status === "fulfilled" && (addrRes.value as { error?: any }).error) {
+      if (
+        addrRes.status === "fulfilled" &&
+        (addrRes.value as { error?: any }).error
+      ) {
         throw (addrRes.value as { error?: any }).error;
       }
       if (
@@ -167,10 +172,15 @@ export const fetchUserAddresses = createAsyncThunk(
       }
 
       const addresses: UserAddress[] = addrOk
-        ? ((addrRes as PromiseFulfilledResult<{ data: UserAddress[] }>).value.data as UserAddress[]) || []
+        ? ((addrRes as PromiseFulfilledResult<{ data: UserAddress[] }>).value
+            .data as UserAddress[]) || []
         : [];
       let selectedAddressId: string | null = profileOk
-        ? (profileRes as PromiseFulfilledResult<{ data: { selected_address: string | null } }>).value.data?.selected_address ?? null
+        ? (
+            profileRes as PromiseFulfilledResult<{
+              data: { selected_address: string | null };
+            }>
+          ).value.data?.selected_address ?? null
         : null;
 
       if (!selectedAddressId && addresses.length > 0) {
@@ -235,7 +245,8 @@ export const updateSelectedAddress = createAsyncThunk(
       dispatch(setSelectedAddressLocal(addressId));
       return addressId;
     } catch (e: unknown) {
-      const message = e instanceof Error ? e.message : "No se pudo seleccionar.";
+      const message =
+        e instanceof Error ? e.message : "No se pudo seleccionar.";
       return rejectWithValue(message);
     }
   }

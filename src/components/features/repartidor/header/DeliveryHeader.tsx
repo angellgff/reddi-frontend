@@ -7,7 +7,6 @@ import Image from "next/image";
 import Avatar from "@/public/carlosAvatar.svg";
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
-import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { useRouter } from "next/navigation";
 
 const logoFill = "white";

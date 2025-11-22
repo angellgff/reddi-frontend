@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 import { createClient } from "@/src/lib/supabase/client";
 

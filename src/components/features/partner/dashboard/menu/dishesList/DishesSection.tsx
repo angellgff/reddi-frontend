@@ -76,6 +76,7 @@ export default function DishesSection({
     }, 300); // Espera 300ms después de que el usuario deja de escribir
 
     return () => clearTimeout(debounceTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query, selectedCategory]);
 
   // Estado y manejador para la etiqueta seleccionada

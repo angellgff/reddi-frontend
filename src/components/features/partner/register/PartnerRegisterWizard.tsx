@@ -83,8 +83,6 @@ export default function PartnerRegisterWizard() {
     },
   });
 
-  const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
-
   useEffect(() => {
     console.log(formData);
 

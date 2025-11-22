@@ -5,6 +5,7 @@ import BasicInput from "@/src/components/basics/BasicInput";
 import Spinner from "@/src/components/basics/Spinner";
 import { createExtraAction } from "./actions";
 import { ProductExtra } from "@/src/lib/partner/productTypes";
+import Image from "next/image";
 
 interface CreateExtraModalProps {
   isOpen: boolean;
@@ -140,7 +141,9 @@ function CreateExtraModal({
               {imagePreview && (
                 <div className="mt-3">
                   {/* Contenedor para vista previa */}
-                  <img
+                  <Image
+                    width={96}
+                    height={96}
                     src={imagePreview}
                     alt="Vista previa del extra"
                     className="h-24 w-24 object-cover rounded-md border"

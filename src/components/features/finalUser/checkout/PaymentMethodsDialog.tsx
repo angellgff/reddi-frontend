@@ -275,7 +275,7 @@ function AddCardForm({
             value={exp}
             onChange={(e) => {
               let raw = e.target.value.replace(/\D/g, "").slice(0, 6);
-              
+
               if (raw.length === 1 && parseInt(raw) > 1) {
                 raw = "0" + raw;
               }
@@ -284,10 +284,10 @@ function AddCardForm({
                 let mm = parseInt(raw.slice(0, 2), 10);
                 if (mm > 12) mm = 12;
                 if (mm === 0) mm = 1;
-                
+
                 const mmStr = mm.toString().padStart(2, "0");
                 const yy = raw.slice(2);
-                
+
                 if (yy.length > 0) {
                   setExp(`${mmStr}/${yy}`);
                 } else {

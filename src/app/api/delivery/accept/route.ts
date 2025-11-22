@@ -78,9 +78,6 @@ export async function POST(req: Request) {
   } catch (e: unknown) {
     console.error("--- Error inesperado en el bloque catch ---:", e);
     const message = e instanceof Error ? e.message : "Unexpected server error";
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

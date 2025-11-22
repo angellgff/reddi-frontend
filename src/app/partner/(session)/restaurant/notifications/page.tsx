@@ -39,8 +39,7 @@ function getCategory(row: Tables<"notifications">): FilterKey | "other" {
 }
 
 export default function RestaurantNotificationsPage() {
-  const { notifications, loading, error, markAllAsRead } =
-    useNotifications();
+  const { notifications, loading, error, markAllAsRead } = useNotifications();
   const [filter, setFilter] = useState<FilterKey>("all");
 
   const ui = useMemo(() => {

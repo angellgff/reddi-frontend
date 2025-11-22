@@ -34,6 +34,7 @@ export default function OrdersSection({ tabs, orders }: OrdersSectionProps) {
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   return (

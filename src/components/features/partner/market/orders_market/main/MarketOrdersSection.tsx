@@ -36,6 +36,7 @@ export default function MarketOrdersSection({
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
   return (

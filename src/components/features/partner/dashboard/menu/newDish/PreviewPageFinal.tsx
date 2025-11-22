@@ -23,8 +23,6 @@ interface PreviewPageProps {
 
 export default function PreviewPageFinal({
   formData,
-  onSubmitAll,
-  submitting,
   submitError,
   extrasCatalog,
   subCategories,

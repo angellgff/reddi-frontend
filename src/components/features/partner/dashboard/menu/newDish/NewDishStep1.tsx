@@ -12,7 +12,6 @@ import {
   ProductSubCategory,
 } from "@/src/lib/partner/productTypes";
 import { useState, useRef } from "react";
-import { isFieldInvalid } from "@/src/lib/partner/utils";
 
 const POSITIVE_NUMBER_REGEX = /^(0|[1-9]\d*)(\.\d+)?$/;
 const ESTIMATED_TIME_REGEX = /^\d{1,2}-\d{1,2}?min$/;

@@ -64,9 +64,6 @@ export async function POST(req: Request) {
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unexpected error";
     console.error("Handler Exception:", message);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

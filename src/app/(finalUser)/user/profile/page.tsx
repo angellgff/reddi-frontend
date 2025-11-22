@@ -114,7 +114,9 @@ export default async function ProfilePage() {
       {/* Direcciones Guardadas */}
       <section>
         <AddressesSection
-          initialAddresses={addressesRes.addresses as Tables<"user_addresses">[]}
+          initialAddresses={
+            addressesRes.addresses as Tables<"user_addresses">[]
+          }
           selectedAddressId={addressesRes.selectedAddressId}
         />
       </section>
