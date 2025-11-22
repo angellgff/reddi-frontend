@@ -1,54 +1,9 @@
-import AdminAside, {
-  NavLink,
-} from "@/src/components/basics/dashboard/DashboardAside";
+import AdminAside from "@/src/components/basics/dashboard/DashboardAside";
+import { NavLink } from "@/src/components/basics/dashboard/types";
 import AdminHeader from "@/src/components/basics/dashboard/DashboardHeader";
 import { getAuthenticatedAdminProfile } from "@/src/lib/admin/header/data/getData";
-import Squares2X2Icon from "@/src/components/icons/Squares2X2Icon";
-import AdminOrdersIcon from "@/src/components/icons/AdminOrdersIcon";
-import AdminCouponIcon from "@/src/components/icons/AdminCouponIcon";
-import AdminUsersIcon from "@/src/components/icons/AdminUsersIcon";
-import AdminBannerIcon from "@/src/components/icons/AdminBannerIcon";
-import AdminFinancesIcon from "@/src/components/icons/AdminFinancesIcon";
 
 const actualURL = "/admin";
-
-const navigationLinks: NavLink[] = [
-  {
-    name: "Dashboard",
-    href: `${actualURL}/dashboard`,
-    icon: <Squares2X2Icon />,
-  },
-  {
-    name: "Pedidos",
-    href: `${actualURL}/orders`,
-    icon: <AdminOrdersIcon />,
-  },
-  {
-    name: "Cupones",
-    href: `${actualURL}/coupons`,
-    icon: <AdminCouponIcon />,
-  },
-  {
-    name: "Usuarios",
-    href: "#",
-    icon: <AdminUsersIcon />,
-    subLinks: [
-      { name: "Clientes", href: `${actualURL}/customers` },
-      { name: "Aliados", href: `${actualURL}/aliados` },
-      { name: "Repartidores", href: `${actualURL}/drivers` },
-    ],
-  },
-  {
-    name: "Banner",
-    href: `${actualURL}/banner`,
-    icon: <AdminBannerIcon />,
-  },
-  {
-    name: "Finanzas",
-    href: `${actualURL}/finances`,
-    icon: <AdminFinancesIcon />,
-  },
-];
 
 export default async function AdminDashboardLayout({
   children,
@@ -56,6 +11,46 @@ export default async function AdminDashboardLayout({
   children: React.ReactNode;
 }) {
   const adminProfile = await getAuthenticatedAdminProfile();
+
+  // ✅ CORRECCIÓN: Usar strings para los iconos para evitar problemas de serialización
+  const navigationLinks: NavLink[] = [
+    {
+      name: "Dashboard",
+      href: `${actualURL}/dashboard`,
+      icon: "dashboard",
+    },
+    {
+      name: "Pedidos",
+      href: `${actualURL}/orders`,
+      icon: "orders",
+    },
+    {
+      name: "Cupones",
+      href: `${actualURL}/coupons`,
+      icon: "coupons",
+    },
+    {
+      name: "Usuarios",
+      href: "#",
+      icon: "users",
+      subLinks: [
+        { name: "Clientes", href: `${actualURL}/customers` },
+        { name: "Aliados", href: `${actualURL}/aliados` },
+        { name: "Repartidores", href: `${actualURL}/drivers` },
+      ],
+    },
+    {
+      name: "Banner",
+      href: `${actualURL}/banner`,
+      icon: "banner",
+    },
+    {
+      name: "Finanzas",
+      href: `${actualURL}/finances`,
+      icon: "adminFinances",
+    },
+  ];
+
   return (
     <>
       <AdminAside navigationLinks={navigationLinks} />

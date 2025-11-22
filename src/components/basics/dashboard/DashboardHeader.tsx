@@ -7,7 +7,6 @@ import BellIcon from "@/src/components/icons/BellIcon";
 import LogoutIcon from "@/src/components/icons/LogoutHeaderIcon";
 import Badge from "@/src/components/basics/header/Badge";
 import ReddiLogo from "@/src/components/icons/ReddiLogo";
-import { createClient } from "@/src/lib/supabase/client";
 import { useRouter } from "next/navigation";
 // Importamos la interfaz que definimos antes para tipar las props
 import { PartnerProfile } from "@/src/lib/partner/header/data/getData";

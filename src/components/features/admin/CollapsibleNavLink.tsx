@@ -1,8 +1,9 @@
-import React, { isValidElement, cloneElement } from "react";
-import { NavLink } from "../../basics/dashboard/DashboardAside";
+import React from "react";
+import { NavLink } from "../../basics/dashboard/types";
 import Link from "next/link";
 import ChevronIcon from "@/src/components/icons/ChevronIcon";
 import Squares2X2Icon from "@/src/components/icons/Squares2X2Icon";
+import { iconMap } from "../../basics/dashboard/iconsMap";
 
 type CollapsibleNavLinkProps = {
   link: NavLink;
@@ -19,18 +20,14 @@ export default function CollapsibleNavLink({
 }: CollapsibleNavLinkProps) {
   const renderMainIcon = () => {
     const active = isOpen;
-    if (link.icon && isValidElement(link.icon)) {
-      const el = link.icon as React.ReactElement<any>;
-      const prevClass = (el.props as any)?.className || "";
-      const prevFill = (el.props as any)?.fill;
-      const mergedProps: any = {
-        className: `h-5 w-5 ${prevClass} ${active ? "text-white" : ""}`,
-        fill: active ? "white" : prevFill,
-      };
-      return cloneElement<any>(el, mergedProps);
-    }
+    const IconComponent =
+      link.icon && iconMap[link.icon] ? iconMap[link.icon] : Squares2X2Icon;
+
     return (
-      <Squares2X2Icon className={`h-5 w-5 ${isOpen ? "text-white" : ""}`} />
+      <IconComponent
+        className={`h-5 w-5 ${active ? "text-white" : ""}`}
+        fill={active ? "white" : undefined}
+      />
     );
   };
   return (
@@ -59,21 +56,14 @@ export default function CollapsibleNavLink({
           {link.subLinks?.map((subLink) => {
             const isActive = activeSubLink.startsWith(subLink.href);
             const renderSubIcon = () => {
-              if (subLink.icon && isValidElement(subLink.icon)) {
-                const el = subLink.icon as React.ReactElement<any>;
-                const prevClass = (el.props as any)?.className || "";
-                const prevFill = (el.props as any)?.fill;
-                const mergedProps: any = {
-                  className: `h-4 w-4 ${prevClass} ${
-                    isActive ? "text-white" : ""
-                  }`,
-                  fill: isActive ? "white" : prevFill,
-                };
-                return cloneElement<any>(el, mergedProps);
-              }
+              const IconComponent =
+                subLink.icon && iconMap[subLink.icon]
+                  ? iconMap[subLink.icon]
+                  : Squares2X2Icon;
               return (
-                <Squares2X2Icon
+                <IconComponent
                   className={`h-4 w-4 ${isActive ? "text-white" : ""}`}
+                  fill={isActive ? "white" : undefined}
                 />
               );
             };

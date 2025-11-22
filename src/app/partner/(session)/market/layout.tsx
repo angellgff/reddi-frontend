@@ -1,15 +1,9 @@
-import PartnerAside, {
-  NavLink,
-} from "@/src/components/basics/dashboard/DashboardAside";
+import PartnerAside from "@/src/components/basics/dashboard/DashboardAside";
+import { NavLink } from "@/src/components/basics/dashboard/types";
 import PartnerHeader from "@/src/components/basics/dashboard/DashboardHeader";
 import { getAuthenticatedPartnerProfile } from "@/src/lib/partner/header/data/getData";
 import { createClient } from "@/src/lib/supabase/server";
 import { LogoutButton } from "@/src/components/logout-button";
-import OrderIcon from "@/src/components/icons/OrderIcon";
-import ProductIcon from "@/src/components/icons/ProductIcon";
-import HistoryIcon from "@/src/components/icons/HistoryIcon";
-import SupportIcon from "@/src/components/icons/SupportIcon";
-import FinancesIcon from "@/src/components/icons/FinancesIcon";
 
 // Base de rutas correcta para la sección Restaurant
 const actualURL = "/partner/market";
