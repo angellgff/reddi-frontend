@@ -2,6 +2,7 @@
 
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { createClient } from "@/src/lib/supabase/client";
+import { PostgrestError, Session, User } from "@supabase/supabase-js";
 import type { Tables } from "@/src/lib/database.types";
 import { setSelectedAddress as setSelectedAddressAction } from "@/src/lib/finalUser/addresses/actions";
 import { withTimeout } from "@/src/lib/utils";
@@ -61,7 +62,7 @@ export const fetchUserAddresses = createAsyncThunk(
         new Promise((resolve) =>
           setTimeout(() => resolve({ data: { session: null } }), 4000)
         ),
-      ])) as { data: { session: any } };
+      ])) as { data: { session: Session | null } };
       const tSess1 = now();
       let user = sessionRace?.data?.session?.user || null;
       if (DEBUG)
@@ -81,7 +82,7 @@ export const fetchUserAddresses = createAsyncThunk(
             new Promise((resolve) =>
               setTimeout(() => resolve({ data: { user: null } }), 3500)
             ),
-          ])) as { data: { user: any } };
+          ])) as { data: { user: User | null } };
           user = userRace?.data?.user || null;
           if (DEBUG)
             console.log(
@@ -151,33 +152,37 @@ export const fetchUserAddresses = createAsyncThunk(
       // Parse results with graceful fallbacks
       const addrOk =
         addrRes.status === "fulfilled" &&
-        !(addrRes.value as { error?: any }).error;
+        !(addrRes.value as { error?: PostgrestError }).error;
       const profileOk =
         profileRes.status === "fulfilled" &&
-        !(profileRes.value as { error?: any }).error;
+        !(profileRes.value as { error?: PostgrestError }).error;
 
       if (
         addrRes.status === "fulfilled" &&
-        (addrRes.value as { error?: any }).error
+        (addrRes.value as { error?: PostgrestError }).error
       ) {
-        throw (addrRes.value as { error?: any }).error;
+        throw (addrRes.value as { error?: PostgrestError }).error;
       }
       if (
         profileRes.status === "fulfilled" &&
-        (profileRes.value as { error?: any }).error &&
-        (profileRes.value as { error?: any }).error.code !== "PGRST116"
+        (profileRes.value as { error?: PostgrestError }).error &&
+        (profileRes.value as { error?: PostgrestError }).error?.code !==
+          "PGRST116"
       ) {
         // ignore not found single row code, otherwise throw
-        throw (profileRes.value as { error?: any }).error;
+        throw (profileRes.value as { error?: PostgrestError }).error;
       }
 
       const addresses: UserAddress[] = addrOk
-        ? ((addrRes as PromiseFulfilledResult<{ data: UserAddress[] }>).value
-            .data as UserAddress[]) || []
+        ? ((
+            addrRes as unknown as PromiseFulfilledResult<{
+              data: UserAddress[];
+            }>
+          ).value.data as UserAddress[]) || []
         : [];
       let selectedAddressId: string | null = profileOk
         ? (
-            profileRes as PromiseFulfilledResult<{
+            profileRes as unknown as PromiseFulfilledResult<{
               data: { selected_address: string | null };
             }>
           ).value.data?.selected_address ?? null

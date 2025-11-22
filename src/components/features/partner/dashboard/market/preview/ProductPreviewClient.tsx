@@ -104,6 +104,12 @@ export default function ProductPreviewClient({
     return (data.basePrice || 0) * quantity;
   }, [data, quantity]);
 
+  const [toast, setToast] = useState({
+    open: false,
+    message: "",
+    type: "info" as "success" | "error" | "info",
+  });
+
   if (!data) {
     return (
       <div className="bg-white min-h-screen flex flex-col items-center justify-center p-8">
@@ -141,12 +147,6 @@ export default function ProductPreviewClient({
       })
     );
   };
-
-  const [toast, setToast] = useState({
-    open: false,
-    message: "",
-    type: "info" as "success" | "error" | "info",
-  });
 
   return (
     <div className="flex flex-col items-center px-12 pt-10 pb-16 gap-8 bg-white min-h-screen">

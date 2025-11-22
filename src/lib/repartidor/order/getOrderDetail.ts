@@ -73,10 +73,10 @@ function extractPoint(geo: unknown): [number, number] | null {
     geo &&
     typeof geo === "object" &&
     "coordinates" in geo &&
-    Array.isArray((geo as any).coordinates) &&
-    (geo as any).coordinates.length >= 2
+    Array.isArray((geo as { coordinates: unknown }).coordinates) &&
+    (geo as { coordinates: unknown[] }).coordinates.length >= 2
   ) {
-    const [lng, lat] = (geo as any).coordinates;
+    const [lng, lat] = (geo as { coordinates: [number, number] }).coordinates;
     if (typeof lng === "number" && typeof lat === "number") return [lng, lat];
   }
   return null;
@@ -139,7 +139,9 @@ export default async function getOrderDetail(
       throw new Error("Pedido no encontrado");
     }
 
-    const profile = data.profiles;
+    const pData = data.profiles;
+    const profile = Array.isArray(pData) ? pData[0] : pData;
+
     const customerName =
       [profile?.first_name, profile?.last_name].filter(Boolean).join(" ") ||
       "Cliente";
@@ -147,20 +149,32 @@ export default async function getOrderDetail(
 
     const orderStatus: string | null = data.status ?? null;
     const statusLabel = mapDbStatusToDeliveryLabel(orderStatus);
-    const restaurantName = data.partners?.name ?? "Negocio";
-    const restaurantAddress = data.partners?.address ?? "Dirección del negocio";
-    const restaurantLogo = data.partners?.image_url ?? "/steakhouseorder.svg";
-    const deliveryAddress = formatAddress(data.user_addresses);
+
+    const partnerData = data.partners;
+    const partner = Array.isArray(partnerData) ? partnerData[0] : partnerData;
+
+    const restaurantName = partner?.name ?? "Negocio";
+    const restaurantAddress = partner?.address ?? "Dirección del negocio";
+    const restaurantLogo = partner?.image_url ?? "/steakhouseorder.svg";
+
+    const uaData = data.user_addresses;
+    const userAddress = Array.isArray(uaData) ? uaData[0] : uaData;
+
+    const deliveryAddress = formatAddress(userAddress);
+
+    const shipData = data.shipments;
+    const shipment = Array.isArray(shipData) ? shipData[0] : shipData;
+
     const originCoords =
-      extractPoint(data.shipments?.origin_coordinates) ||
-      extractPoint(data.partners?.coordinates);
+      extractPoint(shipment?.origin_coordinates) ||
+      extractPoint(partner?.coordinates);
     const destinationCoords =
-      extractPoint(data.shipments?.destination_coordinates) ||
-      extractPoint(data.user_addresses?.coordinates);
+      extractPoint(shipment?.destination_coordinates) ||
+      extractPoint(userAddress?.coordinates);
     const eta = formatEta(data.created_at, data.scheduled_at);
 
-    const shipmentId: string | null = data.shipments?.id ?? null;
-    const shipmentDriverId: string | null = data.shipments?.driver_id ?? null;
+    const shipmentId: string | null = shipment?.id ?? null;
+    const shipmentDriverId: string | null = shipment?.driver_id ?? null;
 
     // --- LÓGICA DE PERMISOS CORREGIDA ---
     const isCancelled =
@@ -220,9 +234,9 @@ export default async function getOrderDetail(
     console.error(`Fallo al obtener detalle del pedido ${id}:`, message);
 
     if (
-      error.message === "Pedido no encontrado" ||
-      error.message === "Usuario no autenticado" ||
-      error.message === "No se pudo verificar el perfil de repartidor."
+      message === "Pedido no encontrado" ||
+      message === "Usuario no autenticado" ||
+      message === "No se pudo verificar el perfil de repartidor."
     ) {
       throw error;
     }

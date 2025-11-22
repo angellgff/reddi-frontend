@@ -178,7 +178,20 @@ export async function getAssignedDriverForOrder(
     return { assigned: false };
   }
 
-  const user = (ship as unknown as { driver: { user: any } })?.driver?.user;
+  type DriverUser = {
+    id: string;
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+    phone_number: string | null;
+  };
+
+  const user = (
+    ship as unknown as {
+      driver: { user: DriverUser } | null;
+    }
+  )?.driver?.user;
+
   if (!ship || !user) return { assigned: false };
 
   return {

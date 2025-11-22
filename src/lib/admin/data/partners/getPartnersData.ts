@@ -57,10 +57,10 @@ export default async function getPartnersData({
   if (error) {
     console.error("get_partners RPC error (raw):", error);
     console.error("get_partners RPC error (details):", {
-      message: (error as any)?.message,
-      details: (error as any)?.details,
-      hint: (error as any)?.hint,
-      code: (error as any)?.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      code: error.code,
     });
     console.error("get_partners RPC args:", {
       filter_state: filterState,

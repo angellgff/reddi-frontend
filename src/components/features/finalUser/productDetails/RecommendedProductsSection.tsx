@@ -169,14 +169,14 @@ export default function RecommendedProductsSection({
               {isRestaurant ? (
                 <ProductCardRestaurant
                   product={p}
-                  discountedPrice={(p as any).discountedPrice}
+                  discountedPrice={p.discountedPrice}
                   onAdd={onAdd}
                   onOpen={onOpen}
                 />
               ) : (
                 <ProductCardMarket
                   product={p}
-                  discountedPrice={(p as any).discountedPrice}
+                  discountedPrice={p.discountedPrice}
                   onAdd={onAdd}
                   onOpen={onOpen}
                 />

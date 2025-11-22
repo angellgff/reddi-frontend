@@ -57,12 +57,12 @@ export default async function getOrderAgainData(): Promise<SliderCardProps[]> {
 
   const cards: SliderCardProps[] = orderedPartners.map((p) => {
     const avg =
-      typeof (p as any).average_rating === "number"
-        ? (p as any).average_rating
+      typeof (p as { average_rating?: number }).average_rating === "number"
+        ? (p as { average_rating?: number }).average_rating
         : 0;
     const total =
-      typeof (p as any).total_ratings === "number"
-        ? (p as any).total_ratings
+      typeof (p as { total_ratings?: number }).total_ratings === "number"
+        ? (p as { total_ratings?: number }).total_ratings
         : 0;
     return {
       id: p.id,

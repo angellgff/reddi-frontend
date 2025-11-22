@@ -78,8 +78,8 @@ function CreateExtraModal({
       });
       onCreated(created);
       onClose();
-    } catch (e: any) {
-      setError(e.message || "Error al crear");
+    } catch (e: unknown) {
+      setError((e as Error).message || "Error al crear");
     } finally {
       setLoading(false);
     }

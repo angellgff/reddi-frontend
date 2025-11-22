@@ -98,7 +98,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
               imageObjectUrl:
                 formData.image instanceof File
                   ? URL.createObjectURL(formData.image)
-                  : (formData.image as any),
+                  : (formData.image as string),
             };
             try {
               sessionStorage.setItem(

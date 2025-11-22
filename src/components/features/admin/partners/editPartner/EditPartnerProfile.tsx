@@ -33,7 +33,7 @@ export default function EditPartnerProfile({
         category:
           formData.category === "alcohol"
             ? "alcohol"
-            : (formData.category as string),
+            : (formData.category as "market" | "restaurant" | "alcohol"),
         phone: formData.phone,
         email: formData.email,
         hours: formData.hours,

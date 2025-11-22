@@ -97,12 +97,12 @@ export default function OrderMap({
                 type: "Feature",
                 properties: {},
                 geometry: route,
-              } as any);
+              } as GeoJSON.Feature<GeoJSON.Geometry>);
             }
             // Ajustar bounds a la ruta
             const coords = route.coordinates as [number, number][];
             const bounds = coords.reduce(
-              (b, c) => b.extend(c as any),
+              (b, c) => b.extend(c),
               new mapboxgl.LngLatBounds(coords[0], coords[0])
             );
             map.fitBounds(bounds, { padding: 40 });

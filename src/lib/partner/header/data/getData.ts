@@ -1,7 +1,6 @@
 // src/lib/data/partner.ts
 
 import { createClient } from "@/src/lib/supabase/server";
-import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 // Definimos una interfaz para la forma de nuestros datos

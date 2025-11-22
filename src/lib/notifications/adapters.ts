@@ -27,9 +27,9 @@ export function toUINotification(row: NotificationRow): UINotification {
   // Normalize type into expected set
   const rawType = (row.type || "info").toLowerCase();
   const type: UINotification["type"] = ["error", "info", "success"].includes(
-    rawType as any
+    rawType
   )
-    ? (rawType as any)
+    ? (rawType as "error" | "info" | "success")
     : "info";
   return {
     id: String(row.id),

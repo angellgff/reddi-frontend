@@ -36,7 +36,7 @@ export async function createSubCategoryAction(name: string) {
   if (trimmed.length > 80) throw new Error("Nombre demasiado largo");
 
   // Insert con asociación al partner (partner_id es NOT NULL en el esquema)
-  const payload: any = {
+  const payload = {
     name: trimmed,
     partner_id: partner.id,
     // category_id: null, // opcional si luego se soporta categoría padre
@@ -282,7 +282,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
 
   // 2. PAYLOAD DEL PRODUCTO PRINCIPAL
   console.group("2. Preparando payload para actualizar el producto principal");
-  const updatePayload: { [key: string]: any } = {
+  const updatePayload: { [key: string]: string | number | boolean | null } = {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
     description: formData.get("description") as string,
@@ -480,7 +480,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
       console.log("No hay nuevas secciones para insertar.");
     }
     console.groupEnd();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error(
       "❌ ERROR CRÍTICO: Falló el bloque de actualización de secciones/opciones.",
       error
@@ -488,7 +488,9 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     console.groupEnd();
     console.groupEnd();
     throw new Error(
-      `No se pudieron actualizar las secciones y opciones: ${error.message}`
+      `No se pudieron actualizar las secciones y opciones: ${
+        (error as Error).message
+      }`
     );
   }
   console.groupEnd();
@@ -550,7 +552,7 @@ export async function deleteDishAction(dishId: string) {
       `Error buscando secciones del producto: ${fetchSectionsErr.message}`
     );
 
-  const sectionIds = (oldSections || []).map((s: any) => s.id);
+  const sectionIds = (oldSections || []).map((s: { id: string }) => s.id);
   if (sectionIds.length > 0) {
     const { error: delOptsErr } = await supabase
       .from("product_section_options")

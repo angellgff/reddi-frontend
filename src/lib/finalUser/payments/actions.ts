@@ -89,7 +89,7 @@ export async function addUserPaymentMethod(formData: FormData) {
     last4,
     postal_code,
     payment_provider_token,
-  } as any;
+  };
 
   const { error } = await supabase.from("user_payment_methods").insert(payload);
   if (error) {
@@ -188,7 +188,10 @@ export async function getUserPaymentMethods() {
 
   if (error) {
     console.error("getUserPaymentMethods error", error);
-    return { success: false, error: "No se pudieron cargar los métodos" } as const;
+    return {
+      success: false,
+      error: "No se pudieron cargar los métodos",
+    } as const;
   }
 
   return { success: true, data: (data as UserPaymentMethod[]) || [] } as const;

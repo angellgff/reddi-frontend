@@ -2,9 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/src/lib/supabase/server";
-import type { TablesInsert, Enums } from "@/src/lib/database.types";
+import type { TablesInsert, Enums, Tables } from "@/src/lib/database.types";
 
 type LocationType = Enums<"address_location_type">; // "villa" | "yate"
+type UserAddress = Tables<"user_addresses">;
 
 function isLocationType(v: unknown): v is LocationType {
   return v === "villa" || v === "yate";
@@ -146,7 +147,7 @@ export async function setSelectedAddress(addressId: string) {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ selected_address: addressId } as any)
+    .update({ selected_address: addressId })
     .eq("id", user.id);
   if (error) {
     console.error("setSelectedAddress error", error);
@@ -165,13 +166,17 @@ export async function getUserAddressesAndSelected() {
     error: authError,
   } = await supabase.auth.getUser();
   if (authError || !user) {
-    return { success: true, addresses: [], selectedAddressId: null } as const;
+    return {
+      success: true,
+      addresses: [] as UserAddress[],
+      selectedAddressId: null,
+    };
   }
 
   const [addrRes, profileRes] = await Promise.all([
     supabase
       .from("user_addresses")
-      .select("id, location_type, location_number, created_at, user_id")
+      .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
     supabase
@@ -189,11 +194,12 @@ export async function getUserAddressesAndSelected() {
     console.warn("getUserAddresses profile error", profileRes.error);
   }
 
-  const addresses = (addrRes.data as any[]) || [];
+  const addresses = (addrRes.data as unknown as UserAddress[]) || [];
   const selectedAddressId =
-    (profileRes.data as any)?.selected_address ??
+    (profileRes.data as { selected_address: string | null })
+      ?.selected_address ??
     (addresses[0]?.id as string | undefined) ??
     null;
 
-  return { success: true, addresses, selectedAddressId } as const;
+  return { success: true, addresses, selectedAddressId };
 }

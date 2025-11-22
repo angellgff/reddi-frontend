@@ -62,8 +62,8 @@ export default function CreateCategoryModal({
       const res = await createSubCategoryAction(trimmed);
       onCreated({ id: res.id, name: res.name, categoryId: null });
       onClose();
-    } catch (e: any) {
-      setError(e.message || "Error al crear");
+    } catch (e: unknown) {
+      setError((e as Error).message || "Error al crear");
     } finally {
       setLoading(false);
     }

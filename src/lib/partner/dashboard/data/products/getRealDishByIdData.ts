@@ -12,7 +12,31 @@ import { notFound } from "next/navigation";
  * Mapea la estructura de datos compleja de Supabase al estado del formulario.
  * ¡CORREGIDO Y MEJORADO!
  */
-function mapProductToFormState(product: any): CreateProductFormState {
+type ProductData = {
+  image_url?: string;
+  name?: string;
+  base_price?: number;
+  previous_price?: number;
+  discount_percentage?: number;
+  unit?: string;
+  estimated_time?: string;
+  description?: string;
+  sub_category_id?: string;
+  is_available?: boolean;
+  tax_included?: boolean;
+  product_sections?: Array<{
+    id: string;
+    name: string;
+    is_required: boolean;
+    product_section_options?: Array<{
+      id: string;
+      extra_id: string;
+      override_price?: number;
+    }>;
+  }>;
+};
+
+function mapProductToFormState(product: ProductData): CreateProductFormState {
   return {
     // Campos principales del producto
     image: product.image_url || null,
@@ -29,7 +53,7 @@ function mapProductToFormState(product: any): CreateProductFormState {
 
     // Mapeo corregido de secciones y opciones anidadas
     sections: (product.product_sections || []).map(
-      (section: any): ProductSectionForm => ({
+      (section): ProductSectionForm => ({
         clientId: randomUUID(),
         id: section.id,
         name: section.name,
@@ -37,9 +61,9 @@ function mapProductToFormState(product: any): CreateProductFormState {
         // Nota: Tu mapeo incluía 'allowMultiple', pero no está en el esquema.
         // Si la necesitas, deberás añadirla a la tabla 'product_sections'.
         options: (section.product_section_options || []).map(
-          (option: any): SectionExtraSelection => {
+          (option): SectionExtraSelection => {
             // La consulta ahora incluye los detalles del extra
-            const extraDetails = option.product_extras;
+            // const extraDetails = option.product_extras;
             return {
               clientId: randomUUID(),
               id: option.id,

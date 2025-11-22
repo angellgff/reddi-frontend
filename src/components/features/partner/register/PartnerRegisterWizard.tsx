@@ -379,7 +379,7 @@ export default function PartnerRegisterWizard() {
         "[handleSubmit: SUCCESS] - Proceso completado. Redirigiendo..."
       );
       router.push("/aliado/dashboard?registro=exitoso");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(
         "====================== ERROR CAPTURADO ======================",
         error
@@ -389,18 +389,20 @@ export default function PartnerRegisterWizard() {
       let friendlyErrorMessage =
         "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
 
+      const err = error as { code?: string; message?: string };
+
       // Detectar el error de email duplicado
       if (
-        error.code === "23505" ||
-        (error.message && error.message.includes("duplicate key value"))
+        err.code === "23505" ||
+        (err.message && err.message.includes("duplicate key value"))
       ) {
         friendlyErrorMessage =
           "Este correo electrónico ya está registrado. Por favor, usa otro o inicia sesión.";
       }
       // Podrías añadir más `else if` para otros errores comunes, como contraseñas débiles.
-      else if (error.message) {
+      else if (err.message) {
         // Para otros errores de la base de datos, puedes mostrar su mensaje si es seguro.
-        friendlyErrorMessage = error.message;
+        friendlyErrorMessage = err.message;
       }
 
       setError(friendlyErrorMessage); // ¡Usamos el mensaje amigable!

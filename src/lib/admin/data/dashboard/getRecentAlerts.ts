@@ -24,7 +24,7 @@ export default async function getRecentAlerts(
     .order("id", { ascending: false })
     .limit(limit);
   if (error || !data) return [];
-  return (data as any[]).map((n) => ({
+  return (data as { title: string; type: string; id: number }[]).map((n) => ({
     type: mapType(n.type || ""),
     title: n.title || "Notificación",
     id: String(n.id),

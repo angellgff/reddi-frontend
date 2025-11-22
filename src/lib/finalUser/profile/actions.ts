@@ -55,7 +55,7 @@ export async function updateUserProfile(formData: FormData) {
     last_name,
     phone_number,
     email,
-  } as any;
+  };
 
   const { error } = await supabase
     .from("profiles")

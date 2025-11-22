@@ -165,8 +165,10 @@ export async function getFinancesData(params: {
     ).gte("created_at", startOfMonth.toISOString()),
   ]);
 
-  const sum = (arr: Record<string, any>[] | null | undefined, key: string) =>
-    (arr ?? []).reduce((acc, x) => acc + (x?.[key] || 0), 0);
+  const sum = (
+    arr: Record<string, unknown>[] | null | undefined,
+    key: string
+  ) => (arr ?? []).reduce((acc, x) => acc + (Number(x?.[key]) || 0), 0);
 
   const todayIncome = sum(today, "total_amount");
   const weekIncome = sum(week, "total_amount");

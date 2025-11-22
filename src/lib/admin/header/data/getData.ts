@@ -21,8 +21,8 @@ export async function getAuthenticatedAdminProfile(): Promise<PartnerProfile> {
     .eq("id", user.id)
     .single();
 
-  const meta = user.user_metadata as any;
-  const appMeta = user.app_metadata as any;
+  const meta = user.user_metadata as Record<string, unknown>;
+  const appMeta = user.app_metadata as Record<string, unknown>;
 
   const displayName =
     profile?.full_name ||

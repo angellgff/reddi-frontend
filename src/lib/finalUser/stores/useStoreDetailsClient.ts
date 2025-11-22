@@ -54,7 +54,7 @@ export function useStoreDetailsClient(partnerIds: string[]) {
               throw new Error(res.error);
             }
             collected.push(...res.data);
-          } catch (e: any) {
+          } catch (e: unknown) {
             // Surface first failure; UI will show banner
             console.error("useStoreDetailsClient: chunk failed", e);
             throw e;
@@ -73,9 +73,10 @@ export function useStoreDetailsClient(partnerIds: string[]) {
           keys: Object.keys(map),
         });
         setData(map);
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error("useStoreDetailsClient: error", e);
-        if (!cancelled) setError(e?.message || "Error al cargar tienda");
+        if (!cancelled)
+          setError((e as Error)?.message || "Error al cargar tienda");
       } finally {
         if (!cancelled) {
           setLoading(false);

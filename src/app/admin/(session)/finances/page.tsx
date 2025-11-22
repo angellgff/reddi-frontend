@@ -82,7 +82,8 @@ export default async function AdminFinancesPage({
     const revenueByType: Record<string, number> = {};
     let totalRevenue = 0;
     for (const o of orders) {
-      const typeKey = o.partner?.partner_type as string | undefined;
+      const p = Array.isArray(o.partner) ? o.partner[0] : o.partner;
+      const typeKey = p?.partner_type as string | undefined;
       if (!typeKey) continue;
       const displayName = partnerTypeToDisplay[typeKey];
       if (!displayName) continue; // ignorar tipos no mapeados

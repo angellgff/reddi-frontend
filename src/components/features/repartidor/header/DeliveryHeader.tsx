@@ -20,14 +20,14 @@ export default function Header() {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       const user = data.user;
-      const meta = (user?.user_metadata as Record<string, any>) || {};
+      const meta = (user?.user_metadata as Record<string, unknown>) || {};
       const name =
-        meta.full_name ||
-        meta.name ||
-        meta.first_name ||
+        (meta.full_name as string) ||
+        (meta.name as string) ||
+        (meta.first_name as string) ||
         (typeof user?.email === "string" ? user.email.split("@")[0] : null) ||
         "Repartidor";
-      setDisplayName(name as string);
+      setDisplayName(name);
     });
   }, []);
 

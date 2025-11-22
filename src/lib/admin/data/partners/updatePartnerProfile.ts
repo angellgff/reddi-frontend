@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/src/lib/supabase/server";
-import type { Database } from "@/src/lib/database.types";
+import type { Database, Json } from "@/src/lib/database.types";
 
 type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
 
@@ -44,7 +44,7 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
     updates.is_approved = payload.profileState;
   const dbType = mapUiCategoryToDb(payload.category);
   if (dbType) updates.partner_type = dbType;
-  if (payload.hours) updates.business_hours = payload.hours as any; // JSON column
+  if (payload.hours) updates.business_hours = payload.hours as unknown as Json; // JSON column
 
   // Approval consistency with check constraint
   if (typeof payload.profileState === "boolean") {

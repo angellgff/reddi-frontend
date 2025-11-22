@@ -94,7 +94,7 @@ export default function NewDishStep1({
   const verifyErrors = (newErrors: Partial<Record<string, string>>) => {
     ["name", "basePrice", "unit", "estimatedTimeRange", "description"].forEach(
       (f) => {
-        const val = (formData as any)[f];
+        const val = (formData as unknown as Record<string, unknown>)[f];
         if (!val || (typeof val === "string" && !val.trim())) {
           newErrors[f] = "Este campo es obligatorio";
         }
@@ -296,10 +296,14 @@ export default function NewDishStep1({
                       openCreateCategoryModal();
                       return;
                     }
-                    handleChange(e as any);
+                    handleChange(e);
                   }}
-                  getOptionValue={(option) => (option as any).value}
-                  getOptionLabel={(option) => (option as any).label}
+                  getOptionValue={(option) =>
+                    (option as { value: string }).value
+                  }
+                  getOptionLabel={(option) =>
+                    (option as { label: string }).label
+                  }
                   required
                   error={errors.subCategoryId || externalErrors.subCategoryId}
                 />

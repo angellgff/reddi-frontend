@@ -183,10 +183,11 @@ export default function EditDishWizard({
       const successPath = `/aliado/menu?updated=${dishId}`;
       console.log(`Redirigiendo a la página de éxito: ${successPath}`);
       router.push(successPath);
-    } catch (e: any) {
+    } catch (e: unknown) {
       // Manejo de errores
       console.error("🔴 ERROR durante el envío a la server action:", e);
-      const errorMessage = e.message || "Error inesperado al actualizar.";
+      const errorMessage =
+        (e as Error).message || "Error inesperado al actualizar.";
       console.log("Estableciendo mensaje de error en el estado:", errorMessage);
       setSubmitError(errorMessage);
     } finally {

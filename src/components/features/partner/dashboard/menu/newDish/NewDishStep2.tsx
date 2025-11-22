@@ -119,7 +119,7 @@ export default function NewDishStep2({
         return {
           ...s,
           options: s.options.map((o) =>
-            o.clientId === optId ? { ...o, [field]: value as any } : o
+            o.clientId === optId ? { ...o, [field]: value } : o
           ),
         };
       })
@@ -253,8 +253,12 @@ export default function NewDishStep2({
                                 e.target.value
                               );
                             }}
-                            getOptionValue={(o) => (o as any).value}
-                            getOptionLabel={(o) => (o as any).label}
+                            getOptionValue={(o) =>
+                              (o as { value: string }).value
+                            }
+                            getOptionLabel={(o) =>
+                              (o as { label: string }).label
+                            }
                             error={errors[`option-${opt.clientId}-extra`]}
                             required
                           />

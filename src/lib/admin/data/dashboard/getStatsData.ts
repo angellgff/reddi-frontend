@@ -27,7 +27,7 @@ export default async function getStatsData(): Promise<StatRow[]> {
     if (!todayErr && Array.isArray(todayOrders)) {
       ordersToday = todayOrders.length;
       salesToday = todayOrders.reduce(
-        (acc, r: any) => acc + Number(r.total_amount || 0),
+        (acc, r: { total_amount: number }) => acc + Number(r.total_amount || 0),
         0
       );
     }
@@ -39,7 +39,7 @@ export default async function getStatsData(): Promise<StatRow[]> {
     const { count } = await supabase
       .from("drivers")
       .select("id", { count: "exact", head: true })
-      .in("status", ["online", "in_delivery"] as any);
+      .in("status", ["online", "in_delivery"]);
     activeDrivers = count || 0;
   } catch {}
 

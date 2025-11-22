@@ -26,6 +26,11 @@ interface Props {
 }
 
 export default function OrderDetailCard({ data }: Props) {
+  const [delivered, setDelivered] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+
   if (!data) {
     return (
       <div className="text-center text-sm text-gray-500">
@@ -33,11 +38,6 @@ export default function OrderDetailCard({ data }: Props) {
       </div>
     );
   }
-
-  const [delivered, setDelivered] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-  const [successOpen, setSuccessOpen] = useState(false);
 
   return (
     <div className="flex flex-col p-[18px] gap-3 w-[352px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] rounded-xl">

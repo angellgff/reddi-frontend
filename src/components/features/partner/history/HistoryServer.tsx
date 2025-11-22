@@ -59,11 +59,21 @@ export default async function HistoryServer({
       .from("profiles")
       .select("id, first_name, last_name, email")
       .in("id", userIds);
-    (profs ?? []).forEach((p: any) => {
-      const full = [p.first_name, p.last_name].filter(Boolean).join(" ").trim();
-      const fromEmail = p.email?.split("@")[0];
-      names.set(p.id, full || fromEmail || "Cliente");
-    });
+    (profs ?? []).forEach(
+      (p: {
+        id: string;
+        first_name: string | null;
+        last_name: string | null;
+        email: string | null;
+      }) => {
+        const full = [p.first_name, p.last_name]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        const fromEmail = p.email?.split("@")[0];
+        names.set(p.id, full || fromEmail || "Cliente");
+      }
+    );
   }
 
   const uiRows: HistoryRow[] = rows.map((r) => ({

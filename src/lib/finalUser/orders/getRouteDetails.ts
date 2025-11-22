@@ -20,7 +20,7 @@ export async function getRouteDetails(
     if (!partnerId || !userAddressId) return {};
     const supabase = await createClient();
     const details = await calculateShipmentDetails(
-      supabase as any,
+      supabase,
       partnerId,
       userAddressId
     );
@@ -32,7 +32,7 @@ export async function getRouteDetails(
       durationSeconds: details.durationSeconds,
       shippingCost: details.shippingCost,
     };
-  } catch (e) {
+  } catch {
     // Silenciar errores y retornar objeto vacío para no romper el render SSR
     return {};
   }

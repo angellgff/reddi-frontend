@@ -1,5 +1,9 @@
 import OrdersTableClient from "./OrdersTableClient";
-import { OrderFilters } from "@/src/lib/admin/data/orders/getOrders";
+import {
+  OrderFilters,
+  OrderStatus,
+  PartnerType,
+} from "@/src/lib/admin/data/orders/getOrders";
 import getOrdersPage from "@/src/lib/admin/data/orders/getOrdersPage";
 
 type OrdersTableSearchParams = {
@@ -25,8 +29,9 @@ export default async function OrdersTableServer({
     search: getFirst(awaitedSearchParams.q) || undefined,
     from: getFirst(awaitedSearchParams.from) || undefined,
     to: getFirst(awaitedSearchParams.to) || undefined,
-    status: (getFirst(awaitedSearchParams.status) as string) || undefined,
-    category: (getFirst(awaitedSearchParams.category) as string) || undefined,
+    status: (getFirst(awaitedSearchParams.status) as OrderStatus) || undefined,
+    category:
+      (getFirst(awaitedSearchParams.category) as PartnerType) || undefined,
   };
 
   const { orders, total } = await getOrdersPage(filters, pageSize, page);

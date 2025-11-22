@@ -164,8 +164,8 @@ export default function NewDishWizard({
       const { productId } = await createDishAction(data);
 
       router.push(`/aliado/menu?created=${productId}`);
-    } catch (e: any) {
-      setSubmitError(e.message || "Error inesperado");
+    } catch (e: unknown) {
+      setSubmitError((e as Error).message || "Error inesperado");
     } finally {
       setIsSubmitting(false);
     }
@@ -209,8 +209,8 @@ export default function NewDishWizard({
       data.append("sections", JSON.stringify(formData.sections));
       const { productId } = await createDishAction(data);
       router.push(`/aliado/menu?created=${productId}`);
-    } catch (e: any) {
-      setSubmitError(e.message || "Error inesperado");
+    } catch (e: unknown) {
+      setSubmitError((e as Error).message || "Error inesperado");
     } finally {
       setIsSubmitting(false);
     }

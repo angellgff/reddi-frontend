@@ -99,55 +99,49 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
                 <p className="text-sm text-red-600">{error}</p>
               ) : (
                 <div className="space-y-4">
-                  {mergedData.map(
-                    (item: { _rawId?: string; id: string; label: string }) => (
-                      <div
-                        key={item._rawId || item.id}
-                        className="flex items-center gap-2"
+                  {mergedData.map((item) => (
+                    <div
+                      key={item._rawId || item.id}
+                      className="flex items-center gap-2"
+                    >
+                      <AddressCard
+                        icon={
+                          item.label === "yate" ? <BoatIcon /> : <VillageIcon />
+                        }
+                        address={item.address}
+                        label={String(item.label).toUpperCase()}
+                        onEdit={() => alert(`Editar ${item.address}`)}
+                      />
+                      <button
+                        className={`text-xs underline ${
+                          selectedAddressId === item._rawId
+                            ? "text-green-700"
+                            : "text-gray-700"
+                        }`}
+                        onClick={async () => {
+                          if (!item._rawId) return;
+                          await dispatch(updateSelectedAddress(item._rawId));
+                        }}
                       >
-                        <AddressCard
-                          icon={
-                            item.label === "yate" ? (
-                              <BoatIcon />
-                            ) : (
-                              <VillageIcon />
-                            )
-                          }
-                          address={item.address}
-                          label={String(item.label).toUpperCase()}
-                          onEdit={() => alert(`Editar ${item.address}`)}
-                        />
-                        <button
-                          className={`text-xs underline ${
-                            selectedAddressId === item._rawId
-                              ? "text-green-700"
-                              : "text-gray-700"
-                          }`}
-                          onClick={async () => {
-                            if (!item._rawId) return;
-                            await dispatch(updateSelectedAddress(item._rawId));
-                          }}
-                        >
-                          {selectedAddressId === item._rawId
-                            ? "Seleccionada"
-                            : "Seleccionar"}
-                        </button>
-                        <button
-                          className="text-xs text-red-600 underline"
-                          onClick={async () => {
-                            if (!item._rawId) return;
-                            const ok = window.confirm("¿Eliminar dirección?");
-                            if (!ok) return;
-                            await deleteUserAddress(item._rawId);
-                            // Opcional: recargar direcciones del store
-                            dispatch(fetchUserAddresses());
-                          }}
-                        >
-                          Eliminar
-                        </button>
-                      </div>
-                    )
-                  )}
+                        {selectedAddressId === item._rawId
+                          ? "Seleccionada"
+                          : "Seleccionar"}
+                      </button>
+                      <button
+                        className="text-xs text-red-600 underline"
+                        onClick={async () => {
+                          if (!item._rawId) return;
+                          const ok = window.confirm("¿Eliminar dirección?");
+                          if (!ok) return;
+                          await deleteUserAddress(item._rawId);
+                          // Opcional: recargar direcciones del store
+                          dispatch(fetchUserAddresses());
+                        }}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </main>

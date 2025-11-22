@@ -52,7 +52,7 @@ export default function PaymentMethodsSection({
       .select("*")
       .eq("user_id", user.id)
       .order("created_at", { ascending: false });
-    setMethods((data as any) || []);
+    setMethods((data as unknown as UserPaymentMethod[]) || []);
   }
 
   useEffect(() => {

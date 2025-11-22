@@ -31,7 +31,14 @@ interface DeliveryAssignment {
   phone?: string | null;
 }
 
-function displayName(user: any): string {
+interface User {
+  email?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  phone_number?: string | null;
+}
+
+function displayName(user: User): string {
   if (!user) return "Repartidor";
   const emailPrefix =
     typeof user.email === "string" ? user.email.split("@")[0] : "";
@@ -75,7 +82,7 @@ export default function OrderLiveStatusClient({
       setLoadingDriver(true);
       try {
         // Maneja éxito de forma consistente
-        const handleSuccess = (user: any, source: string) => {
+        const handleSuccess = (user: User, source: string) => {
           console.log(
             `✅ [ÉXITO] Repartidor encontrado a través de '${source}':`,
             user

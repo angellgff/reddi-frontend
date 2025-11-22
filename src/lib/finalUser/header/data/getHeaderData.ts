@@ -1,7 +1,7 @@
 import { UserHeaderData } from "@/src/lib/finalUser/type";
 
 // Utilidad para el tiempo de respuesta de la API
-import { getRandomNumberFrom1To10, withTimeout } from "@/src/lib/utils";
+import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
 import { createClient } from "@/src/lib/supabase/server";
 
 const apiDelay = 0; // sin delay artificial al usar sesión real
@@ -17,36 +17,39 @@ export default async function getHeaderData(): Promise<UserHeaderData> {
 
   const supabase = await createClient();
   // Evitar que un timeout corto rompa el Header. Si tarda, seguimos como invitado.
-  let user: any = null;
+  let user: Record<string, unknown> | null = null;
   try {
     const raceResult = (await Promise.race([
       supabase.auth.getUser(),
-      new Promise<{ data: { user: any | null } }>((resolve) =>
-        setTimeout(() => resolve({ data: { user: null } }), 5000)
+      new Promise<{ data: { user: Record<string, unknown> | null } }>(
+        (resolve) => setTimeout(() => resolve({ data: { user: null } }), 5000)
       ),
-    ])) as { data: { user: any | null } };
+    ])) as { data: { user: Record<string, unknown> | null } };
     user = raceResult?.data?.user || null;
   } catch (e) {
     console.log(e);
     // Silenciar errores aquí para que el layout no falle
   }
   console.log("[getHeaderData] user", { user });
-  const meta = (user?.user_metadata as Record<string, any>) || {};
+  const meta = (user?.user_metadata as Record<string, unknown>) || {};
 
   const userName: string =
-    meta.full_name || meta.name || user?.email?.split("@")[0] || "Invitado";
+    (meta.full_name as string) ||
+    (meta.name as string) ||
+    (user?.email as string)?.split("@")[0] ||
+    "Invitado";
 
   // Intentamos mapear direcciones desde user_metadata (ej: addresses: [{ id, address, label }])
   let address: UserHeaderData["address"] = [];
   const metaAddresses = meta.addresses || meta.address || null;
   if (Array.isArray(metaAddresses)) {
     address = metaAddresses
-      .map((a: any, idx: number) => ({
+      .map((a: Record<string, unknown>, idx: number) => ({
         id: typeof a?.id === "number" ? a.id : idx + 1,
         address: String(a?.address || a?.street || a?.line || ""),
         label: String(a?.label || a?.type || "Casa"),
       }))
-      .filter((a: any) => !!a.address);
+      .filter((a) => !!a.address);
   } else if (typeof metaAddresses === "string") {
     address = [
       {

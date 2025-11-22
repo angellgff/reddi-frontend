@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Image from "next/image";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 import { createClient } from "@/src/lib/supabase/client";
 
@@ -120,8 +119,9 @@ export default function MarketOrderMapAndDriver(props: {
         if (shipmentError) throw shipmentError;
 
         // Extraer el perfil del repartidor de la estructura anidada
-        const driverProfile = (shipmentData as any)?.driver
-          ?.user as MinimalProfile | null;
+        const driverProfile = (
+          shipmentData as unknown as { driver: { user: MinimalProfile } }
+        )?.driver?.user as MinimalProfile | null;
 
         if (mounted) {
           if (driverProfile) {

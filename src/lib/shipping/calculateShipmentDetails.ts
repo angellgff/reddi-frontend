@@ -248,7 +248,7 @@ export async function calculateShipmentDetails(
     url: urlForLog.toString(),
   });
 
-  let routeJson: { code?: string; routes?: any[] };
+  let routeJson: { code?: string; routes?: Record<string, unknown>[] };
   try {
     const resp = await fetch(url.toString(), { method: "GET" });
     if (!resp.ok) {

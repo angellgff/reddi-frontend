@@ -109,16 +109,16 @@ export default async function getMapData(): Promise<AdminMapData> {
       .select("id, current_location, status")
       .in("status", ["online", "in_delivery"]);
     drivers = (data || [])
-      .map((d: any) => {
+      .map((d: { id: string; current_location: { coordinates: number[] } }) => {
         const geom = d?.current_location;
-        const coords = geom?.coordinates || geom?.coords;
+        const coords = geom?.coordinates;
         if (Array.isArray(coords) && coords.length >= 2) {
           const [lng, lat] = coords as [number, number];
           return { id: d.id, lng: Number(lng), lat: Number(lat) };
         }
         return null;
       })
-      .filter(Boolean) as any;
+      .filter(Boolean) as AdminMapData["drivers"];
   } catch {}
 
   let shipments: AdminMapData["shipments"] = [];
@@ -132,9 +132,19 @@ export default async function getMapData(): Promise<AdminMapData> {
       .gte("created_at", todayIso)
       .order("created_at", { ascending: false })
       .limit(30);
-    shipments = (data || []).map((s: any) => {
-      const toLngLat = (p: any) => {
-        const c = p?.coordinates || p?.coords;
+
+    type ShipmentRow = {
+      id: string;
+      origin_coordinates: { coordinates: number[] } | null;
+      destination_coordinates: { coordinates: number[] } | null;
+      route_details: {
+        routeGeoJson?: { type: "LineString"; coordinates: [number, number][] };
+      } | null;
+    };
+
+    shipments = (data || []).map((s: ShipmentRow) => {
+      const toLngLat = (p: { coordinates: number[] } | null) => {
+        const c = p?.coordinates;
         if (Array.isArray(c) && c.length >= 2) {
           return { longitude: Number(c[0]), latitude: Number(c[1]) };
         }

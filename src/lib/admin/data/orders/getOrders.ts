@@ -59,10 +59,10 @@ export default async function getOrders(
   // Filters
   const { search, from, to, status, category } = filters;
 
-  if (status) q = q.eq("status", status as any);
+  if (status) q = q.eq("status", status);
   if (from) q = q.gte("created_at", `${from}T00:00:00`);
   if (to) q = q.lte("created_at", `${to}T23:59:59`);
-  if (category) q = q.eq("partners.partner_type", category as any);
+  if (category) q = q.eq("partners.partner_type", category);
   if (search && search.trim()) {
     const s = search.trim();
     // Search by order id (prefix match) or partner name contains
@@ -75,7 +75,17 @@ export default async function getOrders(
     return [];
   }
 
-  return data.map((o: any) => ({
+  type OrderRow = {
+    id: string;
+    created_at: string;
+    status: OrderStatus | null;
+    total_amount: number;
+    user_id: string;
+    profiles: { first_name: string | null; last_name: string | null } | null;
+    partners: { name: string; partner_type: PartnerType } | null;
+  };
+
+  return (data as unknown as OrderRow[]).map((o) => ({
     id: o.id,
     created_at: o.created_at,
     status: o.status,

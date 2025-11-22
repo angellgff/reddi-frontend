@@ -78,9 +78,16 @@ export default async function getOrdersData(): Promise<OrderData[]> {
 
   const list: OrderData[] = (data ?? []).map((o) => {
     const status = mapDbStatusToDeliveryLabel(o.status);
-    const restaurantName: string = o.partners?.name ?? "Negocio";
-    const logoUrl: string = o.partners?.image_url ?? "/steakhouseorder.svg";
-    const address: string = formatAddress(o.user_addresses ?? undefined);
+
+    const pData = o.partners;
+    const partner = Array.isArray(pData) ? pData[0] : pData;
+
+    const uaData = o.user_addresses;
+    const addressData = Array.isArray(uaData) ? uaData[0] : uaData;
+
+    const restaurantName: string = partner?.name ?? "Negocio";
+    const logoUrl: string = partner?.image_url ?? "/steakhouseorder.svg";
+    const address: string = formatAddress(addressData ?? undefined);
     const deliveryTime = formatDeliveryTime(o.created_at, o.scheduled_at);
     return {
       orderId: String(o.id),

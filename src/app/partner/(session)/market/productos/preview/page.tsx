@@ -4,7 +4,18 @@ import { notFound } from "next/navigation";
 
 // Server wrapper: if productId provided fetch persisted product fields (edit preview)
 // Otherwise rely entirely on draft query params handled client-side.
-import type { Tables } from "@/src/lib/database.types";
+
+type ServerProduct = {
+  id: string;
+  name: string;
+  description: string;
+  basePrice: number | null;
+  previousPrice: number | null;
+  unit: string | null;
+  estimatedTimeRange: string | null;
+  imageUrl: string | null;
+  partnerId: string;
+};
 
 export default async function ProductPreviewPage({
   searchParams,
@@ -17,7 +28,7 @@ export default async function ProductPreviewPage({
     typeof searchParamsResolved.productId === "string"
       ? searchParamsResolved.productId
       : undefined;
-  let serverProduct: Tables<"products"> | null = null;
+  let serverProduct: ServerProduct | null = null;
   if (productId) {
     const supabase = await createClient();
     const {
@@ -43,7 +54,7 @@ export default async function ProductPreviewPage({
       serverProduct = {
         id: productRow.id,
         name: productRow.name,
-        description: productRow.description,
+        description: productRow.description || "",
         basePrice: productRow.base_price,
         previousPrice: productRow.previous_price,
         unit: productRow.unit,

@@ -2,7 +2,7 @@ import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
 import { API_DELAY } from "@/src/lib/type";
 import { cache } from "react";
 
-const mockDishes: Array<{ id: string; dish: any }> = [
+const mockDishes: Array<{ id: string; dish: Record<string, unknown> }> = [
   {
     id: "1",
     dish: {

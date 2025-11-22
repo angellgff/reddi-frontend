@@ -53,16 +53,25 @@ export default async function getDriversPage(
     return { drivers: [], total: 0 };
   }
 
-  const drivers: DriverListItem[] = (data || []).map((row: any) => ({
-    id: row.id,
-    fullName: [row.first_name, row.last_name].filter(Boolean).join(" ") || "-",
-    email: row.email || null,
-    phone: row.phone_number || null,
-    // Default statuses until dedicated columns exist
-    documentsStatus: "Pendientes",
-    verificationStatus: "Pendientes",
-    ordersCount: 0,
-  }));
+  const drivers: DriverListItem[] = (data || []).map(
+    (row: {
+      id: string;
+      first_name: string | null;
+      last_name: string | null;
+      email: string | null;
+      phone_number: string | null;
+    }) => ({
+      id: row.id,
+      fullName:
+        [row.first_name, row.last_name].filter(Boolean).join(" ") || "-",
+      email: row.email || null,
+      phone: row.phone_number || null,
+      // Default statuses until dedicated columns exist
+      documentsStatus: "Pendientes",
+      verificationStatus: "Pendientes",
+      ordersCount: 0,
+    })
+  );
 
   return { drivers, total: count || 0 };
 }

@@ -33,8 +33,8 @@ export default function PreviewPageFinal({
     : "";
 
   let imageUrl: string | null = null;
-  if (formData.image && typeof (formData.image as any) === "string") {
-    imageUrl = formData.image as unknown as string;
+  if (formData.image && typeof formData.image === "string") {
+    imageUrl = formData.image as string;
   } else if (formData.image instanceof File) {
     imageUrl = formData.image ? URL.createObjectURL(formData.image) : null;
   }

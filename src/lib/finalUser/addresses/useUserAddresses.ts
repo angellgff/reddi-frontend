@@ -89,13 +89,13 @@ export function useUserAddresses() {
             `[useUserAddresses #${hookInstanceId}] 6. Component unmounted before setting state. Aborting.`
           );
         }
-      } catch (e: any) {
+      } catch (e: unknown) {
         console.error(
           `[useUserAddresses #${hookInstanceId}] 💥 An error occurred:`,
           e
         );
         if (!cancelled) {
-          setError(e?.message || "Error al cargar direcciones");
+          setError((e as Error)?.message || "Error al cargar direcciones");
         } else {
           console.warn(
             `[useUserAddresses #${hookInstanceId}] 💥 Error occurred, but component was unmounted. Not setting error state.`

@@ -215,16 +215,16 @@ export default function StoreMenu({
                     e: React.MouseEvent
                   ) => {
                     e.stopPropagation();
-                    handleAddToCart(product as any);
+                    handleAddToCart(product as unknown as ProductCard);
                   };
                   const onOpen = (product: ProductCardBase) =>
-                    openDetails(product as any);
+                    openDetails(product as unknown as ProductCard);
 
                   return (
                     <div key={p.id} className="flex-shrink-0">
                       {isRestaurant ? (
                         <ProductCardRestaurant
-                          product={p as any}
+                          product={p as unknown as ProductCardBase}
                           discountedPrice={discountedPrice}
                           isPending={isPending}
                           onAdd={onAdd}
@@ -232,7 +232,7 @@ export default function StoreMenu({
                         />
                       ) : (
                         <ProductCardMarket
-                          product={p as any}
+                          product={p as unknown as ProductCardBase}
                           discountedPrice={discountedPrice}
                           isPending={isPending}
                           onAdd={onAdd}

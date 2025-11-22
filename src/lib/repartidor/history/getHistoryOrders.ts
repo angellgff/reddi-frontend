@@ -110,17 +110,25 @@ export default async function getHistoryOrders(): Promise<HistoryOrderItem[]> {
   // El resto del mapeo ya era correcto.
   const list: HistoryOrderItem[] = (data ?? [])
     .map((shipment) => {
-      const o = shipment.orders;
+      const oData = shipment.orders;
+      const o = Array.isArray(oData) ? oData[0] : oData;
+
       if (!o) return null;
+
+      const pData = o.partners;
+      const partner = Array.isArray(pData) ? pData[0] : pData;
+
+      const uaData = o.user_addresses;
+      const address = Array.isArray(uaData) ? uaData[0] : uaData;
 
       return {
         orderId: String(o.id),
-        restaurantName: o.partners?.name ?? "Negocio",
-        address: formatAddress(o.user_addresses ?? undefined),
+        restaurantName: partner?.name ?? "Negocio",
+        address: formatAddress(address),
         deliveredAt: formatDeliveredTime(shipment.actual_delivery_at),
         tip: formatTip(o.tip_amount),
         statusLabel: "Finalizado",
-        logoUrl: o.partners?.image_url ?? "/steakhouseorder.svg",
+        logoUrl: partner?.image_url ?? "/steakhouseorder.svg",
       } satisfies HistoryOrderItem;
     })
     .filter((item): item is HistoryOrderItem => item !== null);

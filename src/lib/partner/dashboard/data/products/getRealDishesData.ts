@@ -8,8 +8,15 @@ export interface FetchDishesParams {
   partnerId?: string;
 }
 
+type DishRow = {
+  id: string;
+  name: string;
+  image_url: string | null;
+  estimated_time: string | null;
+};
+
 // Maps DB row to DishData (placeholders are fine)
-function mapRowToDish(row: any): DishData {
+function mapRowToDish(row: DishRow): DishData {
   return {
     id: row.id,
     name: row.name,
@@ -38,7 +45,7 @@ export default async function getRealDishesData(
   }
 
   // Buscar el partner asociado al usuario (partners.user_id -> partners.id)
-  const { data: partner, error: pErr } = await supabase
+  const { data: partner } = await supabase
     .from("partners")
     .select("id")
     .eq("user_id", user.id)

@@ -27,11 +27,13 @@ const defaultHours: BusinessFormData["hours"] = {
 };
 
 function mapDbToForm(row: SelectedPartnerColumns): BusinessFormData {
-  const hours = (row.business_hours as any) || defaultHours;
+  const hours =
+    (row.business_hours as unknown as BusinessFormData["hours"]) ||
+    defaultHours;
   const category =
     row.partner_type === "liquor_store"
       ? ("alcohol" as const)
-      : (row.partner_type as any);
+      : (row.partner_type as "restaurant" | "market");
   return {
     name: row.name,
     isPhysical: !!row.is_physical,

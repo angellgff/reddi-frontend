@@ -91,8 +91,8 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
         if (fetchErr) throw fetchErr;
 
         setNotifications((data ?? []) as NotificationRow[]);
-      } catch (e: any) {
-        setError(e?.message ?? "Error al cargar notificaciones");
+      } catch (e: unknown) {
+        setError((e as Error)?.message ?? "Error al cargar notificaciones");
         setNotifications([]); // Limpiar en caso de error
       } finally {
         // Esto se ejecutará siempre, resolviendo el problema
@@ -163,15 +163,16 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
 
   // Las funciones de `markAsRead` y `markAllAsRead` son correctas y pueden permanecer como están.
   const markAsRead = useCallback(
-    async (id: NotificationRow["id"]) => {
+    async () => {
       // ... tu código existente
     },
-    [supabase]
+    //
+    []
   );
 
   const markAllAsRead = useCallback(async () => {
     // ... tu código existente
-  }, [supabase, fetchData]);
+  }, []);
 
   const addLocal = useCallback((n: NotificationRow) => {
     setNotifications((prev) => [n, ...prev]);
