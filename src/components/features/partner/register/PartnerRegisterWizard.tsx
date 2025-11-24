@@ -8,7 +8,7 @@ import RegisterFormStep1 from "./RegisterFormStep1";
 import RegisterFormStep2 from "./RegisterFormStep2";
 import RegisterFormStep3 from "./RegisterFormStep3";
 import RegisterFormStep4 from "./RegisterFormStep4";
-import { createClient } from "@/src/lib/supabase/client";
+import { registerPartner } from "@/src/lib/actions/partner/register";
 
 const actualUrl = "/partner/registro";
 
@@ -28,6 +28,8 @@ export interface PartnerRegisterForm {
     billingMail: string;
     isPhysical: boolean;
     address: string;
+    lat: number | null;
+    lng: number | null;
   };
   bankData: {
     holderName: string;
@@ -44,7 +46,6 @@ export default function PartnerRegisterWizard() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentStep = searchParams.get("step") || "1";
-  const supabase = createClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -63,6 +64,8 @@ export default function PartnerRegisterWizard() {
       billingMail: "",
       isPhysical: false,
       address: "",
+      lat: null,
+      lng: null,
     },
     bankData: {
       holderName: "",
@@ -104,6 +107,18 @@ export default function PartnerRegisterWizard() {
   };
 
   // --- HANDLER PARA EL PASO 2: DATOS DEL NEGOCIO ---
+  // Handler para la ubicación
+  const handleLocationChange = (lat: number, lng: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      bussinessData: {
+        ...prev.bussinessData,
+        lat,
+        lng,
+      },
+    }));
+  };
+
   const handleBusinessDataChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -256,168 +271,56 @@ export default function PartnerRegisterWizard() {
     setIsSubmitting(true);
     setError(null);
 
-    let createdUserId: string | null = null;
-    let uploadedImagePath: string | null = null;
-    let uploadedDocumentPath: string | null = null;
-
     try {
-      // --- 1. Crear el usuario de forma NATIVA ---
-      // Esto es mucho más fiable.
-      console.info("[handleSubmit] Step 1: Creating user natively...");
-      // Asignar role según el tipo de cuenta: si NO es 'restaurant' => 'market'
-      const computedRole =
-        formData.session.category === "restaurant" ? "restaurant" : "market";
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.session.email,
-        password: formData.session.password,
-        options: {
-          data: {
-            // Aún podemos pasar metadatos, aunque nuestra RPC no los use directamente.
-            // Es bueno para tenerlo en la tabla auth.users.
-            role: computedRole,
-            partner_type: formData.session.category,
-          },
-        },
-      });
+      const formDataToSend = new FormData();
+      // Session
+      formDataToSend.append("email", formData.session.email);
+      formDataToSend.append("password", formData.session.password);
+      formDataToSend.append("category", formData.session.category);
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("User creation failed.");
-
-      createdUserId = authData.user.id;
-      console.info(`[handleSubmit] User created with ID: ${createdUserId}`);
-
-      // --- 2. Preparar y enviar datos a la Edge Function ---
-      const partnerData = {
-        category: formData.session.category,
-        role: computedRole,
-        name: formData.bussinessData.name,
-        userRnc: formData.bussinessData.userRnc,
-        phone: formData.bussinessData.phone,
-        billingMail: formData.bussinessData.billingMail,
-        isPhysical: formData.bussinessData.isPhysical,
-        address: formData.bussinessData.address,
-        holderName: formData.bankData.holderName,
-        accountNumber: formData.bankData.accountNumber,
-        accountType: formData.bankData.accountType,
-        bankRnc: formData.bankData.bankRnc,
-        conditionsAccepted: formData.bankData.conditionsAccepted,
-        businessHours: formData.businessHours,
-      };
-
-      console.info(
-        "[handleSubmit] Step 2: Calling Edge Function to complete profile..."
+      // Business
+      formDataToSend.append("name", formData.bussinessData.name);
+      formDataToSend.append("userRnc", formData.bussinessData.userRnc);
+      formDataToSend.append("phone", formData.bussinessData.phone);
+      formDataToSend.append("billingMail", formData.bussinessData.billingMail);
+      formDataToSend.append(
+        "isPhysical",
+        String(formData.bussinessData.isPhysical)
       );
-      const { error: functionError } = await supabase.functions.invoke(
-        "complete-partner-registration",
-        { body: { userId: createdUserId, partnerData } }
+      formDataToSend.append("address", formData.bussinessData.address);
+      if (formData.bussinessData.lat)
+        formDataToSend.append("lat", String(formData.bussinessData.lat));
+      if (formData.bussinessData.lng)
+        formDataToSend.append("lng", String(formData.bussinessData.lng));
+      if (formData.bussinessData.image)
+        formDataToSend.append("image", formData.bussinessData.image);
+
+      // Bank
+      formDataToSend.append("holderName", formData.bankData.holderName);
+      formDataToSend.append("accountNumber", formData.bankData.accountNumber);
+      formDataToSend.append("accountType", formData.bankData.accountType);
+      formDataToSend.append("bankRnc", formData.bankData.bankRnc);
+      formDataToSend.append(
+        "conditionsAccepted",
+        String(formData.bankData.conditionsAccepted)
+      );
+      if (formData.bankData.document)
+        formDataToSend.append("document", formData.bankData.document);
+
+      // Hours
+      formDataToSend.append(
+        "businessHours",
+        JSON.stringify(formData.businessHours)
       );
 
-      if (functionError) {
-        // Si la Edge Function falla, la transacción se revirtió.
-        // El usuario existe pero sin perfil.
-        throw new Error(
-          `Failed to create partner profile: ${functionError.message}`
-        );
+      const result = await registerPartner(null, formDataToSend);
+
+      if (result?.error) {
+        setError(result.error);
       }
-      console.info("[handleSubmit] Edge Function executed successfully.");
-
-      // --- 3. Subir archivos y actualizar URLs (flujo ya conocido) ---
-      // Para esto, primero necesitamos iniciar sesión.
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: formData.session.email,
-        password: formData.session.password,
-      });
-      if (signInError) throw new Error("Sign in after registration failed.");
-
-      // --- 3. Subir archivos (ahora que sabemos que el usuario existe) ---
-      let imageUrl: string | null = null;
-      if (formData.bussinessData.image) {
-        const imageFile = formData.bussinessData.image;
-        const filePath = `${createdUserId}/${Date.now()}_${imageFile.name}`;
-        const { error: uploadError } = await supabase.storage
-          .from("business-images")
-          .upload(filePath, imageFile);
-        if (uploadError) throw uploadError;
-        uploadedImagePath = filePath; // Guardar para posible rollback
-        const { data: publicUrlData } = supabase.storage
-          .from("business-images")
-          .getPublicUrl(filePath);
-        imageUrl = publicUrlData.publicUrl;
-      }
-
-      let documentUrl: string | null = null;
-      if (formData.bankData.document) {
-        const docFile = formData.bankData.document;
-        const docPath = `${createdUserId}/${Date.now()}_${docFile.name}`;
-        const { error: docUploadError } = await supabase.storage
-          .from("bank-documents")
-          .upload(docPath, docFile);
-        if (docUploadError) throw docUploadError;
-        uploadedDocumentPath = docPath; // Guardar para posible rollback
-        documentUrl = docPath; // O la URL pública si la necesitas
-      }
-
-      // --- 4. Actualizar el registro 'partners' con las URLs de los archivos ---
-      // Esta es una operación pequeña y de bajo riesgo.
-      if (imageUrl || documentUrl) {
-        console.info(
-          "[handleSubmit: Step 4] - Actualizando URLs de archivos..."
-        );
-        const { error: updateError } = await supabase
-          .from("partners")
-          .update({
-            image_url: imageUrl,
-            bank_document_url: documentUrl,
-          })
-          .eq("id", createdUserId);
-
-        if (updateError) throw updateError;
-      }
-
-      // --- 5. Éxito ---
-      console.info(
-        "[handleSubmit: SUCCESS] - Proceso completado. Redirigiendo..."
-      );
-      router.push("/aliado/dashboard?registro=exitoso");
-    } catch (error: unknown) {
-      console.error(
-        "====================== ERROR CAPTURADO ======================",
-        error
-      );
-
-      // --- NUEVA LÓGICA DE MANEJO DE ERRORES ---
-      let friendlyErrorMessage =
-        "Ocurrió un error inesperado. Por favor, intenta de nuevo.";
-
-      const err = error as { code?: string; message?: string };
-
-      // Detectar el error de email duplicado
-      if (
-        err.code === "23505" ||
-        (err.message && err.message.includes("duplicate key value"))
-      ) {
-        friendlyErrorMessage =
-          "Este correo electrónico ya está registrado. Por favor, usa otro o inicia sesión.";
-      }
-      // Podrías añadir más `else if` para otros errores comunes, como contraseñas débiles.
-      else if (err.message) {
-        // Para otros errores de la base de datos, puedes mostrar su mensaje si es seguro.
-        friendlyErrorMessage = err.message;
-      }
-
-      setError(friendlyErrorMessage); // ¡Usamos el mensaje amigable!
-
-      // La lógica de Rollback de archivos sigue siendo válida
-      if (uploadedImagePath) {
-        await supabase.storage
-          .from("business-images")
-          .remove([uploadedImagePath]);
-      }
-      if (uploadedDocumentPath) {
-        await supabase.storage
-          .from("bank-documents")
-          .remove([uploadedDocumentPath]);
-      }
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
     } finally {
       setIsSubmitting(false);
     }
@@ -438,6 +341,7 @@ export default function PartnerRegisterWizard() {
         <RegisterFormStep2
           formData={formData}
           onChange={handleBusinessDataChange}
+          onLocationChange={handleLocationChange}
           onFileChange={handleFileChange2}
           onGoBack={() => router.push(`${actualUrl}?step=1`)}
           onNextStep={() => router.push(`${actualUrl}?step=3`)}

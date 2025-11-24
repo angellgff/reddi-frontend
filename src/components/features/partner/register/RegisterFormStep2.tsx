@@ -6,6 +6,7 @@ import BasicInput from "@/src/components/basics/BasicInput";
 import { PartnerRegisterForm } from "./PartnerRegisterWizard";
 import UploadImageButton from "./UploadImageButton";
 import { useState } from "react";
+import LocationPickerMap from "./LocationPickerMap";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const RNC_REGEX = /^1\d{8}$/;
@@ -17,6 +18,7 @@ interface RegisterFormStep2Props {
   formData: PartnerRegisterForm;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onFileChange: (file: File | null) => void;
+  onLocationChange: (lat: number, lng: number) => void;
   onGoBack: () => void;
   onNextStep: () => void;
 }
@@ -24,6 +26,7 @@ interface RegisterFormStep2Props {
 export default function RegisterFormStep2({
   formData,
   onChange,
+  onLocationChange,
   onFileChange,
   onGoBack,
   onNextStep,
@@ -56,6 +59,18 @@ export default function RegisterFormStep2({
     // Verificar imagen
     if (!formData.bussinessData.image) {
       newErrors.image = "La imagen es obligatoria";
+    }
+
+    // Verificar ubicación
+    if (!formData.bussinessData.lat || !formData.bussinessData.lng) {
+      // Usamos un campo "dummy" o mostramos un error general, pero como el estado de errores es tipado...
+      // Podemos agregarlo al estado de errores si extendemos el tipo, o simplemente usar un alert/toast,
+      // pero lo ideal es mostrarlo cerca del mapa.
+      // Como 'lat' y 'lng' son parte de bussinessData, podemos usarlos si el tipo lo permite.
+      // Pero PartnerRegisterForm['bussinessData'] ahora tiene lat/lng.
+      // El estado 'errors' es Partial<Record<keyof PartnerRegisterForm["bussinessData"], string>>.
+      // Así que podemos usar 'lat' o 'lng' para guardar el error.
+      newErrors.lat = "Debes seleccionar una ubicación en el mapa";
     }
 
     // Verificar formato de correo electrónico
@@ -223,11 +238,49 @@ tu establecimiento para comenzar el registro"
               placeholder="Ingresar la información"
               error={errors.billingMail}
             />
-            {formData.bussinessData.isPhysical && (
-              <div className="h-48 mx-12 bg-gray-200 flex items-center justify-center text-gray-500 rounded-2xl">
-                Componente de Mapa (ej. Google Maps, Mapbox) iría aquí
+            {/* Mapa siempre visible */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-gray-800">
+                Ubicación del negocio
+              </label>
+              <LocationPickerMap
+                lat={formData.bussinessData.lat}
+                lng={formData.bussinessData.lng}
+                onLocationSelect={(lat, lng) => {
+                  onLocationChange(lat, lng);
+                  // Limpiar error de ubicación si existe
+                  if (errors.lat) {
+                    setErrors((prev) => ({ ...prev, lat: undefined }));
+                  }
+                }}
+              />
+              {errors.lat && (
+                <p className="text-red-500 text-xs mt-1">{errors.lat}</p>
+              )}
+              <p className="text-xs text-gray-500">
+                Haz clic en el mapa para seleccionar la ubicación exacta.
+              </p>
+              <div className="grid grid-cols-2 gap-4 mt-2">
+                <BasicInput
+                  name="lat"
+                  value={formData.bussinessData.lat?.toString() || ""}
+                  onChange={() => {}}
+                  label="Latitud"
+                  id="lat"
+                  placeholder=""
+                  disabled={true}
+                />
+                <BasicInput
+                  name="lng"
+                  value={formData.bussinessData.lng?.toString() || ""}
+                  onChange={() => {}}
+                  label="Longitud"
+                  id="lng"
+                  placeholder=""
+                  disabled={true}
+                />
               </div>
-            )}
+            </div>
           </div>
         </form>
         <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onSubmit} />

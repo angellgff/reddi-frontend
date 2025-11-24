@@ -347,17 +347,17 @@ export type Database = {
       liquor_stores: {
         Row: {
           id: string
-          license_number: string
+          license_number: string | null
           specializes_in: string | null
         }
         Insert: {
           id: string
-          license_number: string
+          license_number?: string | null
           specializes_in?: string | null
         }
         Update: {
           id?: string
-          license_number?: string
+          license_number?: string | null
           specializes_in?: string | null
         }
         Relationships: [
@@ -738,6 +738,32 @@ export type Database = {
           id?: string
         }
         Relationships: []
+      }
+      pharmacies: {
+        Row: {
+          id: string
+          is_on_duty: boolean | null
+          license_number: string | null
+        }
+        Insert: {
+          id: string
+          is_on_duty?: boolean | null
+          license_number?: string | null
+        }
+        Update: {
+          id?: string
+          is_on_duty?: boolean | null
+          license_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_partner"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       product_extras: {
         Row: {
@@ -1159,6 +1185,29 @@ export type Database = {
           },
         ]
       }
+      tobacco_shops: {
+        Row: {
+          id: string
+          license_number: string | null
+        }
+        Insert: {
+          id: string
+          license_number?: string | null
+        }
+        Update: {
+          id?: string
+          license_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_partner"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_addresses: {
         Row: {
           coordinates: unknown
@@ -1379,6 +1428,10 @@ export type Database = {
         Returns: unknown
       }
       _st_within: { Args: { geom1: unknown; geom2: unknown }; Returns: boolean }
+      accept_order: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: Json
+      }
       addauth: { Args: { "": string }; Returns: boolean }
       addgeometrycolumn:
         | {
@@ -1417,10 +1470,9 @@ export type Database = {
             }
             Returns: string
           }
-      complete_partner_profile: {
-        Args: { partner_data: Json; user_id: string }
-        Returns: undefined
-      }
+      complete_partner_profile:
+        | { Args: { partner_data: Json }; Returns: undefined }
+        | { Args: { partner_data: Json; user_id: string }; Returns: undefined }
       create_notification: {
         Args: {
           p_message: string
@@ -1616,6 +1668,10 @@ export type Database = {
       }
       gettransactionid: { Args: never; Returns: unknown }
       longtransactionsenabled: { Args: never; Returns: boolean }
+      mark_delivery_as_complete: {
+        Args: { caller_user_id_param: string; order_id_param: string }
+        Returns: string
+      }
       populate_geometry_columns:
         | { Args: { use_typmod?: boolean }; Returns: string }
         | { Args: { tbl_oid: unknown; use_typmod?: boolean }; Returns: number }
@@ -2271,7 +2327,12 @@ export type Database = {
         | "out_for_delivery"
         | "delivered"
         | "cancelled"
-      partner_type: "market" | "restaurant" | "liquor_store"
+      partner_type:
+        | "market"
+        | "restaurant"
+        | "liquor_store"
+        | "pharmacy"
+        | "tobacco"
       shipment_status:
         | "pending_calculation"
         | "ready_for_pickup"
@@ -2451,7 +2512,13 @@ export const Constants = {
         "delivered",
         "cancelled",
       ],
-      partner_type: ["market", "restaurant", "liquor_store"],
+      partner_type: [
+        "market",
+        "restaurant",
+        "liquor_store",
+        "pharmacy",
+        "tobacco",
+      ],
       shipment_status: [
         "pending_calculation",
         "ready_for_pickup",
