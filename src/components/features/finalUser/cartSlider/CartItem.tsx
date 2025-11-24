@@ -212,7 +212,10 @@ export default function CartItem({
           <div className="flex items-start justify-between gap-2">
             <div className="font-semibold truncate">{item.name}</div>
             <div className="text-sm font-semibold">
-              ${(unitWithExtras * item.quantity).toFixed(2)}
+              {new Intl.NumberFormat("es-DO", {
+                style: "currency",
+                currency: "DOP",
+              }).format(unitWithExtras * item.quantity)}
             </div>
           </div>
           <div className="text-xs text-gray-500">
@@ -273,7 +276,10 @@ export default function CartItem({
                     </div>
                     <div className="text-[10px] text-gray-500">
                       {ex.price > 0
-                        ? `$${ex.price.toFixed(2)} c/u`
+                        ? `${new Intl.NumberFormat("es-DO", {
+                            style: "currency",
+                            currency: "DOP",
+                          }).format(ex.price)} c/u`
                         : "Incluido"}
                     </div>
                   </div>
@@ -342,7 +348,12 @@ export default function CartItem({
                   (e) => e.extraId === opt.extraId
                 );
                 const priceLabel =
-                  opt.price > 0 ? `$${opt.price.toFixed(2)}` : "Incluido";
+                  opt.price > 0
+                    ? new Intl.NumberFormat("es-DO", {
+                        style: "currency",
+                        currency: "DOP",
+                      }).format(opt.price)
+                    : "Incluido";
                 return (
                   <div
                     key={opt.optionId}

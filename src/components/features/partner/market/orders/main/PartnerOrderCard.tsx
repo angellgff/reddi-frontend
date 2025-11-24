@@ -39,9 +39,9 @@ export const badgeColors: Record<PartnerOrderCardProps["status"], string> = {
 
 // Función para formatear el precio con punto de mil
 const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-DO", {
     style: "currency",
-    currency: "USD",
+    currency: "DOP",
     // Para dólares, normalmente se quieren 2 decimales.
     // minimumFractionDigits: 2, // Se puede omitir, ya que es el default para USD
   }).format(price);

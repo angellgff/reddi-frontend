@@ -69,14 +69,14 @@ export default function ProductCardRestaurant({
           )}
 
           <span className="font-bold text-black">
-            {Math.round(discountedPrice)} USD
+            RD$ {Math.round(discountedPrice)}
           </span>
 
           {p.previous_price && (
             <>
               <span className="text-gray-400 font-medium"> • </span>
               <span className="font-medium text-gray-500 line-through">
-                $ {Math.round(p.previous_price)} USD
+                RD$ {Math.round(p.previous_price)}
               </span>
             </>
           )}

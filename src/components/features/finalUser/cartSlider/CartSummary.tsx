@@ -22,14 +22,21 @@ export default function CartSummary() {
   }, [subtotal, tipPercent, tipAmountManual]);
   const total = subtotal + shipping + serviceFee + tip;
 
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("es-DO", {
+      style: "currency",
+      currency: "DOP",
+    }).format(amount);
+  };
+
   return (
     <div className="space-y-2">
-      <Row label="Productos" value={`$${subtotal.toFixed(2)}`} />
-      <Row label="Envío" value={`$${shipping.toFixed(2)}`} />
-      <Row label="Tarifa de servicio" value={`$${serviceFee.toFixed(2)}`} />
-      <Row label="Propina" value={`$${tip.toFixed(2)}`} />
+      <Row label="Productos" value={formatCurrency(subtotal)} />
+      <Row label="Envío" value={formatCurrency(shipping)} />
+      <Row label="Tarifa de servicio" value={formatCurrency(serviceFee)} />
+      <Row label="Propina" value={formatCurrency(tip)} />
       <div className="border-t pt-2">
-        <Row label="Subtotal" value={`$${total.toFixed(2)}`} bold />
+        <Row label="Subtotal" value={formatCurrency(total)} bold />
       </div>
       <a
         href={items.length === 0 ? undefined : "/user/checkout/payment"}

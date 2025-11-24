@@ -85,7 +85,7 @@ const ExtrasAndNoteSection = ({
                             {o.name}
                           </p>
                           <p className="text-xs text-gray-500">
-                            + ${o.price.toFixed(2)}
+                            + RD$ {o.price.toFixed(2)}
                           </p>
                         </div>
                       </div>
@@ -290,15 +290,15 @@ export default function ProductDetailsClient({
                   {details.name}
                 </h1>
                 <p className="font-semibold text-xl md:text-2xl text-black">
-                  $ {unitPrice.toFixed(0)} USD /u
+                  RD$ {unitPrice.toFixed(0)} /u
                 </p>
                 <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                   <span className="text-sm text-gray-400">
-                    $ {unitPrice.toFixed(0)} USD /und (1 Und)
+                    RD$ {unitPrice.toFixed(0)} /und (1 Und)
                   </span>
                   {details.previous_price && (
                     <span className="text-sm text-gray-500 line-through">
-                      ${details.previous_price.toFixed(0)} USD
+                      RD$ {details.previous_price.toFixed(0)}
                     </span>
                   )}
                   {details.discount_percentage && (
@@ -397,7 +397,7 @@ export default function ProductDetailsClient({
                   onClick={() => addToCartHandler(true)}
                 >
                   <span>Agregar</span>
-                  <span>Subtotal: {subtotal.toFixed(2)} USD</span>
+                  <span>Subtotal: RD$ {subtotal.toFixed(2)}</span>
                 </button>
               </div>
 
@@ -434,7 +434,7 @@ export default function ProductDetailsClient({
                     Agregar
                   </button>
                   <div className="px-3 py-2 rounded-lg bg-gray-100 text-sm font-semibold whitespace-nowrap">
-                    Subtotal: $ {subtotal.toFixed(2)} USD
+                    Subtotal: RD$ {subtotal.toFixed(2)}
                   </div>
                 </div>
               </div>

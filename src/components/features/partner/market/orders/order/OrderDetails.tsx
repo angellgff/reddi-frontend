@@ -9,11 +9,9 @@ interface OrderDetailsCardProps {
 }
 
 const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-DO", {
     style: "currency",
-    currency: "USD",
-    // Para dólares, normalmente se quieren 2 decimales.
-    // minimumFractionDigits: 2, // Se puede omitir, ya que es el default para USD
+    currency: "DOP",
   }).format(price);
 };
 
@@ -71,7 +69,6 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
                 <span className="font-semibold font-inter">
                   {formatPrice(item.price)}
                 </span>
-                <span> USD</span>
               </p>
             </div>
             {/* Extras (visual similar to final user view) */}
@@ -101,7 +98,7 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
                       </span>
                     </div>
                     <span className="text-gray-900">
-                      {formatPrice(ex.unit_price * ex.quantity)} USD
+                      {formatPrice(ex.unit_price * ex.quantity)}
                     </span>
                   </div>
                 ))}
@@ -119,25 +116,25 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
       <div className="my-4 space-y-2 text-sm font-roboto">
         <div className="flex justify-between text-gray-600">
           <p>Subtotal</p>
-          <p>{formatPrice(subtotal)} USD</p>
+          <p>{formatPrice(subtotal)}</p>
         </div>
         <div className="flex justify-between text-gray-600">
           <p>Envío</p>
-          <p>{formatPrice(order.costs.delivery)} USD</p>
+          <p>{formatPrice(order.costs.delivery)}</p>
         </div>
         <div className="flex justify-between text-gray-600">
           <p>Propina</p>
-          <p>{formatPrice(order.costs.tip)} USD</p>
+          <p>{formatPrice(order.costs.tip)}</p>
         </div>
         {order.costs.discount > 0 && (
           <div className="flex justify-between text-gray-600">
             <p>Descuento</p>
-            <p>-{formatPrice(order.costs.discount)} USD</p>
+            <p>-{formatPrice(order.costs.discount)}</p>
           </div>
         )}
         <div className="flex justify-between text-gray-600">
           <p>Impuestos</p>
-          <p>{formatPrice(order.costs.taxes)} USD</p>
+          <p>{formatPrice(order.costs.taxes)}</p>
         </div>
       </div>
 

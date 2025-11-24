@@ -6,15 +6,12 @@ export default function DesktopHeroSearch() {
           relative isolate mx-auto w-full rounded-[30px] bg-[#04BD88] 
           shadow-[0px_1px_0.5px_0.05px_rgba(29,41,61,0.02)] 
           flex flex-col items-center gap-6 px-[60px] py-6 h-[224px] overflow-hidden
-          
-          // --- Clases añadidas ---
           bg-[url('/bg.svg')] 
           bg-cover 
           bg-center 
           bg-no-repeat
         "
       >
-        {/* Decorative overlay to emulate Figma isolation layer */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-20 z-0"
@@ -30,14 +27,28 @@ export default function DesktopHeroSearch() {
             Con Reddi, pide fácil y disfruta el momento
           </h3>
 
-          {/* Search input */}
           <form action="" method="get" className="w-full">
             <div className="flex items-center justify-between gap-3 bg-white rounded-xl px-3 py-3">
               <input
                 type="text"
                 name="q"
                 placeholder="Platos, alimentos, etc."
-                className="flex-1 outline-none bg-transparent text-[14px] leading-[18px] text-[#1A1A1A] placeholder:text-[#ADAEBC]"
+                className="
+    flex-1 
+    bg-transparent 
+    text-[14px] leading-[18px] text-[#1A1A1A] placeholder:text-[#ADAEBC]
+    
+    /* 👇 FUERZA BRUTA: elimina bordes, anillos, outlines y sombras */
+    !border-none 
+    !outline-none 
+    !ring-0 
+    !shadow-none
+    
+    focus:!border-transparent 
+    focus:!ring-0 
+    focus:!outline-none
+    focus:!shadow-none
+  "
               />
               <button
                 type="submit"

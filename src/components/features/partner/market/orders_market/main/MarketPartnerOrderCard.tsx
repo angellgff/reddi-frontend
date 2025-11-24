@@ -43,9 +43,9 @@ export const marketBadgeColors: Record<
 };
 
 const formatPrice = (price: number): string => {
-  return new Intl.NumberFormat("en-US", {
+  return new Intl.NumberFormat("es-DO", {
     style: "currency",
-    currency: "USD",
+    currency: "DOP",
   }).format(price);
 };
 

@@ -295,7 +295,7 @@ export default function CheckoutPaymentPage() {
                         Propina manual (monto)
                       </label>
                       <div className="mt-1 flex items-center rounded-xl border px-3 h-10 bg-white focus-within:ring-2 focus-within:ring-primary/40">
-                        <span className="text-gray-500 mr-2 text-sm">$</span>
+                        <span className="text-gray-500 mr-2 text-sm">RD$</span>
                         <input
                           type="number"
                           min={0}

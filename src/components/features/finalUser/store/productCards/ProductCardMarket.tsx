@@ -43,7 +43,7 @@ export default function ProductCardMarket({
       <div className="flex items-end w-[133px] h-[48px]">
         <div className="flex flex-col items-start w-[116px] h-[48px]">
           <div className="text-[12px] leading-4 font-bold text-black uppercase">
-            {Math.round(discountedPrice)} USD
+            RD$ {Math.round(discountedPrice)}
           </div>
           <div className="text-[12px] leading-4 text-[#6A6C71] line-clamp-2 uppercase">
             {p.name}

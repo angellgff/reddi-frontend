@@ -1,19 +1,9 @@
 import { createClient } from "@/src/lib/supabase/server";
 import type { MainStatsData } from "../../type";
 import { ACTIVE_ORDER_STATUSES } from "@/src/lib/partner/dashboard/utils/orderStatus";
+import { formatCurrency } from "@/src/lib/utils";
 
-function formatCurrency(n: number): string {
-  // USD formatting for demo; adjust locale/currency as needed
-  try {
-    return new Intl.NumberFormat("es-DO", {
-      style: "currency",
-      currency: "DOP",
-      maximumFractionDigits: 0,
-    }).format(n);
-  } catch {
-    return `$${n.toFixed(0)}`;
-  }
-}
+
 
 export default async function getMainStatsData(): Promise<MainStatsData[]> {
   const supabase = await createClient();

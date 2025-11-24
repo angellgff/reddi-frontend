@@ -13,11 +13,11 @@ type PageProps = {
 
 function currency(n: number | null | undefined) {
   const v = typeof n === "number" && isFinite(n) ? n : 0;
-  return v.toLocaleString("es-MX", {
+  return new Intl.NumberFormat("es-DO", {
     style: "currency",
-    currency: "USD",
+    currency: "DOP",
     minimumFractionDigits: 2,
-  });
+  }).format(v);
 }
 
 const ORDER_STEPS = [

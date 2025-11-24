@@ -210,7 +210,7 @@ export default function NewDishStep1({
 
             <BasicInput
               id="basePrice"
-              label="Precio base (USD)"
+              label="Precio base (RD$)"
               placeholder="Ingresar la información"
               value={formData.basePrice}
               onChange={handleChange}

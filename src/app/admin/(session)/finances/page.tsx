@@ -3,6 +3,7 @@ import StatDollarIcon from "@/src/components/icons/StatDollarIcon";
 import CompleteOrderIcon from "@/src/components/icons/CompleteOrderIcon";
 import Image from "next/image";
 import { createClient } from "@/src/lib/supabase/server";
+import { formatCurrency } from "@/src/lib/utils";
 
 type CategoryCard = {
   name: string;
@@ -101,12 +102,7 @@ export default async function AdminFinancesPage({
     }
   }
 
-  const formatCurrency = (n: number) =>
-    new Intl.NumberFormat("es-DO", {
-      style: "currency",
-      currency: "DOP",
-      maximumFractionDigits: 2,
-    }).format(n);
+
 
   return (
     <div className="w-full max-w-[1217px] mx-auto px-8 py-6 min-h-screen">

@@ -1,5 +1,6 @@
 import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
 import { Notification } from "@/src/lib/partner/dashboard/type";
+import { CURRENCY_SYMBOL } from "@/src/lib/constants";
 
 const apiDelay = 500;
 
@@ -15,7 +16,7 @@ const data: Notification[] = [
     id: "n2",
     type: "info",
     title: "Nuevo pedido",
-    description: "Pedido #004 recibido por $35.50",
+    description: `Pedido #004 recibido por ${CURRENCY_SYMBOL}35.50`,
     time: "Hace 1 hora",
   },
   {

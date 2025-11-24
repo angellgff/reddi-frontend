@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/src/lib/supabase/server";
 import { isActiveOrderStatus } from "@/src/lib/partner/dashboard/utils/orderStatus";
+import { formatCurrency } from "@/src/lib/utils";
+import { CURRENCY_SYMBOL } from "@/src/lib/constants";
 
 type OrderListItem = {
   id: string;
@@ -17,18 +19,7 @@ type OrderListItem = {
   } | null;
 };
 
-function currency(n: number | null | undefined) {
-  try {
-    if (n == null) return "--";
-    return new Intl.NumberFormat("es-DO", {
-      style: "currency",
-      currency: "DOP",
-      maximumFractionDigits: 0,
-    }).format(n);
-  } catch {
-    return String(n ?? "");
-  }
-}
+
 
 // 1. Cambiamos la firma de la función para que acepte `props` como una promesa.
 export default async function OrdersHistoryPage({
@@ -175,10 +166,10 @@ export default async function OrdersHistoryPage({
                       <span className="hidden xs:inline">•</span>
                       <span>25-35 min</span>
                       <span className="hidden xs:inline">•</span>
-                      <span>$0 envío</span>
+                      <span>{CURRENCY_SYMBOL}0 envío</span>
                     </div>
                     <div className="text-[11px] text-[#0F766E]">
-                      {currency(it.total_amount)}
+                      {formatCurrency(it.total_amount)}
                     </div>
                   </div>
                 </div>

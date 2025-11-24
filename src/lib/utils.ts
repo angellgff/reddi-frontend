@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { CURRENCY_SYMBOL } from "./constants";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -63,4 +64,12 @@ export async function withTimeout<T>(
       setTimeout(() => reject(new Error(label)), ms)
     ),
   ])) as T;
+}
+
+export function formatCurrency(amount: number): string {
+  const formattedNumber = new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
+  return `${CURRENCY_SYMBOL}${formattedNumber}`;
 }

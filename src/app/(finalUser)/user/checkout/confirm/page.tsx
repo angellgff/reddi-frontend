@@ -14,12 +14,12 @@ import { clearCart } from "@/src/lib/store/cartSlice";
 import { resetCheckout } from "@/src/lib/store/checkoutSlice";
 
 function currency(n: number) {
-  if (!isFinite(n)) return "$0.00";
-  return n.toLocaleString("es-MX", {
+  if (!isFinite(n)) return "RD$0.00";
+  return new Intl.NumberFormat("es-DO", {
     style: "currency",
-    currency: "USD",
+    currency: "DOP",
     minimumFractionDigits: 2,
-  });
+  }).format(n);
 }
 
 export default function CheckoutConfirmPage() {

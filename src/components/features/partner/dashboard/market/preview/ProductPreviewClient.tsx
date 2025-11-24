@@ -188,16 +188,16 @@ export default function ProductPreviewClient({
               {data.name}
             </h1>
             <p className="font-medium text-2xl leading-5 text-black">
-              $ {data.basePrice.toFixed(2)} USD{" "}
+              RD$ {data.basePrice.toFixed(2)}{" "}
               <span className="text-base">{data.unit}</span>
             </p>
             <div className="flex flex-row gap-2 items-center text-sm leading-5">
               <span className="text-gray-400">
-                $ {data.basePrice.toFixed(2)} USD /und (1 Und)
+                RD$ {data.basePrice.toFixed(2)} /und (1 Und)
               </span>
               {data.previousPrice && (
                 <span className="text-gray-600 line-through">
-                  $ {data.previousPrice.toFixed(2)} USD
+                  RD$ {data.previousPrice.toFixed(2)}
                 </span>
               )}
               {discountPercent && (
@@ -256,7 +256,7 @@ export default function ProductPreviewClient({
             >
               Agregar{" "}
               <span className="text-white">
-                Subtotal: {subtotal.toFixed(2)} USD
+                Subtotal: RD$ {subtotal.toFixed(2)}
               </span>
             </button>
           </div>

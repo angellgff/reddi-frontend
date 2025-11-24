@@ -44,7 +44,7 @@ function formatDeliveredTime(ts?: string | null): string {
 function formatTip(amount?: number | null): string {
   try {
     const v = amount ?? 0;
-    return v.toLocaleString("es-MX", { style: "currency", currency: "USD" });
+    return v.toLocaleString("es-DO", { style: "currency", currency: "DOP" });
   } catch {
     return "$0.00";
   }
