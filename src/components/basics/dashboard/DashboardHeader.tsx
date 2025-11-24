@@ -44,7 +44,7 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   };
 
   // Usamos una imagen por defecto si no hay una URL de imagen del negocio
-  const profileImageUrl = profile.business_image_url || "/default-avatar.svg";
+  const profileImageUrl = profile.business_image_url || "/simple-user-default.webp";
 
   return (
     <header className="fixed bg-white w-full font-manrope z-50">
