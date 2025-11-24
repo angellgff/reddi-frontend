@@ -35,7 +35,8 @@ export async function getAuthenticatedPartnerProfile(): Promise<PartnerProfile> 
       role,
       partners (
         name,
-        image_url
+        image_url,
+        partner_type
       )
     `
     )
@@ -61,7 +62,7 @@ export async function getAuthenticatedPartnerProfile(): Promise<PartnerProfile> 
 
   return {
     id: userId,
-    role: data.role,
+    role: partnerData?.partner_type || data.role,
     business_name: partnerData?.name || "Nombre no disponible",
     business_image_url: partnerData?.image_url || null,
   };

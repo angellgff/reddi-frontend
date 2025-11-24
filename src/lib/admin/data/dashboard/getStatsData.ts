@@ -57,7 +57,7 @@ export default async function getStatsData(): Promise<StatRow[]> {
   let newUsersToday = 0;
   try {
     const { count } = await supabase
-      .from("normal_users")
+      .from("profiles")
       .select("id", { count: "exact", head: true })
       .gte("created_at", todayIso);
     newUsersToday = count || 0;
@@ -68,7 +68,7 @@ export default async function getStatsData(): Promise<StatRow[]> {
     { title: "Ventas de hoy", value: formatMoney(salesToday) },
     { title: "Repartidores activos", value: String(activeDrivers) },
     { title: "Aliados activos", value: String(activePartners) },
-    { title: "Usuarios nuevos", value: String(newUsersToday) },
+    { title: "Usuarios nuevos hoy", value: String(newUsersToday) },
   ];
 
   return stats;

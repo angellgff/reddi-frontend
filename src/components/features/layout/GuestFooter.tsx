@@ -42,6 +42,7 @@ const sectionsData = [
         href: "/politica-reembolsos-devoluciones-cancelaciones",
         label: "Política de reembolsos, devoluciones y cancelaciones",
       },
+      { href: "/productos-y-servicios", label: "Productos y servicios" },
     ],
   },
 ];

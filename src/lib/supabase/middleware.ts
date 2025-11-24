@@ -134,6 +134,7 @@ export async function updateSession(request: NextRequest) {
     "/protocolo-respuesta-incidentes-irp",
     "/politicas-seguridad-transmision-datos-tarjetas",
     "/auth/callback",
+    "/productos-y-servicios",
   ];
   const authPaths = [
     "/login",
@@ -143,6 +144,7 @@ export async function updateSession(request: NextRequest) {
     "/partner/login",
     "/partner/registro",
     "/auth/callback",
+    "/productos-y-servicios",
   ];
 
   const isPublicPath = publicPaths.includes(path);
