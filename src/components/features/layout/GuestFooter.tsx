@@ -20,7 +20,7 @@ const sectionsData = [
   {
     title: "Soporte",
     links: [
-      { href: "/contacto", label: "Contacto" },
+      { href: "/contact-information", label: "Contacto" },
       { href: "/ayuda", label: "Ayuda" },
     ],
   },
