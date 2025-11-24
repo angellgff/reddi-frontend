@@ -38,6 +38,8 @@ export default function EditPartnerProfile({
         email: formData.email,
         hours: formData.hours,
         profileState: formData.profileState,
+        lat: formData.lat,
+        lng: formData.lng,
       });
       setModalTitle("Cambios guardados");
       setModalDesc("El perfil del aliado se actualizó correctamente.");

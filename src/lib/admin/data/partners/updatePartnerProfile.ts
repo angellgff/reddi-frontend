@@ -15,6 +15,8 @@ export type UpdatePartnerPayload = {
   email?: string;
   hours?: Record<string, { active: boolean; opens: string; closes: string }>;
   profileState?: boolean;
+  lat?: number | null;
+  lng?: number | null;
   // logo/document uploads are out of scope here; handled by storage flows
 };
 
@@ -23,6 +25,40 @@ function mapUiCategoryToDb(
 ): PartnerRow["partner_type"] | undefined {
   if (!partnerCategory) return undefined;
   return partnerCategory === "alcohol" ? "liquor_store" : partnerCategory;
+}
+
+function createWKBPoint(lat: number, lng: number): string {
+  // WKB Point (Little Endian)
+  // 1 byte: 01 (Little Endian)
+  // 4 bytes: 01000020 (Point type + SRID flag) -> 20000001 (Little Endian)
+  // 4 bytes: E6100000 (SRID 4326) -> 4326 = 0x10E6 -> E6100000 (Little Endian)
+  // 8 bytes: X (lng)
+  // 8 bytes: Y (lat)
+
+  const buffer = new ArrayBuffer(25);
+  const view = new DataView(buffer);
+
+  // Byte order: Little Endian
+  view.setUint8(0, 1);
+
+  // Type: Point (1) | SRID (0x20000000) => 0x20000001
+  view.setUint32(1, 0x20000001, true);
+
+  // SRID: 4326
+  view.setUint32(5, 4326, true);
+
+  // Coordinates
+  view.setFloat64(9, lng, true);
+  view.setFloat64(17, lat, true);
+
+  // Convert to hex string
+  let hex = "";
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+
+  return hex;
 }
 
 export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
@@ -45,6 +81,10 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
   const dbType = mapUiCategoryToDb(payload.category);
   if (dbType) updates.partner_type = dbType;
   if (payload.hours) updates.business_hours = payload.hours as unknown as Json; // JSON column
+  if (payload.lat && payload.lng) {
+    // Convert to WKB hex string
+    updates.coordinates = createWKBPoint(payload.lat, payload.lng) as unknown as Json;
+  }
 
   // Approval consistency with check constraint
   if (typeof payload.profileState === "boolean") {

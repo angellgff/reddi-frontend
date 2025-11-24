@@ -1,13 +1,14 @@
 "use client";
 import React from "react";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
-import FooterButtons from "@/src/components/basics/FooterButtons";
+import PartnerProfileFooterButtons from "./PartnerProfileFooterButtons";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import RadioInput from "@/src/components/basics/RadioInput";
 import CheckBox from "@/src/components/basics/CheckBox";
 import { partnersCategories, valueCategories } from "@/src/lib/type";
 import { Hours } from "@/src/lib/type";
+import LocationPickerMap from "@/src/components/features/partner/register/LocationPickerMap";
 
 const days = [
   { value: "monday", label: "Lunes" },
@@ -36,6 +37,8 @@ export interface BusinessFormData {
   profileState: boolean;
   logo?: File | string | null;
   document?: File | string | null;
+  lat?: number | null;
+  lng?: number | null;
 }
 
 // Define las props del componente
@@ -145,9 +148,41 @@ export default function BusinessProfileForm({
                 className="w-full border-gray-300 rounded-md"
                 placeholder="Ingresar la información"
               />
-              {/* Placeholder para el mapa */}
-              <div className="h-48 bg-gray-200 flex items-center justify-center text-gray-500 rounded-2xl">
-                Componente de Mapa (ej. Google Maps, Mapbox) iría aquí
+              {/* Mapa de Ubicación */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-800">
+                  Ubicación del negocio
+                </label>
+                <LocationPickerMap
+                  lat={formData.lat || null}
+                  lng={formData.lng || null}
+                  onLocationSelect={(lat, lng) => {
+                    setFormData((prev) => ({ ...prev, lat, lng }));
+                  }}
+                />
+                <p className="text-xs text-gray-500">
+                  Haz clic en el mapa para seleccionar la ubicación exacta.
+                </p>
+                <div className="grid grid-cols-2 gap-4 mt-2">
+                  <BasicInput
+                    name="lat"
+                    value={formData.lat?.toString() || ""}
+                    onChange={() => {}}
+                    label="Latitud"
+                    id="lat"
+                    placeholder=""
+                    disabled={true}
+                  />
+                  <BasicInput
+                    name="lng"
+                    value={formData.lng?.toString() || ""}
+                    onChange={() => {}}
+                    label="Longitud"
+                    id="lng"
+                    placeholder=""
+                    disabled={true}
+                  />
+                </div>
               </div>
               <SelectInput
                 id="category"
@@ -304,10 +339,9 @@ export default function BusinessProfileForm({
       </div>
 
       {/* --- BOTONES DEL FOOTER --- */}
-      <FooterButtons
+
+      <PartnerProfileFooterButtons
         onGoBack={onGoBack}
-        onPreview={() => console.log("Vista previa:", formData)}
-        onSaveAndExit={() => console.log("Guardar y salir:", formData)}
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
         nextText="Subir cambios"
