@@ -19,7 +19,6 @@ import {
   setCoupon as setCouponGlobal,
   setTipPercent as setTipGlobal,
   setTipAmountManual,
-  ValidatedCoupon,
 } from "@/src/lib/store/checkoutSlice";
 import { withTimeout } from "@/src/lib/utils";
 import { validateCouponAction } from "@/src/lib/actions/coupon";
