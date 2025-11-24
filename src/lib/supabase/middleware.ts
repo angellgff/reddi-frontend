@@ -130,6 +130,7 @@ export async function updateSession(request: NextRequest) {
     "/politica-entrega",
     "/politica-reembolsos-devoluciones-cancelaciones",
     "/terminos-y-condiciones",
+    "/contact-information",
     "/privacidad",
     "/protocolo-respuesta-incidentes-irp",
     "/politicas-seguridad-transmision-datos-tarjetas",
@@ -254,8 +255,8 @@ export async function updateSession(request: NextRequest) {
     const loginPath = path.startsWith("/admin")
       ? "/admin/login"
       : path.startsWith("/partner") || path.startsWith("/aliado")
-      ? "/admin/login" // <-- CORREGIDO
-      : "/login";
+        ? "/admin/login" // <-- CORREGIDO
+        : "/login";
 
     console.log(
       `[MW-DEBUG] Redirigiendo a la página de login relevante: ${loginPath}`
