@@ -5,7 +5,16 @@ import { createClient } from "@/src/lib/supabase/server";
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
 
-export async function registerPartner(prevState: any, formData: FormData) {
+// Definimos el tipo para el estado del formulario
+type FormState = {
+  error?: string;
+  success?: boolean;
+} | null;
+
+export async function registerPartner(
+  prevState: FormState,
+  formData: FormData
+) {
   // 1. Cliente normal para Auth (para mantener el contexto de sesión del usuario)
   const supabase = await createClient();
 
@@ -117,17 +126,13 @@ export async function registerPartner(prevState: any, formData: FormData) {
     // --- Sign In (Para sesión del usuario) ---
     await supabase.auth.signInWithPassword({ email, password });
 
-    // --- UPLOAD USANDO ADMIN CLIENT (Aquí es donde ocurría el error) ---
+    // --- UPLOAD USANDO ADMIN CLIENT ---
     let imageUrl: string | null = null;
-
-    // Convertir File a ArrayBuffer para el cliente de Admin (supabase-js standard)
-    // El cliente 'ssr' maneja FormData automáticamente, pero el vanilla js client a veces prefiere buffers
 
     if (imageFile && imageFile.size > 0) {
       const fileBuffer = await imageFile.arrayBuffer();
       const filePath = `${createdUserId}/${Date.now()}_logo`;
 
-      // USAMOS supabaseAdmin AQUÍ
       const { error: uploadError } = await supabaseAdmin.storage
         .from("business-images")
         .upload(filePath, fileBuffer, {
@@ -149,7 +154,6 @@ export async function registerPartner(prevState: any, formData: FormData) {
       const fileBuffer = await documentFile.arrayBuffer();
       const docPath = `${createdUserId}/${Date.now()}_doc`;
 
-      // USAMOS supabaseAdmin AQUÍ TAMBIÉN
       const { error: docUploadError } = await supabaseAdmin.storage
         .from("bank-documents")
         .upload(docPath, fileBuffer, {
@@ -163,8 +167,6 @@ export async function registerPartner(prevState: any, formData: FormData) {
     }
 
     // --- Update Final ---
-    // Aquí podemos usar 'supabase' (cliente normal) o 'supabaseAdmin'.
-    // Usamos admin para asegurar que no falle por permisos RLS en la tabla partners.
     if (imageUrl || documentUrl) {
       const { error: updateError } = await supabaseAdmin
         .from("partners")
@@ -176,14 +178,24 @@ export async function registerPartner(prevState: any, formData: FormData) {
 
       if (updateError) throw updateError;
     }
-  } catch (error: any) {
+  } catch (err: unknown) {
+    // Casteamos el error para acceder a sus propiedades de forma segura
+    const error = err as { message?: string; code?: string };
     console.error("Registration error:", error);
 
     // Rollback usando Admin
+    // 1. Borrar imagen si se subió
     if (uploadedImagePath) {
       await supabaseAdmin.storage
         .from("business-images")
         .remove([uploadedImagePath]);
+    }
+
+    // 2. Borrar documento si se subió (Soluciona el error de variable no usada)
+    if (uploadedDocumentPath) {
+      await supabaseAdmin.storage
+        .from("bank-documents")
+        .remove([uploadedDocumentPath]);
     }
 
     let friendly = "Ocurrió un error inesperado.";
