@@ -14,7 +14,6 @@ import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/P
 import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCard";
 import TipSelector from "@/src/components/features/finalUser/checkout/TipSelector";
 import { useStoreDetailsClient } from "@/src/lib/finalUser/stores/useStoreDetailsClient";
-import { createClient } from "@/src/lib/supabase/client";
 import {
   setPayment as setPaymentGlobal,
   setCoupon as setCouponGlobal,
@@ -23,10 +22,11 @@ import {
   ValidatedCoupon,
 } from "@/src/lib/store/checkoutSlice";
 import { withTimeout } from "@/src/lib/utils";
+import { validateCouponAction } from "@/src/lib/actions/coupon";
 
 export default function CheckoutPaymentPage() {
   const dispatch = useAppDispatch();
-  const supabase = createClient();
+
 
   // Selectors de Redux
   const items = useAppSelector(selectCartItems);
@@ -129,21 +129,17 @@ export default function CheckoutPaymentPage() {
     setCouponMsg(null);
 
     try {
-      const { data, error } = await withTimeout(
-        supabase.functions.invoke("validate-coupon", {
-          body: { couponCode: code, subtotal },
-        }),
+      const result = await withTimeout(
+        validateCouponAction(code, subtotal),
         4000,
         "coupon-timeout"
       );
 
-      if (error) throw new Error(error.message);
-
-      if (data.valid) {
-        setCouponMsg(data.message);
-        dispatch(setCouponGlobal(data.coupon as ValidatedCoupon));
+      if (result.success && result.coupon) {
+        setCouponMsg(result.message);
+        dispatch(setCouponGlobal(result.coupon));
       } else {
-        setCouponMsg(data.message || "Cupón inválido");
+        setCouponMsg(result.message || "Cupón inválido");
         dispatch(setCouponGlobal(null));
       }
     } catch (e) {
@@ -199,16 +195,16 @@ export default function CheckoutPaymentPage() {
                     (storesLoading
                       ? "Cargando tienda..."
                       : storesError
-                      ? "Tienda no disponible"
-                      : "Sin datos de tienda")}
+                        ? "Tienda no disponible"
+                        : "Sin datos de tienda")}
                 </div>
                 <div className="text-xs text-gray-500 truncate">
                   {firstStore?.address ||
                     (storesLoading
                       ? "Cargando dirección..."
                       : storesError
-                      ? "—"
-                      : "—")}
+                        ? "—"
+                        : "—")}
                 </div>
               </div>
               <div className="text-xs text-gray-500 whitespace-nowrap">
@@ -265,9 +261,8 @@ export default function CheckoutPaymentPage() {
             </div>
             {couponMsg ? (
               <div
-                className={`mt-1 text-xs ${
-                  storedCoupon ? "text-green-600" : "text-red-600"
-                }`}
+                className={`mt-1 text-xs ${storedCoupon ? "text-green-600" : "text-red-600"
+                  }`}
               >
                 {couponMsg}
               </div>
@@ -359,12 +354,12 @@ export default function CheckoutPaymentPage() {
               { label: "Costo de productos", value: subtotal },
               ...(storedCoupon
                 ? [
-                    {
-                      label: `Cupón ${storedCoupon.code}`,
-                      value: discount,
-                      negative: true,
-                    },
-                  ]
+                  {
+                    label: `Cupón ${storedCoupon.code}`,
+                    value: discount,
+                    negative: true,
+                  },
+                ]
                 : []),
               { label: "Costo de envío", value: shipping },
               { label: "Tarifa de servicio", value: serviceFee },
@@ -381,11 +376,10 @@ export default function CheckoutPaymentPage() {
             cta={
               <Link
                 href="/user/checkout/address"
-                className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-white text-sm font-medium ${
-                  canProceed
-                    ? "bg-emerald-600 hover:bg-emerald-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                }`}
+                className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-white text-sm font-medium ${canProceed
+                  ? "bg-emerald-600 hover:bg-emerald-700"
+                  : "bg-gray-400 cursor-not-allowed"
+                  }`}
                 aria-disabled={!canProceed}
                 onClick={(e) => !canProceed && e.preventDefault()}
               >
