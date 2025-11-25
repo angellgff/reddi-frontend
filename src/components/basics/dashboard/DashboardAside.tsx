@@ -1,6 +1,5 @@
 "use client";
 
-import LogoutAsideIcon from "@/src/components/icons/LogoutAsideIcon";
 import CollapsibleNavLink from "../../features/admin/CollapsibleNavLink";
 import SingleNavLink from "../../features/admin/SingleNavLink";
 import { useState } from "react";
@@ -65,18 +64,7 @@ export default function Sidebar({
         </nav>
 
         {/* ... resto del componente ... */}
-        <div>
-          <button
-            className="
-              flex w-full items-center rounded-lg 
-              bg-gray-50 p-3 text-sm font-medium text-gray-600
-              hover:bg-gray-100 hover:text-gray-900
-            "
-          >
-            <LogoutAsideIcon className="h-5 w-5 mx-2" />
-            <span>Logout</span>
-          </button>
-        </div>
+
       </div>
     </aside>
   );

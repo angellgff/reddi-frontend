@@ -66,7 +66,7 @@ export default function DesktopFeaturedCategories({
       aria-labelledby="categorias-destacadas"
     >
       {/* Title */}
-      <div className="shrink-0 w-[284px]">
+      <div className="shrink-0 w-[284px]" style={{ width: "19%" }}>
         <h2
           id="categorias-destacadas"
           className="font-semibold text-[28px] leading-8 text-black"
