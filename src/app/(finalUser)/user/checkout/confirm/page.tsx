@@ -1,9 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useMemo } from "react"; // Se añade useMemo
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
+import { InvoiceDetailDialog } from "@/src/components/features/finalUser/checkout/InvoiceDetailDialog";
+import { getUserProfile } from "@/src/lib/finalUser/profile/actions";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartItems, selectCartSubtotal } from "@/src/lib/store/cartSlice";
 import {
@@ -33,6 +35,24 @@ export default function CheckoutConfirmPage() {
   const serviceFee = useAppSelector(selectServiceFee);
   const checkout = useAppSelector((s) => s.checkout);
   const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
+  const [userProfile, setUserProfile] = useState<{
+    first_name: string | null;
+    last_name: string | null;
+    phone_number: string | null;
+  } | null>(null);
+
+  // Fetch user profile for invoice
+  useEffect(() => {
+    getUserProfile().then(({ user }) => {
+      if (user) {
+        setUserProfile({
+          first_name: user.first_name,
+          last_name: user.last_name,
+          phone_number: user.phone_number,
+        });
+      }
+    });
+  }, []);
 
   // Dirección seleccionada efectiva (checkout.addressId tiene prioridad)
   const effectiveAddressId = checkout.addressId || selectedAddressId || null;
@@ -174,9 +194,48 @@ export default function CheckoutConfirmPage() {
       <Stepper current="confirmar" />
 
       <section className="mt-8 rounded-2xl border border-[#D9DCE3] bg-white p-[30px]">
-        <h2 className="text-center text-[28px] leading-8 font-semibold text-[#0D0D0D]">
-          Resumen final
-        </h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-[28px] leading-8 font-semibold text-[#0D0D0D]">
+            Resumen final
+          </h2>
+          <InvoiceDetailDialog
+            trigger={
+              <button className="h-10 rounded-xl border border-gray-300 px-4 text-sm font-medium flex justify-center items-center hover:bg-gray-50 transition-colors">
+                Ver detalle
+              </button>
+            }
+            items={items.map((item, idx) => ({
+              productId: item.productId,
+              partnerId: item.partnerId,
+              name: item.name,
+              unitPrice: item.unitPrice,
+              quantity: item.quantity,
+              note: item.note,
+              extras: item.extras.map((extra) => ({
+                extraId: extra.extraId,
+                name: extra.name,
+                quantity: extra.quantity,
+                price: extra.price,
+              })),
+            }))}
+            subtotal={subtotal}
+            discount={discount}
+            shipping={shipping}
+            serviceFee={serviceFee}
+            tip={tip}
+            total={total}
+            address={selectedAddress}
+            payment={checkout.payment}
+            schedule={checkout.schedule}
+            coupon={checkout.coupon}
+            customerName={
+              userProfile?.first_name && userProfile?.last_name
+                ? `${userProfile.first_name} ${userProfile.last_name}`.trim()
+                : undefined
+            }
+            customerPhone={userProfile?.phone_number || undefined}
+          />
+        </div>
 
         <div className="mt-6 grid grid-cols-1 gap-x-12 gap-y-6">
           {/* Columna izquierda */}
