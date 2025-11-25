@@ -11,7 +11,7 @@ const mockProducts: DishData[] = [
     rating: "4.8",
     reviewCount: 254,
     deliveryTime: "25-30 min",
-    deliveryFee: "0$ tarifa de envío",
+    deliveryFee: "RD0$ tarifa de envío",
   },
   {
     id: "2",

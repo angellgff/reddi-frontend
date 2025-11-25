@@ -373,18 +373,43 @@ export default function CheckoutPaymentPage() {
             total={total}
             disabled={!canProceed}
             cta={
-              <Link
-                href="/user/checkout/address"
-                className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-white text-sm font-medium ${
-                  canProceed
-                    ? "bg-emerald-600 hover:bg-emerald-700"
-                    : "bg-gray-400 cursor-not-allowed"
-                }`}
-                aria-disabled={!canProceed}
-                onClick={(e) => !canProceed && e.preventDefault()}
-              >
-                Siguiente
-              </Link>
+              <>
+                <Link
+                  href="/user/checkout/address"
+                  className={`mt-4 inline-flex w-full items-center justify-center rounded-xl px-4 py-3 text-white text-sm font-medium ${
+                    canProceed
+                      ? "bg-emerald-600 hover:bg-emerald-700"
+                      : "bg-gray-400 cursor-not-allowed"
+                  }`}
+                  aria-disabled={!canProceed}
+                  onClick={(e) => !canProceed && e.preventDefault()}
+                >
+                  Siguiente
+                </Link>
+                <div className="flex flex-row items-center justify-center gap-4 mt-4">
+                  <Image
+                    src="/logos-visa-mastercard.png"
+                    alt="Visa and Mastercard"
+                    width={80}
+                    height={30}
+                    className="h-8 w-auto object-contain"
+                  />
+                  <Image
+                    src="/mastercard-id-check.png"
+                    alt="Mastercard ID Check"
+                    width={80}
+                    height={30}
+                    className="h-8 w-auto object-contain"
+                  />
+                  <Image
+                    src="/verified-by-visa.png"
+                    alt="Verified by Visa"
+                    width={80}
+                    height={30}
+                    className="h-8 w-auto object-contain"
+                  />
+                </div>
+              </>
             }
           />
         </aside>

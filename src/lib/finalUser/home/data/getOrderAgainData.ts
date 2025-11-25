@@ -71,7 +71,7 @@ export default async function getOrderAgainData(): Promise<SliderCardProps[]> {
       rating: Number(Number(avg).toFixed(1)),
       reviewCount: Number(total) || 0,
       deliveryTime: "25-35 min",
-      deliveryFee: "$0 tarifa de envío",
+      deliveryFee: "RD$0 tarifa de envío",
       href: `/user/stores/${p.id}`,
     };
   });

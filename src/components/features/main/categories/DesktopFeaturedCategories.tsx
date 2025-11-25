@@ -62,11 +62,11 @@ export default function DesktopFeaturedCategories({
 }) {
   return (
     <section
-      className={`hidden  p-4 md:px-6 lg:px-8 md:flex w-full items-center justify-between gap-8 ${className}`}
+      className={`hidden  p-4 md:px-6 lg:px-8 md:flex w-full items-center justify-between ${className}`}
       aria-labelledby="categorias-destacadas"
     >
       {/* Title */}
-      <div className="shrink-0 w-[284px]">
+      <div className="shrink-0 w-[250px]">
         <h2
           id="categorias-destacadas"
           className="font-semibold text-[28px] leading-8 text-black"
