@@ -204,7 +204,7 @@ export default function CheckoutConfirmPage() {
                 Ver detalle
               </button>
             }
-            items={items.map((item, idx) => ({
+            items={items.map((item) => ({
               productId: item.productId,
               partnerId: item.partnerId,
               name: item.name,
