@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
-import PartnerProfileFooterButtons from "./PartnerProfileFooterButtons";
+import PartnerProfileFooterButtons from "@/src/components/features/admin/partners/editPartner/PartnerProfileFooterButtons";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import RadioInput from "@/src/components/basics/RadioInput";
@@ -9,6 +9,8 @@ import CheckBox from "@/src/components/basics/CheckBox";
 import { partnersCategories, valueCategories } from "@/src/lib/type";
 import { Hours } from "@/src/lib/type";
 import LocationPickerMap from "@/src/components/features/partner/register/LocationPickerMap";
+import { createClient } from "@/src/lib/supabase/client";
+import { useRouter } from "next/navigation";
 
 const days = [
   { value: "monday", label: "Lunes" },
@@ -50,13 +52,16 @@ interface BusinessProfileFormProps {
   isSubmitting: boolean;
 }
 
-export default function BusinessProfileForm({
+export default function MyPartnerProfile({
   formData,
   setFormData,
   onSubmit,
   onGoBack,
   isSubmitting,
 }: BusinessProfileFormProps) {
+  const router = useRouter();
+  const supabase = createClient();
+
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -92,8 +97,13 @@ export default function BusinessProfileForm({
     }));
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/partner/login");
+  };
+
   return (
-    <form onSubmit={onSubmit}>
+    <form onSubmit={onSubmit} className="w-full">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* --- COLUMNA IZQUIERDA --- */}
         <div className="lg:col-span-1 border border-[#D9DCE3] rounded-xl">
@@ -225,7 +235,7 @@ export default function BusinessProfileForm({
           {/* Sección Horario de Atención */}
           <div className="bg-white px-6 rounded-xl shadow-sm pb-6">
             <h2 className="text-lg font-semibold text-primary mb-4 ">
-              Datos del Negocio
+              Horario de Atención
             </h2>
             <div className="space-y-3">
               {days.map(({ value, label }) => (
@@ -288,66 +298,155 @@ export default function BusinessProfileForm({
         </div>
 
         {/* --- COLUMNA DERECHA --- */}
-        <div className="lg:col-span-1 space-y-8 rounded-xl border border-[#D9DCE3] ">
-          <div className="bg-white p-6 rounded-xl shadow-sm space-y-6">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">Estado del perfil</h3>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input
-                  id="profileState"
-                  type="checkbox"
-                  checked={formData.profileState}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      profileState: e.target.checked,
-                    }))
-                  }
-                  className="sr-only peer"
-                />
-                <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#525252]"></div>
-              </label>
-            </div>
-            <div>
+        <div className="lg:col-span-1 space-y-8 rounded-xl border border-[#D9DCE3] p-5">
+          <div className="bg-white rounded-xl shadow-sm space-y-6">
+            {/* <div>
               <h2 className="text-lg font-semibold text-primary mb-4">
-                Logo e Imágenes
+                Banner principal
               </h2>
               <FileUploadZone
                 id="logo-upload"
-                label="Logo del aliado"
+                label="Arrastra y suelta tu archivo aquí"
                 onFileChange={(file) =>
                   setFormData((prev) => ({ ...prev, logo: file }))
                 }
                 value={formData.logo}
                 acceptedFileTypes="image"
               />
+              <p className="text-sm text-gray-500 mt-2">
+                Formatos soportados: JPG, PNG,(máx. 10MB)
+              </p>
+            </div> */}
+            <div>
+              <h2 className="text-lg font-semibold text-primary mb-4">Logo</h2>
+              <FileUploadZone
+                id="logo-upload-2"
+                label="Arrastra y suelta tu archivo aquí"
+                onFileChange={(file) =>
+                  setFormData((prev) => ({ ...prev, logo: file }))
+                }
+                value={formData.logo}
+                acceptedFileTypes="image"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Formatos soportados: JPG, PNG,(máx. 10MB)
+              </p>
             </div>
             <div>
               <h2 className="text-lg font-semibold text-primary mb-4">
                 Documentos Legales
               </h2>
+              <p className="text-sm font-medium text-gray-700 mb-2">
+                Documentos de verificación de la cuenta bancaria
+              </p>
               <FileUploadZone
                 id="document-upload"
-                label="Documentos de verificación de la cuenta bancaria"
+                label="Arrastra y suelta tu archivo aquí"
                 onFileChange={(file) =>
                   setFormData((prev) => ({ ...prev, document: file }))
                 }
                 value={formData.document}
                 acceptedFileTypes="any"
               />
+              <p className="text-sm text-gray-500 mt-2">
+                Formatos soportados: PDF, JPG, PNG, DOCX (máx. 10MB)
+              </p>
+            </div>
+
+            {/* Seguridad de la Cuenta */}
+            <div>
+              <h2 className="text-lg font-semibold text-primary mb-4">
+                Seguridad de la Cuenta
+              </h2>
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50"
+                >
+                  Cambiar contraseña
+                </button>
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="flex-1 px-4 py-2 bg-primary text-white rounded-xl font-medium hover:bg-green-600"
+                >
+                  Cerrar sesión
+                </button>
+              </div>
+            </div>
+
+            {/* Notificaciones */}
+            <div>
+              <h2 className="text-lg font-semibold text-primary mb-4">
+                Notificaciones
+              </h2>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Notificaciones por correo
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Recibir alertas de pedidos y pagos
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      defaultChecked
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Notificaciones push
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Alertas en tiempo real en la app
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      defaultChecked
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                  </label>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      Notificaciones SMS
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Mensajes de texto importantes
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" className="sr-only peer" />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* --- BOTONES DEL FOOTER --- */}
-
-      <PartnerProfileFooterButtons
-        onGoBack={onGoBack}
-        onSubmit={onSubmit}
-        isSubmitting={isSubmitting}
-        nextText="Subir cambios"
-      />
+      <div className="flex items-center justify-end gap-4 mt-8">
+        <button
+          type="submit"
+          className="px-6 py-2 bg-primary text-white rounded-xl font-medium hover:bg-green-600 disabled:opacity-50"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Guardando..." : "Guardar cambios"}
+        </button>
+      </div>
     </form>
   );
 }

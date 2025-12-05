@@ -5,7 +5,7 @@ import type { Database, Json } from "@/src/lib/database.types";
 
 type PartnerRow = Database["public"]["Tables"]["partners"]["Row"];
 
-export type UpdatePartnerPayload = {
+export type UpdateMyProfilePayload = {
   id: string;
   name?: string;
   isPhysical?: boolean;
@@ -14,7 +14,6 @@ export type UpdatePartnerPayload = {
   phone?: string;
   email?: string;
   hours?: Record<string, { active: boolean; opens: string; closes: string }>;
-  profileState?: boolean;
   lat?: number | null;
   lng?: number | null;
   image_url?: string | null;
@@ -22,7 +21,7 @@ export type UpdatePartnerPayload = {
 };
 
 function mapUiCategoryToDb(
-  partnerCategory?: UpdatePartnerPayload["category"]
+  partnerCategory?: UpdateMyProfilePayload["category"]
 ): PartnerRow["partner_type"] | undefined {
   if (!partnerCategory) return undefined;
   return partnerCategory === "alcohol" ? "liquor_store" : partnerCategory;
@@ -62,11 +61,22 @@ function createWKBPoint(lat: number, lng: number): string {
   return hex;
 }
 
-export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
+export async function updateMyProfile(payload: UpdateMyProfilePayload) {
   const supabase = await createClient();
 
-  // Basic validation
-  if (!payload.id) throw new Error("Missing partner id");
+  const {
+    data: { user },
+    error: userErr,
+  } = await supabase.auth.getUser();
+
+  if (userErr || !user) {
+    throw new Error("No autorizado");
+  }
+
+  // Verify that the user is updating their own profile
+  if (payload.id !== user.id) {
+    throw new Error("No tienes permiso para editar este perfil");
+  }
 
   const updates: Partial<PartnerRow> = {};
   if (typeof payload.name === "string") updates.name = payload.name.trim();
@@ -77,62 +87,25 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
   if (typeof payload.phone === "string") updates.phone = payload.phone.trim();
   if (typeof payload.email === "string")
     updates.billing_email = payload.email.trim();
-  if (typeof payload.profileState === "boolean")
-    updates.is_approved = payload.profileState;
+
   const dbType = mapUiCategoryToDb(payload.category);
   if (dbType) updates.partner_type = dbType;
-  if (payload.hours) updates.business_hours = payload.hours as unknown as Json; // JSON column
+
+  if (payload.hours) updates.business_hours = payload.hours as unknown as Json;
+
   if (payload.lat && payload.lng) {
-    // Convert to WKB hex string
     updates.coordinates = createWKBPoint(
       payload.lat,
       payload.lng
     ) as unknown as Json;
   }
+
   if (payload.image_url !== undefined) updates.image_url = payload.image_url;
   if (payload.bank_document_url !== undefined)
     updates.bank_document_url = payload.bank_document_url;
 
-  // Approval consistency with check constraint
-  if (typeof payload.profileState === "boolean") {
-    if (payload.profileState === true) {
-      // We must provide approved_at and approved_by
-      const {
-        data: { user },
-        error: userErr,
-      } = await supabase.auth.getUser();
-      if (userErr || !user) {
-        console.error("updatePartnerProfile: missing auth user", userErr);
-        throw new Error("No autorizado");
-      }
-
-      // Look up admin id for this user
-      const { data: adminRow, error: adminErr } = await supabase
-        .from("admins")
-        .select("id")
-        .eq("user_id", user.id)
-        .single();
-      if (adminErr || !adminRow) {
-        console.error(
-          "updatePartnerProfile: admin not found for user",
-          adminErr
-        );
-        throw new Error("Administrador no válido");
-      }
-
-      updates.approved_at = new Date().toISOString();
-      updates.approved_by = adminRow.id;
-    } else {
-      // Unapproval: ensure fields are null
-      updates.approved_at = null;
-      updates.approved_by = null;
-    }
-  }
-
-  // No-op safeguard
   if (Object.keys(updates).length === 0) return { ok: true };
 
-  // Update with RLS in mind: ensure the caller has permission via policies; this uses the cookie session
   const { error } = await supabase
     .from("partners")
     .update(updates)
@@ -141,8 +114,8 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
     .single();
 
   if (error) {
-    console.error("updatePartnerProfile error", error);
-    throw new Error("No se pudo actualizar el aliado");
+    console.error("updateMyProfile error", error);
+    throw new Error("No se pudo actualizar el perfil");
   }
 
   return { ok: true };

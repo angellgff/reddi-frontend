@@ -1,14 +1,14 @@
 "use client";
 
-import PartnerProfile from "./PartnerProfile";
-import { BusinessFormData } from "./PartnerProfile";
-import { updatePartnerProfile } from "@/src/lib/admin/data/partners/updatePartnerProfile";
+import MyPartnerProfile from "./MyPartnerProfile";
+import { BusinessFormData } from "@/src/components/features/admin/partners/editPartner/PartnerProfile";
+import { updateMyProfile } from "@/src/lib/actions/partner/updateMyProfile";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import { uploadFile } from "@/src/lib/storage/uploadFile";
 
-export default function EditPartnerProfile({
+export default function ProfileClient({
   partnerId,
   partnerData,
 }: {
@@ -52,7 +52,7 @@ export default function EditPartnerProfile({
         documentUrl = formData.document;
       }
 
-      await updatePartnerProfile({
+      await updateMyProfile({
         id: partnerId,
         name: formData.name,
         isPhysical: formData.isPhysical,
@@ -64,21 +64,18 @@ export default function EditPartnerProfile({
         phone: formData.phone,
         email: formData.email,
         hours: formData.hours,
-        profileState: formData.profileState,
         lat: formData.lat,
         lng: formData.lng,
         image_url: logoUrl,
         bank_document_url: documentUrl,
       });
       setModalTitle("Cambios guardados");
-      setModalDesc("El perfil del aliado se actualizó correctamente.");
+      setModalDesc("Tu perfil se ha actualizado correctamente.");
       setModalOpen(true);
     } catch (err) {
-      console.error("No se pudo actualizar el aliado", err);
+      console.error("No se pudo actualizar el perfil", err);
       setModalTitle("Error al guardar");
-      setModalDesc(
-        "No pudimos actualizar el perfil del aliado. Inténtalo nuevamente."
-      );
+      setModalDesc("No pudimos actualizar tu perfil. Inténtalo nuevamente.");
       setModalOpen(true);
     } finally {
       setIsSubmitting(false);
@@ -87,23 +84,33 @@ export default function EditPartnerProfile({
 
   return (
     <>
-      <PartnerProfile
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleSubmit}
-        onGoBack={() => router.back()}
-        isSubmitting={isSubmitting}
-      />
+      <div className="flex flex-col items-start px-[50px] py-[30px] gap-[29px] w-full min-h-screen bg-[#F0F2F5]">
+        {/* Perfil del Aliado */}
+        <h1 className="font-poppins font-semibold text-[24px] leading-[28px] text-[#171717]">
+          Perfil del Aliado
+        </h1>
+
+        {/* Section */}
+        <div className="flex flex-col items-start px-[20px] py-[30px] gap-[20px] w-full bg-white rounded-[20px]">
+          <MyPartnerProfile
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={handleSubmit}
+            onGoBack={() => router.back()}
+            isSubmitting={isSubmitting}
+          />
+        </div>
+      </div>
 
       <ConfirmModal
         open={modalOpen}
         title={modalTitle}
         description={modalDesc}
         confirmText="Aceptar"
-        cancelText="Volver"
+        cancelText="Cerrar"
         loading={false}
-        onConfirm={() => router.push("/admin/aliados")}
-        onCancel={() => router.push("/admin/aliados")}
+        onConfirm={() => setModalOpen(false)}
+        onCancel={() => setModalOpen(false)}
       />
     </>
   );

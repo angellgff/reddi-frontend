@@ -126,16 +126,18 @@ export async function registerPartner(
     // --- Sign In (Para sesión del usuario) ---
     await supabase.auth.signInWithPassword({ email, password });
 
-    // --- UPLOAD USANDO ADMIN CLIENT ---
     let imageUrl: string | null = null;
 
     if (imageFile && imageFile.size > 0) {
       const fileBuffer = await imageFile.arrayBuffer();
-      const filePath = `${createdUserId}/${Date.now()}_logo`;
+      // Usamos Buffer.from para asegurar compatibilidad en entorno Node
+      const buffer = Buffer.from(fileBuffer);
+      const fileExt = imageFile.name.split(".").pop(); // Obtener extensión (jpg, png)
+      const filePath = `${createdUserId}/${Date.now()}_logo.${fileExt}`;
 
       const { error: uploadError } = await supabaseAdmin.storage
         .from("business-images")
-        .upload(filePath, fileBuffer, {
+        .upload(filePath, buffer, {
           contentType: imageFile.type,
           upsert: true,
         });
@@ -146,24 +148,43 @@ export async function registerPartner(
       const { data: publicUrlData } = supabaseAdmin.storage
         .from("business-images")
         .getPublicUrl(filePath);
+
       imageUrl = publicUrlData.publicUrl;
     }
 
+    // 2. Lógica de DOCUMENTO BANCARIO (Corrección aquí)
     let documentUrl: string | null = null;
+
     if (documentFile && documentFile.size > 0) {
       const fileBuffer = await documentFile.arrayBuffer();
-      const docPath = `${createdUserId}/${Date.now()}_doc`;
+      const buffer = Buffer.from(fileBuffer);
+
+      // Corrección 1: Mantener la extensión del archivo original
+      const fileExt = documentFile.name.split(".").pop();
+      // Corrección 2: Sanitizar nombre (opcional, pero ayuda a evitar errores con espacios)
+      const fileNameSanitized = documentFile.name.replace(
+        /[^a-zA-Z0-9.]/g,
+        "_"
+      );
+
+      const docPath = `${createdUserId}/${Date.now()}_${fileNameSanitized}`;
 
       const { error: docUploadError } = await supabaseAdmin.storage
         .from("bank-documents")
-        .upload(docPath, fileBuffer, {
+        .upload(docPath, buffer, {
           contentType: documentFile.type,
           upsert: true,
         });
 
       if (docUploadError) throw docUploadError;
       uploadedDocumentPath = docPath;
-      documentUrl = docPath;
+
+      // Corrección 3: Generar la URL Pública (esto faltaba)
+      const { data: publicDocUrlData } = supabaseAdmin.storage
+        .from("bank-documents")
+        .getPublicUrl(docPath);
+
+      documentUrl = publicDocUrlData.publicUrl;
     }
 
     // --- Update Final ---
@@ -172,7 +193,7 @@ export async function registerPartner(
         .from("partners")
         .update({
           image_url: imageUrl,
-          bank_document_url: documentUrl,
+          bank_document_url: documentUrl, // Ahora sí es una URL completa
         })
         .eq("id", createdUserId);
 

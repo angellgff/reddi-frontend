@@ -44,7 +44,8 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   };
 
   // Usamos una imagen por defecto si no hay una URL de imagen del negocio
-  const profileImageUrl = profile.business_image_url || "/simple-user-default.webp";
+  const profileImageUrl =
+    profile.business_image_url || "/simple-user-default.webp";
 
   return (
     <header className="fixed bg-white w-full font-manrope z-50">
@@ -75,7 +76,16 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
           </div>
 
           {/* Perfil de Usuario - AHORA CON DATOS DINÁMICOS */}
-          <div className="flex items-center space-x-3 border-x-2 px-4">
+          <div
+            className="flex items-center space-x-3 border-x-2 px-4 cursor-pointer"
+            onClick={() => {
+              const target =
+                profile.role === "restaurant"
+                  ? "/partner/restaurant/profile"
+                  : "/partner/market/profile";
+              router.push(target);
+            }}
+          >
             <div className="relative">
               <Image
                 className="h-9 w-9 rounded-full object-cover" // Añadimos rounded-full y object-cover

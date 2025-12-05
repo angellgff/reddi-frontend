@@ -16,6 +16,7 @@ type SelectedPartnerColumns = Pick<
   | "image_url"
   | "is_approved"
   | "coordinates"
+  | "bank_document_url"
 >;
 
 const defaultHours: BusinessFormData["hours"] = {
@@ -31,7 +32,7 @@ function parseWKBPoint(wkb: string): { lat: number; lng: number } | null {
   try {
     // Remove "0x" if present
     const hex = wkb.startsWith("0x") ? wkb.slice(2) : wkb;
-    
+
     // Basic validation for WKB Point with SRID (EWKB)
     // 1 byte endian + 4 bytes type + 4 bytes SRID + 16 bytes coords = 25 bytes = 50 hex chars
     if (hex.length < 50) return null;
@@ -42,7 +43,7 @@ function parseWKBPoint(wkb: string): { lat: number; lng: number } | null {
     // 4 bytes (type) -> 8 chars
     // 4 bytes (SRID) -> 8 chars
     // Total offset = 18 chars
-    
+
     const xHex = hex.substring(18, 34);
     const yHex = hex.substring(34, 50);
 
@@ -114,7 +115,7 @@ function mapDbToForm(row: SelectedPartnerColumns): BusinessFormData {
     hours,
     profileState: !!row.is_approved,
     logo: row.image_url || null,
-    document: null,
+    document: row.bank_document_url || null,
     lat,
     lng,
   };
@@ -125,7 +126,7 @@ export default async function getPartnerDataById(id: string) {
   const { data, error } = await supabase
     .from("partners")
     .select(
-      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, is_approved, coordinates"
+      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, is_approved, coordinates, bank_document_url"
     )
     .eq("id", id)
     .single();
