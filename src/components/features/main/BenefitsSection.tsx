@@ -22,7 +22,7 @@ const benefits = [
 
 export default function BenefitsSection() {
   return (
-    <div className="w-full bg-[#F9FAFB] py-12 md:py-16 flex flex-col lg:flex-row items-center gap-10 md:gap-14">
+    <div className="w-full bg-[#FFFFF] py-12 md:py-16 flex flex-col lg:flex-row items-center gap-10 md:gap-14">
       {/* Imagen */}
       <div className="w-full lg:w-[570px] flex-shrink-0 max-w-full">
         <Image
