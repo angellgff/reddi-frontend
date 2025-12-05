@@ -6,6 +6,7 @@ import UserHeaderSkeleton from "@/src/components/features/finalUser/header/UserH
 import UserFooter from "@/src/components/basics/UserFooter";
 import UserAddressesHydratorServer from "@/src/components/features/finalUser/addresses/UserAddressesHydratorServer";
 import UserDefaultPaymentHydratorServer from "@/src/components/features/finalUser/payments/UserDefaultPaymentHydratorServer";
+import GuestFooter from "@/src/components/features/layout/GuestFooter";
 
 export default function UserLayout({
   children,
@@ -23,6 +24,10 @@ export default function UserLayout({
         {children}
       </main>
       <UserFooter />
+      <div className="pt-0 md:pt-[4.45rem]">
+        {" "}
+        <GuestFooter />
+      </div>
     </>
   );
 }

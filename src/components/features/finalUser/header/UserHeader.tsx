@@ -18,6 +18,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
+import Logo from "@/src/components/basics/Logo";
+import Link from "next/link";
 
 const badgeColor = "bg-red-500";
 
@@ -228,14 +230,9 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
           <div className="flex items-center gap-6 lg:gap-10 min-w-0">
             <div className="flex items-center flex-shrink-0">
               {/* Placeholder for logo - replace with real Logo component if available */}
-              <span
-                className="text-3xl font-bold text-primary select-none"
-                onClick={() => {
-                  router.push("/user/home");
-                }}
-              >
-                Reddi
-              </span>
+              <Link href="/user/home">
+                <Logo />
+              </Link>
             </div>
             <div className="flex items-center gap-6 lg:gap-10 border-l border-primary pl-4 lg:pl-8 min-w-0">
               <div className="flex flex-col w-[151px] flex-shrink-0">

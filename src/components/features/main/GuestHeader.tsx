@@ -90,7 +90,9 @@ export default function GuestHeader() {
         "
       ></div>
       <div
-        className={`flex flex-col p-4 ${isSearchBarVisible ? "space-y-4" : ""}`}
+        className={`flex max-w-7xl mx-auto flex-col p-4 md:px-6 lg:px-8 ${
+          isSearchBarVisible ? "space-y-4" : ""
+        }`}
       >
         {/* --- Fila Superior: Logo y Acciones --- */}
         <div className="flex items-end justify-between md:items-center">

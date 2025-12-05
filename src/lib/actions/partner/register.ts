@@ -160,7 +160,6 @@ export async function registerPartner(
       const buffer = Buffer.from(fileBuffer);
 
       // Corrección 1: Mantener la extensión del archivo original
-      const fileExt = documentFile.name.split(".").pop();
       // Corrección 2: Sanitizar nombre (opcional, pero ayuda a evitar errores con espacios)
       const fileNameSanitized = documentFile.name.replace(
         /[^a-zA-Z0-9.]/g,

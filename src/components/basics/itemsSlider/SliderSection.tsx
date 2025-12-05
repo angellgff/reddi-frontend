@@ -18,7 +18,7 @@ export default function SliderSection({
   return (
     <div className="w-full">
       {/* Encabezado de la sección */}
-      <div className="mb-4 sm:px-6 flex items-center justify-between gap-4">
+      <div className="mb-4  flex items-center justify-between gap-4">
         <h2 id={title} className="text-2xl font-bold text-gray-900">
           {title}
         </h2>
@@ -39,13 +39,6 @@ export default function SliderSection({
             <RestaurantCard {...item} />
           </div>
         ))}
-      </div>
-
-      {/* Enlace "Mostrar todo" */}
-      <div className="mt-1 sm:px-6">
-        <p className="font-inter font-medium underline decoration-2 underline-offset-4 hover:text-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-          Mostrar todo
-        </p>
       </div>
     </div>
   );

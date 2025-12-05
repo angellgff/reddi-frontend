@@ -1,7 +1,6 @@
 "use client";
 import React from "react";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
-import PartnerProfileFooterButtons from "@/src/components/features/admin/partners/editPartner/PartnerProfileFooterButtons";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import RadioInput from "@/src/components/basics/RadioInput";
@@ -56,7 +55,6 @@ export default function MyPartnerProfile({
   formData,
   setFormData,
   onSubmit,
-  onGoBack,
   isSubmitting,
 }: BusinessProfileFormProps) {
   const router = useRouter();

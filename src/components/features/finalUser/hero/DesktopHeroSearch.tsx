@@ -6,12 +6,24 @@ export default function DesktopHeroSearch() {
           relative isolate mx-auto w-full rounded-[30px] bg-[#04BD88] 
           shadow-[0px_1px_0.5px_0.05px_rgba(29,41,61,0.02)] 
           flex flex-col items-center gap-6 px-[60px] py-6 h-[224px] overflow-hidden
-          bg-[url('/bg.svg')] 
-          bg-cover 
-          bg-center 
-          bg-no-repeat
+          /* NOTA: He quitado el bg-url de aquí para ponerlo en su propia capa */
         "
       >
+        {/* --- NUEVA CAPA: IMAGEN DE FONDO CON OPACIDAD --- */}
+        <div
+          className="
+            absolute inset-0 
+            bg-[url('/bg.svg')] 
+            bg-cover 
+            bg-center 
+            bg-no-repeat 
+            opacity-15  /* <--- AJUSTA ESTO: 10, 15, 20, según lo suave que lo quieras */
+            pointer-events-none 
+            z-0
+          "
+        />
+
+        {/* --- CAPA EXISTENTE: DECORACIÓN DE PUNTOS --- */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 opacity-20 z-0"
@@ -22,6 +34,7 @@ export default function DesktopHeroSearch() {
           }}
         />
 
+        {/* --- CONTENIDO --- */}
         <div className="relative z-10 flex flex-col items-center gap-3 max-w-[672px] w-full">
           <h3 className="text-white font-bold text-[28px] leading-8 md:text-[32px] md:leading-10 text-center">
             Con Reddi, pide fácil y disfruta el momento

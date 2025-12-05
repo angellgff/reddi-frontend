@@ -1,7 +1,6 @@
 import StatCard from "@/src/components/features/partner/stats/StatCard";
-import StatDollarIcon from "@/src/components/icons/StatDollarIcon";
-import CompleteOrderIcon from "@/src/components/icons/CompleteOrderIcon";
 import React from "react";
+import Image from "next/image";
 
 // Tipos para la tabla
 export type FinanceRow = {
@@ -138,19 +137,44 @@ export default function FinancesView({
       {/* Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-2 mb-5">
         <StatCard title="Ingreso de Hoy" value={stats.todayIncome}>
-          <StatDollarIcon />
+          <Image
+            src="/incomes-finance.png"
+            alt="Ingreso de Hoy"
+            width={24}
+            height={24}
+          />
         </StatCard>
         <StatCard title="Más Vendidos" value={stats.bestSellers}>
-          <CompleteOrderIcon />
+          <Image
+            src="/dollar-finance.png"
+            alt="Ingreso de Hoy"
+            width={32}
+            height={32}
+          />
         </StatCard>
         <StatCard title="Ingresos del Mes" value={stats.monthIncome}>
-          <StatDollarIcon />
+          <Image
+            src="/dollar-finance.png"
+            alt="Ingreso de Hoy"
+            width={32}
+            height={32}
+          />
         </StatCard>
         <StatCard title="Pedidos completados" value={stats.ordersCompleted}>
-          <CompleteOrderIcon />
+          <Image
+            src="/check-finance.png"
+            alt="Ingreso de Hoy"
+            width={24}
+            height={24}
+          />
         </StatCard>
         <StatCard title="Comisiones" value={stats.commissions}>
-          <StatDollarIcon />
+          <Image
+            src="/check-finance.png"
+            alt="Ingreso de Hoy"
+            width={24}
+            height={24}
+          />
         </StatCard>
       </div>
 
