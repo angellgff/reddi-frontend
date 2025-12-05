@@ -34,21 +34,21 @@ export default function DesktopHeroSearch() {
                 name="q"
                 placeholder="Platos, alimentos, etc."
                 className="
-    flex-1 
-    bg-transparent 
-    text-[14px] leading-[18px] text-[#1A1A1A] placeholder:text-[#ADAEBC]
-    
-    /* 👇 FUERZA BRUTA: elimina bordes, anillos, outlines y sombras */
-    !border-none 
-    !outline-none 
-    !ring-0 
-    !shadow-none
-    
-    focus:!border-transparent 
-    focus:!ring-0 
-    focus:!outline-none
-    focus:!shadow-none
-  "
+                flex-1 
+                bg-transparent 
+                text-[14px] leading-[18px] text-[#1A1A1A] placeholder:text-[#ADAEBC]
+                
+                /* 👇 FUERZA BRUTA: elimina bordes, anillos, outlines y sombras */
+                !border-none 
+                !outline-none 
+                !ring-0 
+                !shadow-none
+                
+                focus:!border-transparent 
+                focus:!ring-0 
+                focus:!outline-none
+                focus:!shadow-none
+              "
               />
               <button
                 type="submit"

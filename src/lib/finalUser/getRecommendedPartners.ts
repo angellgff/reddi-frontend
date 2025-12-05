@@ -29,7 +29,7 @@ export default async function getRecommendedPartners(): Promise<
       rating: Number(avg.toFixed(1)),
       reviewCount: total,
       deliveryTime: "25-35 min",
-      deliveryFee: "$0 tarifa de envío",
+      deliveryFee: "RD$0 tarifa de envío",
       href: `/user/stores/${p.id}`,
     };
   });
