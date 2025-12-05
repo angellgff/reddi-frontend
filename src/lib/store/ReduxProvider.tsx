@@ -6,6 +6,7 @@ import { makeStore } from ".";
 import { useAppDispatch } from "./hooks";
 import { setCartItems, type CartItem } from "./cartSlice";
 import { setServiceFee, setShippingFee } from "./chargesSlice";
+import { restoreCheckout, type CheckoutState } from "./checkoutSlice";
 
 const store = makeStore();
 
@@ -30,6 +31,7 @@ function HydrateFromStorage({ children }: { children: React.ReactNode }) {
       const parsed = JSON.parse(raw) as {
         cart?: { items: CartItem[] };
         charges?: { shippingFee: number; serviceFee: number };
+        checkout?: CheckoutState;
       };
       if (parsed.cart?.items) dispatch(setCartItems(parsed.cart.items));
       if (parsed.charges) {
@@ -37,6 +39,9 @@ function HydrateFromStorage({ children }: { children: React.ReactNode }) {
           dispatch(setShippingFee(parsed.charges.shippingFee));
         if (typeof parsed.charges.serviceFee === "number")
           dispatch(setServiceFee(parsed.charges.serviceFee));
+      }
+      if (parsed.checkout) {
+        dispatch(restoreCheckout(parsed.checkout));
       }
     } catch {
       // ignore

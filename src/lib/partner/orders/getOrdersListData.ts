@@ -56,6 +56,9 @@ export default async function getOrdersListData(
       "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))"
     )
     .eq("partner_id", partner.id)
+    // Excluir pedidos que no se han pagado o fallaron
+    .neq("status", "awaiting_payment")
+    .neq("status", "payment_failed")
     .order("created_at", { ascending: false })
     .range(0, pageSize - 1);
 

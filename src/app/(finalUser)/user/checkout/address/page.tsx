@@ -44,6 +44,20 @@ export default function CheckoutAddressPage() {
   const [newLocationNumber, setNewLocationNumber] = useState("");
   const [newAddressError, setNewAddressError] = useState<string | null>(null);
 
+  // Sync local state with Redux state (hydration support)
+  useEffect(() => {
+    if (checkout.addressId && checkout.addressId !== addressId) {
+      setAddressLocal(checkout.addressId);
+    }
+  }, [checkout.addressId]);
+
+  useEffect(() => {
+    // Deep comparison or simple check for schedule
+    if (JSON.stringify(checkout.schedule) !== JSON.stringify(schedule)) {
+      setScheduleLocal(checkout.schedule);
+    }
+  }, [checkout.schedule]);
+
   useEffect(() => {
     dispatch(setAddressId(addressId ?? null));
   }, [addressId, dispatch]);

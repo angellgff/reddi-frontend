@@ -11,10 +11,46 @@ function isLocationType(v: unknown): v is LocationType {
   return v === "villa" || v === "yate";
 }
 
+function createWKBPoint(lat: number, lng: number): string {
+  // WKB Point (Little Endian)
+  // 1 byte: 01 (Little Endian)
+  // 4 bytes: 01000020 (Point type + SRID flag) -> 20000001 (Little Endian)
+  // 4 bytes: E6100000 (SRID 4326) -> 4326 = 0x10E6 -> E6100000 (Little Endian)
+  // 8 bytes: X (lng)
+  // 8 bytes: Y (lat)
+
+  const buffer = new ArrayBuffer(25);
+  const view = new DataView(buffer);
+
+  // Byte order: Little Endian
+  view.setUint8(0, 1);
+
+  // Type: Point (1) | SRID (0x20000000) => 0x20000001
+  view.setUint32(1, 0x20000001, true);
+
+  // SRID: 4326
+  view.setUint32(5, 4326, true);
+
+  // Coordinates
+  view.setFloat64(9, lng, true);
+  view.setFloat64(17, lat, true);
+
+  // Convert to hex string
+  let hex = "";
+  const bytes = new Uint8Array(buffer);
+  for (let i = 0; i < bytes.length; i++) {
+    hex += bytes[i].toString(16).padStart(2, "0");
+  }
+
+  return hex;
+}
+
 export async function createUserAddress(formData: FormData) {
   // Parse & validate inputs defensively
   const locationTypeRaw = formData.get("location_type");
   const locationNumberRaw = formData.get("location_number");
+  const latRaw = formData.get("lat");
+  const lngRaw = formData.get("lng");
 
   const location_type = isLocationType(locationTypeRaw)
     ? locationTypeRaw
@@ -52,6 +88,14 @@ export async function createUserAddress(formData: FormData) {
     location_type,
     location_number,
   };
+
+  if (latRaw && lngRaw) {
+    const lat = parseFloat(String(latRaw));
+    const lng = parseFloat(String(lngRaw));
+    if (!isNaN(lat) && !isNaN(lng)) {
+      payload.coordinates = createWKBPoint(lat, lng);
+    }
+  }
 
   const { error } = await supabase.from("user_addresses").insert(payload);
   if (error) {

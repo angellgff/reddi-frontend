@@ -544,6 +544,8 @@ export type Database = {
           instructions: string | null
           partner_id: string | null
           payment_intent_id: string | null
+          payment_meta: Json | null
+          payment_provider: string | null
           scheduled_at: string | null
           shipment_id: string | null
           shipping_fee: number | null
@@ -562,6 +564,8 @@ export type Database = {
           instructions?: string | null
           partner_id?: string | null
           payment_intent_id?: string | null
+          payment_meta?: Json | null
+          payment_provider?: string | null
           scheduled_at?: string | null
           shipment_id?: string | null
           shipping_fee?: number | null
@@ -580,6 +584,8 @@ export type Database = {
           instructions?: string | null
           partner_id?: string | null
           payment_intent_id?: string | null
+          payment_meta?: Json | null
+          payment_provider?: string | null
           scheduled_at?: string | null
           shipment_id?: string | null
           shipping_fee?: number | null
@@ -719,6 +725,66 @@ export type Database = {
             foreignKeyName: "partners_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          authorization_code: string | null
+          card_number: string | null
+          created_at: string | null
+          currency: string | null
+          id: string
+          metadata: Json | null
+          order_id: string | null
+          provider: string | null
+          status: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          authorization_code?: string | null
+          card_number?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          provider?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          authorization_code?: string | null
+          card_number?: string | null
+          created_at?: string | null
+          currency?: string | null
+          id?: string
+          metadata?: Json | null
+          order_id?: string | null
+          provider?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          transaction_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -948,6 +1014,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          created_at: string | null
           email: string | null
           first_name: string | null
           id: string
@@ -957,6 +1024,7 @@ export type Database = {
           selected_address: string | null
         }
         Insert: {
+          created_at?: string | null
           email?: string | null
           first_name?: string | null
           id: string
@@ -966,6 +1034,7 @@ export type Database = {
           selected_address?: string | null
         }
         Update: {
+          created_at?: string | null
           email?: string | null
           first_name?: string | null
           id?: string
@@ -1470,9 +1539,10 @@ export type Database = {
             }
             Returns: string
           }
-      complete_partner_profile:
-        | { Args: { partner_data: Json }; Returns: undefined }
-        | { Args: { partner_data: Json; user_id: string }; Returns: undefined }
+      complete_partner_profile: {
+        Args: { partner_data: Json }
+        Returns: undefined
+      }
       create_notification: {
         Args: {
           p_message: string
@@ -2322,17 +2392,20 @@ export type Database = {
         | "pending_approval"
         | "inactive"
       order_status:
+        | "awaiting_payment"
         | "pending"
         | "preparing"
         | "out_for_delivery"
         | "delivered"
         | "cancelled"
+        | "payment_failed"
       partner_type:
         | "market"
         | "restaurant"
         | "liquor_store"
         | "pharmacy"
         | "tobacco"
+      payment_status: "pending" | "completed" | "failed" | "refunded"
       shipment_status:
         | "pending_calculation"
         | "ready_for_pickup"
@@ -2506,11 +2579,13 @@ export const Constants = {
         "inactive",
       ],
       order_status: [
+        "awaiting_payment",
         "pending",
         "preparing",
         "out_for_delivery",
         "delivered",
         "cancelled",
+        "payment_failed",
       ],
       partner_type: [
         "market",
@@ -2519,6 +2594,7 @@ export const Constants = {
         "pharmacy",
         "tobacco",
       ],
+      payment_status: ["pending", "completed", "failed", "refunded"],
       shipment_status: [
         "pending_calculation",
         "ready_for_pickup",

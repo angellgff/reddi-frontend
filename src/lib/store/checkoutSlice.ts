@@ -96,6 +96,9 @@ const checkoutSlice = createSlice({
     ) {
       state.shippingEstimate = action.payload ?? null;
     },
+    restoreCheckout(state, action: PayloadAction<Partial<CheckoutState>>) {
+      return { ...state, ...action.payload };
+    },
     resetCheckout() {
       return initialState;
     },
@@ -112,6 +115,7 @@ export const {
   setTipAmountManual,
   setPayment,
   setShippingEstimate,
+  restoreCheckout,
   resetCheckout,
 } = checkoutSlice.actions;
 

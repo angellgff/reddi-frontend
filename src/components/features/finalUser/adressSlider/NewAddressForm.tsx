@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import ArrowIcon from "@/src/components/icons/ArrowIcon";
 import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
 import type { Enums } from "@/src/lib/database.types";
+import LocationPickerMap from "@/src/components/features/partner/register/LocationPickerMap";
 
 export type NewAddressFormProps = {
   onCancel: () => void;
@@ -17,6 +18,8 @@ type FormData = {
   location_type: LocationType;
   location_number: string;
   instructions?: string;
+  lat?: number | null;
+  lng?: number | null;
 };
 
 // agregar el OnSave para cuando tenga la función hecha
@@ -25,6 +28,8 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
     location_type: "villa",
     location_number: "",
     instructions: "",
+    lat: null,
+    lng: null,
   });
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -36,6 +41,8 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
     fd.set("location_type", formData.location_type);
     fd.set("location_number", formData.location_number);
     if (formData.instructions) fd.set("instructions", formData.instructions);
+    if (formData.lat) fd.set("lat", String(formData.lat));
+    if (formData.lng) fd.set("lng", String(formData.lng));
     startTransition(async () => {
       const res = await createUserAddress(fd);
       if (!res.success) {
@@ -105,6 +112,23 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
               placeholder="Ej. 23A, 5, #7"
               className="block w-full rounded-xl border-gray-300 shadow-sm border py-2 px-3"
             />
+
+            {/* Mapa de Ubicación */}
+            <div className="space-y-2 mt-4">
+              <label className="block text-sm font-semibold text-gray-700">
+                Ubicación exacta
+              </label>
+              <LocationPickerMap
+                lat={formData.lat || null}
+                lng={formData.lng || null}
+                onLocationSelect={(lat, lng) => {
+                  setFormData((prev) => ({ ...prev, lat, lng }));
+                }}
+              />
+              <p className="text-xs text-gray-500">
+                Haz clic en el mapa para seleccionar la ubicación exacta.
+              </p>
+            </div>
 
             {/* Campo: Instrucciones especiales */}
             <div>

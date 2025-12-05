@@ -44,7 +44,9 @@ export async function getOrdersHistoryData(params: {
   let baseQuery = supabase
     .from("orders")
     .select("id, created_at, total_amount, status, user_id", { count: "exact" })
-    .eq("partner_id", partnerId);
+    .eq("partner_id", partnerId)
+    .neq("status", "awaiting_payment")
+    .neq("status", "payment_failed");
 
   if (from) {
     baseQuery = baseQuery.gte("created_at", new Date(from).toISOString());

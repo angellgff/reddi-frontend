@@ -83,6 +83,26 @@ export default function CheckoutPaymentPage() {
   );
   const [selectedMethod, setSelectedMethod] = useState(storedPayment);
 
+  // Sync local state with Redux state (hydration support)
+  useEffect(() => {
+    if (storedTipPercent !== tipPercent) {
+      setTipPercent(storedTipPercent);
+    }
+  }, [storedTipPercent]);
+
+  useEffect(() => {
+    if (storedTipAmountManual !== manualTipAmount) {
+      setManualTipAmount(storedTipAmountManual || 0);
+      if (storedTipAmountManual) setShowManualTip(true);
+    }
+  }, [storedTipAmountManual]);
+
+  useEffect(() => {
+    if (JSON.stringify(storedPayment) !== JSON.stringify(selectedMethod)) {
+      setSelectedMethod(storedPayment);
+    }
+  }, [storedPayment]);
+
   // Pre-rellenar el input si ya hay un cupón aplicado en Redux
   useEffect(() => {
     if (storedCoupon) {

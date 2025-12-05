@@ -6,6 +6,7 @@ import addressReducer from "./addressSlice";
 import checkoutReducer from "./checkoutSlice";
 import type { CartState } from "./cartSlice";
 import type { ChargesState } from "./chargesSlice";
+import type { CheckoutState } from "./checkoutSlice";
 
 const rootReducer = combineReducers({
   cart: cartReducer,
@@ -22,6 +23,7 @@ const STORAGE_KEY = "reddi.cartState.v1";
 type PersistedState = {
   cart?: CartState;
   charges?: ChargesState;
+  checkout?: CheckoutState;
 };
 
 // loadState: moved to client-only hydration in ReduxProvider to avoid SSR mismatch
@@ -51,6 +53,7 @@ export const makeStore = () => {
         const toPersist: PersistedState = {
           cart: s.cart,
           charges: s.charges,
+          checkout: s.checkout,
         };
         saveState(toPersist);
       }, 200);
