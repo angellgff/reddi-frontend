@@ -79,6 +79,10 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
           <div
             className="flex items-center space-x-3 border-x-2 px-4 cursor-pointer"
             onClick={() => {
+              if (profile.role === "admin" || profile.role === "superadmin") {
+                router.push("/admin/profile");
+                return;
+              }
               const target =
                 profile.role === "restaurant"
                   ? "/partner/restaurant/profile"
