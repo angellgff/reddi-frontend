@@ -46,7 +46,50 @@ export default function Login() {
     try {
       setIsLoading(true);
       const next = searchParams.get("next") || "/user/home";
-      await loginWithGoogleAction(next);
+
+      console.log("[GoogleLogin] Initiating OAuth (Client-side)", {
+        next,
+      });
+      
+      const siteUrl = 
+        (typeof window !== "undefined" && 
+          (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)) || 
+        undefined;
+
+        console.log("[GoogleLogin] Initiating OAuth (Client-side)", {
+          siteUrl,
+        });
+
+      const redirectPublic = siteUrl
+        ? `${siteUrl}/auth/callback`
+        : undefined;
+
+      console.log("[GoogleLogin] Initiating OAuth (Client-side)", {
+        siteUrl,
+        redirectPublic,
+      });
+
+      // Construct the absolute redirect URL forcing the origin + /auth/callback
+      // We purposefully OMIT '?next=...' from the redirectTo because Supabase strict matching
+      // might reject it if it's not exactly in the allow list.
+      // The logic in route.ts will handle the role-based destination.
+      const finalRedirectTo = redirectPublic ?? `${window.location.origin}/auth/callback`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: finalRedirectTo,
+          queryParams: {
+            access_type: "offline",
+            prompt: "consent",
+            // Pass 'next' as a custom query param if needed, 
+            // but for now relying on route.ts role logic is safer.
+          },
+        },
+      });
+
+      if (error) throw error;
+      
     } catch (e) {
       const err = e as Error;
       console.error("[login/google] error", err?.message);
@@ -54,7 +97,7 @@ export default function Login() {
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [supabase, searchParams]);
 
   // Debug auth lifecycle on this page (optional, controlled by env)
   // Also handle in-page redirect after OAuth callback returns here.

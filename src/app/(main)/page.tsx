@@ -30,7 +30,20 @@ function getHomePathForRole(role?: string | null) {
   }
 }
 
-export default async function Home() {
+export default async function Home(props: {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const searchParams = await props.searchParams;
+  const code = searchParams?.code;
+
+  if (code) {
+    // If we land here with an auth code, it means the Auth Provider redirected to root 
+    // instead of the callback. We intercept and forward to the callback to finish login.
+    const codeValue = Array.isArray(code) ? code[0] : code;
+    console.log("[Home] Redirecting to callback with code", codeValue);
+    redirect(`/auth/callback?code=${codeValue}`);
+  }
+
   const supabase = await createClient();
   try {
     const {
