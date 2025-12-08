@@ -4,12 +4,12 @@ const largeCategories = [
   {
     name: "Mercado",
     imageUrl: "/market.png",
-    href: "/mercado",
+    href: "/user/search?type=market",
   },
   {
     name: "Restaurantes",
     imageUrl: "/restaurant.png",
-    href: "/restaurantes",
+    href: "/user/search?type=restaurant",
   },
 ];
 

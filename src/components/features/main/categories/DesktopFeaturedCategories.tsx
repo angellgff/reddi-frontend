@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link"; // 1. Importar Link
 
 type Category = {
   name: string;
@@ -14,14 +15,14 @@ const categories: Category[] = [
   {
     name: "Mercado",
     imageUrl: "/market.png",
-    href: "/mercado",
+    href: "/user/search?type=market",
     imageW: 111,
     imageH: 79,
   },
   {
     name: "Restaurantes",
     imageUrl: "/restaurant.png",
-    href: "/restaurantes",
+    href: "/user/search?type=restaurant",
     imageW: 86,
     imageH: 108,
   },
@@ -35,21 +36,21 @@ const categories: Category[] = [
   {
     name: "Alcohol",
     imageUrl: "/alcohol.svg",
-    href: "/alcohol",
+    href: "/user/search?type=liquor_store",
     imageW: 108,
     imageH: 109,
   },
   {
     name: "Farmacia",
     imageUrl: "/farmacia.png",
-    href: "/farmacia",
+    href: "/user/search?type=pharmacy",
     imageW: 80,
     imageH: 80,
   },
   {
     name: "Tabaco",
     imageUrl: "/Tobacco.svg",
-    href: "/tabaco",
+    href: "/user/search?type=tobacco",
     imageW: 106,
     imageH: 108,
   },
@@ -62,7 +63,7 @@ export default function DesktopFeaturedCategories({
 }) {
   return (
     <section
-      className={`hidden  p-4 md:px-6 lg:px-8 md:flex w-full items-center justify-between ${className}`}
+      className={`hidden p-4 md:px-6 lg:px-8 md:flex w-full items-center justify-between ${className}`}
       aria-labelledby="categorias-destacadas"
     >
       {/* Title */}
@@ -82,10 +83,12 @@ export default function DesktopFeaturedCategories({
           role="list"
         >
           {categories.map((c) => (
-            <div
+            /* 2. Cambiamos el div por Link y añadimos el href */
+            <Link
               key={c.name}
+              href={c.href}
               role="listitem"
-              className="flex-none flex flex-col justify-center items-center p-5 gap-2 w-[146px] h-[169px] bg-[#F0F2F5]/70 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-transform"
+              className="flex-none flex flex-col justify-center items-center p-5 gap-2 w-[146px] h-[169px] bg-[#F0F2F5]/70 rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-transform cursor-pointer"
             >
               <div className="flex items-center justify-center w-[106px] h-[109px]">
                 <Image
@@ -102,7 +105,7 @@ export default function DesktopFeaturedCategories({
                   {c.name}
                 </span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

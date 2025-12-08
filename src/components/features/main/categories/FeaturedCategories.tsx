@@ -15,17 +15,17 @@ const categories = [
   {
     name: "Alcohol",
     imageUrl: "/alcohol.svg", // Ruta de ejemplo
-    href: "/categorias/alcohol",
+    href: "/user/search?type=liquor_store",
   },
   {
     name: "Farmacia",
     imageUrl: "/farmacia-tiny.png", // Ruta de ejemplo
-    href: "/categorias/farmacia",
+    href: "/user/search?type=pharmacy",
   },
   {
     name: "Tabaco",
     imageUrl: "/Tobacco.svg", // Ruta de ejemplo
-    href: "/categorias/tabaco",
+    href: "/user/search?type=tobacco",
   },
 ];
 
