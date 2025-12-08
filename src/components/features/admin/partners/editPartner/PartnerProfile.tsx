@@ -39,6 +39,7 @@ export interface BusinessFormData {
   document?: File | string | null;
   lat?: number | null;
   lng?: number | null;
+  coverImage?: File | string | null;
 }
 
 // Define las props del componente

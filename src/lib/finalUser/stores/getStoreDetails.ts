@@ -12,6 +12,7 @@ export type StoreDetails = Pick<
   | "phone"
   | "average_rating"
   | "total_ratings"
+  | "cover_image_url"
 >;
 
 export default async function getStoreDetails(
@@ -21,7 +22,7 @@ export default async function getStoreDetails(
   const { data, error } = await supabase
     .from("partners")
     .select(
-      "id, name, image_url, address, partner_type, phone, average_rating, total_ratings"
+      "id, name, image_url, address, partner_type, phone, average_rating, total_ratings, cover_image_url"
     )
     .eq("id", id)
     .single();

@@ -17,6 +17,7 @@ export type UpdateMyProfilePayload = {
   lat?: number | null;
   lng?: number | null;
   image_url?: string | null;
+  cover_image_url?: string | null;
   bank_document_url?: string | null;
 };
 
@@ -101,6 +102,8 @@ export async function updateMyProfile(payload: UpdateMyProfilePayload) {
   }
 
   if (payload.image_url !== undefined) updates.image_url = payload.image_url;
+  if (payload.cover_image_url !== undefined)
+    updates.cover_image_url = payload.cover_image_url;
   if (payload.bank_document_url !== undefined)
     updates.bank_document_url = payload.bank_document_url;
 

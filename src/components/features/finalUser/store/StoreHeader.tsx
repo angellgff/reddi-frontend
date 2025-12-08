@@ -14,9 +14,10 @@ type ExtendedStoreDetails = BaseStoreDetails & {
 export default function StoreHeader({
   store,
 }: {
-  store: ExtendedStoreDetails;
+  store: ExtendedStoreDetails & { cover_image_url?: string | null };
 }) {
-  const banner = store.banner_url || store.image_url || "";
+  const banner =
+    store.banner_url || store.cover_image_url || store.image_url || "";
   const logo = store.logo_url || store.image_url || "";
   const rating =
     typeof store.average_rating === "number"

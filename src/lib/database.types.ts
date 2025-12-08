@@ -649,6 +649,7 @@ export type Database = {
           business_hours: Json | null
           conditions_accepted: boolean | null
           coordinates: unknown
+          cover_image_url: string | null
           created_at: string
           id: string
           image_url: string | null
@@ -675,6 +676,7 @@ export type Database = {
           business_hours?: Json | null
           conditions_accepted?: boolean | null
           coordinates?: unknown
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           image_url?: string | null
@@ -701,6 +703,7 @@ export type Database = {
           business_hours?: Json | null
           conditions_accepted?: boolean | null
           coordinates?: unknown
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           image_url?: string | null

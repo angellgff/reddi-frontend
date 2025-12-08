@@ -14,6 +14,7 @@ type SelectedPartnerColumns = Pick<
   | "billing_email"
   | "business_hours"
   | "image_url"
+  | "cover_image_url"
   | "is_approved"
   | "coordinates"
   | "bank_document_url"
@@ -115,6 +116,7 @@ function mapDbToForm(row: SelectedPartnerColumns): BusinessFormData {
     hours,
     profileState: !!row.is_approved,
     logo: row.image_url || null,
+    coverImage: row.cover_image_url || null,
     document: row.bank_document_url || null,
     lat,
     lng,
@@ -126,7 +128,7 @@ export default async function getPartnerDataById(id: string) {
   const { data, error } = await supabase
     .from("partners")
     .select(
-      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, is_approved, coordinates, bank_document_url"
+      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, cover_image_url, is_approved, coordinates, bank_document_url"
     )
     .eq("id", id)
     .single();

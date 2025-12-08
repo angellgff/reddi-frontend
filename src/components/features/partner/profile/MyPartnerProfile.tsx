@@ -40,6 +40,7 @@ export interface BusinessFormData {
   document?: File | string | null;
   lat?: number | null;
   lng?: number | null;
+  coverImage?: File | string | null;
 }
 
 // Define las props del componente
@@ -324,6 +325,23 @@ export default function MyPartnerProfile({
                   setFormData((prev) => ({ ...prev, logo: file }))
                 }
                 value={formData.logo}
+                acceptedFileTypes="image"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Formatos soportados: JPG, PNG,(máx. 10MB)
+              </p>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-primary mb-4">
+                Imagen de portada
+              </h2>
+              <FileUploadZone
+                id="cover-upload"
+                label="Arrastra y suelta tu archivo aquí"
+                onFileChange={(file) =>
+                  setFormData((prev) => ({ ...prev, coverImage: file }))
+                }
+                value={formData.coverImage}
                 acceptedFileTypes="image"
               />
               <p className="text-sm text-gray-500 mt-2">

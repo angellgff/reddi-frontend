@@ -39,6 +39,19 @@ export default function ProfileClient({
         logoUrl = formData.logo;
       }
 
+      let coverUrl: string | null | undefined = undefined;
+      if (formData.coverImage instanceof File) {
+        coverUrl = await uploadFile(
+          formData.coverImage,
+          "business-images",
+          `covers/${partnerId}`
+        );
+      } else if (formData.coverImage === null) {
+        coverUrl = null;
+      } else if (typeof formData.coverImage === "string") {
+        coverUrl = formData.coverImage;
+      }
+
       let documentUrl: string | null | undefined = undefined;
       if (formData.document instanceof File) {
         documentUrl = await uploadFile(
@@ -67,6 +80,7 @@ export default function ProfileClient({
         lat: formData.lat,
         lng: formData.lng,
         image_url: logoUrl,
+        cover_image_url: coverUrl,
         bank_document_url: documentUrl,
       });
       setModalTitle("Cambios guardados");
