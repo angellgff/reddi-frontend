@@ -1,6 +1,7 @@
 import { searchPartners } from "@/src/lib/finalUser/search/searchPartners";
 import SearchResultsGrid from "@/src/components/features/finalUser/search/SearchResultsGrid";
 import SearchFilters from "@/src/components/features/finalUser/search/SearchFilters";
+import DesktopPageSearchBar from "@/src/components/features/finalUser/search/DesktopPageSearchBar";
 
 interface PageProps {
   searchParams: {
@@ -32,7 +33,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters */}
-        <div className="w-full lg:w-64 flex-shrink-0">
+        <div className="hidden lg:block w-full lg:w-64 flex-shrink-0">
           <SearchFilters />
         </div>
 
@@ -43,7 +44,10 @@ export default async function SearchPage({ searchParams }: PageProps) {
               No encontramos comercios con esos filtros.
             </div>
           ) : (
-            <SearchResultsGrid products={results} />
+            <>
+              <DesktopPageSearchBar />
+              <SearchResultsGrid products={results} />
+            </>
           )}
         </div>
       </div>

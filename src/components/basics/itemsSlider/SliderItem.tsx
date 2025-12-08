@@ -24,9 +24,10 @@ const SliderCard: React.FC<SliderCardProps> = ({
   deliveryTime,
   deliveryFee,
   href,
-}) => {
+  className,
+}: SliderCardProps & { className?: string }) => {
   return (
-    <Link href={href} className="group flex-shrink-0 w-72 md:w-80">
+    <Link href={href} className={`group flex-shrink-0 ${className || "w-72 md:w-80"}`}>
       <div className="flex flex-col overflow-hidden rounded-xl  transition-shadow duration-300 group-hover:shadow-xl">
         {/* Imagen del restaurante */}
         <div className="relative h-28 w-full">

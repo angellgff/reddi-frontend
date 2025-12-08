@@ -204,14 +204,24 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
             }`}
           >
             <div className="relative flex-grow">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                <SearchIcon />
-              </div>
-              <input
-                type="search"
-                placeholder="Busca 'Refresco'"
-                className="w-full rounded-full border-none bg-white py-3 pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300"
-              />
+              <form 
+                action="/user/search" 
+                method="get"
+                className="pointer-events-auto w-full"
+                onSubmit={() => setIsSearchBarVisible(false)}
+              >
+                <div className="relative w-full">
+                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                     <SearchIcon />
+                   </div>
+                   <input
+                     name="q"
+                     type="search"
+                     placeholder="Busca por comercio"
+                     className="w-full rounded-full border-none bg-white py-3 pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300"
+                   />
+                </div>
+              </form>
             </div>
             <button
               className="flex h-12 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-white shadow-md"
