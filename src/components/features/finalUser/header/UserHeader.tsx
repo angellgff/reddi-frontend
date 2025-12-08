@@ -16,7 +16,8 @@ import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
-import { selectCartOpen, toggleCart, closeCart } from "@/src/lib/store/uiSlice";
+import { selectCartOpen, toggleCart, closeCart, toggleFilters } from "@/src/lib/store/uiSlice";
+import { useSearchParams } from "next/navigation";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
 import Link from "next/link";
@@ -31,6 +32,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false); // menú hamburguesa para < xl
   const router = useRouter();
+  const searchParams = useSearchParams();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
@@ -217,6 +219,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                    <input
                      name="q"
                      type="search"
+                     defaultValue={searchParams?.get("q") || ""}
                      placeholder="Busca por comercio"
                      className="w-full rounded-full border-none bg-white py-3 pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300"
                    />
@@ -224,8 +227,9 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               </form>
             </div>
             <button
-              className="flex h-12 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-white shadow-md"
+              className="flex h-12 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-white shadow-md active:scale-95 transition-transform"
               aria-label="Filtros"
+              onClick={() => dispatch(toggleFilters())}
             >
               <FiltersIcon />
             </button>

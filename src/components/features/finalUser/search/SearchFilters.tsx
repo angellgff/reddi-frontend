@@ -2,6 +2,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback } from "react";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { selectFiltersOpen, closeFilters } from "@/src/lib/store/uiSlice";
+import Portal from "@/src/components/basics/Portal";
+import { X } from "lucide-react";
 
 const PARTNER_TYPES = [
   { value: "restaurant", label: "Restaurantes" },
@@ -17,7 +21,7 @@ const SORT_OPTIONS = [
   { value: "reviews_desc", label: "Más Populares" },
 ];
 
-export default function SearchFilters() {
+function FilterContent({ onClose }: { onClose?: () => void }) {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -68,7 +72,16 @@ export default function SearchFilters() {
   };
 
   return (
-    <div className="flex flex-col gap-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+    <div className="flex flex-col gap-6 bg-white p-4 rounded-xl shadow-sm border border-gray-100 h-full">
+      {onClose && (
+        <div className="flex justify-between items-center lg:hidden mb-2">
+           <h2 className="text-lg font-bold">Filtros</h2>
+           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100">
+             <X size={24} />
+           </button>
+        </div>
+      )}
+
       {/* Sort */}
       <div>
         <h3 className="font-semibold text-sm mb-3 text-gray-900">Ordenar por</h3>
@@ -121,6 +134,49 @@ export default function SearchFilters() {
           <span className="text-sm text-gray-600">4+ Estrellas</span>
         </label>
       </div>
+      
+      {onClose && (
+        <div className="mt-auto lg:hidden">
+          <button 
+            onClick={onClose}
+            className="w-full bg-primary text-white py-3 rounded-xl font-medium"
+          >
+            Ver Resultados
+          </button>
+        </div>
+      )}
     </div>
+  );
+}
+
+export default function SearchFilters() {
+  const dispatch = useAppDispatch();
+  const filtersOpen = useAppSelector(selectFiltersOpen);
+
+  return (
+    <>
+      {/* Desktop Inline */}
+      <div className="hidden lg:block">
+        <FilterContent />
+      </div>
+
+      {/* Mobile Drawer */}
+      <Portal>
+        <div
+          className={`
+            fixed top-0 left-0 h-full w-full
+            bg-white shadow-xl z-[60]
+            flex flex-col
+            transform transition-transform duration-300 ease-in-out
+            ${filtersOpen ? "translate-x-0" : "-translate-x-full"}
+            lg:hidden
+          `}
+        >
+          <div className="h-full p-4 overflow-y-auto">
+             <FilterContent onClose={() => dispatch(closeFilters())} />
+          </div>
+        </div>
+      </Portal>
+    </>
   );
 }

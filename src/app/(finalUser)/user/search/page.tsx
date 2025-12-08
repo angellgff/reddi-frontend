@@ -33,7 +33,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
 
       <div className="flex flex-col lg:flex-row gap-8">
         {/* Sidebar Filters */}
-        <div className="hidden lg:block w-full lg:w-64 flex-shrink-0">
+        <div className="lg:w-64 flex-shrink-0">
           <SearchFilters />
         </div>
 
