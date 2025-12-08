@@ -1,6 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import type { SliderCardProps } from "@/src/components/basics/itemsSlider/SliderItem";
-import { Database } from "@/src/lib/database.types";
+import type { Database } from "@/src/lib/database.types";
 
 interface SearchOptions {
   query: string;
@@ -27,9 +27,9 @@ export async function searchPartners({
   }
 
   if (types && types.length > 0) {
-    // Cast to any to avoid strict enum typing issues if dynamic string passed, 
-    // though ideally we validate against enum.
-    dbQuery = dbQuery.in("partner_type", types as any);
+    // Cast to proper DB Enum type type to avoid 'any'
+    const typedTypes = types as Database["public"]["Enums"]["partner_type"][];
+    dbQuery = dbQuery.in("partner_type", typedTypes);
   }
 
   if (minRating) {
@@ -41,14 +41,7 @@ export async function searchPartners({
   } else if (sort === "reviews_desc") {
     dbQuery = dbQuery.order("total_ratings", { ascending: false });
   } else {
-    // Default sort: relevance (if query provided? Supabase doesn't have text search rank easily via JS client without RPC) 
-    // or just name/created.
-    // Let's default to created_at desc or something unrelated if no query, 
-    // but if query, usually name ilike is enough filtering. 
-    // We'll leave default order to Supabase natural or name if simple.
-    // Or maybe order by creation?
-    // Let's stick to default which usually is insertion order or explicit param.
-    // We'll add a secondary sort to ensure stability
+    // Default sort
     dbQuery = dbQuery.order("name", { ascending: true });
   }
 

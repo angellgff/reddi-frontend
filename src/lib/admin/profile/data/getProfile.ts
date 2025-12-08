@@ -33,7 +33,16 @@ export async function getAdminProfileFull(): Promise<AdminProfileFull> {
 
   // Get metadata for preferences (assuming they are stored there as they are not in profiles table)
   // Defaulting to true/false as appropriate if not set
-  const meta: any = user.user_metadata || {};
+  type UserMetadata = {
+    notifications_email?: boolean;
+    notifications_push?: boolean;
+    notifications_sms?: boolean;
+    first_name?: string;
+    last_name?: string;
+    phone_number?: string;
+  };
+  
+  const meta = (user.user_metadata || {}) as UserMetadata;
   const notification_preferences = {
     email: meta.notifications_email ?? true,
     push: meta.notifications_push ?? true,

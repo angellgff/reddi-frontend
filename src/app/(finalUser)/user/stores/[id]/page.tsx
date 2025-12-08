@@ -3,7 +3,6 @@ import StoreHeaderServer from "../../../../../components/features/finalUser/stor
 import StoreHeaderSkeleton from "../../../../../components/features/finalUser/store/StoreHeaderSkeleton";
 import StoreMenuServer from "../../../../../components/features/finalUser/store/StoreMenuServer";
 import StoreMenuSkeleton from "../../../../../components/features/finalUser/store/StoreMenuSkeleton";
-import GuestFooter from "@/src/components/features/layout/GuestFooter";
 
 export default async function StorePage({
   params,

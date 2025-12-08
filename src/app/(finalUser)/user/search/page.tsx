@@ -4,19 +4,23 @@ import SearchFilters from "@/src/components/features/finalUser/search/SearchFilt
 import DesktopPageSearchBar from "@/src/components/features/finalUser/search/DesktopPageSearchBar";
 
 interface PageProps {
-  searchParams: {
+  // 1. Definimos searchParams como una Promise
+  searchParams: Promise<{
     q?: string;
     type?: string;
     sort?: string;
     minRating?: string;
-  };
+  }>;
 }
 
 export default async function SearchPage({ searchParams }: PageProps) {
-  const query = searchParams.q || "";
-  const types = searchParams.type ? searchParams.type.split(",") : undefined;
-  const sort = searchParams.sort;
-  const minRating = searchParams.minRating ? Number(searchParams.minRating) : undefined;
+  // 2. Hacemos await de los searchParams antes de usarlos
+  const resolvedSearchParams = await searchParams;
+
+  const query = resolvedSearchParams.q || "";
+  const types = resolvedSearchParams.type ? resolvedSearchParams.type.split(",") : undefined;
+  const sort = resolvedSearchParams.sort;
+  const minRating = resolvedSearchParams.minRating ? Number(resolvedSearchParams.minRating) : undefined;
 
   const results = await searchPartners({
     query,

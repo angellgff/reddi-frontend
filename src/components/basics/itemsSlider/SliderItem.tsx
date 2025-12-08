@@ -14,6 +14,7 @@ export type SliderCardProps = {
   deliveryTime: string;
   deliveryFee: string;
   href: string;
+  className?: string;
 };
 
 const SliderCard: React.FC<SliderCardProps> = ({
@@ -25,7 +26,7 @@ const SliderCard: React.FC<SliderCardProps> = ({
   deliveryFee,
   href,
   className,
-}: SliderCardProps & { className?: string }) => {
+}: SliderCardProps) => {
   return (
     <Link href={href} className={`group flex-shrink-0 ${className || "w-72 md:w-80"}`}>
       <div className="flex flex-col overflow-hidden rounded-xl  transition-shadow duration-300 group-hover:shadow-xl">

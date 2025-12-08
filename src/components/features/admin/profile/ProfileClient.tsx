@@ -21,8 +21,7 @@ export default function ProfileClient({ initialData }: ProfileClientProps) {
   const [passwordOpen, setPasswordOpen] = useState(false);
   
   // Form State
-  const [firstName, setFirstName] = useState(initialData.first_name || "");
-  const [lastName, setLastName] = useState(initialData.last_name || "");
+
   const [email, setEmail] = useState(initialData.email || "");
   const [phone, setPhone] = useState(initialData.phone_number || "");
   
@@ -49,8 +48,9 @@ export default function ProfileClient({ initialData }: ProfileClientProps) {
 
         alert("Perfil actualizado correctamente");
         router.refresh();
-      } catch (e: any) {
-        alert("Error al guardar: " + e.message);
+      } catch (e: unknown) {
+        const errorMessage = e instanceof Error ? e.message : "Error desconocido";
+        alert("Error al guardar: " + errorMessage);
       }
     });
   };

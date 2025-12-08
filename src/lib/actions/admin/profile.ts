@@ -4,7 +4,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function updateAdminProfile(prevState: any, formData: FormData) {
+export async function updateAdminProfile(prevState: unknown, formData: FormData) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -14,41 +14,7 @@ export async function updateAdminProfile(prevState: any, formData: FormData) {
     return { error: "No autorizado" };
   }
 
-  const firstName = formData.get("firstName") as string;
-  const lastName = formData.get("lastName") as string; // Ideally split the single name input if needed, or if UI provides separate inputs. Image shows "Nombre" with "Carlos Rodriguez Martinez". I'll assume one input "fullName" or separate. The image shows ONE input for "Datos Personales" -> Name.
-  // Wait, the Image shows "Datos Personales" with Label "Carlos Rodriguez Martinez" and Input "Ingresar la información".
-  // Actually, the label says "Datos Personales", then a text "Carlos Rodriguez Martinez" (maybe a label?) then an Input?
-  // No, the image shows:
-  // "Carlos Rodriguez Martinez" (Label? Or the value?)
-  // Input: "Ingresar la información"
-  // It looks like "Carlos Rodriguez Martinez" is the LABEL for the input? That's weird.
-  // Usually it's Label: "Nombre", Value: "Carlos...".
-  // Looking at the Figma text dump:
-  // "Nombre" -> text "Carlos Rodriguez Martinez" -> no.
-  // "Nombre" width 176px.
-  // Input group.
-  // Let's assume the label is "Nombre" (it appears in the text dump: `/* Nombre */ ... content: 'Nombre'`).
-  // The "Carlos Rodriguez Martinez" text in the image might be the *placeholder* or the *current value*?
-  // Ah, looking at the image provided in Step 0:
-  // Label: "Carlos Rodriguez Martinez" (This looks like the Name of the field?? No, that's a name).
-  // Below it: Input "Ingresar la información".
-  // Label: "Correo electrónico"
-  // Below it: Input "Ingresar la información".
-  // Label: "Teléfono"
-  // Below it: Input "Ingresar la información".
-  // It seems the LABELS are effectively "Name", "Email", "Phone", but in the mockup they put a specific name "Carlos..." as the label? Or maybe the user IS Carlos and that's the title?
-  // Actually, look at the second group: "Correo electrónico". That is clearly a generic label.
-  // "Teléfono". clearly a generic label.
-  // "Carlos Rodriguez Martinez" -> This must be the label for the Name field? That makes no sense.
-  // It's more likely the field label IS "Nombre Completo" and the mockup just has "Carlos..." as a placeholder or text?
-  // OR, maybe the design has the User's Name as a Section Header?
-  // Re-reading CSS Dump:
-  // `/* Nombre */ ... color: #292929;`
-  // `/* Input */ ... placeholder: Ingresar la información`
-  // I will treat it as:
-  // Field 1: Name (Label: Nombre)
-  // Field 2: Email (Label: Correo electrónico)
-  // Field 3: Phone (Label: Teléfono)
+  // Variables firstName and lastName were unused and removed.
   
   const fullName = formData.get("fullName") as string;
   const email = formData.get("email") as string;
@@ -92,8 +58,8 @@ export async function updateAdminProfile(prevState: any, formData: FormData) {
 
     revalidatePath("/admin/profile");
     return { success: "Perfil actualizado correctamente." };
-  } catch (err: any) {
-    return { error: err.message };
+  } catch (err: unknown) { // Fix: use unknown instead of any
+    return { error: (err as Error).message };
   }
 }
 
@@ -112,7 +78,7 @@ export async function updateNotifications(userId: string, preferences: { email: 
   revalidatePath("/admin/profile");
 }
 
-export async function changePassword(prevState: any, formData: FormData) {
+export async function changePassword(prevState: unknown, formData: FormData) {
     // This would typically be a separate form or modal.
     // Implementation:
     const supabase = await createClient();
