@@ -10,7 +10,6 @@ import FormTitle from "@/src/components/basics/auth/FormTitle";
 import { createClient } from "@/src/lib/supabase/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { loginWithGoogleAction } from "@/src/lib/actions/auth";
 
 const sessionsButtonData = [
   {
@@ -75,7 +74,7 @@ export default function Login() {
       // The logic in route.ts will handle the role-based destination.
       const finalRedirectTo = redirectPublic ?? `${window.location.origin}/auth/callback`;
 
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: finalRedirectTo,
@@ -96,7 +95,6 @@ export default function Login() {
     } finally {
       setIsLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, searchParams]);
 
   // Debug auth lifecycle on this page (optional, controlled by env)

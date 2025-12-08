@@ -2,9 +2,23 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 
+
+interface AzulParams {
+  orderId: string;
+  amount: string;
+  authCode: string;
+  rrn: string;
+  responseCode: string;
+  responseMessage: string;
+  cardNumber: string;
+  errorDesc: string;
+  dateTime: string;
+  azulOrderId: string;
+}
+
 export async function updateOrderAfterPayment(
   orderId: string,
-  azulParams: any
+  azulParams: AzulParams
 ) {
   try {
     const supabase = await createClient();
@@ -57,8 +71,14 @@ export async function updateOrderAfterPayment(
     }
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Unexpected error in updateOrderAfterPayment:", err);
-    return { success: false, error: err.message || "Unknown error" };
+    let errorMessage = "Unknown error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === "string") {
+      errorMessage = err;
+    }
+    return { success: false, error: errorMessage };
   }
 }

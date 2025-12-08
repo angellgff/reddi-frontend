@@ -40,7 +40,7 @@ export default function DesktopHeroSearch() {
             Con Reddi, pide fácil y disfruta el momento
           </h3>
 
-          <form action="" method="get" className="w-full">
+          <form action="/user/search" method="get" className="w-full">
             <div className="flex items-center justify-between gap-3 bg-white rounded-xl px-3 py-3">
               <input
                 type="text"

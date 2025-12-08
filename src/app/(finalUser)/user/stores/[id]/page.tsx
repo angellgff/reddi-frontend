@@ -32,7 +32,6 @@ export default async function StorePage({
           </Suspense>
         </section>
       </div>
-      <GuestFooter />
     </>
   );
 }

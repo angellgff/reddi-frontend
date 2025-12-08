@@ -49,6 +49,7 @@ export default function CheckoutAddressPage() {
     if (checkout.addressId && checkout.addressId !== addressId) {
       setAddressLocal(checkout.addressId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkout.addressId]);
 
   useEffect(() => {
@@ -56,6 +57,7 @@ export default function CheckoutAddressPage() {
     if (JSON.stringify(checkout.schedule) !== JSON.stringify(schedule)) {
       setScheduleLocal(checkout.schedule);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkout.schedule]);
 
   useEffect(() => {

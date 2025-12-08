@@ -88,6 +88,7 @@ export default function CheckoutPaymentPage() {
     if (storedTipPercent !== tipPercent) {
       setTipPercent(storedTipPercent);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedTipPercent]);
 
   useEffect(() => {
@@ -95,12 +96,14 @@ export default function CheckoutPaymentPage() {
       setManualTipAmount(storedTipAmountManual || 0);
       if (storedTipAmountManual) setShowManualTip(true);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedTipAmountManual]);
 
   useEffect(() => {
     if (JSON.stringify(storedPayment) !== JSON.stringify(selectedMethod)) {
       setSelectedMethod(storedPayment);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedPayment]);
 
   // Pre-rellenar el input si ya hay un cupón aplicado en Redux
