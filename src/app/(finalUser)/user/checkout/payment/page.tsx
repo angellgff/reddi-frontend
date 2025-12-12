@@ -187,7 +187,8 @@ export default function CheckoutPaymentPage() {
   }, [manualTipAmount, dispatch]);
 
   const effectiveMethod = selectedMethod || storedPayment;
-  const canProceed = items.length > 0 && !!effectiveMethod;
+  // const canProceed = items.length > 0 && !!effectiveMethod;
+  const canProceed = items.length > 0; // Permitir avanzar sin método de pago seleccionado
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
@@ -240,6 +241,8 @@ export default function CheckoutPaymentPage() {
               </div>
             ) : null}
 
+            {/* SECCIÓN DE MÉTODO DE PAGO DESHABILITADA (INTEGRACIÓN EXTERNA) */}
+            {/* 
             <div className="mt-4 rounded-xl border p-3 flex items-center justify-between">
               <div className="text-sm">
                 <div className="font-medium">
@@ -263,6 +266,7 @@ export default function CheckoutPaymentPage() {
                 }}
               />
             </div>
+            */}
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input
