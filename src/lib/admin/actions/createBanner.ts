@@ -33,9 +33,12 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
     isActive,
   });
 
-  // Basic validation
-  // NOTE: categoryId is checked here. If it's optional, remove this check.
-  // Assuming it IS required as per DB schema usually.
+  /* Extract Action fields */
+  const actionLink = formData.get("actionLink") as string;
+  const couponId = formData.get("couponId") as string;
+
+  /* Basic validation */
+  /* NOTE: categoryId is checked here. If it's optional, remove this check. */
   if (!title || !categoryId || !startDate || !endDate || !imageUrl) {
     console.error("Validation failed: Missing required fields");
     return {
@@ -45,7 +48,6 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
   }
 
   // Get current admin user
-  // In a real app we need the admin ID from the 'admins' table, not just auth.users
   const { data: { user }, error: authError } = await supabase.auth.getUser();
 
   if (authError || !user) {
@@ -77,7 +79,9 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
     end_date: endDate,
     image_url: imageUrl,
     is_active: isActive,
-    created_by: adminData.id, 
+    created_by: adminData.id,
+    action_link: actionLink || null, // Optional
+    coupon_id: couponId || null,     // Optional
   });
 
   if (error) {

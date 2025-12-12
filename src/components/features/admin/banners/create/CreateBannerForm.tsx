@@ -12,9 +12,10 @@ import { ArrowLeft, Monitor } from "lucide-react";
 
 interface CreateBannerFormProps {
   categories: { id: string; name: string }[];
+  coupons: { id: string; code: string; title: string }[];
 }
 
-export default function CreateBannerForm({ categories }: CreateBannerFormProps) {
+export default function CreateBannerForm({ categories, coupons }: CreateBannerFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -22,6 +23,8 @@ export default function CreateBannerForm({ categories }: CreateBannerFormProps) 
 
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState("");
+  const [couponId, setCouponId] = useState(""); // New
+  const [actionLink, setActionLink] = useState(""); // New
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
@@ -38,7 +41,7 @@ export default function CreateBannerForm({ categories }: CreateBannerFormProps) 
 
     startTransition(async () => {
       try {
-        console.log("Submitting with:", { title, categoryId, startDate, endDate, isActive });
+        console.log("Submitting with:", { title, categoryId, couponId, actionLink, startDate, endDate, isActive });
         
         // 1. Upload Image
         const imageUrl = await uploadFile(imageFile, "banners", "images");
@@ -53,6 +56,8 @@ export default function CreateBannerForm({ categories }: CreateBannerFormProps) 
         formData.append("title", title);
         formData.append("description", description);
         formData.append("categoryId", categoryId);
+        formData.append("couponId", couponId); // New
+        formData.append("actionLink", actionLink); // New
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
         formData.append("imageUrl", imageUrl);
@@ -103,6 +108,27 @@ export default function CreateBannerForm({ categories }: CreateBannerFormProps) 
               getOptionValue={(opt) => opt.id}
               onChange={(e) => setCategoryId(e.target.value)}
               placeholder="Seleccione"
+              disabled={isPending}
+            />
+
+            <SelectInput
+              id="coupon"
+              label="Cupón (Opcional)"
+              options={coupons}
+              value={couponId}
+              getOptionLabel={(opt) => `${opt.code} - ${opt.title}`}
+              getOptionValue={(opt) => opt.id}
+              onChange={(e) => setCouponId(e.target.value)}
+              placeholder="Seleccione un cupón"
+              disabled={isPending}
+            />
+
+             <BasicInput
+              id="action-link"
+              label="Link de Acción (Opcional)"
+              placeholder="https://..."
+              value={actionLink}
+              onChange={(e) => setActionLink(e.target.value)}
               disabled={isPending}
             />
 

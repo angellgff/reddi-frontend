@@ -1,6 +1,7 @@
 // components/promotions/PromoCard.tsx (Versión Final con Corte Diagonal)
 
 import Image from "next/image";
+import Link from "next/link";
 
 export type PromoCardProps = {
   title: string;
@@ -20,7 +21,7 @@ export default function PromoCard({
   buttonText,
   imageUrl,
   bgColor,
-
+  href,
   variant = "mobile",
 }: PromoCardProps) {
   const containerSizeClass =
@@ -70,15 +71,16 @@ export default function PromoCard({
             <br />
             {code}
           </p>
-          <div
+          <Link href={href || "#"}
             className="
               mt-4 inline-block w-fit font-roboto
               rounded-full bg-green-400 px-5 py-2
               text-sm font-semibold text-white
+              hover:bg-green-500 transition-colors
             "
           >
             {buttonText}
-          </div>
+          </Link>
         </div>
       </div>
     </div>
