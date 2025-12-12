@@ -1,7 +1,7 @@
 import { updateSession } from "@/src/lib/supabase/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   console.log("[root-mw] ->", request.method, request.nextUrl.pathname);
   try {
     // Hard redirect legacy route to new 3-step checkout
