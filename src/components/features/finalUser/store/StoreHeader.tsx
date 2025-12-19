@@ -59,7 +59,7 @@ export default function StoreHeader({
       </div>
 
       {/* 4. Fila de información */}
-      <div className="ml-40 md:ml-0 md:px-5 py-4 flex flex-col md:flex-row md:items-end gap-4">
+      <div className="ml-40 md:ml-0 md:px-5 py-6 flex flex-col md:flex-row md:items-end gap-4">
         {/* 5. Contenedor de texto con padding a la izquierda para no chocar con el logo */}
         <div className="md:pl-[240px] w-full">
           <h1 className="text-2xl font-bold">{store.name}</h1>
