@@ -96,12 +96,14 @@ export default function OrderCard({
       </div>
 
       {/* Footer */}
-      <button
-        onClick={() => onAccept(orderId)}
-        className="w-full bg-white border border-black text-gray-800 font-semibold py-2 rounded-xl hover:bg-gray-800 hover:text-white transition-colors duration-200"
-      >
-        Aceptar pedido
-      </button>
+      {status === "Nueva" && (
+        <button
+          onClick={() => onAccept(orderId)}
+          className="w-full bg-white border border-black text-gray-800 font-semibold py-2 rounded-xl hover:bg-gray-800 hover:text-white transition-colors duration-200"
+        >
+          Aceptar pedido
+        </button>
+      )}
     </div>
   );
 }

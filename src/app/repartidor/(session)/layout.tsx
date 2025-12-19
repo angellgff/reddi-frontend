@@ -1,6 +1,7 @@
 import DeliveryHeader from "@/src/components/features/repartidor/header/DeliveryHeader";
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
+import RepartidorFooter from "@/src/components/features/repartidor/RepartidorFooter";
 
 export default async function DeliveryLayout({
   children,
@@ -60,7 +61,8 @@ export default async function DeliveryLayout({
   return (
     <>
       <DeliveryHeader />
-      <main className="bg-[#ECEFF0] min-h-screen">{children}</main>
+      <main className="bg-[#ECEFF0] min-h-screen pb-20 md:pb-0">{children}</main>
+      <RepartidorFooter />
     </>
   );
 }
