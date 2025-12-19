@@ -19,9 +19,11 @@ import {
   DialogTrigger,
 } from "@/src/components/ui/dialog";
 
+import type { Enums } from "@/src/lib/database.types";
+
 export type Address = {
   id: string;
-  location_type: "villa" | "yate";
+  location_type: Enums<"address_location_type">;
   location_number: string;
 };
 
@@ -35,11 +37,10 @@ export default function AddressesSection({
   const [addresses] = useState<Address[]>(initialAddresses || []);
 
   function Icon({ type }: { type: Address["location_type"] }) {
-    return type === "yate" ? (
-      <BoatIcon className="h-5 w-5 text-primary" />
-    ) : (
-      <VillageIcon className="h-5 w-5 text-primary" />
-    );
+    if (type === "yate" || type === "muelle de yate") {
+      return <BoatIcon className="h-5 w-5 text-primary" />;
+    }
+    return <VillageIcon className="h-5 w-5 text-primary" />;
   }
 
   return (
@@ -168,28 +169,19 @@ function AddOrEditAddressForm({
         <div className="grid gap-2">
           <Label>Tipo de lugar</Label>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setLocationType("villa")}
-              className={`h-9 rounded-lg border px-3 text-sm ${
-                locationType === "villa"
-                  ? "border-emerald-500 text-emerald-600"
-                  : ""
-              }`}
+            <select
+              value={locationType}
+              onChange={(e) =>
+                setLocationType(e.target.value as Address["location_type"])
+              }
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Villa
-            </button>
-            <button
-              type="button"
-              onClick={() => setLocationType("yate")}
-              className={`h-9 rounded-lg border px-3 text-sm ${
-                locationType === "yate"
-                  ? "border-emerald-500 text-emerald-600"
-                  : ""
-              }`}
-            >
-              Yate
-            </button>
+              <option value="villa">Villa</option>
+              <option value="yate">Yate</option>
+              <option value="piscina">Piscina</option>
+              <option value="habitacion de hotel">Habitación de Hotel</option>
+              <option value="muelle de yate">Muelle de Yate</option>
+            </select>
           </div>
         </div>
         <div className="grid gap-2">
