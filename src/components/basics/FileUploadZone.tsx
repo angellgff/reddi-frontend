@@ -56,7 +56,6 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
     const [file, setFile] = useState<File | string | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-
     const config = fileTypeConfigs[acceptedFileTypes];
 
     useEffect(() => {
@@ -79,6 +78,7 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
         return () => URL.revokeObjectURL(objectUrl);
       }
       setPreview(file.name);
+      console.log("preview", preview);
     }, [file]);
 
     const handleFileSelected = (selectedFile: File | null) => {

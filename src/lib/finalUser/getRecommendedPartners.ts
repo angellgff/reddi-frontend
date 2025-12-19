@@ -1,17 +1,25 @@
 import { createClient } from "@/src/lib/supabase/server";
 import type { SliderCardProps } from "@/src/components/basics/itemsSlider/SliderItem";
 
-export default async function getRecommendedPartners(): Promise<
-  SliderCardProps[]
-> {
+import { Database } from "@/src/lib/database.types";
+
+export default async function getRecommendedPartners(
+  partnerType?: Database["public"]["Enums"]["partner_type"]
+): Promise<SliderCardProps[]> {
   const supabase = await createClient();
 
-  const { data, error } = await supabase
+  let query = supabase
     .from("partners")
     .select("id, name, image_url, partner_type, average_rating, total_ratings")
     .eq("is_approved", true)
     .order("created_at", { ascending: false })
     .limit(10);
+
+  if (partnerType) {
+    query = query.eq("partner_type", partnerType);
+  }
+
+  const { data, error } = await query;
 
   if (error || !data) {
     console.error("getRecommendedPartners error", error);

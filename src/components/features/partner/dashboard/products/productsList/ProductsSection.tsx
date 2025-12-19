@@ -8,6 +8,7 @@ import { ProductData } from "@/src/lib/partner/dashboard/type";
 import SearchInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import SearchPartnerIcon from "@/src/components/icons/SearchPartnerIcon";
+import ProductImportModal from "../ProductImportModal";
 
 type ProductsListProps = {
   products: ProductData[];
@@ -42,6 +43,7 @@ export default function ProductsSection({
         >
           Añadir Nuevo Producto
         </Link>
+        <ProductImportModal />
       </div>
 
       {/* Filtros */}

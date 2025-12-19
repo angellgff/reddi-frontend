@@ -133,6 +133,7 @@ export default async function getPartnerDataById(id: string) {
     .eq("id", id)
     .single();
 
+    console.log("data", data);
   if (error || !data) {
     console.error("getPartnerDataById error", error);
     throw new Error("Aliado no encontrado");

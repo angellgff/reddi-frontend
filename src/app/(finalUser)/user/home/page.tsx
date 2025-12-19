@@ -38,9 +38,36 @@ export default function Home() {
       </section>
 
       {/*Sección de recomendaciones*/}
-      <section className="p-4 md:px-6 lg:px-8">
+      <section className="p-4 md:px-6 lg:px-8 space-y-8">
         <Suspense fallback={<SliderSectionSkeleton />}>
-          <RecommendedSectionServer />
+          <RecommendedSectionServer
+            partnerType="restaurant"
+            title="Restaurantes para ti"
+          />
+        </Suspense>
+        <Suspense fallback={<SliderSectionSkeleton />}>
+          <RecommendedSectionServer
+            partnerType="market"
+            title="Mercados para ti"
+          />
+        </Suspense>
+        <Suspense fallback={<SliderSectionSkeleton />}>
+          <RecommendedSectionServer
+            partnerType="liquor_store"
+            title="Licorerías para ti"
+          />
+        </Suspense>
+        <Suspense fallback={<SliderSectionSkeleton />}>
+          <RecommendedSectionServer
+            partnerType="pharmacy"
+            title="Farmacias para ti"
+          />
+        </Suspense>
+        <Suspense fallback={<SliderSectionSkeleton />}>
+          <RecommendedSectionServer
+            partnerType="tobacco"
+            title="Tiendas de tabaco para ti"
+          />
         </Suspense>
       </section>
 
