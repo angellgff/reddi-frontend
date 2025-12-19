@@ -58,19 +58,30 @@ export default async function getOrdersData(): Promise<OrderData[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
+
+  // Obtener el ID de conductor asociado al usuario
+  const { data: driverData } = await supabase
+    .from("drivers")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
+  const driverId = driverData?.id;
+
   // Traer pedidos activos recientes con joins mínimos para la tarjeta
   // Soportar ambos nombres de estado por posibles discrepancias en el esquema
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, created_at, scheduled_at, status, partners(name,image_url), user_addresses(location_type,location_number)"
+      "id, created_at, scheduled_at, status, partners(name,image_url), user_addresses(location_type,location_number), shipments!shipments_order_id_fkey!inner(driver_id)"
     )
-    .in("status", [
-      // Estados activos válidos según enum public.order_status
-      "pending",
-      "preparing",
-      "out_for_delivery",
-    ])
+    // Filtrar estados finales para mostrar todo lo activo
+    .neq("status", "delivered")
+    .neq("status", "cancelled")
+    .neq("status", "payment_failed")
+    .or(`driver_id.is.null,driver_id.eq.${driverId}`, {
+      foreignTable: "shipments",
+    })
     .order("created_at", { ascending: false })
     .limit(20);
 
