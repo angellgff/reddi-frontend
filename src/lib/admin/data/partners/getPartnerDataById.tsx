@@ -133,10 +133,35 @@ export default async function getPartnerDataById(id: string) {
     .eq("id", id)
     .single();
 
-    console.log("data", data);
+  console.log("data", data);
   if (error || !data) {
     console.error("getPartnerDataById error", error);
     throw new Error("Aliado no encontrado");
+  }
+
+  // Generate public URLs if they are not already http links
+  if (data.image_url && !data.image_url.startsWith("http")) {
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("business-images").getPublicUrl(data.image_url);
+    data.image_url = publicUrl;
+  }
+
+  if (data.bank_document_url && !data.bank_document_url.startsWith("http")) {
+    const {
+      data: { publicUrl },
+    } = supabase.storage
+      .from("bank-documents")
+      .getPublicUrl(data.bank_document_url);
+    data.bank_document_url = publicUrl;
+  }
+  
+  // Also check cover_image_url just in case
+  if (data.cover_image_url && !data.cover_image_url.startsWith("http")) {
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("business-images").getPublicUrl(data.cover_image_url);
+    data.cover_image_url = publicUrl;
   }
 
   return mapDbToForm(data as SelectedPartnerColumns);

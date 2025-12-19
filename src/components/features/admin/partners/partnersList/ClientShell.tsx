@@ -16,10 +16,13 @@ export interface ClientShellProps {
 }
 
 // Debe coincidir con DB public.Enums.partner_type
+// Debe coincidir con DB public.Enums.partner_type
 const businessSelect = [
   { value: "market", label: "Mercado" },
   { value: "restaurant", label: "Restaurante" },
   { value: "liquor_store", label: "Alcohol" },
+  { value: "pharmacy", label: "Farmacia" },
+  { value: "tobacco", label: "Tabaco" },
 ];
 
 const stateSelect = [
@@ -53,6 +56,9 @@ export default function ClientShell({
     else params.delete("type");
     if (state) params.set("state", state);
     else params.delete("state");
+
+    // Resetear a página 1 al filtrar
+    params.set("page", "1");
 
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });

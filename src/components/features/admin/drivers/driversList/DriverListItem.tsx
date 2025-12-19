@@ -60,9 +60,11 @@ export default function DriverListItem({ driver }: { driver: Driver }) {
               <EyeLoginIcon fill="#6A6C71" />
             </button>
           </Link>
+          <Link href={`/admin/drivers/profile/${driver.id}`}>
           <button type="button" aria-label="Editar">
             <EditPartnerIcon fill="#6A6C71" />
           </button>
+          </Link>
           <button type="button" aria-label="Eliminar">
             <DeletePartnerIcon fill="#6A6C71" />
           </button>

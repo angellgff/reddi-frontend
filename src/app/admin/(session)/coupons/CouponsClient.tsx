@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { deleteCoupon } from "@/src/lib/admin/actions/coupons";
 
 export type CouponRow = {
   id: string;
@@ -193,10 +194,22 @@ export default function CouponsClient({ coupons }: { coupons: CouponRow[] }) {
                 </div>
                 <div className="col-span-1 px-3 py-3">
                   <div className="flex items-center gap-3 text-[#6A6C71]">
-                    <button title="Editar" className="hover:text-black">
+                    <Link
+                      href={`/admin/coupons/${c.id}`}
+                      title="Editar"
+                      className="hover:text-black"
+                    >
                       ✎
-                    </button>
-                    <button title="Eliminar" className="hover:text-black">
+                    </Link>
+                    <button
+                      title="Eliminar"
+                      className="hover:text-black"
+                      onClick={() => {
+                        if (confirm("¿Estás seguro de eliminar este cupón?")) {
+                          deleteCoupon(c.id);
+                        }
+                      }}
+                    >
                       🗑
                     </button>
                   </div>

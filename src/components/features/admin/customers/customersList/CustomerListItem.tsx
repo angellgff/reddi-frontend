@@ -43,7 +43,7 @@ export default function CustomerListItem({ customer }: { customer: Customer }) {
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex items-center space-x-4 text-gray-500">
-          <Link href={`/admin/customers/${customer.id}`}>
+          <Link href={`/admin/customers/${customer.id}/orders`}>
             <button type="button" aria-label="Ver">
               <EyeLoginIcon fill="#6A6C71" />
             </button>

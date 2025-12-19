@@ -78,8 +78,11 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
         return () => URL.revokeObjectURL(objectUrl);
       }
       setPreview(file.name);
-      console.log("preview", preview);
     }, [file]);
+
+    useEffect(() => {
+      console.log("FileUploadZone preview:", preview);
+    }, [preview]);
 
     const handleFileSelected = (selectedFile: File | null) => {
       if (!selectedFile) {
@@ -187,14 +190,20 @@ export default forwardRef<HTMLDivElement, FileUploadZoneProps>(
 
         {preview && file ? (
           <div className="mt-1 relative p-2 border border-gray-300 rounded-md">
-            {isImageFile ? (
+            {isImageFile && preview && (preview.startsWith('/') || preview.startsWith('http') || preview.startsWith('blob:')) ? (
               <Image
                 src={preview}
                 alt={file instanceof File ? file.name : "Imagen subida"}
                 className="w-full h-auto rounded-md object-contain max-h-80"
                 width={200}
                 height={200}
+                onError={(e) => console.error("Error loading image in FileUploadZone:", preview, e)}
               />
+            ) : isImageFile ? (
+               <div className="flex flex-col items-center justify-center p-4 bg-red-50 text-red-500 rounded-md">
+                 <p>Error: URL de imagen inválida</p>
+                 <p className="text-xs break-all">{preview}</p>
+               </div>
             ) : (
               <div className="flex flex-col items-center justify-center space-y-2 p-4 bg-gray-50 rounded-md">
                 <UploadImageIcon />

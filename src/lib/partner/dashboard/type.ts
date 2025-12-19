@@ -45,6 +45,7 @@ export type ProductData = {
   price: number;
   currency: string;
   imageUrl: string;
+  categoryId?: string;
 };
 
 export type DishData = {

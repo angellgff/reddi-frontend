@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
@@ -6,6 +8,7 @@ import EditPartnerIcon from "@/src/components/icons/EditPartnertIcon";
 import DeletePartnerIcon from "@/src/components/icons/DeletePartnerIcon";
 import { Restaurant } from "@/src/lib/admin/type";
 import { partnersCategories } from "@/src/lib/type";
+import { deletePartner } from "@/src/lib/admin/actions/partners";
 
 // Componente para el tag de estado
 const StatusBadge = ({ state }: { state: Restaurant["state"] }) => {
@@ -30,6 +33,12 @@ export default function UserListItem({ restaurant }: UserListItemProps) {
   const category = partnersCategories.find(
     (cat) => cat.value === restaurant.type
   )?.label;
+
+  const handleDelete = async () => {
+    if (confirm("¿Estás seguro de eliminar este aliado?")) {
+      await deletePartner(restaurant.id);
+    }
+  };
 
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50 font-roboto">
@@ -91,6 +100,7 @@ export default function UserListItem({ restaurant }: UserListItemProps) {
             type="button"
             id={`del-${restaurant.id}`}
             aria-label="Eliminar"
+            onClick={handleDelete}
           >
             <DeletePartnerIcon fill="#6A6C71" />
           </button>

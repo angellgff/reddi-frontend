@@ -105,7 +105,7 @@ export async function importProductsFromExcelAction(
         base_price: price,
         previous_price: prevPriceVal ? parseFloat(String(prevPriceVal)) : null,
         unit,
-        estimated_time_range: timeRange || null,
+        estimated_time: timeRange || null,
         sub_category_id: subCategoryId,
         partner_id: partner.id,
         is_available: true, // Default

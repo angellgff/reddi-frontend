@@ -42,7 +42,11 @@ export default async function getPartnersData({
   // El tipo en BD es partner_type (market | restaurant | liquor_store)
   // Permitimos que llegue vacío para no filtrar.
   const filterType = type || null;
-  const filterState = state || null; // El RPC ya entiende open/closed si aplica
+  
+  // Mapping UI state (open/closed) to RPC expected values (active/inactive)
+  let filterState = null;
+  if (state === "open") filterState = "active";
+  if (state === "closed") filterState = "inactive";
 
   const { data, error } = await supabase.rpc("get_partners", {
     filter_state: filterState,
