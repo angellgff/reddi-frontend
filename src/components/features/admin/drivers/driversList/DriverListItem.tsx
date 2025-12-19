@@ -1,8 +1,12 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import EyeLoginIcon from "@/src/components/icons/EyeLoginIcon";
 import EditPartnerIcon from "@/src/components/icons/EditPartnertIcon";
 import DeletePartnerIcon from "@/src/components/icons/DeletePartnerIcon";
 import Link from "next/link";
+import { deleteDriver } from "@/src/lib/admin/data/drivers/deleteDriver";
+import { useRouter } from "next/navigation";
 
 export type Driver = {
   id: string;
@@ -30,6 +34,22 @@ function StatusChip({ label }: { label: Driver["documentsStatus"] }) {
 }
 
 export default function DriverListItem({ driver }: { driver: Driver }) {
+  const [isDeleting, setIsDeleting] = useState(false);
+  const router = useRouter();
+
+  const handleDelete = async () => {
+    if (confirm("¿Estás seguro de que quieres eliminar este repartidor?")) {
+      setIsDeleting(true);
+      const result = await deleteDriver(driver.id);
+      setIsDeleting(false);
+      if (result.success) {
+        // Optional: Show toast
+      } else {
+        alert("Error al eliminar repartidor: " + result.error);
+      }
+    }
+  };
+
   return (
     <tr className="border-b border-gray-200 hover:bg-gray-50 font-roboto">
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -65,7 +85,13 @@ export default function DriverListItem({ driver }: { driver: Driver }) {
             <EditPartnerIcon fill="#6A6C71" />
           </button>
           </Link>
-          <button type="button" aria-label="Eliminar">
+          <button 
+            type="button" 
+            aria-label="Eliminar"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className={isDeleting ? "opacity-50 cursor-not-allowed" : ""}
+          >
             <DeletePartnerIcon fill="#6A6C71" />
           </button>
         </div>

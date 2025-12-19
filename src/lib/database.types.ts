@@ -302,6 +302,9 @@ export type Database = {
           user_id: string
           vehicle_details: Json | null
           vehicle_type: Database["public"]["Enums"]["vehicle_type"] | null
+          identity_card_url: string | null
+          driver_license_url: string | null
+          background_check_url: string | null
         }
         Insert: {
           approved_at?: string | null
