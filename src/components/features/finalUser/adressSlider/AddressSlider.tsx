@@ -106,7 +106,12 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
                     >
                       <AddressCard
                         icon={
-                          item.label === "yate" ? <BoatIcon /> : <VillageIcon />
+                          item.label === "yate" ||
+                          item.label === "muelle de yate" ? (
+                            <BoatIcon />
+                          ) : (
+                            <VillageIcon />
+                          )
                         }
                         address={item.address}
                         label={String(item.label).toUpperCase()}

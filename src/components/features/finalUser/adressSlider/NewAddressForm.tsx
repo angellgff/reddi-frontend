@@ -93,6 +93,9 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
             >
               <option value="villa">Villa</option>
               <option value="yate">Yate</option>
+              <option value="piscina">Piscina</option>
+              <option value="habitacion de hotel">Habitación de Hotel</option>
+              <option value="muelle de yate">Muelle de Yate</option>
             </select>
 
             {/* Campo: Número de villa/yate */}
@@ -100,7 +103,11 @@ export default function AddressEditForm({ onCancel }: NewAddressFormProps) {
               htmlFor="location_number"
               className="block text-sm text-gray-700 pt-4 pb-1 font-semibold"
             >
-              Número de {formData.location_type === "yate" ? "yate" : "villa"}
+              	{formData.location_type === "habitacion de hotel"
+                ? "Número de habitación"
+                : formData.location_type === "muelle de yate"
+                ? "Número de muelle"
+                : `Número de ${formData.location_type}`}
             </label>
             <input
               id="location_number"

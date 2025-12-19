@@ -294,24 +294,27 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          background_check_url: string | null
           created_at: string
           current_location: unknown
+          driver_license_url: string | null
           id: string
+          identity_card_url: string | null
           is_approved: boolean
           status: Database["public"]["Enums"]["driver_status"]
           user_id: string
           vehicle_details: Json | null
           vehicle_type: Database["public"]["Enums"]["vehicle_type"] | null
-          identity_card_url: string | null
-          driver_license_url: string | null
-          background_check_url: string | null
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          background_check_url?: string | null
           created_at?: string
           current_location?: unknown
+          driver_license_url?: string | null
           id?: string
+          identity_card_url?: string | null
           is_approved?: boolean
           status?: Database["public"]["Enums"]["driver_status"]
           user_id: string
@@ -321,9 +324,12 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          background_check_url?: string | null
           created_at?: string
           current_location?: unknown
+          driver_license_url?: string | null
           id?: string
+          identity_card_url?: string | null
           is_approved?: boolean
           status?: Database["public"]["Enums"]["driver_status"]
           user_id?: string
@@ -2386,7 +2392,12 @@ export type Database = {
       }
     }
     Enums: {
-      address_location_type: "villa" | "yate"
+      address_location_type:
+        | "villa"
+        | "yate"
+        | "piscina"
+        | "habitacion de hotel"
+        | "muelle de yate"
       app_role: "user" | "admin" | "market" | "restaurant" | "delivery"
       banner_placement: "home_top" | "home_middle" | "category_page"
       coupon_discount_type: "percentage" | "fixed_amount"
@@ -2572,7 +2583,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      address_location_type: ["villa", "yate"],
+      address_location_type: [
+        "villa",
+        "yate",
+        "piscina",
+        "habitacion de hotel",
+        "muelle de yate",
+      ],
       app_role: ["user", "admin", "market", "restaurant", "delivery"],
       banner_placement: ["home_top", "home_middle", "category_page"],
       coupon_discount_type: ["percentage", "fixed_amount"],

@@ -8,7 +8,13 @@ type LocationType = Enums<"address_location_type">; // "villa" | "yate"
 type UserAddress = Tables<"user_addresses">;
 
 function isLocationType(v: unknown): v is LocationType {
-  return v === "villa" || v === "yate";
+  return (
+    v === "villa" ||
+    v === "yate" ||
+    v === "piscina" ||
+    v === "habitacion de hotel" ||
+    v === "muelle de yate"
+  );
 }
 
 function createWKBPoint(lat: number, lng: number): string {
