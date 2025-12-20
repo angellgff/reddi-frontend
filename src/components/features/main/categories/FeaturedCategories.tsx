@@ -8,23 +8,33 @@ import HorizontalScrollButtons from "@/src/components/basics/itemsSlider/Horizon
 // ¡IMPORTANTE! Deberás reemplazar 'imageUrl' con las rutas a tus propias imágenes.
 const categories = [
   {
+    name: "Mercado",
+    imageUrl: "/market.png",
+    href: "/user/search?type=market",
+  },
+  {
+    name: "Restaurante", // Assuming singular to match desktop or plural? Desktop says "Restaurantes"
+    imageUrl: "/restaurant.png",
+    href: "/user/search?type=restaurant",
+  },
+  {
     name: "Mandao´",
-    imageUrl: "/mandao.png", // Ruta de ejemplo
-    href: "/categorias/mandao",
+    imageUrl: "/mandao.png",
+    href: "/mandao",
   },
   {
     name: "Alcohol",
-    imageUrl: "/alcohol.svg", // Ruta de ejemplo
+    imageUrl: "/alcohol.svg",
     href: "/user/search?type=liquor_store",
   },
   {
     name: "Farmacia",
-    imageUrl: "/farmacia-tiny.png", // Ruta de ejemplo
+    imageUrl: "/farmacia-tiny.png",
     href: "/user/search?type=pharmacy",
   },
   {
     name: "Tabaco",
-    imageUrl: "/Tobacco.svg", // Ruta de ejemplo
+    imageUrl: "/Tobacco.svg",
     href: "/user/search?type=tobacco",
   },
 ];

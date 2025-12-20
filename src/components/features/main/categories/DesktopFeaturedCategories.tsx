@@ -29,7 +29,7 @@ const categories: Category[] = [
   {
     name: "Mandao’",
     imageUrl: "/mandao.png",
-    href: "/mandao",
+    href: "",
     imageW: 109,
     imageH: 109,
   },

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 import React from "react";
 
@@ -13,6 +14,7 @@ type CategoryCardProps = {
 const CategoryCard: React.FC<CategoryCardProps> = ({
   name,
   imageUrl,
+  href,
 
   size = "small",
   className = "",
@@ -31,7 +33,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
   const textSize = isLarge ? "text-base font-bold" : "text-sm font-medium";
 
   return (
-    <div
+    <Link
+      href={href}
       className={`flex flex-col items-center transition-transform duration-200 hover:scale-105 active:scale-95 bg-[#f3f3f3] rounded-2xl ${containerClasses} ${className}`}
     >
       {/* Contenedor de la imagen */}
@@ -44,12 +47,13 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
           width={imageUrl === "/farmacia-tiny.png" ? 48 : imageSize}
           height={imageUrl === "/farmacia-tiny.png" ? 48 : imageSize}
           className="object-contain"
+          priority={false}
         />
       </div>
 
       {/* Nombre de la categoría */}
       <span className={`text-gray-800 text-center ${textSize}`}>{name}</span>
-    </div>
+    </Link>
   );
 };
 
