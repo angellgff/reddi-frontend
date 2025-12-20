@@ -20,7 +20,7 @@ const categories = [
   {
     name: "Mandao´",
     imageUrl: "/mandao.png",
-    href: "/mandao",
+    href: "/",
   },
   {
     name: "Alcohol",
