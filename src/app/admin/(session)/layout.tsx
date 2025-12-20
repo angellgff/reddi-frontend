@@ -41,7 +41,7 @@ export default async function AdminDashboardLayout({
     },
     {
       name: "Banner",
-      href: `${actualURL}/banner`,
+      href: `${actualURL}/banners`,
       icon: "banner",
     },
     {
