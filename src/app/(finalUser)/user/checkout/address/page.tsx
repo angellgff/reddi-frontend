@@ -235,6 +235,9 @@ export default function CheckoutAddressPage() {
                   options={[
                     { value: "villa", label: "Villa" },
                     { value: "yate", label: "Yate" },
+                    { value: "piscina", label: "Piscina" },
+                    { value: "habitacion de hotel", label: "Habitación de Hotel" },
+                    { value: "muelle de yate", label: "Muelle de Yate" },
                   ]}
                 />
               </div>

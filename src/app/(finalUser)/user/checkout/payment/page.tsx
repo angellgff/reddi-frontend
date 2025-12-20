@@ -78,8 +78,13 @@ export default function CheckoutPaymentPage() {
   const [manualTipAmount, setManualTipAmount] = useState<number>(
     storedTipAmountManual || 0
   );
+  // Estado local para el input (string) para permitir borrar el 0
+  const [inputValue, setInputValue] = useState<string>(
+    storedTipAmountManual ? String(storedTipAmountManual) : ""
+  );
+
   const [showManualTip, setShowManualTip] = useState<boolean>(
-    storedTipAmountManual ? true : false
+    storedTipAmountManual !== null // Si hay almacenado (incluso 0 si fue intencional, aunque por ahora null si no manual), mostramos section
   );
   const [selectedMethod, setSelectedMethod] = useState(storedPayment);
 
@@ -94,7 +99,8 @@ export default function CheckoutPaymentPage() {
   useEffect(() => {
     if (storedTipAmountManual !== manualTipAmount) {
       setManualTipAmount(storedTipAmountManual || 0);
-      if (storedTipAmountManual) setShowManualTip(true);
+      setInputValue(storedTipAmountManual ? String(storedTipAmountManual) : "");
+      if (storedTipAmountManual !== null) setShowManualTip(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storedTipAmountManual]);
@@ -129,11 +135,11 @@ export default function CheckoutPaymentPage() {
   }, [subtotal, storedCoupon]);
 
   const tip = useMemo(() => {
-    // Si el usuario ingresó un monto manual positivo, usarlo
-    if (manualTipAmount > 0) return manualTipAmount;
+    // Si la propina manual está activa, usamos su valor (incluso 0)
+    if (showManualTip) return manualTipAmount;
     // De lo contrario, usar porcentaje
     return (subtotal * tipPercent) / 100;
-  }, [subtotal, tipPercent, manualTipAmount]);
+  }, [subtotal, tipPercent, manualTipAmount, showManualTip]);
 
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
 
@@ -307,10 +313,14 @@ export default function CheckoutPaymentPage() {
               </div>
               {/* Toggle propina manual */}
               <div className="mt-4">
-                {!showManualTip && manualTipAmount === 0 ? (
+                {!showManualTip ? (
                   <button
                     type="button"
-                    onClick={() => setShowManualTip(true)}
+                    onClick={() => {
+                      setShowManualTip(true);
+                      setManualTipAmount(0); // Iniciar en 0
+                      setInputValue(""); // Input visualmente vacío (placeholder)
+                    }}
                     className="h-9 rounded-lg border px-3 text-xs hover:bg-gray-50"
                   >
                     Propina manual
@@ -324,24 +334,37 @@ export default function CheckoutPaymentPage() {
                       <div className="mt-1 flex items-center rounded-xl border px-3 h-10 bg-white focus-within:ring-2 focus-within:ring-primary/40">
                         <span className="text-gray-500 mr-2 text-sm">RD$</span>
                         <input
-                          type="number"
-                          min={0}
-                          step={0.5}
+                          type="text" // Cambiar a text para mejor control y permitir vacio
                           inputMode="decimal"
-                          value={
-                            Number.isNaN(manualTipAmount) ? "" : manualTipAmount
-                          }
+                          value={inputValue}
                           onChange={(e) => {
-                            const raw = e.target.value;
-                            const n = Number(raw.replace(/,/g, "."));
+                            let raw = e.target.value;
+
+                            // Permitir solo números y un punto
+                            if (!/^\d*\.?\d*$/.test(raw)) return;
+
+                            // Evitar ceros a la izquierda (excepto "0." o el "0" solo si es lo único)
+                            if (
+                              raw.length > 1 &&
+                              raw.startsWith("0") &&
+                              raw[1] !== "."
+                            ) {
+                              raw = raw.substring(1);
+                            }
+
+                            setInputValue(raw);
+
                             if (!raw) {
                               setManualTipAmount(0);
                               return;
                             }
-                            if (Number.isFinite(n) && n >= 0)
+
+                            const n = parseFloat(raw);
+                            if (!isNaN(n)) {
                               setManualTipAmount(n);
+                            }
                           }}
-                          placeholder="Ingresa un monto (opcional)"
+                          placeholder="0"
                           className="flex-1 outline-none text-sm"
                         />
                       </div>
@@ -355,6 +378,7 @@ export default function CheckoutPaymentPage() {
                         type="button"
                         onClick={() => {
                           setManualTipAmount(0);
+                          setInputValue("");
                           setShowManualTip(false);
                         }}
                         className="h-10 rounded-xl border px-3 text-xs hover:bg-gray-50"
@@ -390,8 +414,7 @@ export default function CheckoutPaymentPage() {
               { label: "Costo de envío", value: shipping },
               { label: "Tarifa de servicio", value: serviceFee },
               {
-                label:
-                  manualTipAmount > 0
+                label: showManualTip
                     ? "Propina (monto manual)"
                     : `Propina (${tipPercent}%)`,
                 value: tip,
