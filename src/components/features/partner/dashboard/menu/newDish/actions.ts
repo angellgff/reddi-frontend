@@ -28,6 +28,7 @@ export async function createSubCategoryAction(name: string) {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
 
@@ -67,6 +68,7 @@ export async function createDishAction(
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
 
@@ -200,6 +202,7 @@ export async function createExtraAction({
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
   const trimmed = name.trim();
@@ -266,6 +269,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
 
   if (pErr || !partner) {
@@ -528,6 +532,7 @@ export async function deleteDishAction(dishId: string) {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
 

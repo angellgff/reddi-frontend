@@ -3,8 +3,6 @@ import type { MainStatsData } from "../../type";
 import { ACTIVE_ORDER_STATUSES } from "@/src/lib/partner/dashboard/utils/orderStatus";
 import { formatCurrency } from "@/src/lib/utils";
 
-
-
 export default async function getMainStatsData(): Promise<MainStatsData[]> {
   const supabase = await createClient();
 
@@ -26,6 +24,7 @@ export default async function getMainStatsData(): Promise<MainStatsData[]> {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
 
   if (!partner?.id) {

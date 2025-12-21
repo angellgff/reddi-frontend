@@ -13,7 +13,8 @@ const headerNames: Array<
   { address: "Dirección" },
   { type: "Tipo de Negocio" },
   { totalOrders: "Total Pedidos" },
-  { state: "Estado" },
+  { isApproved: "Aprobación" },
+  { isActive: "Estado" },
   { actions: "Acciones" },
 ];
 

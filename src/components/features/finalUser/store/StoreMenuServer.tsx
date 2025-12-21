@@ -1,21 +1,21 @@
 import getStoreMenu from "@/src/lib/finalUser/stores/getStoreMenu";
 import StoreMenu from "./StoreMenu";
-import getStoreDetails from "@/src/lib/finalUser/stores/getStoreDetails";
+import { Database } from "@/src/lib/database.types";
+
+type PartnerType = Database["public"]["Enums"]["partner_type"];
 
 export default async function StoreMenuServer({
   id,
   category,
   q,
+  partnerType,
 }: {
   id: string;
   category?: string | string[];
   q?: string | string[];
+  partnerType: PartnerType;
 }) {
-  // Cargamos en paralelo el menú y el tipo de partner para decidir la tarjeta a mostrar
-  const [storeDetails, menu] = await Promise.all([
-    getStoreDetails(id),
-    getStoreMenu(id, { category, q }),
-  ]);
+  const menu = await getStoreMenu(id, { category, q });
 
-  return <StoreMenu menu={menu} partnerType={storeDetails.partner_type} />;
+  return <StoreMenu menu={menu} partnerType={partnerType} />;
 }

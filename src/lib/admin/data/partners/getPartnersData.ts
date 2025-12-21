@@ -42,11 +42,12 @@ export default async function getPartnersData({
   // El tipo en BD es partner_type (market | restaurant | liquor_store)
   // Permitimos que llegue vacío para no filtrar.
   const filterType = type || null;
-  
+
   // Mapping UI state (open/closed) to RPC expected values (active/inactive)
   let filterState = null;
   if (state === "open") filterState = "active";
   if (state === "closed") filterState = "inactive";
+  if (state === "deleted") filterState = "deleted";
 
   const { data, error } = await supabase.rpc("get_partners", {
     filter_state: filterState,
@@ -85,20 +86,24 @@ export default async function getPartnersData({
   type RpcRow =
     Database["public"]["Functions"]["get_partners"]["Returns"][number];
 
-  const restaurants: Restaurant[] = (data || []).map((row: RpcRow) => {
+  const restaurants: Restaurant[] = (data || []).map((row: any) => {
     const uiType: valueCategories =
       (row.type as string) === "liquor_store"
         ? "alcohol"
         : (row.type as string as valueCategories);
     return {
       id: String(row.id),
-      imageUrl: row.imageurl || "/ellipse.svg",
+      imageUrl: row.imageUrl || row.imageurl || "/ellipse.svg",
       name: row.name,
       nit: row.nit,
       address: row.address,
       type: uiType,
-      totalOrders: formatter.format(Number(row.totalorders ?? 0)),
-      state: row.state === "active" ? "open" : "closed",
+      totalOrders: formatter.format(
+        Number(row.totalOrders ?? row.totalorders ?? 0)
+      ),
+      state: row.state,
+      isActive: row.isActive ?? row.isactive ?? false,
+      isApproved: row.isApproved ?? row.isapproved ?? false,
     };
   });
 

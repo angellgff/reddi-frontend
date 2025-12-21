@@ -16,6 +16,7 @@ export async function createCategoryAction(name: string) {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
 
@@ -38,7 +39,7 @@ export async function createCategoryAction(name: string) {
   // Revalidate the products list page (adjust path if needed to match actual route)
   // Route seems to be /activeWorkspace/src/app/partner/(session)/market/products/page.tsx -> /partner/dashboard/products ?
   // The user file looked like `src/app/partner/(session)/market/profile/page.tsx`
-  // I need to be careful with the revalidate path. 
+  // I need to be careful with the revalidate path.
   // Based on `ProductsSection` link: `href="productos/nuevo"`, the page is likely `/partner/dashboard/products` or similar.
   // Assuming standard route: /partner/dashboard/products
   // Wait, let's verify the route.
@@ -46,7 +47,7 @@ export async function createCategoryAction(name: string) {
   // I will assume /partner/dashboard/products for now or generic /aliado/productos.
   // Let's check the route file structure later or use a broad revalidate if unsure.
   // Actually, I'll use `/partner/dashboard/products` as a safe guess based on folder structure.
-  
-  revalidatePath("/partner/dashboard/products"); 
+
+  revalidatePath("/partner/dashboard/products");
   return data; // { id, name }
 }

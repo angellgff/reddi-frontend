@@ -49,6 +49,7 @@ export default async function getRealDishesData(
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
 
   const partnerId = partner?.id;

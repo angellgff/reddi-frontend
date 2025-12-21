@@ -29,6 +29,7 @@ export async function createMarketProductAction(
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
 

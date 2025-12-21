@@ -10,17 +10,30 @@ import { Restaurant } from "@/src/lib/admin/type";
 import { partnersCategories } from "@/src/lib/type";
 import { deletePartner } from "@/src/lib/admin/actions/partners";
 
-// Componente para el tag de estado
-const StatusBadge = ({ state }: { state: Restaurant["state"] }) => {
-  const isActive = state === "open";
-
+// Componente para el tag de aprobación
+const ApprovalBadge = ({ isApproved }: { isApproved: boolean }) => {
   return (
     <span
       className={`py-1 px-2 text-xs font-medium rounded-lg ${
-        isActive ? "bg-green-100 text-[#04910C]" : "bg-red-100 text-[#FF0000]"
+        isApproved
+          ? "bg-green-100 text-[#04910C]"
+          : "bg-yellow-100 text-yellow-800"
       }`}
     >
-      {isActive ? "Activo" : "Inactivo"}
+      {isApproved ? "Aprobado" : "Pendiente"}
+    </span>
+  );
+};
+
+// Componente para el tag de estado (soft delete)
+const ActiveBadge = ({ isActive }: { isActive: boolean }) => {
+  return (
+    <span
+      className={`py-1 px-2 text-xs font-medium rounded-lg ${
+        isActive ? "bg-blue-100 text-blue-800" : "bg-red-100 text-[#FF0000]"
+      }`}
+    >
+      {isActive ? "Activo" : "Eliminado"}
     </span>
   );
 };
@@ -73,7 +86,10 @@ export default function UserListItem({ restaurant }: UserListItemProps) {
         {restaurant.totalOrders}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">
-        <StatusBadge state={restaurant.state} />
+        <ApprovalBadge isApproved={restaurant.isApproved} />
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm">
+        <ActiveBadge isActive={restaurant.isActive} />
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
         <div className="flex items-center space-x-4 text-gray-500">
