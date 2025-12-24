@@ -55,21 +55,23 @@ export async function getDriverFinance(): Promise<DriveFinanceData> {
 
   const transactions: FinanceTransaction[] = (logs || []).map((log) => {
     let description = "Transacción";
-    if (log.transaction_type === "delivery_payment") description = "Cobro de pedido";
-    if (log.transaction_type === "platform_payment") description = "Pago a plataforma";
-    
+    console.log(`[Finance Debug] ID: ${log.id}, Type: '${log.transaction_type}', Amount: ${log.amount}`);
+
     // Sum logic
-    // Assuming 'delivery_payment' adds to debt (money collected from customer)
-    // Assuming 'platform_payment' reduces debt (money paid to Reddi)
-    if (log.transaction_type === "delivery_payment") {
-      totalCollections += log.amount;
-    } else if (log.transaction_type === "platform_payment") {
-      totalPayments += log.amount;
+    const absAmount = Math.abs(log.amount);
+
+    if (log.transaction_type === "delivery_payment" || log.transaction_type === "order_collection") {
+      totalCollections += absAmount;
+      description = "Cobro de pedido";
+    } else {
+      // Includes admin_settlement (negative in DB), settlement, platform_payment, payment
+      totalPayments += absAmount;
+      description = log.transaction_type === "admin_settlement" ? "Liquidación Admin" : "Pago a plataforma";
     }
 
     return {
       id: log.id,
-      amount: log.amount,
+      amount: absAmount,
       transaction_type: log.transaction_type,
       created_at: log.created_at || new Date().toISOString(),
       order_id: log.order_id,

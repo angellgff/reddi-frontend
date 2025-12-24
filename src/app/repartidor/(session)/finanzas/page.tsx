@@ -10,7 +10,7 @@ const formatMoney = (amount: number) => {
   }).format(amount);
 };
 
-export const revalidate = 60; // Revalidate every minute
+export const revalidate = 0; // Disable cache for debugging
 
 export default async function FinancesPage() {
   const data = await getDriverFinance();
@@ -55,17 +55,20 @@ export default async function FinancesPage() {
              No hay transacciones registradas.
            </div>
         ) : (
-          data.transactions.map((tx) => (
+          data.transactions.map((tx) => {
+            const isDebtIncrease = tx.transaction_type === "delivery_payment" || tx.transaction_type === "order_collection";
+            
+            return (
             <div key={tx.id} className="bg-white rounded-xl p-4 flex items-center gap-3 shadow-sm">
               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                tx.transaction_type === "delivery_payment" 
+                isDebtIncrease
                   ? "bg-red-100 text-red-600" 
                   : "bg-emerald-100 text-emerald-600"
               }`}>
-                 {tx.transaction_type === "delivery_payment" ? (
-                   <ArrowDownCircle className="w-6 h-6" /> // Debt increases (Cash coming in)
+                 {isDebtIncrease ? (
+                   <ArrowDownCircle className="w-6 h-6" /> 
                  ) : (
-                   <ArrowUpCircle className="w-6 h-6" /> // Debt decreases (Payment out)
+                   <ArrowUpCircle className="w-6 h-6" />
                  )}
               </div>
               <div className="flex-1">
@@ -79,14 +82,15 @@ export default async function FinancesPage() {
                 </p>
               </div>
               <span className={`text-sm font-bold ${
-                 tx.transaction_type === "delivery_payment" 
+                 isDebtIncrease
                   ? "text-red-500" 
                   : "text-emerald-500"
               }`}>
-                {tx.transaction_type === "delivery_payment" ? "+" : "-"} {formatMoney(tx.amount)}
+                {isDebtIncrease ? "+" : "-"} {formatMoney(tx.amount)}
               </span>
             </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

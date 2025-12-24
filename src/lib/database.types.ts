@@ -334,6 +334,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "driver_cash_logs_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "view_driver_balances"
+            referencedColumns: ["driver_id"]
+          },
+          {
             foreignKeyName: "driver_cash_logs_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -864,6 +871,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "payments_collected_by_driver_id_fkey"
+            columns: ["collected_by_driver_id"]
+            isOneToOne: false
+            referencedRelation: "view_driver_balances"
+            referencedColumns: ["driver_id"]
+          },
+          {
             foreignKeyName: "payments_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: false
@@ -1272,6 +1286,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "shipments_driver_id_fkey"
+            columns: ["driver_id"]
+            isOneToOne: false
+            referencedRelation: "view_driver_balances"
+            referencedColumns: ["driver_id"]
+          },
+          {
             foreignKeyName: "shipments_order_id_fkey"
             columns: ["order_id"]
             isOneToOne: true
@@ -1495,6 +1516,17 @@ export type Database = {
         }
         Relationships: []
       }
+      view_driver_balances: {
+        Row: {
+          current_debt: number | null
+          driver_id: string | null
+          driver_name: string | null
+          email: string | null
+          last_transaction: string | null
+          status: Database["public"]["Enums"]["driver_status"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       _postgis_deprecate: {
@@ -1628,6 +1660,10 @@ export type Database = {
             }
             Returns: string
           }
+      admin_settle_driver_debt: {
+        Args: { p_amount: number; p_driver_id: string; p_user_id: string }
+        Returns: boolean
+      }
       complete_delivery_and_pay: {
         Args: {
           p_collected_method: Database["public"]["Enums"]["payment_method_type"]

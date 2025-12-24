@@ -13,7 +13,7 @@ export async function settleDriverDebt(
   const { data, error } = await supabase.rpc("admin_settle_driver_debt", {
     p_driver_id: driverId,
     p_amount: amount,
-    p_admin_id: adminId,
+    p_user_id: adminId,
   });
 
   if (error) {

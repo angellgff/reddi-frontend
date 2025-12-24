@@ -53,10 +53,6 @@ export default async function AdminDashboardLayout({
       name: "Finanzas",
       href: `${actualURL}/finances`,
       icon: "adminFinances",
-      subLinks: [
-        { name: "General", href: `${actualURL}/finances` },
-        { name: "Liquidación Drivers", href: `${actualURL}/finance/drivers` },
-      ],
     },
   ];
 
