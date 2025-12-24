@@ -47,6 +47,7 @@ export async function importProductsFromExcelAction(
 
   const subCategoryMap = new Map<string, string>();
   subCategories?.forEach((sc: { id: string; name: string }) => {
+    // Guardamos el nombre en minúsculas para comparar fácilmente
     subCategoryMap.set(sc.name.toLowerCase().trim(), sc.id);
   });
 
@@ -69,33 +70,56 @@ export async function importProductsFromExcelAction(
     worksheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return; // Skip header
 
-      // Cells: 1=Name, 2=Description, 3=Price, 4=Unit, 5=Category, 6=TimeRange(opt), 7=PreviousPrice(opt)
-      // Note: ExcelJS indices are 1-based
+      // Cells: 1=Name, 2=Description, 3=Price, 4=Unit, 5=Category, 6=TimeRange(opt), 7=PreviousPrice(opt), 8=Image
       const name = row.getCell(1).text?.trim();
       const description = row.getCell(2).text?.trim();
-      const priceVal = row.getCell(3).value;
-      const unit = row.getCell(4).text?.trim();
+      
+      // --- MANEJO DE PRECIO ---
+      // Obtenemos el valor, lo convertimos a string y cambiamos coma por punto
+      const rawPriceVal = row.getCell(3).value; 
+      // Si Excel lo ve como número, value es number. Si es texto "152,50", es string.
+      // String(rawPriceVal) lo convierte a texto seguro.
+      const priceString = rawPriceVal ? String(rawPriceVal).replace(',', '.') : "";
+
+      // --- MANEJO DE UNIDAD ---
+      // Si está vacía, usamos "Unidad" por defecto
+      let unit = row.getCell(4).text?.trim();
+      if (!unit || unit === "") {
+        unit = "Unidad"; 
+      }
+
       const categoryName = row.getCell(5).text?.trim();
       const timeRange = row.getCell(6).text?.trim();
-      const prevPriceVal = row.getCell(7).value;
-      const imageUrl = row.getCell(8).text?.trim(); // Optional image url
+      
+      // --- MANEJO PRECIO ANTERIOR ---
+      const rawPrevPrice = row.getCell(7).value;
+      const prevPriceString = rawPrevPrice ? String(rawPrevPrice).replace(',', '.') : null;
 
-      if (!name || !priceVal || !unit || !categoryName) {
-         // Skip empty rows or incomplete
-         if(!name && !priceVal && !categoryName) return; 
-         errors.push(`Row ${rowNumber}: Missing required fields (Name, Price, Unit, Category)`);
+      const imageUrl = row.getCell(8).text?.trim();
+
+      // VALIDACIÓN: Ya no exigimos 'unit' en el if porque le pusimos un valor por defecto arriba
+      if (!name || !priceString || !categoryName) {
+         // Skip empty rows completely
+         if(!name && !priceString && !categoryName) return; 
+         
+         const missing = [];
+         if (!name) missing.push("Name");
+         if (!priceString) missing.push("Price");
+         if (!categoryName) missing.push("Category");
+         
+         errors.push(`Row ${rowNumber}: Missing required fields (${missing.join(", ")})`);
          return;
       }
 
-      const price = parseFloat(String(priceVal));
+      const price = parseFloat(priceString);
       if (isNaN(price)) {
-        errors.push(`Row ${rowNumber}: Invalid price`);
+        errors.push(`Row ${rowNumber}: Invalid price format (${rawPriceVal})`);
         return;
       }
 
       let subCategoryId = subCategoryMap.get(categoryName.toLowerCase());
       if (!subCategoryId) {
-         errors.push(`Row ${rowNumber}: Category "${categoryName}" not found. Please create it first.`);
+         errors.push(`Row ${rowNumber}: Category "${categoryName}" not found. Please create it first in your dashboard.`);
          return;
       }
 
@@ -103,7 +127,7 @@ export async function importProductsFromExcelAction(
         name,
         description: description || "",
         base_price: price,
-        previous_price: prevPriceVal ? parseFloat(String(prevPriceVal)) : null,
+        previous_price: prevPriceString ? parseFloat(prevPriceString) : null,
         unit,
         estimated_time: timeRange || null,
         sub_category_id: subCategoryId,
@@ -135,7 +159,7 @@ export async function importProductsFromExcelAction(
     console.error("Excel processing error", err);
     return { success: false, count: 0, errors: [err.message] };
   }
-  }
+}
 
 export async function getImportTemplateAction(): Promise<{ success: boolean; base64?: string; error?: string }> {
   try {

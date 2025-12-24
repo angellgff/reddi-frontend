@@ -1,36 +1,31 @@
-import { getRandomNumberFrom1To10 } from "@/src/lib/utils";
+import { createClient } from "@/src/lib/supabase/server";
+import { toUINotification } from "@/src/lib/notifications/adapters";
 import { Notification } from "@/src/lib/partner/dashboard/type";
-import { CURRENCY_SYMBOL } from "@/src/lib/constants";
 
-const apiDelay = 500;
+export default async function getNotificationsData(): Promise<Notification[]> {
+  const supabase = await createClient();
 
-const data: Notification[] = [
-  {
-    id: "n1",
-    type: "error",
-    title: "Stock bajo",
-    description: "Pizza Pepperoni tiene menos de 5 unidades",
-    time: "Hace 30 min",
-  },
-  {
-    id: "n2",
-    type: "info",
-    title: "Nuevo pedido",
-    description: `Pedido #004 recibido por ${CURRENCY_SYMBOL}35.50`,
-    time: "Hace 1 hora",
-  },
-  {
-    id: "n3",
-    type: "success",
-    title: "Pedido completado",
-    description: "Pedido #998 entregado exitosamente",
-    time: "Hace 2 horas",
-  },
-];
+  // Get current user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-export default async function getNotificationsData() {
-  await new Promise((resolve) =>
-    setTimeout(resolve, apiDelay * getRandomNumberFrom1To10())
-  );
-  return data;
+  if (!user) {
+    return [];
+  }
+
+  const { data: notifications, error } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(10); // Limit to recent notifications
+
+  if (error) {
+    console.error("Error fetching notifications:", error);
+    return [];
+  }
+
+  // Adapter transforms DB row to UI Notification type
+  return (notifications || []).map(toUINotification);
 }
