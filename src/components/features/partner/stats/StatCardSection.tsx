@@ -9,7 +9,7 @@ type StatCardSectionProps<T> = {
   getKey: (item: T) => string;
 
   // `getValue` es una función que le dice al componente CÓMO obtener el valor a mostrar.
-  getValue: (item: T) => string;
+  getValue: (item: T) => string | React.ReactNode;
 
   // Los mapas ahora usan `string` como clave, ya que es lo que devolverá `getKey`.
   iconMap: Record<string, React.ReactNode>;

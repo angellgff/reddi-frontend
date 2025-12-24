@@ -79,7 +79,9 @@ export default function EditPartnerProfile({
       console.error("No se pudo actualizar el aliado", err);
       setModalTitle("Error al guardar");
       setModalDesc(
-        "No pudimos actualizar el perfil del aliado. Inténtalo nuevamente."
+        `No pudimos actualizar el perfil del aliado. ${
+          err instanceof Error ? err.message : "Error desconocido"
+        }`
       );
       setModalOpen(true);
     } finally {

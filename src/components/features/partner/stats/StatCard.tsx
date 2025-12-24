@@ -7,7 +7,7 @@ export default function StatCard({
   children,
 }: {
   title: string;
-  value: string;
+  value: string | React.ReactNode;
   children: React.ReactNode;
 }) {
   return (

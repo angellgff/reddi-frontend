@@ -149,7 +149,9 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
 
   if (error) {
     console.error("updatePartnerProfile error", error);
-    throw new Error("No se pudo actualizar el aliado");
+    throw new Error(
+      `No se pudo actualizar el aliado: ${error.message} (Code: ${error.code})`
+    );
   }
 
   return { ok: true };
