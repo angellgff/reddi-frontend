@@ -16,6 +16,8 @@ export interface Restaurant {
   state: "active" | "inactive" | "deleted";
   isActive: boolean;
   isApproved: boolean;
+  price_markup_percentage: number | null;
+  platform_commission_percentage: number | null;
 }
 
 export type OrderDir = "asc" | "desc";

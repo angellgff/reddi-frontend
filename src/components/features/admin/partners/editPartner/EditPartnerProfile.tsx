@@ -70,6 +70,7 @@ export default function EditPartnerProfile({
         image_url: logoUrl,
         bank_document_url: documentUrl,
         price_markup_percentage: formData.price_markup_percentage,
+        platform_commission_percentage: formData.platform_commission_percentage,
       });
       setModalTitle("Cambios guardados");
       setModalDesc("El perfil del aliado se actualizó correctamente.");

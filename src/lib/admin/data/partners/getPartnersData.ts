@@ -79,6 +79,29 @@ export default async function getPartnersData({
     return { restaurants: [] };
   }
 
+  // Fetch markup percentages for these partners (workaround since RPC doesn't return it)
+  const partnerIds = data.map((r: { id: any }) => r.id);
+  let partnerExtras: Record<
+    string,
+    { markup: number | null; commission: number | null }
+  > = {};
+
+  if (partnerIds.length > 0) {
+    const { data: markupData } = await supabase
+      .from("partners")
+      .select("id, price_markup_percentage, platform_commission_percentage")
+      .in("id", partnerIds);
+
+    if (markupData) {
+      markupData.forEach((m) => {
+        partnerExtras[m.id] = {
+          markup: m.price_markup_percentage,
+          commission: m.platform_commission_percentage,
+        };
+      });
+    }
+  }
+
   const formatter = new Intl.NumberFormat("es-CO");
 
   console.log(data);
@@ -90,7 +113,12 @@ export default async function getPartnersData({
     const uiType: valueCategories =
       (row.type as string) === "liquor_store"
         ? "alcohol"
-        : (row.type as string as valueCategories);
+        : ((row.type as string) as valueCategories);
+    const extras = partnerExtras[String(row.id)] || {
+      markup: null,
+      commission: null,
+    };
+
     return {
       id: String(row.id),
       imageUrl: row.imageUrl || row.imageurl || "/ellipse.svg",
@@ -104,6 +132,8 @@ export default async function getPartnersData({
       state: row.state,
       isActive: row.isActive ?? row.isactive ?? false,
       isApproved: row.isApproved ?? row.isapproved ?? false,
+      price_markup_percentage: extras.markup,
+      platform_commission_percentage: extras.commission,
     };
   });
 

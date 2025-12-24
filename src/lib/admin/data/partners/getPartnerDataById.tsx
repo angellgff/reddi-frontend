@@ -18,6 +18,8 @@ type SelectedPartnerColumns = Pick<
   | "is_approved"
   | "coordinates"
   | "bank_document_url"
+  | "price_markup_percentage"
+  | "platform_commission_percentage"
 >;
 
 const defaultHours: BusinessFormData["hours"] = {
@@ -120,6 +122,8 @@ function mapDbToForm(row: SelectedPartnerColumns): BusinessFormData {
     document: row.bank_document_url || null,
     lat,
     lng,
+    price_markup_percentage: row.price_markup_percentage,
+    platform_commission_percentage: row.platform_commission_percentage,
   };
 }
 
@@ -128,7 +132,7 @@ export default async function getPartnerDataById(id: string) {
   const { data, error } = await supabase
     .from("partners")
     .select(
-      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, cover_image_url, is_approved, coordinates, bank_document_url"
+      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, cover_image_url, is_approved, coordinates, bank_document_url, price_markup_percentage, platform_commission_percentage"
     )
     .eq("id", id)
     .single();

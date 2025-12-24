@@ -41,6 +41,7 @@ export interface BusinessFormData {
   lng?: number | null;
   coverImage?: File | string | null;
   price_markup_percentage?: number | null;
+  platform_commission_percentage?: number | null;
 }
 
 // Define las props del componente
@@ -227,6 +228,19 @@ export default function BusinessProfileForm({
                 type="number"
                 label="Margen de Precio al Cliente (%)"
                 value={formData.price_markup_percentage?.toString() || ""}
+                onChange={handleInputChange}
+                className="w-full border-gray-300 rounded-md"
+                placeholder="Ej. 10 (para 10%)"
+                min={0}
+              />
+              <BasicInput
+                id="platform_commission_percentage"
+                name="platform_commission_percentage"
+                type="number"
+                label="Comisión de Plataforma (%)"
+                value={
+                  formData.platform_commission_percentage?.toString() || ""
+                }
                 onChange={handleInputChange}
                 className="w-full border-gray-300 rounded-md"
                 placeholder="Ej. 10 (para 10%)"

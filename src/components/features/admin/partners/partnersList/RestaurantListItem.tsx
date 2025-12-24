@@ -83,6 +83,16 @@ export default function UserListItem({ restaurant }: UserListItemProps) {
         {category}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {restaurant.platform_commission_percentage
+          ? `${restaurant.platform_commission_percentage}%`
+          : "0%"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+        {restaurant.price_markup_percentage
+          ? `${restaurant.price_markup_percentage}%`
+          : "0%"}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
         {restaurant.totalOrders}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm">

@@ -12,6 +12,8 @@ const headerNames: Array<
   { nit: "NIT" },
   { address: "Dirección" },
   { type: "Tipo de Negocio" },
+  { platform_commission_percentage: "Comisión" },
+  { price_markup_percentage: "Margen" },
   { totalOrders: "Total Pedidos" },
   { isApproved: "Aprobación" },
   { isActive: "Estado" },
