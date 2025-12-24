@@ -1628,6 +1628,14 @@ export type Database = {
             }
             Returns: string
           }
+      complete_delivery_and_pay: {
+        Args: {
+          p_collected_method: Database["public"]["Enums"]["payment_method_type"]
+          p_driver_id: string
+          p_order_id: string
+        }
+        Returns: Json
+      }
       complete_partner_profile: {
         Args: { partner_data: Json }
         Returns: undefined

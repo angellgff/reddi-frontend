@@ -20,6 +20,8 @@ export interface OrderDetailData {
   canAccept: boolean;
   canContact: boolean;
   canMarkDelivered: boolean;
+  totalAmount: number;
+  paymentMethod: "cash" | "physical_pos" | null;
 }
 
 // Reutilizamos la misma lógica de mapeo simplificada usada en home
@@ -120,6 +122,7 @@ export default async function getOrderDetail(
       .select(
         `
         id, created_at, scheduled_at, status, shipment_id, partner_id, user_address_id,
+        total_amount, payment_method,
         partners(name,image_url,address,coordinates), 
         profiles(first_name, last_name, phone_number), 
         user_addresses(location_type,location_number,coordinates), 
@@ -227,6 +230,8 @@ export default async function getOrderDetail(
       canAccept,
       canContact,
       canMarkDelivered,
+      totalAmount: data.total_amount ?? 0,
+      paymentMethod: (data.payment_method as "cash" | "physical_pos") ?? "cash",
     };
   } catch (error: unknown) {
     const message =

@@ -5,6 +5,8 @@ import OrderDetailRouteMap from "./OrderDetailRouteMap";
 import { useState } from "react";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import Toast from "@/src/components/basics/Toast";
+import DeliveryCollectionModal from "@/src/components/features/repartidor/delivery/DeliveryCollectionModal";
+import { Banknote } from "lucide-react";
 
 interface Props {
   data: {
@@ -21,7 +23,12 @@ interface Props {
     customerPhone: string | null;
     canAccept: boolean;
     canContact: boolean;
+
     canMarkDelivered: boolean;
+    totalAmount: number;
+    paymentMethod: "cash" | "physical_pos" | null;
+    orderStatus: string | null;
+    shipmentDriverId: string | null;
   } | null;
 }
 
@@ -29,7 +36,9 @@ export default function OrderDetailCard({ data }: Props) {
   const [delivered, setDelivered] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [confirmLoading, setConfirmLoading] = useState(false);
+
   const [successOpen, setSuccessOpen] = useState(false);
+  const [collectionOpen, setCollectionOpen] = useState(false);
 
   if (!data) {
     return (
@@ -104,10 +113,37 @@ export default function OrderDetailCard({ data }: Props) {
         </button>
       )}
 
-      {/* Delivered button */}
-      <CompleteButton
-        enabled={data.canMarkDelivered && !delivered}
-        onRequest={() => setConfirmOpen(true)}
+      {/* Botón de Cobro y Entrega (Dentro de la tarjeta) */}
+      {data.canMarkDelivered && !delivered && (
+        <button
+          type="button"
+          onClick={() => setCollectionOpen(true)}
+          className="flex items-center justify-center gap-2 w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md font-bold text-lg transition-all active:scale-95 mt-2"
+        >
+          <Banknote className="w-6 h-6" />
+          Proceder al Cobro
+        </button>
+      )}
+
+      <DeliveryCollectionModal
+        orderId={data.id}
+        driverId={data.shipmentDriverId ?? ""}
+        initialMethod={data.paymentMethod ?? "cash"}
+        totalAmount={data.totalAmount}
+        isOpen={collectionOpen}
+        onClose={() => setCollectionOpen(false)}
+        onSuccess={() => {
+          setCollectionOpen(false);
+          setDelivered(true);
+          setSuccessOpen(true);
+          // Redirect to dashboard as requested or show success
+          // User said: redirige al driver al Dashboard o muestra un mensaje de éxito.
+          // I'll redirect after a short delay or let the user close the success modal
+          import("next/navigation").then(({ useRouter }) => {
+             // We can't use useRouter inside async callback easily if not initialized, 
+             // but I can initialize it at top level.
+          });
+        }}
       />
 
       {/* Confirm complete modal */}
@@ -142,12 +178,16 @@ export default function OrderDetailCard({ data }: Props) {
       <ConfirmModal
         open={successOpen}
         title="Pedido entregado"
-        description="El pedido se ha marcado como entregado."
-        confirmText="Cerrar"
+        description="El pedido se ha completado y cobrado exitosamente."
+        confirmText="Ir al Dashboard"
         cancelText="Cerrar"
-        onConfirm={() => setSuccessOpen(false)}
+        onConfirm={() => {
+          setSuccessOpen(false);
+          window.location.href = "/repartidor/home";
+        }}
         onCancel={() => setSuccessOpen(false)}
       />
+
       {/* Placeholder Toast wiring to keep API consistent; hidden by default */}
       <Toast open={false} message="" onClose={() => {}} />
     </div>
