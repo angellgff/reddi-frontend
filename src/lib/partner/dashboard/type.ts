@@ -6,8 +6,9 @@ export type MainStatsData = {
     | "active_orders"
     | "today_earnings"
     | "delivered_orders"
-    | "active_products";
-  value: string;
+    | "active_products"
+    | "commissions";
+  value: string | React.ReactNode;
 };
 
 // Estadísticas de productos
