@@ -24,6 +24,7 @@ export type ProductDetails = {
   description: string | null;
   image_url: string | null;
   base_price: number;
+  display_price: number;
   previous_price: number | null;
   discount_percentage: number | null;
   unit: string;
@@ -40,7 +41,7 @@ export default async function getProductDetails(
   const { data, error } = await supabase
     .from("products")
     .select(
-      `id, partner_id, name, description, image_url, base_price, previous_price, discount_percentage, unit, estimated_time, tax_included,
+      `id, partner_id, name, description, image_url, base_price, display_price, previous_price, discount_percentage, unit, estimated_time, tax_included,
       product_sections (id, name, is_required, display_order, product_section_options (id, extra_id, override_price, display_order, product_extras (id, name, default_price, image_url)))`
     )
     .eq("id", productId)
@@ -59,6 +60,7 @@ export default async function getProductDetails(
     description: data.description,
     image_url: data.image_url,
     base_price: data.base_price,
+    display_price: data.display_price,
     previous_price: data.previous_price,
     discount_percentage: data.discount_percentage,
     unit: data.unit,

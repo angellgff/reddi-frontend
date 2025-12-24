@@ -69,6 +69,7 @@ export default function EditPartnerProfile({
         lng: formData.lng,
         image_url: logoUrl,
         bank_document_url: documentUrl,
+        price_markup_percentage: formData.price_markup_percentage,
       });
       setModalTitle("Cambios guardados");
       setModalDesc("El perfil del aliado se actualizó correctamente.");

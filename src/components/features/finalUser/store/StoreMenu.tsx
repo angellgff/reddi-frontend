@@ -89,7 +89,7 @@ export default function StoreMenu({
       });
       return;
     }
-    const base = Number(p.base_price) || 0;
+    const base = Number(p.display_price) || 0;
     const discount = p.discount_percentage ? Number(p.discount_percentage) : 0;
     const unit = discount ? base * (1 - discount / 100) : base;
     dispatch(
@@ -206,8 +206,8 @@ export default function StoreMenu({
               >
                 {group.products.map((p) => {
                   const discounted = p.discount_percentage
-                    ? p.base_price * (1 - p.discount_percentage / 100)
-                    : p.base_price;
+                    ? p.display_price * (1 - p.discount_percentage / 100)
+                    : p.display_price;
                   const discountedPrice = discounted;
 
                   const onAdd = (

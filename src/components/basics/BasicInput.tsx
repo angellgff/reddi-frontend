@@ -16,6 +16,8 @@ type SearchInputProps = {
   type?: string;
   autocomplete?: string;
   readOnly?: boolean;
+  min?: string | number;
+  max?: string | number;
 };
 
 export default function BasicInput({
@@ -33,6 +35,8 @@ export default function BasicInput({
   type = "text",
   autocomplete = "off",
   readOnly = false,
+  min,
+  max,
 }: SearchInputProps) {
   return (
     <div className={className}>
@@ -64,6 +68,8 @@ export default function BasicInput({
           placeholder={placeholder}
           autoComplete={autocomplete}
           readOnly={readOnly}
+          min={min}
+          max={max}
         />
       </div>
       {error && <InputNotice variant="error" msg={error} />}

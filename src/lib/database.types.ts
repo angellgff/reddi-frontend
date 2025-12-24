@@ -736,6 +736,8 @@ export type Database = {
           name: string
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string
+          platform_commission_percentage: number | null
+          price_markup_percentage: number | null
           total_ratings: number | null
           user_id: string
           user_rnc: string
@@ -764,6 +766,8 @@ export type Database = {
           name: string
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string
+          platform_commission_percentage?: number | null
+          price_markup_percentage?: number | null
           total_ratings?: number | null
           user_id: string
           user_rnc: string
@@ -792,6 +796,8 @@ export type Database = {
           name?: string
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string
+          platform_commission_percentage?: number | null
+          price_markup_percentage?: number | null
           total_ratings?: number | null
           user_id?: string
           user_rnc?: string
@@ -1052,6 +1058,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percentage: number | null
+          display_price: number
           estimated_time: string
           id: string
           image_url: string | null
@@ -1691,6 +1698,10 @@ export type Database = {
         Returns: string
       }
       disablelongtransactions: { Args: never; Returns: string }
+      display_price: {
+        Args: { product_row: Database["public"]["Tables"]["products"]["Row"] }
+        Returns: number
+      }
       dropgeometrycolumn:
         | {
             Args: {

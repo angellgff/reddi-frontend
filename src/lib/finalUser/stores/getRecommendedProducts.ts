@@ -9,6 +9,7 @@ export type RecommendedProduct = Pick<
   | "name"
   | "image_url"
   | "base_price"
+  | "display_price"
   | "previous_price"
   | "description"
   | "discount_percentage"
@@ -28,7 +29,7 @@ export default async function getRecommendedProducts(
   let query = supabase
     .from("products")
     .select(
-      "id, name, image_url, base_price, previous_price, description, discount_percentage"
+      "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage"
     )
     .eq("partner_id", partnerId)
     .eq("is_available", true);

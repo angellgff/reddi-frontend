@@ -16,6 +16,7 @@ export type StoreMenu = {
         | "name"
         | "image_url"
         | "base_price"
+        | "display_price"
         | "previous_price"
         | "description"
         | "discount_percentage"
@@ -49,7 +50,7 @@ export default async function getStoreMenu(
   let query = supabase
     .from("products")
     .select(
-      "id, name, image_url, base_price, previous_price, description, discount_percentage, sub_category_id"
+      "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id"
     )
     .eq("partner_id", partnerId)
     .eq("is_available", true);
@@ -74,6 +75,7 @@ export default async function getStoreMenu(
       | "name"
       | "image_url"
       | "base_price"
+      | "display_price"
       | "previous_price"
       | "description"
       | "discount_percentage"
@@ -95,6 +97,7 @@ export default async function getStoreMenu(
           | "name"
           | "image_url"
           | "base_price"
+          | "display_price"
           | "previous_price"
           | "description"
           | "discount_percentage"
@@ -117,6 +120,7 @@ export default async function getStoreMenu(
       name: p.name,
       image_url: p.image_url,
       base_price: p.base_price,
+      display_price: p.display_price,
       previous_price: p.previous_price,
       description: p.description,
       discount_percentage: p.discount_percentage,

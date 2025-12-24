@@ -151,7 +151,7 @@ export default function ProductDetailsClient({
   const [note, setNote] = useState<string>("");
 
   const unitPrice = useMemo(() => {
-    const base = Number(details.base_price) || 0;
+    const base = Number(details.display_price) || 0;
     const d = details.discount_percentage
       ? Number(details.discount_percentage)
       : 0;

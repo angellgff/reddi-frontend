@@ -43,7 +43,7 @@ export default function RecommendedProductsSection({
   const cards: (ProductCardBase & { discountedPrice: number })[] = useMemo(
     () =>
       products.map((p) => {
-        const base = Number(p.base_price) || 0;
+        const base = Number(p.display_price) || 0;
         const d = p.discount_percentage ? Number(p.discount_percentage) : 0;
         const discountedPrice = d ? base * (1 - d / 100) : base;
         return {
@@ -51,6 +51,7 @@ export default function RecommendedProductsSection({
           name: p.name,
           image_url: p.image_url,
           base_price: p.base_price,
+          display_price: p.display_price,
           previous_price: p.previous_price,
           description: p.description,
           discount_percentage: p.discount_percentage,
@@ -71,7 +72,7 @@ export default function RecommendedProductsSection({
       });
       return;
     }
-    const base = Number(product.base_price) || 0;
+    const base = Number(product.display_price) || 0;
     const d = product.discount_percentage
       ? Number(product.discount_percentage)
       : 0;

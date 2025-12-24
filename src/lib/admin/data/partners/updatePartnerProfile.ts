@@ -19,6 +19,7 @@ export type UpdatePartnerPayload = {
   lng?: number | null;
   image_url?: string | null;
   bank_document_url?: string | null;
+  price_markup_percentage?: number | null;
 };
 
 function mapUiCategoryToDb(
@@ -92,6 +93,8 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
   if (payload.image_url !== undefined) updates.image_url = payload.image_url;
   if (payload.bank_document_url !== undefined)
     updates.bank_document_url = payload.bank_document_url;
+  if (payload.price_markup_percentage !== undefined)
+    updates.price_markup_percentage = payload.price_markup_percentage;
 
   // Approval consistency with check constraint
   if (typeof payload.profileState === "boolean") {

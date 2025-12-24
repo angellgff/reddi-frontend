@@ -40,6 +40,7 @@ export interface BusinessFormData {
   lat?: number | null;
   lng?: number | null;
   coverImage?: File | string | null;
+  price_markup_percentage?: number | null;
 }
 
 // Define las props del componente
@@ -220,6 +221,17 @@ export default function BusinessProfileForm({
                   placeholder="Ingresar la información"
                 />
               </div>
+              <BasicInput
+                id="price_markup_percentage"
+                name="price_markup_percentage"
+                type="number"
+                label="Margen de Precio al Cliente (%)"
+                value={formData.price_markup_percentage?.toString() || ""}
+                onChange={handleInputChange}
+                className="w-full border-gray-300 rounded-md"
+                placeholder="Ej. 10 (para 10%)"
+                min={0}
+              />
             </div>
           </div>
 

@@ -8,6 +8,7 @@ export interface ProductCardBase {
   name: string;
   image_url: string | null;
   base_price: number | null;
+  display_price: number;
   previous_price: number | null;
   description: string | null;
   discount_percentage: number | null;
