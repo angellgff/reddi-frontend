@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Home, History, LogOut, LucideProps } from "lucide-react";
+import { Home, History, LogOut, LucideProps, DollarSign } from "lucide-react";
 import Link from "next/link";
 import { logoutAction } from "@/src/lib/actions/auth";
 
@@ -59,6 +59,12 @@ export default function RepartidorFooter() {
           icon={History} 
           href="/repartidor/historial" 
           isActive={pathname === "/repartidor/historial"} 
+        />
+        <FooterItem 
+          label="Finanzas" 
+          icon={DollarSign} 
+          href="/repartidor/finanzas" 
+          isActive={pathname === "/repartidor/finanzas"} 
         />
         <FooterItem 
           label="Salir" 
