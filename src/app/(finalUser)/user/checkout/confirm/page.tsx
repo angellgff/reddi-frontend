@@ -15,23 +15,7 @@ import {
 import { clearCart } from "@/src/lib/store/cartSlice";
 import { resetCheckout } from "@/src/lib/store/checkoutSlice";
 
-// --- FUNCIÓN AUXILIAR PARA ENVIAR EL FORMULARIO A AZUL ---
-const postToAzul = (url: string, fields: Record<string, string>) => {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = url;
 
-  Object.entries(fields).forEach(([key, value]) => {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = key;
-    input.value = value;
-    form.appendChild(input);
-  });
-
-  document.body.appendChild(form);
-  form.submit();
-};
 
 function currency(n: number) {
   if (!isFinite(n)) return "RD$0.00";
@@ -46,7 +30,7 @@ export default function CheckoutConfirmPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const [placing, setPlacing] = useState(false);
-  const [loadingPayment, setLoadingPayment] = useState(false); // Feedback visual
+
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const items = useAppSelector(selectCartItems);
@@ -118,26 +102,14 @@ export default function CheckoutConfirmPage() {
     if (placing) return;
     setPlacing(true);
     setErrorMsg(null);
-    try {
-      // 1. DETERMINAR SI ES PAGO CON TARJETA (AZUL)
-      // Ajusta esta lógica si en el futuro permites elegir entre "Efectivo" y "Tarjeta".
-      // Por ahora asumo que esta página es para procesar con Azul.
-      const isCardPayment = true;
-      let paymentPayload = null;
 
-      if (checkout.payment) {
-        // Caso: Tarjeta guardada o seleccionada
-        paymentPayload = {
-          ...checkout.payment,
-          provider: "azul", // Forzamos esto para que la DB lo entienda
-          method: "azul", // Forzamos esto para que la DB lo entienda
-        };
-      } else if (isCardPayment) {
-        // Caso: Redirección limpia (sin tarjeta guardada)
-        paymentPayload = { method: "azul", provider: "azul" };
+    try {
+      // Validar que exista método de pago
+      if (!checkout.payment) {
+        throw new Error("Por favor selecciona un método de pago.");
       }
 
-      // 2. Preparar items para la DB
+      // 1. Preparar items para la DB
       const cart_items = items.map((it) => ({
         productId: it.productId,
         partnerId: it.partnerId,
@@ -151,7 +123,7 @@ export default function CheckoutConfirmPage() {
         })),
       }));
 
-      // 3. Preparar datos del checkout
+      // 2. Preparar datos del checkout
       const checkout_data = {
         addressId: checkout.addressId,
         placeType: checkout.placeType,
@@ -161,11 +133,9 @@ export default function CheckoutConfirmPage() {
         couponId: checkout.coupon?.id ?? null,
         tipPercent: effectiveTipPercent,
         shippingCost: shipping,
-
-        // --- CORRECCIÓN IMPORTANTE ---
-        // Si checkout.payment es null (porque no hay tarjeta guardada), enviamos un objeto dummy.
-        // Esto le dice a la Base de Datos: "Provider es Azul, pon estado awaiting_payment"
-        payment: paymentPayload,
+        
+        // Enviamos el pago tal cual (ej. manual/cash)
+        payment: checkout.payment,
 
         shippingMeta: checkout.shippingEstimate
           ? {
@@ -181,7 +151,7 @@ export default function CheckoutConfirmPage() {
 
       console.log("checkout_data to send:", checkout_data);
 
-      // 4. Crear orden en Base de Datos (Supabase)
+      // 3. Crear orden en Base de Datos (Supabase)
       const response = await fetch("/api/orders/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -196,35 +166,7 @@ export default function CheckoutConfirmPage() {
 
       const orderId = result.orderId;
 
-      // 5. --- INTEGRACIÓN AZUL ---
-      if (isCardPayment && orderId) {
-        setLoadingPayment(true); // Bloquear UI
-
-        // Solicitar firma y datos al backend
-        const signRes = await fetch("/api/azul/create-payment", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            orderId: orderId,
-            amount: total,
-            tax: 0, // Ajustar si manejas ITBIS
-          }),
-        });
-
-        const signData = await signRes.json();
-
-        if (!signRes.ok)
-          throw new Error("Error conectando con la pasarela de pagos.");
-
-        // IMPORTANTE: NO limpiamos el carrito aquí.
-        // Se limpiará en la página de éxito (callback) solo si el pago funciona.
-
-        // Redirigir al usuario (Browser Submit)
-        postToAzul(signData.url, signData.fields);
-        return; // Detenemos ejecución aquí
-      }
-
-      // 6. FLUJO DE EFECTIVO (Si isCardPayment fuera false)
+      // 4. ÉXITO (Pago Manual)
       dispatch(clearCart());
       dispatch(resetCheckout());
 
@@ -233,6 +175,7 @@ export default function CheckoutConfirmPage() {
       } else {
         router.push("/user/orders");
       }
+
     } catch (err) {
       console.error("handleCreateOrder error:", err);
       let extracted = "No se pudo completar el pedido. Inténtalo de nuevo.";
@@ -240,12 +183,8 @@ export default function CheckoutConfirmPage() {
         extracted = err.message;
       }
       setErrorMsg(extracted);
-      setLoadingPayment(false);
     } finally {
-      // Solo quitamos el loading si NO nos estamos yendo a Azul
-      if (!loadingPayment) {
-        setPlacing(false);
-      }
+      setPlacing(false);
     }
   }
 
@@ -374,7 +313,7 @@ export default function CheckoutConfirmPage() {
             <div className="flex items-center justify-between text-sm">
               <span className="font-medium">Pago</span>
               <span className="text-right">
-                {checkout.payment ? `Tarjeta AZUL` : "Tarjeta AZUL"}
+                {checkout.payment?.brand || "Pendiente"}
               </span>
             </div>
           </div>
@@ -391,21 +330,17 @@ export default function CheckoutConfirmPage() {
         <Link
           href="/user/checkout/address"
           className={`h-10 rounded-xl border px-4 text-sm font-medium flex justify-center items-center hover:bg-gray-50 ${
-            loadingPayment ? "pointer-events-none opacity-50" : ""
+            placing ? "pointer-events-none opacity-50" : ""
           }`}
         >
           Volver
         </Link>
         <button
           onClick={handleCreateOrder}
-          disabled={placing || loadingPayment || items.length === 0}
+          disabled={placing || items.length === 0}
           className="h-10 rounded-xl bg-emerald-600 px-4 text-sm text-white font-medium flex justify-center items-center disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {loadingPayment
-            ? "Redirigiendo a AZUL..."
-            : placing
-            ? "Creando pedido…"
-            : "Pagar y Finalizar"}
+          {placing ? "Creando pedido..." : "Confirmar Pedido"}
         </button>
       </div>
     </div>

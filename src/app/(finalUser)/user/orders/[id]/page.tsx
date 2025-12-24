@@ -245,6 +245,53 @@ export default async function OrderStatusPage({ params }: PageProps) {
               </div>
             ) : null}
             <div className="h-px bg-[#D9DCE3] my-2" />
+            
+            {/* Payment Method */}
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-gray-600">Método de pago</span>
+              <span className="font-medium text-black flex items-center gap-2">
+                {order?.payment_method === 'cash' ? (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-4 h-4 text-emerald-600"
+                    >
+                      <rect x="2" y="6" width="20" height="12" rx="2" />
+                      <circle cx="12" cy="12" r="2" />
+                      <path d="M6 12h.01M18 12h.01" />
+                    </svg>
+                    Efectivo
+                  </>
+                ) : order?.payment_method === 'physical_pos' ? (
+                  <>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-4 h-4 text-emerald-600"
+                    >
+                      <rect x="2" y="5" width="20" height="14" rx="2" />
+                      <line x1="2" y1="10" x2="22" y2="10" />
+                    </svg>
+                    Tarjeta (Datáfono)
+                  </>
+                ) : (
+                  <span className="capitalize">{order?.payment_method || "—"}</span>
+                )}
+              </span>
+            </div>
+
+            <div className="h-px bg-[#D9DCE3] my-2" />
             <div className="flex justify-between text-base font-bold">
               <span>Total</span>
               <span>{currency(order?.total_amount)}</span>

@@ -37,6 +37,7 @@ export type NormalizedOrder = {
   tip_amount?: number | null;
   instructions?: string | null;
   partner_id?: string | null;
+  payment_method?: string | null;
   user_address_id?: string | null;
   user_addresses?: {
     id: string;
@@ -178,6 +179,10 @@ function normalizeOrder(data: unknown): NormalizedOrder {
       typeof rec["partner_id"] === "string"
         ? (rec["partner_id"] as string)
         : null,
+    payment_method:
+      typeof rec["payment_method"] === "string"
+        ? (rec["payment_method"] as string)
+        : null,
     user_address_id:
       typeof rec["user_address_id"] === "string"
         ? (rec["user_address_id"] as string)
@@ -193,7 +198,7 @@ export async function getOrderDetails(id: string): Promise<NormalizedOrder> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))"
+      "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, payment_method, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))"
     )
     .eq("id", id)
     .single();

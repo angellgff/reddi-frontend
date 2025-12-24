@@ -10,7 +10,7 @@ import {
   selectShippingFee,
 } from "@/src/lib/store/chargesSlice";
 import Stepper from "@/src/components/features/finalUser/checkout/Stepper";
-import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/PaymentMethodsDialog";
+// import PaymentMethodsDialog from "@/src/components/features/finalUser/checkout/PaymentMethodsDialog";
 import SummaryCard from "@/src/components/features/finalUser/checkout/SummaryCard";
 import TipSelector from "@/src/components/features/finalUser/checkout/TipSelector";
 import { useStoreDetailsClient } from "@/src/lib/finalUser/stores/useStoreDetailsClient";
@@ -247,32 +247,112 @@ export default function CheckoutPaymentPage() {
               </div>
             ) : null}
 
-            {/* SECCIÓN DE MÉTODO DE PAGO DESHABILITADA (INTEGRACIÓN EXTERNA) */}
-            {/* 
-            <div className="mt-4 rounded-xl border p-3 flex items-center justify-between">
-              <div className="text-sm">
-                <div className="font-medium">
-                  {effectiveMethod
-                    ? `Tarjeta ${effectiveMethod.brand} ·•••${effectiveMethod.last4}`
-                    : "Selecciona un método de pago"}
+            {/* SECCIÓN DE MÉTODO DE PAGO - MANUAL */}
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-gray-900 mb-3">
+                Método de pago
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Opción Efectivo */}
+                <div
+                  onClick={() => {
+                    const payment = {
+                      method: "cash",
+                      provider: "manual",
+                      brand: "Efectivo",
+                    };
+                    setSelectedMethod(payment);
+                    dispatch(setPaymentGlobal(payment));
+                  }}
+                  className={`cursor-pointer rounded-xl border p-4 flex items-center gap-3 transition-all ${
+                    selectedMethod?.method === "cash"
+                      ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                >
+                  <div
+                    className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                      selectedMethod?.method === "cash"
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {/* Icono Efectivo (Billete) */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <rect x="2" y="6" width="20" height="12" rx="2" />
+                      <circle cx="12" cy="12" r="2" />
+                      <path d="M6 12h.01M18 12h.01" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Efectivo
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Paga al recibir
+                    </p>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">
-                  {effectiveMethod?.cardholder_name || ""}
+
+                {/* Opción Datáfono (Tarjeta contra entrega) */}
+                <div
+                  onClick={() => {
+                    const payment = {
+                      method: "physical_pos",
+                      provider: "manual",
+                      brand: "Datáfono",
+                    };
+                    setSelectedMethod(payment);
+                    dispatch(setPaymentGlobal(payment));
+                  }}
+                  className={`cursor-pointer rounded-xl border p-4 flex items-center gap-3 transition-all ${
+                    selectedMethod?.method === "physical_pos"
+                      ? "border-emerald-500 bg-emerald-50 ring-1 ring-emerald-500"
+                      : "border-gray-200 hover:border-gray-300 bg-white"
+                  }`}
+                >
+                  <div
+                    className={`h-10 w-10 rounded-full flex items-center justify-center ${
+                      selectedMethod?.method === "physical_pos"
+                        ? "bg-emerald-100 text-emerald-600"
+                        : "bg-gray-100 text-gray-500"
+                    }`}
+                  >
+                    {/* Icono Tarjeta */}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-5 h-5"
+                    >
+                      <rect x="2" y="5" width="20" height="14" rx="2" />
+                      <line x1="2" y1="10" x2="22" y2="10" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">
+                      Tarjeta (Datáfono)
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      Contra entrega
+                    </p>
+                  </div>
                 </div>
               </div>
-              <PaymentMethodsDialog
-                trigger={
-                  <button className="h-8 rounded-lg border px-3 text-xs">
-                    Cambiar
-                  </button>
-                }
-                onSelected={(m) => {
-                  setSelectedMethod(m);
-                  dispatch(setPaymentGlobal(m));
-                }}
-              />
             </div>
-            */}
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
               <input

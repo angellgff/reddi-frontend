@@ -47,34 +47,61 @@ export async function POST(request: Request) {
     );
   }
 
-  // 4. Llamar a la función RPC de Supabase desde el servidor
-  // ¡Aquí es donde ocurre la magia! La llamada se hace servidor a servidor.
-  try {
-    const { data, error } = await supabase.rpc("create_order", {
-      // Los nombres de los argumentos deben coincidir exactamente con tu función RPC
-      cart_items: cart_items,
-      checkout_data: checkout_data,
-    });
+    // 4. Llamar a la función RPC de Supabase desde el servidor
+    try {
+      // Ajuste para pagos manuales: intentar enviar status 'pending' en el payload
+      // y asegurarnos de que el método de pago sea correcto.
+      const isManual =
+        checkout_data.payment?.provider === "manual" ||
+        ["cash", "physical_pos"].includes(checkout_data.payment?.method);
 
-    if (error) {
-      // Si la RPC devuelve un error, lo registramos y lo enviamos al cliente
-      console.error("Supabase RPC error:", error);
-      return NextResponse.json(
-        {
-          error:
-            error.message || "Error al crear el pedido en la base de datos.",
-        },
-        { status: 500 }
-      );
-    }
+      if (isManual) {
+        // Intentamos pasar status por si el RPC lo lee del checkout_data
+        (checkout_data as any).status = "pending";
+      }
+
+      const { data, error } = await supabase.rpc("create_order", {
+        cart_items: cart_items,
+        checkout_data: checkout_data,
+      });
+
+      if (error) {
+        console.error("Supabase RPC error:", error);
+        return NextResponse.json(
+          {
+            error:
+              error.message || "Error al crear el pedido en la base de datos.",
+          },
+          { status: 500 }
+        );
+      }
 
     // 5. Devolver una respuesta exitosa con el ID del pedido
-    // La RPC debería devolver el ID de la nueva orden como texto.
     const orderId = data as string;
+
+    // --- REGLA CRÍTICA: STATUS PENDING PARA MANUAL ---
+    // Si el RPC puso 'awaiting_payment' por defecto, lo forzamos a 'pending' ahora mismo.
+    if (isManual && orderId) {
+      const { error: updateError } = await supabase
+        .from("orders")
+        .update({ status: "pending" })
+        .eq("id", orderId);
+
+      if (updateError) {
+        console.error("Error updating manual order status:", updateError);
+        // No fallamos el request principal, pero logueamos el error grave.
+      } else {
+        console.info(
+          `[/api/orders/create] Orden manual ${orderId} status actualizado a Pending`
+        );
+      }
+    }
+
     console.info("[/api/orders/create] Pedido creado por RPC", {
       orderId,
       hasUser: Boolean(user?.id),
       itemsCount: Array.isArray(cart_items) ? cart_items.length : 0,
+      isManual,
     });
 
     // Email notification (non-blocking best-effort)

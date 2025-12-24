@@ -28,8 +28,10 @@ export interface CheckoutState {
   tipAmountManual: number | null;
   payment: {
     brand: string | null;
-    last4: string | null;
-    cardholder_name: string | null;
+    last4?: string | null;
+    cardholder_name?: string | null;
+    method?: string;
+    provider?: string;
   } | null;
   // NUEVO: estimación de envío calculada vía API
   shippingEstimate: {
