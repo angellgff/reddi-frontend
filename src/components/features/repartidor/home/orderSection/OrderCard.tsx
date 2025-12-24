@@ -5,7 +5,7 @@ import Link from "next/link";
 import ClockIcon from "@/src/components/icons/OrderClockIcon";
 import HomeIcon from "@/src/components/icons/OrderHomeIcon";
 
-export type StatusType = "Recogiendo" | "Nueva" | "Entregando";
+export type StatusType = "Preparando" | "Nueva" | "En camino";
 
 const statusStyles: Record<
   StatusType,
@@ -15,11 +15,11 @@ const statusStyles: Record<
     badgeClasses: "bg-[#FF30081F] text-[#FF3008]",
     dotClasses: "bg-[#FF3008]",
   },
-  Recogiendo: {
+  Preparando: {
     badgeClasses: "bg-[#E6EBF2] text-[#2196F3]",
     dotClasses: "bg-[#2196F3]",
   },
-  Entregando: {
+  "En camino": {
     badgeClasses: "bg-[#E9FFEF] text-[#409261]",
     dotClasses: "bg-[#409261]",
   },
@@ -32,6 +32,7 @@ export interface OrderCardProps {
   deliveryTime: string;
   logoUrl: string;
   status: StatusType;
+  isAssigned: boolean;
   onAccept: (orderId: string) => void;
 }
 
@@ -42,6 +43,7 @@ export default function OrderCard({
   deliveryTime,
   logoUrl,
   status,
+  isAssigned,
   onAccept,
 }: OrderCardProps) {
   const currentStatusStyles = statusStyles[status];
@@ -96,7 +98,7 @@ export default function OrderCard({
       </div>
 
       {/* Footer */}
-      {status === "Nueva" && (
+      {(status === "Nueva" || status === "Preparando") && !isAssigned && (
         <button
           onClick={() => onAccept(orderId)}
           className="w-full bg-white border border-black text-gray-800 font-semibold py-2 rounded-xl hover:bg-gray-800 hover:text-white transition-colors duration-200"

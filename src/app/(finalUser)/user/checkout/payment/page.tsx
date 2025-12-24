@@ -347,7 +347,7 @@ export default function CheckoutPaymentPage() {
                       Tarjeta (Datáfono)
                     </p>
                     <p className="text-xs text-gray-500">
-                      Contra entrega
+                      Paga al recibir
                     </p>
                   </div>
                 </div>

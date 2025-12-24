@@ -83,3 +83,9 @@ export async function loginWithGoogleAction(nextPath: string = "/user/home") {
     redirect(data.url);
   }
 }
+
+export async function logoutAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/login");
+}

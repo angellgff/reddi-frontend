@@ -7,8 +7,8 @@ function mapDbStatusToDeliveryLabel(status?: string | null): StatusType {
   const s = (status ?? "").toLowerCase();
   // Soportar nombres antiguos y nuevos del enum por compatibilidad
   if (s === "pending" || s === "confirmed") return "Nueva";
-  if (s === "preparing") return "Recogiendo";
-  if (s === "out_for_delivery" || s === "on_the_way") return "Entregando";
+  if (s === "preparing") return "Preparando";
+  if (s === "out_for_delivery") return "En camino";
   // delivered / cancelled no deberían mostrarse aquí (se filtran), fallback seguro
   return "Nueva";
 }
@@ -75,10 +75,8 @@ export default async function getOrdersData(): Promise<OrderData[]> {
     .select(
       "id, created_at, scheduled_at, status, partners(name,image_url), user_addresses(location_type,location_number), shipments!shipments_order_id_fkey!inner(driver_id)"
     )
-    // Filtrar estados finales para mostrar todo lo activo
-    .neq("status", "delivered")
-    .neq("status", "cancelled")
-    .neq("status", "payment_failed")
+    // Filtrar estados activos permitidos para el driver
+    .in("status", ["preparing", "out_for_delivery"])
     .or(`driver_id.is.null,driver_id.eq.${driverId}`, {
       foreignTable: "shipments",
     })
@@ -100,6 +98,9 @@ export default async function getOrdersData(): Promise<OrderData[]> {
     const logoUrl: string = partner?.image_url ?? "/steakhouseorder.svg";
     const address: string = formatAddress(addressData ?? undefined);
     const deliveryTime = formatDeliveryTime(o.created_at, o.scheduled_at);
+    const shipments = Array.isArray(o.shipments) ? o.shipments : [o.shipments];
+    const isAssigned = shipments.some((s: any) => s && s.driver_id === driverId);
+
     return {
       orderId: String(o.id),
       restaurantName,
@@ -107,6 +108,7 @@ export default async function getOrdersData(): Promise<OrderData[]> {
       deliveryTime,
       logoUrl,
       status,
+      isAssigned,
     } satisfies OrderData;
   });
 

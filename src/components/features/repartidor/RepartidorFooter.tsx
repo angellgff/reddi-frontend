@@ -3,8 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Home, History, LogOut, LucideProps } from "lucide-react";
 import Link from "next/link";
-import { createClient } from "@/src/lib/supabase/client";
-import { useRouter } from "next/navigation";
+import { logoutAction } from "@/src/lib/actions/auth";
 
 // Reuse NavItem logic or create a simplified local version since we need a button for Logout
 // For consistency, let's create a local item that can be a Link or Button
@@ -41,13 +40,9 @@ function FooterItem({ icon: Icon, label, isActive, onClick, href }: FooterItemPr
 
 export default function RepartidorFooter() {
   const pathname = usePathname();
-  const router = useRouter();
-  const supabase = createClient();
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login"); // or /
-    router.refresh();
+    await logoutAction();
   };
 
   return (
