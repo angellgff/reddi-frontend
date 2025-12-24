@@ -24,6 +24,7 @@ export default async function getOrdersData(): Promise<Order[]> {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
   const partnerId = partner?.id;
   if (!partnerId) return [];

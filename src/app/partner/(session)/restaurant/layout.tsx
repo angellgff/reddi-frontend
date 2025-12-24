@@ -55,13 +55,15 @@ export default async function PartnerDashboardLayout({
   } = await supabase.auth.getUser();
 
   let isApproved = true;
+  let isActive = true;
   if (user) {
     const { data: partnerRow } = await supabase
       .from("partners")
-      .select("is_approved")
+      .select("is_approved, is_active")
       .eq("user_id", user.id)
       .single();
     isApproved = !!partnerRow?.is_approved;
+    isActive = partnerRow?.is_active ?? true;
   }
   return (
     <>
@@ -77,6 +79,22 @@ export default async function PartnerDashboardLayout({
             <p className="text-gray-600 mb-6">
               Tu cuenta de aliado aún no ha sido aprobada por nuestro equipo.
               Mientras tanto, no podrás usar el panel de aliado.
+            </p>
+            <div className="flex items-center justify-center">
+              <LogoutButton />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal bloqueante si el aliado no está activo (soft delete) */}
+      {isApproved && !isActive && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60">
+          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl text-center">
+            <h2 className="text-xl font-semibold mb-2">Cuenta desactivada</h2>
+            <p className="text-gray-600 mb-6">
+              Tu cuenta de aliado ha sido desactivada o eliminada. Si crees que
+              esto es un error, contacta con soporte.
             </p>
             <div className="flex items-center justify-center">
               <LogoutButton />

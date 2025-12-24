@@ -37,6 +37,7 @@ export async function getOrdersHistoryData(params: {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .maybeSingle();
   const partnerId = partnerRow?.id;
   if (!partnerId) return { rows: [], page: 1, totalPages: 1 }; // sin partner

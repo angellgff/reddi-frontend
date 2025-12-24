@@ -13,7 +13,9 @@ export interface Restaurant {
   address: string;
   type: valueCategories;
   totalOrders: string;
-  state: "open" | "closed";
+  state: "active" | "inactive" | "deleted";
+  isActive: boolean;
+  isApproved: boolean;
 }
 
 export type OrderDir = "asc" | "desc";

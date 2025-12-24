@@ -51,6 +51,7 @@ export default async function ProductsStasServer() {
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
 
   if (partnerErr || !partner) {

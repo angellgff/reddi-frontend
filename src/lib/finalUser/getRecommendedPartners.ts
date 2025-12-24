@@ -12,6 +12,7 @@ export default async function getRecommendedPartners(
     .from("partners")
     .select("id, name, image_url, partner_type, average_rating, total_ratings")
     .eq("is_approved", true)
+    .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(10);
 

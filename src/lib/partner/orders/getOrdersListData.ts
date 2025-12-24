@@ -40,6 +40,7 @@ export default async function getOrdersListData(
     .from("partners")
     .select("id")
     .eq("user_id", user.id)
+    .eq("is_active", true)
     .maybeSingle();
   if (partnerErr) throw partnerErr;
   if (!partner?.id) return [];
