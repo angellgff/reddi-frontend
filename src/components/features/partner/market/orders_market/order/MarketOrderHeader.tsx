@@ -9,7 +9,7 @@ import {
 } from "@/src/components/features/partner/market/orders/main/PartnerOrderCard";
 import ClockOrdersIcon from "@/src/components/icons/ClockOrdersIcon";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/src/lib/supabase/client";
+import { acceptOrder } from "@/src/lib/partner/actions/orderActions";
 
 interface MarketOrderHeaderProps {
   id: string;
@@ -41,16 +41,14 @@ export default function MarketOrderHeader({
 
   const handleAccept = () => {
     startAcceptTransition(async () => {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from("orders")
-        .update({ status: "preparing" })
-        .eq("id", id);
+      // Call server action to update order status
+      const result = await acceptOrder(id);
 
-      if (error) {
-        console.error("Error updating order status to preparing", error);
+      if (!result.success) {
+        console.error("Error updating order status to preparing:", result.error);
         return;
       }
+
       setStatus("preparation");
       router.refresh();
     });
