@@ -6,6 +6,7 @@ interface LinkButtonProps {
   children: React.ReactNode;
   className?: string;
   onClick?: (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => void;
+  disabled?: boolean;
 }
 
 export default function LinkButton({
@@ -13,12 +14,23 @@ export default function LinkButton({
   children,
   className,
   onClick,
+  disabled = false,
 }: LinkButtonProps) {
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
+    if (disabled) {
+      e.preventDefault();
+      return;
+    }
+    onClick?.(e);
+  };
+
   return (
     <Link
       href={href}
-      onClick={onClick}
-      className={`flex items-center justify-center transition-colors duration-500 border-mainBorder rounded-xl border group  ${className}`}
+      onClick={handleClick}
+      className={`flex items-center justify-center transition-colors duration-500 border-mainBorder rounded-xl border group ${className}`}
+      aria-disabled={disabled}
+      tabIndex={disabled ? -1 : undefined}
     >
       {children}
     </Link>

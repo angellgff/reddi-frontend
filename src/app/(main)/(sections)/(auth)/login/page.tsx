@@ -16,21 +16,25 @@ const sessionsButtonData = [
     provider: "Facebook",
     icon: <Image src={facebookLogo} alt="" className="h-8 w-8 "></Image>,
     href: "#",
+    disabled: true,
   },
   {
     provider: "Google",
     icon: <Image src={googleLogo} alt="" className="h-8 w-8"></Image>,
     href: "#",
+    disabled: false,
   },
   {
     provider: "Apple",
     icon: <AppleIcon className="h-8 w-8" />,
     href: "#",
+    disabled: true,
   },
   {
     provider: "Celular",
     icon: <PhoneIcon className="h-8 w-8" />,
     href: "#",
+    disabled: true,
   },
 ];
 
@@ -49,15 +53,15 @@ export default function Login() {
       console.log("[GoogleLogin] Initiating OAuth (Client-side)", {
         next,
       });
-      
-      const siteUrl = 
-        (typeof window !== "undefined" && 
-          (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)) || 
+
+      const siteUrl =
+        (typeof window !== "undefined" &&
+          (process.env.NEXT_PUBLIC_SITE_URL || window.location.origin)) ||
         undefined;
 
-        console.log("[GoogleLogin] Initiating OAuth (Client-side)", {
-          siteUrl,
-        });
+      console.log("[GoogleLogin] Initiating OAuth (Client-side)", {
+        siteUrl,
+      });
 
       const redirectPublic = siteUrl
         ? `${siteUrl}/auth/callback`
@@ -88,7 +92,7 @@ export default function Login() {
       });
 
       if (error) throw error;
-      
+
     } catch (e) {
       const err = e as Error;
       console.error("[login/google] error", err?.message);
@@ -157,21 +161,22 @@ export default function Login() {
       <FormTitle title="Iniciar sesión" />
       {sessionsButtonData.map((button) => {
         const isGoogle = button.provider === "Google";
+        const isDisabled = button.disabled || (isGoogle && isLoading);
         return (
           <SessionButton
             key={button.provider}
             href={button.href}
             onClick={
-              isGoogle
+              isGoogle && !button.disabled
                 ? (e) => {
-                    e.preventDefault();
-                    handleGoogleLogin();
-                  }
+                  e.preventDefault();
+                  handleGoogleLogin();
+                }
                 : undefined
             }
-            className={`w-full h-14 gap-2 hover:bg-primary hover:border-white md:w-[70%] lg:w-[50%] truncate ${
-              isGoogle && isLoading ? "opacity-60 pointer-events-none" : ""
-            }`}
+            className={`w-full h-14 gap-2 hover:bg-primary hover:border-white md:w-[70%] lg:w-[50%] truncate ${isDisabled ? "opacity-40 pointer-events-none cursor-not-allowed" : ""
+              }`}
+            disabled={isDisabled}
           >
             {button.icon}
             <span>
