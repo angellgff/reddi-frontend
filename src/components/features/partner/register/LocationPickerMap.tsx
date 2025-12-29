@@ -61,7 +61,8 @@ export default function LocationPickerMap({
       map.remove();
       mapRef.current = null;
     };
-  }, [token, lat, lng, onLocationSelect]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   // Update marker when props change
   useEffect(() => {
