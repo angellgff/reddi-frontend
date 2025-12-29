@@ -11,8 +11,8 @@ import {
   setSchedule,
   setShippingEstimate,
 } from "@/src/lib/store/checkoutSlice";
-import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
-import type { Enums } from "@/src/lib/database.types";
+import { openAddressSlider } from "@/src/lib/store/uiSlice";
+
 import Select from "@/src/components/ui/Select";
 import RouteMap from "@/src/components/features/finalUser/checkout/RouteMap";
 import { setShippingFee } from "@/src/lib/store/chargesSlice";
@@ -35,15 +35,8 @@ export default function CheckoutAddressPage() {
   );
   // Nota: este campo de instrucciones en la tarjeta de Figma es para la nueva dirección,
   // mantenemos las instrucciones del checkout aparte si fuese necesario.
-  const [newAddressInstructions, setNewAddressInstructions] =
-    useState<string>("");
   const [schedule, setScheduleLocal] = useState(checkout.schedule);
-  const [isSaving, startTransition] = useTransition();
-  const [newLocationType, setNewLocationType] =
-    useState<Enums<"address_location_type"> | null>(null);
-  const [newLocationNumber, setNewLocationNumber] = useState("");
-  const [newAddressError, setNewAddressError] = useState<string | null>(null);
-
+  
   // Sync local state with Redux state (hydration support)
   useEffect(() => {
     if (checkout.addressId && checkout.addressId !== addressId) {
@@ -156,45 +149,7 @@ export default function CheckoutAddressPage() {
         {/* Left: Dirección de entrega (estilo exacto Figma) */}
         <div className="lg:col-span-7">
           {/* Selector de direcciones guardadas (Headless UI) */}
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              setNewAddressError(null);
-              const fd = new FormData();
-              if (newLocationType) fd.set("location_type", newLocationType);
-              fd.set("location_number", newLocationNumber);
-              if (newAddressInstructions)
-                fd.set("instructions", newAddressInstructions);
-              startTransition(async () => {
-                const res = await createUserAddress(fd);
-                if (!res.success) {
-                  setNewAddressError(res.error || "No se pudo guardar");
-                  return;
-                }
-                const resultAction = await dispatch(fetchUserAddresses());
-                // Intentar auto-seleccionar la recién creada buscando por tipo+número
-                if (fetchUserAddresses.fulfilled.match(resultAction)) {
-                  const payload = resultAction.payload;
-                  const list = payload?.addresses || addresses || [];
-                  const created = list.find(
-                    (a: UserAddress) =>
-                      String(a.location_type) === String(newLocationType) &&
-                      String(a.location_number).trim() ===
-                        String(newLocationNumber).trim()
-                  );
-                  if (created?.id) {
-                    const newId = created.id as unknown as string;
-                    setAddressLocal(newId);
-                  }
-                }
-                // Reset a estado inicial visual (placeholder en select)
-                setNewLocationType(null);
-                setNewLocationNumber("");
-                setNewAddressInstructions("");
-              });
-            }}
-            className="rounded-[16px] border border-[#D9DCE3] p-6 "
-          >
+          <div className="rounded-[16px] border border-[#D9DCE3] p-6 flex flex-col gap-6">
             <div className="flex flex-col gap-[21px]">
               <h3 className="font-poppins text-[18px] leading-[22px] font-bold text-black">
                 Dirección de entrega
@@ -217,73 +172,21 @@ export default function CheckoutAddressPage() {
                 />
               </div>
 
-              {/* (El selector de direcciones se movió a un card aparte arriba) */}
-
-              {/* Tipo de lugar */}
-              <div className="flex flex-col gap-2">
-                <label className="font-roboto text-[14px] leading-[18px] font-medium text-[#292929]">
-                  Tipo de lugar
-                </label>
-                <Select
-                  value={newLocationType}
-                  onChange={(v) =>
-                    setNewLocationType(
-                      (v as Enums<"address_location_type">) ?? null
-                    )
-                  }
-                  placeholder="Seleccione"
-                  options={[
-                    { value: "villa", label: "Villa" },
-                    { value: "yate", label: "Yate" },
-                    { value: "piscina", label: "Piscina" },
-                    { value: "habitacion de hotel", label: "Habitación de Hotel" },
-                    { value: "muelle de yate", label: "Muelle de Yate" },
-                  ]}
-                />
-              </div>
-
-              {/* Número de villa o yate */}
-              <div className="flex flex-col gap-2">
-                <label className="font-roboto text-[14px] leading-[18px] font-medium text-[#292929]">
-                  Numero de la villa o yate
-                </label>
-                <input
-                  value={newLocationNumber}
-                  onChange={(e) => setNewLocationNumber(e.target.value)}
-                  placeholder="Ingresa la información"
-                  className="h-10 px-4 border border-[#D9DCE3] rounded-[12px] text-[16px] leading-5 text-[#292929] placeholder:text-[#292929]/50 outline-none"
-                />
-              </div>
-
-              {/* Instrucciones especiales */}
-              <div className="flex flex-col gap-2">
-                <label className="font-roboto text-[14px] leading-[18px] font-medium text-[#292929]">
-                  Instrucciones especiales para la entrega
-                </label>
-                <textarea
-                  value={newAddressInstructions}
-                  onChange={(e) => setNewAddressInstructions(e.target.value)}
-                  placeholder="Ingresa la información"
-                  className="min-h-[91px] px-4 py-[10px] border border-[#D9DCE3] rounded-[12px] text-[16px] leading-5 text-[#292929] placeholder:text-[#292929]/50 outline-none resize-none"
-                />
-              </div>
-
-              {newAddressError ? (
-                <p className="text-sm text-red-600">{newAddressError}</p>
-              ) : null}
-
-              {/* Guardar dirección (link button) */}
               <div>
+                <p className="text-sm text-gray-500 mb-3">
+                  ¿No encuentras tu dirección? Puedes agregar o gestionar tus
+                  direcciones en tu perfil.
+                </p>
                 <button
-                  type="submit"
-                  disabled={isSaving || !newLocationType || !newLocationNumber}
-                  className="inline-flex h-9 items-center justify-center rounded-[12px] bg-white px-5 font-poppins text-[14px] leading-4 text-[#04BD88] underline disabled:opacity-60"
+                  type="button"
+                  onClick={() => dispatch(openAddressSlider())}
+                  className="inline-flex h-9 items-center justify-center rounded-[12px] bg-white px-5 font-poppins text-[14px] leading-4 text-[#04BD88] underline border border-[#04BD88]/20 hover:bg-emerald-50 transition-colors"
                 >
-                  Guardar dirección
+                  Gestionar direcciones
                 </button>
               </div>
             </div>
-          </form>
+          </div>
         </div>
 
         {/* Right: Programación de entrega */}

@@ -16,7 +16,7 @@ import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
-import { selectCartOpen, toggleCart, closeCart, toggleFilters } from "@/src/lib/store/uiSlice";
+import { selectCartOpen, toggleCart, closeCart, toggleFilters, selectAddressSliderOpen, toggleAddressSlider, closeAddressSlider } from "@/src/lib/store/uiSlice";
 import { useSearchParams } from "next/navigation";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
@@ -25,16 +25,20 @@ import Link from "next/link";
 const badgeColor = "bg-red-500";
 
 export default function Header({ userData }: { userData: UserHeaderData }) {
+  const dispatch = useAppDispatch();
   const [lastScrollY, setLastScrollY] = useState(0); // Para saber si el usuario está scrolleando
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true); // Para mostrar/ocultar la barra de búsqueda según el scroll
   const [isClient, setIsClient] = useState(false); //Para verificar si se renderizó en el cliente
   const [hydrated, setHydrated] = useState(false); // marca cuando ya podemos usar estados del cliente sin riesgo de mismatch
-  const [isAddressMenuVisible, setIsAddressMenuVisible] = useState(false);
+  
+  // Usamos el estado global para el slider de direcciones
+  const isAddressMenuVisible = useAppSelector(selectAddressSliderOpen);
+  
   const [isNavOpen, setIsNavOpen] = useState(false); // menú hamburguesa para < xl
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const dispatch = useAppDispatch();
+  
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
   const cartCount = useAppSelector(selectCartCount);
   const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
@@ -63,7 +67,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   };
 
   const toggleAddressMenu = () => {
-    setIsAddressMenuVisible(!isAddressMenuVisible);
+    dispatch(toggleAddressSlider());
   };
   const toggleNav = () => setIsNavOpen((p) => !p);
 
@@ -132,7 +136,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     <>
       <AddressSlider
         isOpen={isAddressMenuVisible}
-        onClose={toggleAddressMenu}
+        onClose={() => dispatch(closeAddressSlider())}
       />
       <CartSlider onClose={() => dispatch(closeCart())} />
 

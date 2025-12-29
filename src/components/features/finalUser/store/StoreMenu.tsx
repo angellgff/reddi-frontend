@@ -57,19 +57,17 @@ export default function StoreMenu({
       else params.delete("q");
       if (selectedCategory) params.set("category", selectedCategory);
       else params.delete("category");
-      startTransition(() =>
-        router.push(`${pathname}?${params.toString()}`, { scroll: false })
-      );
+
+      // Evitar push si los params no han cambiado
+      if (params.toString() !== searchParams.toString()) {
+        startTransition(() =>
+          router.push(`${pathname}?${params.toString()}`, { scroll: false })
+        );
+      }
     }, 250);
     return () => clearTimeout(t);
-  }, [
-    query,
-    selectedCategory,
-    searchParams,
-    router,
-    pathname,
-    startTransition,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, selectedCategory]);
 
   const groups = menu.groups;
 
