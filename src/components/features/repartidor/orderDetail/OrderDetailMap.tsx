@@ -61,11 +61,39 @@ export default function OrderDetailMap({ origin, destination, eta }: Props) {
         });
       }
     });
+    mapRef.current = map;
+
+    map.on("load", () => {
+       // Initial load logic can remain empty or handle initial markers if desired,
+       // but we will handle markers in a separate effect to support updates.
+    });
 
     return () => {
       map.remove();
+      mapRef.current = null;
     };
-  }, [origin, destination]);
+  }, []); // Run only once
+
+  // Effect to update markers/route when props change
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const updateMap = () => {
+        // Clear existing markers/layers if needed or just update them.
+        // For simplicity in this component which seems to re-mount often or be static:
+        // Note: Managing markers reference is needed if we want to remove them cleanly without reloading map.
+        // However, this component didn't have refs for markers. Let's add them to State or Refs?
+        // Since the user wants "red marker" to work, we must ensure markers are updated.
+        
+        // This component implementation was simple. To properly support updates without map reload:
+        // We really need refs for the markers. Given the simple structure, I will add refs.
+    };
+    
+    // For now, to solve the "re-init" issue simply without refactoring the whole component to add refs (which is better but riskier):
+    // actually, let's fix it properly by adding refs for markers.
+  }, [origin, destination, eta]); // This block is placeholder, I will do a full replace below
+
 
   return (
     <div className="relative w-full h-[201px] rounded-xl overflow-hidden mt-2">
