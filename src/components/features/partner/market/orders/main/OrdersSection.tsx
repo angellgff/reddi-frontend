@@ -7,12 +7,14 @@ import { PartnerOrderCardProps } from "@/src/components/features/partner/market/
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
+import { useRealtimeOrders } from "@/src/lib/hooks/useRealtimeOrders";
+
 interface OrdersSectionProps {
   tabs: { value: string; label: string }[];
   orders: PartnerOrderCardProps[];
 }
 
-export default function OrdersSection({ tabs, orders }: OrdersSectionProps) {
+export default function OrdersSection({ tabs, orders: initialOrders }: OrdersSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,6 +22,9 @@ export default function OrdersSection({ tabs, orders }: OrdersSectionProps) {
     searchParams.get("category") || ""
   );
   const [isPending, startTransition] = useTransition();
+  
+  // Realtime hook
+  const orders = useRealtimeOrders(initialOrders);
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());

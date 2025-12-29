@@ -7,6 +7,8 @@ import { MarketPartnerOrderCardProps } from "@/src/components/features/partner/m
 import { useEffect, useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
+import { useRealtimeOrders } from "@/src/lib/hooks/useRealtimeOrders";
+
 interface MarketOrdersSectionProps {
   tabs: { value: string; label: string }[];
   orders: MarketPartnerOrderCardProps[];
@@ -14,7 +16,7 @@ interface MarketOrdersSectionProps {
 
 export default function MarketOrdersSection({
   tabs,
-  orders,
+  orders: initialOrders,
 }: MarketOrdersSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -23,6 +25,12 @@ export default function MarketOrdersSection({
     searchParams.get("category") || ""
   );
   const [isPending, startTransition] = useTransition();
+
+  // Realtime hook
+  // Nota: MarketPartnerOrderCardProps es compatible con PartnerOrderCardProps
+  // Si TS se queja, tendremos que unificar tipos o castear.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const orders = useRealtimeOrders(initialOrders as any) as unknown as MarketPartnerOrderCardProps[];
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
