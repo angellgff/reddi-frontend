@@ -47,6 +47,7 @@ export type ProductData = {
   currency: string;
   imageUrl: string;
   categoryId?: string;
+  isAvailable?: boolean;
 };
 
 export type DishData = {
@@ -57,4 +58,5 @@ export type DishData = {
   reviewCount: number;
   deliveryTime: string;
   deliveryFee: string;
+  isAvailable?: boolean;
 };

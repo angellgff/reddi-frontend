@@ -6,6 +6,7 @@ export interface FetchDishesParams {
   category?: string | string[]; // sub_category_id
   tag?: string | string[];
   partnerId?: string;
+  isAvailable?: string | string[];
 }
 
 type DishRow = {
@@ -13,6 +14,7 @@ type DishRow = {
   name: string;
   image_url: string | null;
   estimated_time: string | null;
+  is_available: boolean;
 };
 
 // Maps DB row to DishData (placeholders are fine)
@@ -25,6 +27,7 @@ function mapRowToDish(row: DishRow): DishData {
     reviewCount: 0,
     deliveryTime: row.estimated_time || "--",
     deliveryFee: "0$ tarifa de envío",
+    isAvailable: row.is_available,
   };
 }
 
@@ -80,6 +83,24 @@ export default async function getRealDishesData(
     params.category
   ) {
     query = query.eq("sub_category_id", params.category);
+  }
+
+  // Filtro de disponibilidad
+  // Lógica: Si params.isAvailable no está presente, asumimos "true" (solo disponibles).
+  // Si es "true", filtramos is_available = true.
+  // Si es "false", filtramos is_available = false.
+  // Si es "all", NO filtramos por is_available.
+  const availabilityParam = Array.isArray(params.isAvailable)
+    ? params.isAvailable[0]
+    : params.isAvailable;
+
+  if (availabilityParam === "false") {
+    query = query.eq("is_available", false);
+  } else if (availabilityParam === "all") {
+    // No filter applied for 'all'
+  } else {
+    // Default or explicitly 'true'
+    query = query.eq("is_available", true);
   }
 
   const { data, error } = await query;

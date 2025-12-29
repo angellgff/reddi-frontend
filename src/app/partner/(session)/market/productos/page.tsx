@@ -4,7 +4,13 @@ import ProductsServer from "@/src/components/features/partner/dashboard/products
 import ProductsSkeleton from "@/src/components/features/partner/dashboard/products/productsList/ProductsSkeleton";
 import { Suspense } from "react";
 
-export default function ProductsPage() {
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
+  const { q, category, available } = await searchParams;
+
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       {/* Título */}
@@ -17,7 +23,7 @@ export default function ProductsPage() {
       {/* Fila 2: Lista de Productos */}
       <section className="bg-white px-10 py-6 rounded-xl">
         <Suspense fallback={<ProductsSkeleton />}>
-          <ProductsServer />
+          <ProductsServer q={q} category={category} available={available} />
         </Suspense>
       </section>
     </div>

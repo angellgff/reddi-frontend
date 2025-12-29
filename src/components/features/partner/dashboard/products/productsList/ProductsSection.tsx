@@ -1,7 +1,6 @@
 "use client";
 
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
 import ProductItem from "./ProductItem";
 import { ProductData } from "@/src/lib/partner/dashboard/type";
@@ -10,6 +9,14 @@ import SelectInput from "@/src/components/basics/SelectInput";
 import SearchPartnerIcon from "@/src/components/icons/SearchPartnerIcon";
 import ProductImportModal from "../ProductImportModal";
 import CreateCategoryModal from "./CreateCategoryModal";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import Spinner from "@/src/components/basics/Spinner";
+import {
+  deleteProductAction,
+  restoreProductAction,
+} from "@/src/app/partner/(session)/market/productos/actions";
+import ConfirmModal from "@/src/components/basics/ConfirmModal";
+import Toast from "@/src/components/basics/Toast";
 
 type ProductsListProps = {
   products: ProductData[];
@@ -20,38 +27,120 @@ export default function ProductsSection({
   products,
   categories,
 }: ProductsListProps) {
-  // En un componente real, aquí tendrías estados para manejar los inputs:
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  // Estados locales para los inputs
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || ""
+  );
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
-  // Implement filtering logic
-  const filteredProducts = React.useMemo(() => {
-    return products.filter((product) => {
-      // 1. Text Search (Case insensitive, in title or description)
-      const query = searchTerm.toLowerCase();
-      const matchesSearch =
-        product.name.toLowerCase().includes(query) ||
-        product.description.toLowerCase().includes(query);
+  // Estados para eliminación
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  // Estado para Toast
+  const [toast, setToast] = useState<{
+    open: boolean;
+    msg: string;
+    type?: "success" | "error" | "info";
+  }>({ open: false, msg: "" });
 
-      // 2. Category Filter
-      const matchesCategory =
-        !selectedCategory || product.categoryId === selectedCategory;
+  // Sincronizar búsqueda y filtros con URL
+  useEffect(() => {
+    const debounceTimer = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
 
-      return matchesSearch && matchesCategory;
-    });
-  }, [products, searchTerm, selectedCategory]);
+      if (searchTerm) {
+        params.set("q", searchTerm);
+      } else {
+        params.delete("q");
+      }
+
+      if (selectedCategory) {
+        params.set("category", selectedCategory);
+      } else {
+        params.delete("category");
+      }
+
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
+    }, 300);
+
+    return () => clearTimeout(debounceTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchTerm, selectedCategory]);
 
   const handleDeleteProduct = (id: string) => {
-    console.log("Eliminando producto con ID:", id);
-    // Aquí iría la lógica para mostrar una confirmación y llamar a la API para eliminar.
-    // Esto suele ser una Server Action o una llamada a una API Route.
+    setDeletingId(id);
+    setConfirmOpen(true);
+  };
+
+  const handleRestoreProduct = async (id: string) => {
+    try {
+      await restoreProductAction(id);
+      setToast({
+        open: true,
+        msg: "Producto habilitado correctamente",
+        type: "success",
+      });
+      startTransition(() => router.refresh());
+    } catch (e) {
+      console.error("Error habilitando producto:", e);
+      setToast({
+        open: true,
+        msg: "Error al habilitar el producto",
+        type: "error",
+      });
+    }
+  };
+
+  const onConfirmDelete = async () => {
+    if (!deletingId) return;
+    const id = deletingId;
+    setConfirmOpen(false);
+
+    try {
+      await deleteProductAction(id);
+      setToast({
+        open: true,
+        msg: "Producto inhabilitado correctamente",
+        type: "success",
+      });
+      // La revalidación ya ocurre en el server action, pero refresh ayuda a actualizar la UI cliente
+      startTransition(() => router.refresh());
+    } catch (error) {
+      console.error("Error eliminando producto:", error);
+      setToast({
+        open: true,
+        msg: "Error al eliminar el producto",
+        type: "error",
+      });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleCategoryCreated = () => {
-    // Opcional: podrías refrescar la lista de categorías manualmente si no es server-side reactive
-    // o simplemente el revalidatePath ya lo hará al refrescar la página.
     setIsCategoryModalOpen(false);
+    startTransition(() => router.refresh());
+  };
+
+  // Manejador de cambio de disponibilidad
+  const handleAvailabilityChange = (val: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (val === "true") {
+      params.delete("available"); // Default
+    } else {
+      params.set("available", val);
+    }
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
   };
 
   return (
@@ -85,7 +174,7 @@ export default function ProductsSection({
       </div>
 
       {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
         <SearchInput
           id="search"
           label="Productos"
@@ -93,6 +182,7 @@ export default function ProductsSection({
           onChange={(e) => setSearchTerm(e.target.value)}
           className="md:col-span-2"
           icon={<SearchPartnerIcon />}
+          disabled={isPending}
         />
         <SelectInput
           id="category"
@@ -102,19 +192,69 @@ export default function ProductsSection({
           getOptionLabel={(option) => option.label}
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
+          disabled={isPending}
+        />
+        <SelectInput
+          id="availability"
+          label="Disponibilidad"
+          options={[
+            { value: "true", label: "Disponible" },
+            { value: "false", label: "No disponible" },
+            { value: "all", label: "Todos" },
+          ]}
+          getOptionValue={(option) => option.value}
+          getOptionLabel={(option) => option.label}
+          value={searchParams.get("available") || "true"}
+          onChange={(e) => handleAvailabilityChange(e.target.value)}
+          disabled={isPending}
         />
       </div>
 
       {/* Grid de Productos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
-        {filteredProducts.map((product) => (
-          <ProductItem
-            key={product.id}
-            product={product}
-            onDelete={handleDeleteProduct}
-          />
-        ))}
-      </div>
+      {isPending ? (
+        <div className="flex items-center justify-center h-72">
+          <Spinner />
+        </div>
+      ) : products.length === 0 ? (
+        <div className="flex items-center justify-center h-72">
+          <p className="text-gray-500">
+            No se encontraron productos, verifique los filtros.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 2xl:grid-cols-8 gap-6">
+          {products.map((product) => (
+            <ProductItem
+              key={product.id}
+              product={product}
+              onDelete={handleDeleteProduct}
+              onRestore={handleRestoreProduct}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Confirm delete modal */}
+      <ConfirmModal
+        open={confirmOpen}
+        title="Eliminar producto"
+        description="El producto pasará a estar 'No disponible'. ¿Deseas continuar?"
+        confirmText="Confirmar"
+        cancelText="Cancelar"
+        onConfirm={onConfirmDelete}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setDeletingId(null);
+        }}
+      />
+
+      {/* Toast notifications */}
+      <Toast
+        open={toast.open}
+        message={toast.msg}
+        type={toast.type}
+        onClose={() => setToast((t) => ({ ...t, open: false }))}
+      />
     </>
   );
 }

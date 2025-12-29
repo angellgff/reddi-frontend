@@ -9,7 +9,7 @@ export default async function MenuPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category, tag, q } = await searchParams;
+  const { category, tag, q, available } = await searchParams;
 
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
@@ -23,7 +23,12 @@ export default async function MenuPage({
       {/* Fila 2: Lista de Productos */}
       <section className="bg-white px-10 py-6 rounded-xl">
         <Suspense fallback={<ProductsSkeleton />}>
-          <DishesServer category={category} tag={tag} q={q} />
+          <DishesServer
+            category={category}
+            tag={tag}
+            q={q}
+            available={available}
+          />
         </Suspense>
       </section>
     </div>

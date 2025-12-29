@@ -11,7 +11,7 @@ import SearchInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import TagsTabs from "@/src/components/features/partner/TagsTabs";
 import SearchPartnerIcon from "@/src/components/icons/SearchPartnerIcon";
-import { deleteDishAction } from "../newDish/actions";
+import { deleteDishAction, restoreDishAction } from "../newDish/actions";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import Toast from "@/src/components/basics/Toast";
 
@@ -86,6 +86,22 @@ export default function DishesSection({
     setConfirmOpen(true);
   };
 
+  const handleRestoreDish = async (id: string) => {
+    if (!id) return;
+    try {
+      await restoreDishAction(id);
+      setToast({ open: true, msg: "Plato habilitado", type: "success" });
+      startTransition(() => router.refresh());
+    } catch (e) {
+      console.error("Error habilitando plato:", e);
+      setToast({
+        open: true,
+        msg: "No se pudo habilitar el plato",
+        type: "error",
+      });
+    }
+  };
+
   const onConfirmDelete = async () => {
     if (!deletingId) return;
     const id = deletingId;
@@ -129,7 +145,7 @@ export default function DishesSection({
       </div>
 
       {/* Filtros */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
         <SearchInput
           id="search"
           label="Menú / platos"
@@ -147,6 +163,33 @@ export default function DishesSection({
           getOptionLabel={(option) => option.label}
           value={selectedCategory}
           onChange={(e) => setSelectedCategory(e.target.value)}
+          disabled={isPending}
+        />
+        <SelectInput
+          id="availability"
+          label="Disponibilidad"
+          options={[
+            { value: "true", label: "Disponible" },
+            { value: "false", label: "No disponible" },
+            { value: "all", label: "Todos" },
+          ]}
+          getOptionValue={(option) => option.value}
+          getOptionLabel={(option) => option.label}
+          value={searchParams.get("available") || "true"}
+          onChange={(e) => {
+            const val = e.target.value;
+            const params = new URLSearchParams(searchParams.toString());
+            if (val === "true") {
+              params.delete("available"); // Default
+            } else {
+              params.set("available", val);
+            }
+            startTransition(() => {
+              router.push(`${pathname}?${params.toString()}`, {
+                scroll: false,
+              });
+            });
+          }}
           disabled={isPending}
         />
       </div>
@@ -175,7 +218,12 @@ export default function DishesSection({
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5 mt-4">
           {items.map((dish) => (
-            <DishItem key={dish.id} dish={dish} onDelete={handleDeleteDish} />
+            <DishItem
+              key={dish.id}
+              dish={dish}
+              onDelete={handleDeleteDish}
+              onRestore={handleRestoreDish}
+            />
           ))}
         </div>
       )}

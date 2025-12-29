@@ -3,7 +3,17 @@ import { redirect } from "next/navigation";
 import ProductsSection from "./ProductsSection";
 import getProductsData from "@/src/lib/partner/dashboard/data/products/getProductsData";
 
-export default async function ProductServer() {
+interface ProductServerProps {
+  q: string | string[] | undefined;
+  category: string | string[] | undefined;
+  available: string | string[] | undefined;
+}
+
+export default async function ProductServer({
+  q,
+  category,
+  available,
+}: ProductServerProps) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -28,7 +38,7 @@ export default async function ProductServer() {
 
   // Fetch parallel data: products and categories
   const [products, categoriesResult] = await Promise.all([
-    getProductsData(),
+    getProductsData({ q, category, isAvailable: available }),
     supabase
       .from("sub_categories")
       .select("id, name")

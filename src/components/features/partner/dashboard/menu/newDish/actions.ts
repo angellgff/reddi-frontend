@@ -516,7 +516,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   return { success: true, updatedProductId: dishId };
 }
 
-// Eliminar producto (plato) y sus dependencias
+// Eliminar producto (plato) y sus dependencias (SOFT DELETE)
 export async function deleteDishAction(dishId: string) {
   const supabase = await createClient();
 
@@ -536,74 +536,78 @@ export async function deleteDishAction(dishId: string) {
     .single();
   if (pErr || !partner) throw new Error("Partner no encontrado");
 
-  // 3) Traer producto para validar ownership y obtener image_url
+  // 3) Validar ownership
   const { data: productRow, error: fetchErr } = await supabase
     .from("products")
-    .select("id, partner_id, image_url")
+    .select("id, partner_id")
     .eq("id", dishId)
     .single();
+  
   if (fetchErr || !productRow)
     throw new Error(fetchErr?.message || "Producto no encontrado");
   if (productRow.partner_id !== partner.id)
     throw new Error("No autorizado para eliminar este producto");
 
-  // 4) Borrar dependencias: opciones y secciones
-  const { data: oldSections, error: fetchSectionsErr } = await supabase
-    .from("product_sections")
-    .select("id")
-    .eq("product_id", dishId);
-  if (fetchSectionsErr)
-    throw new Error(
-      `Error buscando secciones del producto: ${fetchSectionsErr.message}`
-    );
-
-  const sectionIds = (oldSections || []).map((s: { id: string }) => s.id);
-  if (sectionIds.length > 0) {
-    const { error: delOptsErr } = await supabase
-      .from("product_section_options")
-      .delete()
-      .in("section_id", sectionIds);
-    if (delOptsErr)
-      throw new Error(`Error borrando opciones: ${delOptsErr.message}`);
-
-    const { error: delSecsErr } = await supabase
-      .from("product_sections")
-      .delete()
-      .eq("product_id", dishId);
-    if (delSecsErr)
-      throw new Error(`Error borrando secciones: ${delSecsErr.message}`);
-  }
-
-  // 5) Borrar el producto
-  const { error: delProdErr } = await supabase
+  // 4) Soft Delete: Set is_available = false
+  const { error: updateErr } = await supabase
     .from("products")
-    .delete()
+    .update({ is_available: false })
+    .eq("id", dishId);
+
+  if (updateErr)
+    throw new Error(`Error inhabilitando producto: ${updateErr.message}`);
+
+  // 5) Revalidar listado
+  revalidatePath("/partner/restaurant/menu");
+  revalidatePath("/aliado/menu"); // Just in case old path is used
+
+  return { success: true };
+}
+
+// Restaurar producto (plato) (SOFT DELETE REVERSION)
+export async function restoreDishAction(dishId: string) {
+  const supabase = await createClient();
+
+  // 1) Autenticación
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError || !user) throw new Error("No autenticado");
+
+  // 2) Obtener partner vinculado al usuario
+  const { data: partner, error: pErr } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .single();
+  if (pErr || !partner) throw new Error("Partner no encontrado");
+
+  // 3) Validar ownership
+  const { data: productRow, error: fetchErr } = await supabase
+    .from("products")
+    .select("id, partner_id")
     .eq("id", dishId)
-    .eq("partner_id", partner.id);
-  if (delProdErr)
-    throw new Error(`Error borrando producto: ${delProdErr.message}`);
+    .single();
+  
+  if (fetchErr || !productRow)
+    throw new Error(fetchErr?.message || "Producto no encontrado");
+  if (productRow.partner_id !== partner.id)
+    throw new Error("No autorizado para restaurar este producto");
 
-  // 6) Intentar borrar la imagen del storage (best-effort)
-  const imageUrl: string | null = productRow.image_url;
-  if (imageUrl) {
-    try {
-      // Los publicUrl suelen contener "/object/public/<bucket>/<path>"
-      const marker = "/object/public/product-images/";
-      const idx = imageUrl.indexOf(marker);
-      if (idx !== -1) {
-        const storagePath = imageUrl.substring(idx + marker.length);
-        if (storagePath) {
-          await supabase.storage.from("product-images").remove([storagePath]);
-        }
-      }
-    } catch (e) {
-      // No romper por un fallo al borrar imagen
-      console.warn("No se pudo eliminar la imagen del storage:", e);
-    }
-  }
+  // 4) Restore: Set is_available = true
+  const { error: updateErr } = await supabase
+    .from("products")
+    .update({ is_available: true })
+    .eq("id", dishId);
 
-  // 7) Revalidar listado
-  revalidatePath("/aliado/menu");
+  if (updateErr)
+    throw new Error(`Error restaurando producto: ${updateErr.message}`);
+
+  // 5) Revalidar listado
+  revalidatePath("/partner/restaurant/menu");
+  revalidatePath("/aliado/menu"); 
 
   return { success: true };
 }

@@ -7,6 +7,7 @@ interface DishesServerProps {
   category: string[] | string | undefined;
   tag: string[] | string | undefined;
   q: string[] | string | undefined;
+  available: string[] | string | undefined; // NEW
 }
 
 // Se reciben los parámetros de búsqueda desde la URL
@@ -14,6 +15,7 @@ export default async function DishesServer({
   category,
   tag,
   q,
+  available,
 }: DishesServerProps) {
   // Resolver partnerId del aliado autenticado
   const supabase = await createClient();
@@ -34,7 +36,13 @@ export default async function DishesServer({
 
   // Se hace la petición para obtener los datos de los platillos
   const [dishes, categoriesOpts] = await Promise.all([
-    getRealDishesData({ q, category, tag, partnerId: partnerId || undefined }),
+    getRealDishesData({
+      q,
+      category,
+      tag,
+      partnerId: partnerId || undefined,
+      isAvailable: available,
+    }),
     partnerId ? getSubCategories(partnerId) : Promise.resolve([]),
   ]);
 
