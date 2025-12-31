@@ -9,11 +9,10 @@ export type RecommendedProduct = Pick<
   | "name"
   | "image_url"
   | "base_price"
-  | "display_price"
   | "previous_price"
   | "description"
   | "discount_percentage"
->;
+> & { display_price: number };
 
 /**
  * Returns products from the same partner (store), excluding the current product.

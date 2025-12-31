@@ -16,11 +16,10 @@ export type StoreMenu = {
         | "name"
         | "image_url"
         | "base_price"
-        | "display_price"
         | "previous_price"
         | "description"
         | "discount_percentage"
-      >
+      > & { display_price: number }
     >;
   }>;
 };
@@ -75,12 +74,11 @@ export default async function getStoreMenu(
       | "name"
       | "image_url"
       | "base_price"
-      | "display_price"
       | "previous_price"
       | "description"
       | "discount_percentage"
       | "sub_category_id"
-    >
+    > & { display_price: number }
   >;
 
   // Map categories options and group products by sub_category
@@ -97,11 +95,10 @@ export default async function getStoreMenu(
           | "name"
           | "image_url"
           | "base_price"
-          | "display_price"
           | "previous_price"
           | "description"
           | "discount_percentage"
-        >
+        > & { display_price: number }
       >;
     }
   >();

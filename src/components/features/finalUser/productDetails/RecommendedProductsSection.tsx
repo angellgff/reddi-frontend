@@ -51,7 +51,7 @@ export default function RecommendedProductsSection({
           name: p.name,
           image_url: p.image_url,
           base_price: p.base_price,
-          display_price: p.display_price,
+          display_price: base,
           previous_price: p.previous_price,
           description: p.description,
           discount_percentage: p.discount_percentage,
