@@ -119,7 +119,7 @@ export async function createRatingAction(
     order_id: orderId,
     partner_id: partnerId,
     user_id: userId,
-    rating: ratingValue,
+    rating_value: ratingValue,
     comment: comment || null,
   });
 
