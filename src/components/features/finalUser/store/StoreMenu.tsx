@@ -203,9 +203,11 @@ export default function StoreMenu({
                 className="flex gap-4 overflow-x-auto py-1 scroll-smooth scrollbar-none"
               >
                 {group.products.map((p) => {
-                  const discounted = p.discount_percentage
-                    ? p.display_price * (1 - p.discount_percentage / 100)
-                    : p.display_price;
+                  const price = Number(p.display_price) || 0;
+                  const discount = Number(p.discount_percentage) || 0;
+                  const discounted = discount
+                    ? price * (1 - discount / 100)
+                    : price;
                   const discountedPrice = discounted;
 
                   const onAdd = (
