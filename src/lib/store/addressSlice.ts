@@ -112,8 +112,11 @@ export const fetchUserAddresses = createAsyncThunk(
         (async () =>
           await supabase
             .from("user_addresses")
-            .select("id, location_type, location_number, created_at, user_id")
+            .select(
+              "id, location_type, location_number, created_at, user_id, coordinates"
+            )
             .eq("user_id", user.id)
+            .is("deleted_at", null)
             .order("created_at", { ascending: false }))(),
         3000,
         "addr-timeout"

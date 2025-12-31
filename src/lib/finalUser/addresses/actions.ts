@@ -122,6 +122,8 @@ export async function createUserAddress(formData: FormData) {
 export async function updateUserAddress(id: string, formData: FormData) {
   const locationTypeRaw = formData.get("location_type");
   const locationNumberRaw = formData.get("location_number");
+  const latRaw = formData.get("lat");
+  const lngRaw = formData.get("lng");
 
   const location_type = isLocationType(locationTypeRaw)
     ? locationTypeRaw
@@ -141,9 +143,22 @@ export async function updateUserAddress(id: string, formData: FormData) {
   } = await supabase.auth.getUser();
   if (!user) return { success: false, error: "No autenticado." } as const;
 
+  const updates: any = {
+    location_number,
+    location_type,
+  };
+
+  if (latRaw && lngRaw) {
+    const lat = parseFloat(String(latRaw));
+    const lng = parseFloat(String(lngRaw));
+    if (!isNaN(lat) && !isNaN(lng)) {
+      updates.coordinates = createWKBPoint(lat, lng);
+    }
+  }
+
   const { error } = await supabase
     .from("user_addresses")
-    .update({ location_number, location_type })
+    .update(updates)
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -165,7 +180,7 @@ export async function deleteUserAddress(id: string) {
 
   const { error } = await supabase
     .from("user_addresses")
-    .delete()
+    .update({ deleted_at: new Date().toISOString() })
     .eq("id", id)
     .eq("user_id", user.id);
   if (error) {
@@ -190,6 +205,7 @@ export async function setSelectedAddress(addressId: string) {
     .select("id")
     .eq("id", addressId)
     .eq("user_id", user.id)
+    .is("deleted_at", null)
     .single();
   if (ownErr || !owns) {
     return { success: false, error: "Dirección no encontrada." } as const;
@@ -228,6 +244,7 @@ export async function getUserAddressesAndSelected() {
       .from("user_addresses")
       .select("*")
       .eq("user_id", user.id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     supabase
       .from("profiles")

@@ -64,6 +64,7 @@ export function useUserAddresses() {
           .from("user_addresses")
           .select("id, location_type, location_number, created_at, user_id")
           .eq("user_id", auth.user.id)
+          .is("deleted_at", null)
           .order("created_at", { ascending: false });
 
         // Loguear siempre el resultado de la consulta para ver qué devuelve Supabase

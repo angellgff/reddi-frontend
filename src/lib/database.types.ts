@@ -605,6 +605,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          base_subtotal: number | null
           coupon_id: string | null
           created_at: string
           discount_amount: number | null
@@ -617,6 +618,7 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method_type"]
             | null
           payment_provider: string | null
+          platform_profit: number | null
           scheduled_at: string | null
           shipment_id: string | null
           shipping_fee: number | null
@@ -628,6 +630,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          base_subtotal?: number | null
           coupon_id?: string | null
           created_at?: string
           discount_amount?: number | null
@@ -640,6 +643,7 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method_type"]
             | null
           payment_provider?: string | null
+          platform_profit?: number | null
           scheduled_at?: string | null
           shipment_id?: string | null
           shipping_fee?: number | null
@@ -651,6 +655,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          base_subtotal?: number | null
           coupon_id?: string | null
           created_at?: string
           discount_amount?: number | null
@@ -663,6 +668,7 @@ export type Database = {
             | Database["public"]["Enums"]["payment_method_type"]
             | null
           payment_provider?: string | null
+          platform_profit?: number | null
           scheduled_at?: string | null
           shipment_id?: string | null
           shipping_fee?: number | null
@@ -1058,7 +1064,6 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percentage: number | null
-          display_price: number
           estimated_time: string
           id: string
           image_url: string | null
@@ -1398,6 +1403,7 @@ export type Database = {
         Row: {
           coordinates: unknown
           created_at: string
+          deleted_at: string | null
           id: string
           location_number: string
           location_type: Database["public"]["Enums"]["address_location_type"]
@@ -1406,6 +1412,7 @@ export type Database = {
         Insert: {
           coordinates?: unknown
           created_at?: string
+          deleted_at?: string | null
           id?: string
           location_number: string
           location_type: Database["public"]["Enums"]["address_location_type"]
@@ -1414,6 +1421,7 @@ export type Database = {
         Update: {
           coordinates?: unknown
           created_at?: string
+          deleted_at?: string | null
           id?: string
           location_number?: string
           location_type?: Database["public"]["Enums"]["address_location_type"]

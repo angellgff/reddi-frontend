@@ -8,7 +8,7 @@ import AddressCard from "./AddressCard";
 import Portal from "@/src/components/basics/Portal";
 import useBodyScrollLock from "@/src/lib/hooks/useScrollBodyLock";
 import { useEffect, useMemo, useState } from "react";
-import NewAddressForm from "./NewAddressForm";
+import NewAddressForm, { UserAddress } from "./NewAddressForm";
 import { deleteUserAddress } from "@/src/lib/finalUser/addresses/actions";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import {
@@ -24,6 +24,9 @@ export type AddressSliderProps = {
 export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
   useBodyScrollLock(isOpen);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
+    null
+  );
   const dispatch = useAppDispatch();
   const { addresses, selectedAddressId, status, error } = useAppSelector(
     (s) => s.addresses
@@ -37,6 +40,12 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
 
   const handleNewAddress = () => {
     setIsAddingAddress(!isAddingAddress);
+    setEditingAddress(null);
+  };
+
+  const handleEditAddress = (address: UserAddress) => {
+    setEditingAddress(address);
+    setIsAddingAddress(true);
   };
 
   const mergedData = useMemo(() => {
@@ -72,7 +81,10 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
       >
         {/* Encabezado */}
         {isAddingAddress ? (
-          <NewAddressForm onCancel={handleNewAddress} />
+          <NewAddressForm
+            onCancel={handleNewAddress}
+            initialData={editingAddress}
+          />
         ) : (
           <>
             <header className="flex items-center p-4 border-gray-200 flex-shrink-0">
@@ -115,7 +127,12 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
                         }
                         address={item.address}
                         label={String(item.label).toUpperCase()}
-                        onEdit={() => alert(`Editar ${item.address}`)}
+                        onEdit={() => {
+                          const fullAddr = addresses.find(
+                            (a) => a.id === item._rawId
+                          );
+                          if (fullAddr) handleEditAddress(fullAddr);
+                        }}
                       />
                       <button
                         className={`text-xs underline ${
