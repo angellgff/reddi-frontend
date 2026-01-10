@@ -9,6 +9,7 @@ import {
   Manrope,
   Montserrat,
   Rubik,
+  Open_Sans,
 } from "next/font/google";
 import ReduxProvider from "@/src/lib/store/ReduxProvider";
 import { NotificationsProvider } from "@/src/lib/notifications/NotificationsContext";
@@ -50,6 +51,12 @@ const rubik = Rubik({
   variable: "--font-rubik",
 });
 
+const openSans = Open_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-open-sans",
+});
+
 export default function RootLayout({
   children,
 }: {
@@ -58,7 +65,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${poppins.variable} ${roboto.variable} ${inter.variable} ${manrope.variable} ${montserrat.variable} ${rubik.variable}`}
+      className={`${poppins.variable} ${roboto.variable} ${inter.variable} ${manrope.variable} ${montserrat.variable} ${rubik.variable} ${openSans.variable}`}
     >
       <body className="flex flex-col min-h-screen font-poppins">
         <ReduxProvider>

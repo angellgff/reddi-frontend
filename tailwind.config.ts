@@ -17,6 +17,7 @@ export default {
         inter: ["var(--font-inter)"],
         manrope: ["var(--font-manrope)"],
         montserrat: ["var(--font-montserrat)"],
+        openSans: ["var(--font-open-sans)"],
       },
       colors: {
         primary: {

@@ -89,6 +89,48 @@ export async function updateSession(request: NextRequest) {
   const isAuthed = !!user;
   // const hasAuthCookie = request.cookies.getAll().some((c) => c.name.includes("auth")); // Ya no es necesario para la lógica principal
 
+  // --- GLOBAL ONBOARDING CHECK ---
+  // Must be done before ANY other redirect to ensure it is seen "en todas las rutas".
+  // Except API, Assets, and /onboarding itself.
+
+  const isStaticAsset = path.match(
+    /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
+  );
+  const onboardingSeenCookie = request.cookies.get("onboarding_seen");
+  let hasCompletedOnboardingGlobal = !!onboardingSeenCookie;
+
+  // Sync from DB if user is logged in but cookie is missing
+  if (user && !hasCompletedOnboardingGlobal) {
+    const am = (user?.app_metadata as Record<string, unknown>) || {};
+    const um = (user?.user_metadata as Record<string, unknown>) || {};
+    const dbOnboarding = um.onboarding_completed || am.onboarding_completed;
+    if (dbOnboarding) {
+      hasCompletedOnboardingGlobal = true;
+      supabaseResponse.cookies.set("onboarding_seen", "true", {
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+      });
+    }
+  }
+
+  if (
+    !hasCompletedOnboardingGlobal &&
+    !path.startsWith("/api/") &&
+    !path.startsWith("/_next/") &&
+    path !== "/onboarding" &&
+    !isStaticAsset
+  ) {
+    console.log(
+      "[MW-DEBUG] Global Check: Usuario no ha visto onboarding. Redirigiendo a /onboarding"
+    );
+    const nextUrl = new URL("/onboarding", request.url);
+    nextUrl.searchParams.set("next", path + (request.nextUrl.search || ""));
+    return redirectWithCookies(nextUrl, supabaseResponse);
+  }
+  // --- END GLOBAL ONBOARDING CHECK ---
+
   let role: string | null = null;
   if (user) {
     try {
@@ -160,6 +202,59 @@ export async function updateSession(request: NextRequest) {
   // 5. Lógica para usuarios YA AUTENTICADOS
   if (isAuthed) {
     console.log("[MW-DEBUG] Analizando lógica para usuario AUTENTICADO.");
+
+    // --- Onboarding Check ---
+    const isStaticAsset = path.match(
+      /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
+    );
+    const onboardingSeenCookie = request.cookies.get("onboarding_seen");
+    let hasCompletedOnboarding = !!onboardingSeenCookie;
+
+    if (!hasCompletedOnboarding && user) {
+      // Fallback: check DB if user is logged in
+      const am = (user?.app_metadata as Record<string, unknown>) || {};
+      const um = (user?.user_metadata as Record<string, unknown>) || {};
+      // Check both locations just in case
+      const dbOnboarding = um.onboarding_completed || am.onboarding_completed;
+      if (dbOnboarding) {
+        hasCompletedOnboarding = true;
+        // Sync cookie for future requests to avoid DB check overhead if possible,
+        // though here we are already checking user for other reasons.
+        // We can set the cookie on the response so next time it is faster/consistent.
+        supabaseResponse.cookies.set("onboarding_seen", "true", {
+          maxAge: 60 * 60 * 24 * 365,
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+        });
+      }
+    }
+
+    if (
+      !hasCompletedOnboarding &&
+      !path.startsWith("/api/") &&
+      !path.startsWith("/_next/") &&
+      path !== "/onboarding" &&
+      !isStaticAsset
+    ) {
+      console.log(
+        "[MW-DEBUG] Usuario no ha completado onboarding. Redirigiendo a /onboarding"
+      );
+      const nextUrl = new URL("/onboarding", request.url);
+      if (path !== "/") {
+        nextUrl.searchParams.set("next", path);
+        if (request.nextUrl.search) {
+          // Append original search params to next? Or just let the component handle simple return?
+          // Simple return to path + search is handled by letting the component navigate to it.
+          // We just need to pass the full relative path as 'next'.
+          nextUrl.searchParams.set("next", path + request.nextUrl.search);
+        }
+      } else {
+        nextUrl.searchParams.set("next", "/");
+      }
+      return redirectWithCookies(nextUrl, supabaseResponse);
+    }
+
     if (isAuthPath || path === "/") {
       const homeUrl = getHomeUrlForRole(role);
       console.log(
@@ -249,26 +344,15 @@ export async function updateSession(request: NextRequest) {
 
   // 6. Lógica para usuarios NO AUTENTICADOS
   if (!isAuthed && !isPublicPath) {
-    console.log(
-      `[MW-DEBUG] Usuario NO autenticado intentando acceder a ruta protegida: '${path}'.`
-    );
-    const loginPath = path.startsWith("/admin")
-      ? "/admin/login"
-      : path.startsWith("/partner") || path.startsWith("/aliado")
-        ? "/admin/login" // <-- CORREGIDO
-        : "/login";
+    // 7. Si ninguna regla se aplicó, permite el acceso
+
+    // Last check for Public Paths for Unauthenticated users who missed the check above because they were hitting a public path?
+    // Wait, if I hit /login (public path), loop 6 is skipped.
+    // I need a global check for onboarding regardless of auth status.
 
     console.log(
-      `[MW-DEBUG] Redirigiendo a la página de login relevante: ${loginPath}`
+      `[MW-DEBUG] ✅ Acceso permitido a: ${path}. No se aplicó ninguna regla de redirección.`
     );
-    const loginUrl = new URL(loginPath, request.url);
-    loginUrl.searchParams.set("next", path);
-    return redirectWithCookies(loginUrl, supabaseResponse);
+    return supabaseResponse;
   }
-
-  // 7. Si ninguna regla se aplicó, permite el acceso
-  console.log(
-    `[MW-DEBUG] ✅ Acceso permitido a: ${path}. No se aplicó ninguna regla de redirección.`
-  );
-  return supabaseResponse;
 }
