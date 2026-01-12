@@ -9,8 +9,6 @@ export default function HomeFloatingButtonSetter() {
   useEffect(() => {
     // Set search mode for home page
     showSearch();
-    // Limpieza opcional pero buena práctica
-    return () => showSearch();
   }, [showSearch]);
 
   return null;

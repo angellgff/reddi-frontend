@@ -251,8 +251,6 @@ export default function ProductDetailsClient({
       }
     });
 
-    // Limpieza: Al salir de la vista de producto, volver al buscador por defecto
-    return () => showSearch();
   }, [showProduct, showSearch, requiredSatisfied, addToCartHandler]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});

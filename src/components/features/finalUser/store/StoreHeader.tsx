@@ -25,9 +25,7 @@ export default function StoreHeader({
     if (store?.name) {
       showStore(store.name);
     }
-    // Limpieza: Al salir de la vista de la tienda, volver al buscador por defecto
-    return () => showSearch();
-  }, [store?.name, showStore, showSearch]);
+  }, [store?.name, showStore]);
 
   const banner =
     store.banner_url || store.cover_image_url || store.image_url || "";
