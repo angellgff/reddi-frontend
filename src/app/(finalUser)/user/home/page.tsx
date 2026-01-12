@@ -18,11 +18,6 @@ export default function Home() {
       {/* 2. Categories Row */}
       <HomeCategories />
 
-      {/* 2.5 Partners List */}
-      <div className="mt-2">
-        <HomePartnersList />
-      </div>
-
       {/* 3. Greeting */}
       <div className="px-4 mt-6 mb-4">
         <h1 className="font-openSans text-[20px] font-bold text-black">
@@ -35,6 +30,11 @@ export default function Home() {
         <Suspense fallback={<PromoSliderSkeleton />}>
           <PromoSliderServer />
         </Suspense>
+      </div>
+
+      {/* 2.5 Partners List */}
+      <div className="mt-2">
+        <HomePartnersList />
       </div>
 
       {/* 5. Recomendados para ti */}

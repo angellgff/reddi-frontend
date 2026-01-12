@@ -8,6 +8,8 @@ import HorizontalScrollButtons from "@/src/components/basics/itemsSlider/Horizon
 export default function SliderSection({
   cards,
   title,
+  href,
+  className,
 }: {
   cards: SliderCardProps[];
   title: string;
@@ -15,10 +17,15 @@ export default function SliderSection({
   className?: string;
 }) {
   const safeId = `slider-${title.toLowerCase().replace(/\s+/g, "-")}`;
+
   return (
-    <div className="w-full font-openSans">
+    <div
+      className={`w-full font-openSans pb-4 border-b-[1px] border-[rgba(183,183,183,0.37)] ${
+        className || ""
+      }`}
+    >
       {/* Encabezado de la sección */}
-      <div className="mb-4  flex items-center justify-between gap-4">
+      <div className="mb-4 flex items-center justify-between gap-4">
         <h2
           id={title}
           className="font-openSans text-2xl font-bold text-gray-900"

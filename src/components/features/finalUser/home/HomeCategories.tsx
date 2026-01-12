@@ -33,7 +33,7 @@ const categories = [
 
 export default function HomeCategories() {
   return (
-    <div className="flex justify-between items-start gap-4 overflow-x-auto px-4 py-4 no-scrollbar">
+    <div className="flex justify-between items-start gap-4 overflow-x-auto px-4 py-4 no-scrollbar border-b-[1px] border-[rgba(183,183,183,0.37)]">
       {categories.map((cat) => (
         <Link
           key={cat.name}

@@ -3,6 +3,8 @@
 // Importar el tipo real desde el fetch server-side.
 // El tipo original tiene: id, name, image_url, address, partner_type
 import type { StoreDetails as BaseStoreDetails } from "@/src/lib/finalUser/stores/getStoreDetails";
+import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
+import { useEffect } from "react";
 
 // Extendemos el tipo para permitir nuevos campos opcionales sin romper.
 type ExtendedStoreDetails = BaseStoreDetails & {
@@ -16,6 +18,17 @@ export default function StoreHeader({
 }: {
   store: ExtendedStoreDetails & { cover_image_url?: string | null };
 }) {
+  const showStore = useFloatingButtonStore((state) => state.showStore);
+  const showSearch = useFloatingButtonStore((state) => state.showSearch);
+
+  useEffect(() => {
+    if (store?.name) {
+      showStore(store.name);
+    }
+    // Limpieza: Al salir de la vista de la tienda, volver al buscador por defecto
+    return () => showSearch();
+  }, [store?.name, showStore, showSearch]);
+
   const banner =
     store.banner_url || store.cover_image_url || store.image_url || "";
   const logo = store.logo_url || store.image_url || "";

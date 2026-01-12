@@ -1,25 +1,59 @@
 import { create } from "zustand";
 
+export type FloatingMode =
+  | "search"
+  | "product"
+  | "store"
+  | "cart"
+  | "loading"
+  | "hidden";
+
 interface FloatingButtonState {
-  isVisible: boolean;
-  text: string;
-  icon?: React.ReactNode;
+  mode: FloatingMode;
+  text: string; // Used for "Store Name" or generic button text
+  secondaryText?: string; // Used for "Discount" text
   action?: () => void;
-  showButton: (
-    text: string,
-    icon?: React.ReactNode,
+  secondaryAction?: () => void;
+
+  // Methods
+  showSearch: () => void;
+  showProduct: (action: () => void) => void;
+  showStore: (
+    storeName: string,
+    discountText?: string,
     action?: () => void
   ) => void;
+  showCartButton: (text?: string, action?: () => void) => void;
+  showLoading: (text?: string) => void;
   hideButton: () => void;
 }
 
 export const useFloatingButtonStore = create<FloatingButtonState>((set) => ({
-  isVisible: false,
+  mode: "search",
   text: "",
-  icon: undefined,
+  secondaryText: "",
   action: undefined,
-  showButton: (text, icon, action) =>
-    set({ isVisible: true, text, icon, action }),
+  secondaryAction: undefined,
+
+  showSearch: () =>
+    set({ mode: "search", text: "", secondaryText: "", action: undefined }),
+
+  showProduct: (action) =>
+    set({ mode: "product", text: "Añade un Producto", action }),
+
+  showStore: (storeName, discountText, action) =>
+    set({
+      mode: "store",
+      text: storeName,
+      secondaryText: discountText,
+      action,
+    }),
+
+  showCartButton: (text = "Ver Carrito", action) =>
+    set({ mode: "cart", text, action }),
+
+  showLoading: (text = "Agregando...") => set({ mode: "loading", text }),
+
   hideButton: () =>
-    set({ isVisible: false, text: "", icon: undefined, action: undefined }),
+    set({ mode: "hidden", text: "", secondaryText: "", action: undefined }),
 }));

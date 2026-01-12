@@ -4,16 +4,14 @@ import { useEffect } from "react";
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 
 export default function HomeFloatingButtonSetter() {
-  const showButton = useFloatingButtonStore((state) => state.showButton);
+  const showSearch = useFloatingButtonStore((state) => state.showSearch);
 
   useEffect(() => {
-    // Set the specific button for the home page
-    showButton("SBG", undefined, () => console.log("SBG clicked"));
-
-    // In a real app we might want to clean up or reset when leaving,
-    // but the next page will likely set its own button or we rely on layout to handle route changes.
-    // Ideally we return a cleanup function, but only if we want no button on other pages by default.
-  }, [showButton]);
+    // Set search mode for home page
+    showSearch();
+    // Limpieza opcional pero buena práctica
+    return () => showSearch();
+  }, [showSearch]);
 
   return null;
 }

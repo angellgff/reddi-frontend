@@ -1,13 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import type { ProductDetails } from "@/src/lib/finalUser/stores/getProductDetails";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
 import { useRouter } from "next/navigation";
 import Toast from "@/src/components/basics/Toast";
+import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 
 // Componente para renderizar la sección de extras y la nota.
 // Lo creamos para no repetir el mismo bloque de código en móvil y escritorio.
@@ -142,6 +143,8 @@ export default function ProductDetailsClient({
   details: ProductDetails;
   partnerType?: string;
 }) {
+  const showProduct = useFloatingButtonStore((state) => state.showProduct);
+  const showSearch = useFloatingButtonStore((state) => state.showSearch);
   const isRestaurant = partnerType === "restaurant";
   const dispatch = useAppDispatch();
   const currentPartnerId = useAppSelector(selectCartPartnerId);
@@ -234,6 +237,23 @@ export default function ProductDetailsClient({
     );
     if (openAfter) dispatch(openCart());
   };
+
+  useEffect(() => {
+    showProduct(() => {
+      if (requiredSatisfied) {
+        addToCartHandler(true);
+      } else {
+        setToast({
+          open: true,
+          message: "Por favor selecciona todas las opciones requeridas.",
+          type: "error",
+        });
+      }
+    });
+
+    // Limpieza: Al salir de la vista de producto, volver al buscador por defecto
+    return () => showSearch();
+  }, [showProduct, showSearch, requiredSatisfied, addToCartHandler]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggleSection = (id: string) =>
