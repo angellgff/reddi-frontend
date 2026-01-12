@@ -87,6 +87,26 @@ export async function updateSession(request: NextRequest) {
   }
 
   const isAuthed = !!user;
+
+  // --- EMAIL VERIFICATION CHECK ---
+  if (isAuthed && !user?.email_confirmed_at) {
+    // Allows access to verify-email, auth endpoints, callback, sign-out, etc.
+    // Blocks access to core app routes if email is not confirmed
+    const isAuthRoute =
+      path.startsWith("/auth") || path.startsWith("/api/auth");
+
+    if (!isAuthRoute && !isStaticAsset) {
+      console.log(`[MW] Usuario no verificado redirigido a /auth/verify-email`);
+      return redirectWithCookies(
+        new URL(
+          `/auth/verify-email?email=${encodeURIComponent(user?.email || "")}`,
+          request.url
+        ),
+        supabaseResponse
+      );
+    }
+  }
+
   // const hasAuthCookie = request.cookies.getAll().some((c) => c.name.includes("auth")); // Ya no es necesario para la lógica principal
 
   // --- GLOBAL ONBOARDING CHECK ---

@@ -6,10 +6,67 @@ import { useState } from "react";
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import AppleIcon from "@/src/components/icons/AppleIcon";
+import { useRouter, useSearchParams } from "next/navigation";
+import { createClient } from "@/src/lib/supabase/client";
+import Spinner from "@/src/components/basics/Spinner";
 import AuthInput from "@/src/components/basics/auth/AuthInput";
 
 export default function Registro() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleRegister = async () => {
+    if (
+      !firstName ||
+      !lastName ||
+      !email ||
+      !phone ||
+      !password ||
+      !confirmPassword
+    ) {
+      alert("Por favor completa todos los campos.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      alert("Las contraseñas no coinciden.");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            phone: phone,
+            full_name: `${firstName} ${lastName}`.trim(),
+          },
+        },
+      });
+
+      if (error) throw error;
+
+      router.push("/auth/sign-up-success");
+    } catch (error) {
+      console.error("Error signing up:", error);
+      alert("Error al registrarse. Por favor intenta nuevamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="w-full bg-white rounded-t-[30px] md:rounded-[46px] p-6 pb-12 flex flex-col items-center shadow-none md:shadow-sm font-openSans relative min-h-[calc(65vh+24px)] md:min-h-[600px] md:w-full md:max-w-[394px] md:m-0 md:mx-auto">
@@ -30,21 +87,38 @@ export default function Registro() {
         {/* Name & Lastname */}
         <div className="flex gap-4 w-full">
           <div className="flex-1 w-full">
-            <AuthInput label="Nombre" type="text" />
+            <AuthInput
+              label="Nombre"
+              type="text"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+            />
           </div>
           <div className="flex-1 w-full">
-            <AuthInput label="Apellido" type="text" />
+            <AuthInput
+              label="Apellido"
+              type="text"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+            />
           </div>
         </div>
 
         {/* Email */}
-        <AuthInput label="Email" type="email" />
+        <AuthInput
+          label="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
         {/* Phone */}
         <div className="w-full mb-1">
           <AuthInput
             label="Número de teléfono"
             type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
             containerClassName="px-2 gap-2"
             startIcon={
               <div className="flex items-center gap-1 min-w-[50px] border-r border-[#D1D1D1] pr-2 h-[20px]">
@@ -70,10 +144,32 @@ export default function Registro() {
           />
         </div>
 
+        {/* Password */}
+        <AuthInput
+          label="Contraseña"
+          type="password"
+          placeholder="********"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        {/* Confirm Password */}
+        <AuthInput
+          label="Confirmar contraseña"
+          type="password"
+          placeholder="********"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+        />
+
         {/* Register Button */}
         <div className="w-full mb-2">
-          <button className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center">
-            Regístrate
+          <button
+            onClick={handleRegister}
+            disabled={isLoading}
+            className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isLoading ? <Spinner /> : "Regístrate"}
           </button>
         </div>
 

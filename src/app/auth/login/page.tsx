@@ -69,11 +69,25 @@ export default function Login() {
     // Attempt login
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      // Manejar específicamente el error de "Email not confirmed"
+      if (error && error.message.includes("Email not confirmed")) {
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+
       if (error) throw error;
+
+      if (data.user && !data.user.email_confirmed_at) {
+        // Force sign out to prevent unverified access
+        await supabase.auth.signOut();
+        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
 
       const next = searchParams.get("next") || "/user/home";
       router.push(next);
@@ -121,6 +135,9 @@ export default function Login() {
           placeholder="ejemplo@gmail.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleLogin();
+          }}
         />
 
         {/* Password Input (Conditional) */}
@@ -132,6 +149,9 @@ export default function Login() {
               placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleLogin();
+              }}
             />
           </div>
         )}
