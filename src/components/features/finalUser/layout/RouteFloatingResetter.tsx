@@ -13,8 +13,10 @@ export default function RouteFloatingResetter() {
     // Si la ruta coincide, NO reseteamos a search, dejamos que la página se encargue.
     // Esto evita el "flicker" o recarga visual del botón al navegar entre Store y Product.
     const isStorePage = /^\/user\/stores\/[^\/]+$/.test(pathname);
-    const isProductPage = /^\/user\/stores\/[^\/]+\/product\/[^\/]+$/.test(pathname);
-    
+    const isProductPage = /^\/user\/stores\/[^\/]+\/product\/[^\/]+$/.test(
+      pathname
+    );
+
     // Si NO estamos en una página que controla el botón explícitamente, volvemos al default (Search).
     // Por ejemplo: Home, Orders, Profile, etc.
     if (!isStorePage && !isProductPage) {

@@ -250,7 +250,6 @@ export default function ProductDetailsClient({
         });
       }
     });
-
   }, [showProduct, showSearch, requiredSatisfied, addToCartHandler]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
