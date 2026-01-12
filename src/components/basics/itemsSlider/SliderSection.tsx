@@ -16,10 +16,13 @@ export default function SliderSection({
 }) {
   const safeId = `slider-${title.toLowerCase().replace(/\s+/g, "-")}`;
   return (
-    <div className="w-full">
+    <div className="w-full font-openSans">
       {/* Encabezado de la sección */}
       <div className="mb-4  flex items-center justify-between gap-4">
-        <h2 id={title} className="text-2xl font-bold text-gray-900">
+        <h2
+          id={title}
+          className="font-openSans text-2xl font-bold text-gray-900"
+        >
           {title}
         </h2>
         {/* Botones de scroll solo en desktop */}

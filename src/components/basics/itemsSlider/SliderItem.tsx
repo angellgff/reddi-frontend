@@ -28,8 +28,11 @@ const SliderCard: React.FC<SliderCardProps> = ({
   className,
 }: SliderCardProps) => {
   return (
-    <Link href={href} className={`group flex-shrink-0 ${className || "w-72 md:w-80"}`}>
-      <div className="flex flex-col overflow-hidden rounded-xl  transition-shadow duration-300 group-hover:shadow-xl">
+    <Link
+      href={href}
+      className={`group flex-shrink-0 ${className || "w-72 md:w-80"}`}
+    >
+      <div className="flex flex-col overflow-hidden rounded-xl  transition-shadow duration-300 group-hover:shadow-xl font-openSans">
         {/* Imagen del restaurante */}
         <div className="relative h-28 w-full">
           <Image

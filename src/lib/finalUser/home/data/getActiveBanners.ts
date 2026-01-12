@@ -19,6 +19,6 @@ export default async function getActiveBanners() {
     console.error("Error fetching active banners:", error);
     return [];
   }
-
+  console.log("Active banners fetched:", data);
   return data;
 }

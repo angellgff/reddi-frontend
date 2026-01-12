@@ -2,7 +2,16 @@
 
 "use client";
 
-import { ChevronDown, ShoppingBag, Heart, MapPin, Menu, X } from "lucide-react";
+import {
+  ChevronDown,
+  ShoppingCart,
+  Heart,
+  MapPin,
+  Menu,
+  X,
+  User,
+  Bell,
+} from "lucide-react";
 
 import Badge from "@/src/components/basics/header/Badge";
 import FiltersIcon from "@/src/components/icons/FiltersIcon";
@@ -16,11 +25,20 @@ import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
 import { usePathname, useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
-import { selectCartOpen, toggleCart, closeCart, toggleFilters, selectAddressSliderOpen, toggleAddressSlider, closeAddressSlider } from "@/src/lib/store/uiSlice";
+import {
+  selectCartOpen,
+  toggleCart,
+  closeCart,
+  toggleFilters,
+  selectAddressSliderOpen,
+  toggleAddressSlider,
+  closeAddressSlider,
+} from "@/src/lib/store/uiSlice";
 import { useSearchParams } from "next/navigation";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
 import Link from "next/link";
+import { ShoppingBag } from "lucide-react";
 
 const badgeColor = "bg-red-500";
 
@@ -30,15 +48,15 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const [isSearchBarVisible, setIsSearchBarVisible] = useState(true); // Para mostrar/ocultar la barra de búsqueda según el scroll
   const [isClient, setIsClient] = useState(false); //Para verificar si se renderizó en el cliente
   const [hydrated, setHydrated] = useState(false); // marca cuando ya podemos usar estados del cliente sin riesgo de mismatch
-  
+
   // Usamos el estado global para el slider de direcciones
   const isAddressMenuVisible = useAppSelector(selectAddressSliderOpen);
-  
+
   const [isNavOpen, setIsNavOpen] = useState(false); // menú hamburguesa para < xl
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  
+
   useAppSelector(selectCartOpen); // read to subscribe; value not used directly here
   const cartCount = useAppSelector(selectCartCount);
   const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
@@ -144,98 +162,64 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       <header
         className={`
           fixed top-0 left-0 right-0 z-50 md:hidden
-          text-white
-          rounded-b-3xl shadow-lg
+          bg-white text-black
+          shadow-sm
           pt-safe
-          overflow-hidden
         `}
       >
-        <div className="absolute inset-0 bg-primary -z-10">
-          <div className="absolute inset-0 bg-pattern-food bg-repeat opacity-20" />
-        </div>
-        <div
-          className={`flex flex-col p-4 ${
-            isSearchBarVisible ? "space-y-4" : ""
-          }`}
-        >
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-xs opacity-90">{userData.userName}</p>
-              <div className="flex items-center gap-2">
-                <h1 className="text-lg font-semibold" suppressHydrationWarning>
-                  {displayedAddress}
-                </h1>
-                <button
-                  onClick={toggleAddressMenu}
-                  aria-label="Cambiar dirección"
-                >
-                  <ChevronDown
-                    size={20}
-                    className={`bg-white text-primary rounded-full transition-transform duration-300 ${
-                      isAddressMenuVisible && "-rotate-90"
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <button
-                className="relative"
-                onClick={onToggleCart}
-                aria-label="Abrir carrito"
-              >
-                <UserCarIcon />
-                <Badge
-                  count={cartCount || userData.carCount}
-                  color={badgeColor}
-                  className="rounded-full"
-                />
-              </button>
-              <button
-                type="button"
-                onClick={handleLogout}
-                aria-label="Cerrar sesión"
-                className="relative"
-                title="Cerrar sesión"
-              >
-                <LogoutHeaderIcon fill="white" />
-              </button>
-            </div>
-          </div>
-          <div
-            className={`flex items-center gap-3 transition-all duration-500 ease-in-out ${
-              isSearchBarVisible
-                ? "max-h-20 opacity-100 translate-y-0"
-                : "max-h-0 opacity-0 -translate-y-full invisible"
-            }`}
-          >
-            <div className="relative flex-grow">
-              <form 
-                action="/user/search" 
-                method="get"
-                className="pointer-events-auto w-full"
-                onSubmit={() => setIsSearchBarVisible(false)}
-              >
-                <div className="relative w-full">
-                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                     <SearchIcon />
-                   </div>
-                   <input
-                     name="q"
-                     type="search"
-                     defaultValue={searchParams?.get("q") || ""}
-                     placeholder="Busca por comercio"
-                     className="w-full rounded-full border-none bg-white py-3 pl-11 pr-4 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300"
-                   />
-                </div>
-              </form>
-            </div>
+        <div className="flex justify-between items-start pt-2 pb-4 px-4">
+          <div className="flex flex-col">
+            <span className="text-xs font-medium text-black/60">
+              {userData.userName}
+            </span>
             <button
-              className="flex h-12 w-14 flex-shrink-0 items-center justify-center rounded-3xl bg-white shadow-md active:scale-95 transition-transform"
-              aria-label="Filtros"
-              onClick={() => dispatch(toggleFilters())}
+              onClick={toggleAddressMenu}
+              aria-label="Cambiar dirección"
+              className="flex items-center gap-1"
             >
-              <FiltersIcon />
+              <span
+                className="text-[15px] font-bold text-black truncate max-w-[200px]"
+                suppressHydrationWarning
+              >
+                {displayedAddress}
+              </span>
+              <ChevronDown
+                className={`w-4 h-4 text-black transition-transform duration-300 ${
+                  isAddressMenuVisible && "rotate-180"
+                }`}
+              />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Link href="/user/profile">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-black" />
+              </div>
+            </Link>
+
+            <Link href="/user/notifications" className="relative">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <Bell className="w-5 h-5 text-black" />
+              </div>
+            </Link>
+
+            {/* Cart Button */}
+            <button
+              className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+              onClick={onToggleCart}
+              aria-label="Abrir carrito"
+            >
+              <div className="relative">
+                <UserCarIcon stroke="black" className="w-5 h-5" />
+                <div className="absolute -top-2 -right-2">
+                  <Badge
+                    count={cartCount || userData.carCount}
+                    color={badgeColor}
+                    className="rounded-full shadow-sm ring-2 ring-white"
+                  />
+                </div>
+              </div>
             </button>
           </div>
         </div>

@@ -1,0 +1,59 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+
+const categories = [
+  {
+    name: "Restaurantes",
+    image: "/Restaurants.svg",
+    href: "/restaurantes",
+  },
+  {
+    name: "Mercado",
+    image: "/Market.png",
+    href: "/mercados",
+  },
+  {
+    name: "Tabaco",
+    image: "/tabaco.png",
+    href: "/tabaco",
+  },
+  {
+    name: "Alcohol",
+    image: "/alcohol.png",
+    href: "/licores",
+  },
+  {
+    name: "Farmacia",
+    image: "/farmacia-tiny.png",
+    href: "/farmacias",
+  },
+];
+
+export default function HomeCategories() {
+  return (
+    <div className="flex justify-between items-start gap-4 overflow-x-auto px-4 py-4 no-scrollbar">
+      {categories.map((cat) => (
+        <Link
+          key={cat.name}
+          href={cat.href}
+          className="flex flex-col items-center gap-2 min-w-[60px]"
+        >
+          <div className="w-[64px] h-[64px] relative rounded-full flex items-center justify-center shadow-sm bg-white overflow-hidden p-1">
+            <Image
+              src={cat.image}
+              alt={cat.name}
+              width={64}
+              height={64}
+              className="w-full h-full object-cover rounded-full"
+            />
+          </div>
+          <span className="text-[13px] font-medium text-center text-black leading-tight">
+            {cat.name}
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}

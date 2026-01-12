@@ -1,82 +1,63 @@
-import FeaturedCategories from "@/src/components/features/main/categories/FeaturedCategories";
-import LargeCategoryGrid from "@/src/components/features/finalUser/largeCategory/LargeCategoryGrid";
-import DesktopFeaturedCategories from "@/src/components/features/main/categories/DesktopFeaturedCategories";
-import PromoSliderServer from "@/src/components/basics/promos/PromoSliderServer";
-import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkeleton";
+import { Suspense } from "react";
 import RecommendedSectionServer from "@/src/components/basics/recommended/RecommendedSectionServer";
 import SliderSectionSkeleton from "@/src/components/basics/itemsSlider/SliderSectionSkeleton";
 import OrderAgainServer from "@/src/components/features/finalUser/orderAgain/OrderAgainServer";
-import DesktopHeroSearch from "@/src/components/features/finalUser/hero/DesktopHeroSearch";
-import { Suspense } from "react";
+import HomeCategories from "@/src/components/features/finalUser/home/HomeCategories";
+import HomePartnersList from "@/src/components/features/finalUser/home/HomePartnersList";
+import HomeYachtBanner from "@/src/components/features/finalUser/home/HomeYachtBanner";
+import HomeHeader from "@/src/components/features/finalUser/home/HomeHeader";
+import HomeFloatingButtonSetter from "@/src/components/features/finalUser/home/HomeFloatingButtonSetter";
+import PromoSliderServer from "@/src/components/basics/promos/PromoSliderServer";
+import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkeleton";
 
 export default function Home() {
   return (
-    <div className="mx-auto max-w-7xl">
-      {/* Hero desktop-only search banner */}
-      <DesktopHeroSearch />
+    <div className="mx-auto max-w-md bg-white min-h-screen relative pb-32">
+      <HomeFloatingButtonSetter />
 
-      {/* Categorías: en mobile mostramos ambos componentes actuales; en desktop, uno solo combinado */}
-      {/* Mobile: grandes */}
-      <section className="p-4 md:px-6 lg:px-8 md:hidden">
-        <LargeCategoryGrid />
-      </section>
-      {/* Mobile: pequeñas */}
-      <section className="p-4 md:px-6 lg:px-8 md:hidden">
-        <FeaturedCategories />
-      </section>
-      <DesktopFeaturedCategories />
-      {/* Línea de separación añadida */}
-      <div className="px-4 md:px-6 lg:px-8">
-        <hr className="border-gray-200 my-4" />
+      {/* 2. Categories Row */}
+      <HomeCategories />
+
+      {/* 2.5 Partners List */}
+      <div className="mt-2">
+        <HomePartnersList />
       </div>
 
-      {/*Sección de promociones*/}
-      <section className="p-4 md:px-6 lg:px-8">
+      {/* 3. Greeting */}
+      <div className="px-4 mt-6 mb-4">
+        <h1 className="font-openSans text-[20px] font-bold text-black">
+          Buenos días, Francisco
+        </h1>
+      </div>
+
+      {/* 4. Promo Banner (Vodka placeholder)  */}
+      <div className="px-4 mb-6">
         <Suspense fallback={<PromoSliderSkeleton />}>
           <PromoSliderServer />
         </Suspense>
-      </section>
+      </div>
 
-      {/*Sección de recomendaciones*/}
-      <section className="p-4 md:px-6 lg:px-8 space-y-8">
+      {/* 5. Recomendados para ti */}
+      <div className="px-4 mt-8 space-y-8">
         <Suspense fallback={<SliderSectionSkeleton />}>
           <RecommendedSectionServer
             partnerType="restaurant"
-            title="Restaurantes para ti"
+            title="Recomendados para ti"
           />
         </Suspense>
-        <Suspense fallback={<SliderSectionSkeleton />}>
-          <RecommendedSectionServer
-            partnerType="market"
-            title="Mercados para ti"
-          />
-        </Suspense>
-        <Suspense fallback={<SliderSectionSkeleton />}>
-          <RecommendedSectionServer
-            partnerType="liquor_store"
-            title="Licorerías para ti"
-          />
-        </Suspense>
-        <Suspense fallback={<SliderSectionSkeleton />}>
-          <RecommendedSectionServer
-            partnerType="pharmacy"
-            title="Farmacias para ti"
-          />
-        </Suspense>
-        <Suspense fallback={<SliderSectionSkeleton />}>
-          <RecommendedSectionServer
-            partnerType="tobacco"
-            title="Tiendas de tabaco para ti"
-          />
-        </Suspense>
-      </section>
+      </div>
 
-      {/*Sección de pedidos anteriores*/}
-      <section className="p-4 md:px-6 lg:px-8">
+      {/* 6. Directo a tu yate Banner */}
+      <div className="px-4 mt-8">
+        <HomeYachtBanner />
+      </div>
+
+      {/* 7. Pedidos anteriores */}
+      <div className="px-4 mt-8 mb-8">
         <Suspense fallback={<SliderSectionSkeleton />}>
           <OrderAgainServer />
         </Suspense>
-      </section>
+      </div>
     </div>
   );
 }
