@@ -9,12 +9,16 @@ import { createClient } from "@/src/lib/supabase/client";
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import AppleIcon from "@/src/components/icons/AppleIcon";
+import AuthInput from "@/src/components/basics/auth/AuthInput";
 
 export default function Login() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const startRef = useRef(false);
   const debug = !!process.env.NEXT_PUBLIC_DEBUG_AUTH;
 
@@ -55,6 +59,32 @@ export default function Login() {
     }
   }, [supabase, searchParams]);
 
+  const handleLogin = async () => {
+    if (!email) return;
+    if (!showPassword) {
+      setShowPassword(true);
+      return;
+    }
+
+    // Attempt login
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+
+      const next = searchParams.get("next") || "/user/home";
+      router.push(next);
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Error iniciando sesión. Verifica tus credenciales.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Handle redirect if already logged in
   useEffect(() => {
     if (startRef.current) return;
@@ -69,14 +99,14 @@ export default function Login() {
   }, [supabase, router, searchParams]);
 
   return (
-    <div className="w-[calc(100%+3rem)] -mx-6 -mb-20 bg-white rounded-t-[30px] md:rounded-[46px] p-6 flex flex-col items-center shadow-none md:shadow-sm font-openSans relative overflow-hidden min-h-[calc(100vh-200px)] md:min-h-[500px] md:w-full md:max-w-[394px] md:m-0 md:mx-auto">
+    <div className="w-full bg-white rounded-t-[30px] md:rounded-[46px] p-6 pb-12 flex flex-col items-center shadow-none md:shadow-sm font-openSans relative min-h-[calc(65vh+24px)] md:min-h-[500px] md:w-full md:max-w-[394px] md:m-0 md:mx-auto">
       {/* Toggle: Login / Register */}
       <div className="relative w-[222px] h-[39px] bg-[#DADADA] rounded-[24px] flex mb-[22px] mt-8 cursor-pointer shadow-none">
         <div className="z-10 bg-[#04BD88] rounded-[24px] w-[113px] flex items-center justify-center text-white font-bold text-[13px] shadow-sm transform transition-transform">
           <span className="leading-[18px]">Iniciar sesión</span>
         </div>
         <Link
-          href="/registro"
+          href="/auth/registro"
           className="absolute right-0 top-0 bottom-0 w-[120px] flex items-center justify-center text-[#1C1C1C] font-bold text-[13px] pr-2"
         >
           <span className="leading-[18px]">Regístrate</span>
@@ -85,34 +115,32 @@ export default function Login() {
 
       <div className="w-full px-4 flex flex-col gap-[22px]">
         {/* Email Input */}
-        <div className="w-full">
-          <label className="block text-[13px] font-bold text-black mb-[7px] leading-[18px]">
-            Email
-          </label>
-          <div className="bg-[#F4F5F7] rounded-[8px] h-[34px] flex items-center px-4 w-full">
-            <input
-              type="email"
-              placeholder="ejemplo@gmail.com"
-              className="bg-transparent w-full text-[13px] text-[#484848] placeholder-[#484848] outline-none font-normal"
+        <AuthInput
+          label="Email"
+          type="email"
+          placeholder="ejemplo@gmail.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        {/* Password Input (Conditional) */}
+        {showPassword && (
+          <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
+            <AuthInput
+              label="Contraseña"
+              type="password"
+              placeholder="********"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-        </div>
-
-        {/* Use Phone Link */}
-        <div className="w-full">
-          <button
-            type="button"
-            className="text-[10px] font-bold text-[#6A6C71] underline leading-[20px]"
-          >
-            Utilizar número de teléfono
-          </button>
-        </div>
+        )}
 
         {/* Divider */}
         <div className="relative w-full flex items-center justify-center my-1 select-none">
           <div className="absolute w-full h-[1px] bg-[#6A6C71] opacity-50"></div>
           <span className="relative bg-white px-2 text-[10px] font-bold text-[#6A6C71] leading-[20px]">
-            O continua con su numero de telefono
+            O continuar con
           </span>
         </div>
 
@@ -171,9 +199,26 @@ export default function Login() {
 
         {/* Main Continue Button */}
         <div className="mt-4 w-full">
-          <button className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center">
-            Continuar
+          <button
+            onClick={handleLogin}
+            className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center"
+          >
+            {isLoading
+              ? "Cargando..."
+              : showPassword
+              ? "Iniciar Sesión"
+              : "Continuar"}
           </button>
+        </div>
+
+        {/* Partner Login Link */}
+        <div className="w-full flex justify-center mt-2">
+          <Link
+            href="/admin/login"
+            className="text-[13px] font-bold text-[#04BD88] underline hover:text-[#03a072] transition-colors"
+          >
+            Ingresar como socio
+          </Link>
         </div>
 
         {/* Footer Text */}

@@ -46,6 +46,20 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "10mb",
     },
   },
+  async redirects() {
+    return [
+      {
+        source: "/login",
+        destination: "/auth/login",
+        permanent: true,
+      },
+      {
+        source: "/registro",
+        destination: "/auth/registro",
+        permanent: true,
+      },
+    ];
+  },
   output: "standalone",
 };
 

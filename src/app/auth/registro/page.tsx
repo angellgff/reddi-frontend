@@ -6,16 +6,17 @@ import { useState } from "react";
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import AppleIcon from "@/src/components/icons/AppleIcon";
+import AuthInput from "@/src/components/basics/auth/AuthInput";
 
 export default function Registro() {
   const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div className="w-[calc(100%+3rem)] -mx-6 -mb-20 bg-white rounded-t-[30px] md:rounded-[46px] p-6 flex flex-col items-center shadow-none md:shadow-sm font-openSans relative overflow-hidden min-h-[calc(100vh-200px)] md:min-h-[600px] md:w-full md:max-w-[394px] md:m-0 md:mx-auto">
+    <div className="w-full bg-white rounded-t-[30px] md:rounded-[46px] p-6 pb-12 flex flex-col items-center shadow-none md:shadow-sm font-openSans relative min-h-[calc(65vh+24px)] md:min-h-[600px] md:w-full md:max-w-[394px] md:m-0 md:mx-auto">
       {/* Toggle */}
       <div className="relative w-[222px] h-[39px] bg-[#F4F5F7] rounded-[24px] flex mb-6 mt-6 cursor-pointer select-none">
         <Link
-          href="/login"
+          href="/auth/login"
           className="absolute left-0 top-0 bottom-0 w-[110px] flex items-center justify-center text-[#1C1C1C] font-bold text-[13px] z-10 transition-colors hover:text-black"
         >
           <span className="leading-[18px]">Iniciar sesión</span>
@@ -29,72 +30,44 @@ export default function Registro() {
         {/* Name & Lastname */}
         <div className="flex gap-4 w-full">
           <div className="flex-1 w-full">
-            <label className="block text-[13px] font-bold text-black mb-[7px] leading-[18px]">
-              Nombre
-            </label>
-            <div className="bg-[#F4F5F7] rounded-[8px] h-[34px] flex items-center px-4 w-full">
-              <input
-                type="text"
-                className="bg-transparent w-full text-[13px] text-[#484848] outline-none font-normal"
-              />
-            </div>
+            <AuthInput label="Nombre" type="text" />
           </div>
           <div className="flex-1 w-full">
-            <label className="block text-[13px] font-bold text-black mb-[7px] leading-[18px]">
-              Apellido
-            </label>
-            <div className="bg-[#F4F5F7] rounded-[8px] h-[34px] flex items-center px-4 w-full">
-              <input
-                type="text"
-                className="bg-transparent w-full text-[13px] text-[#484848] outline-none font-normal"
-              />
-            </div>
+            <AuthInput label="Apellido" type="text" />
           </div>
         </div>
 
         {/* Email */}
-        <div className="w-full">
-          <label className="block text-[13px] font-bold text-black mb-[7px] leading-[18px]">
-            Email
-          </label>
-          <div className="bg-[#F4F5F7] rounded-[8px] h-[34px] flex items-center px-4 w-full">
-            <input
-              type="email"
-              className="bg-transparent w-full text-[13px] text-[#484848] outline-none font-normal"
-            />
-          </div>
-        </div>
+        <AuthInput label="Email" type="email" />
 
         {/* Phone */}
         <div className="w-full mb-1">
-          <label className="block text-[13px] font-bold text-black mb-[7px] leading-[18px]">
-            Número de teléfono
-          </label>
-          <div className="bg-[#F4F5F7] rounded-[8px] h-[34px] flex items-center px-2 w-full gap-2">
-            <div className="flex items-center gap-1 min-w-[50px] border-r border-[#D1D1D1] pr-2 h-[20px]">
-              <span className="text-lg leading-none">🇩🇴</span>
-              <span className="text-[13px] text-[#484848] font-normal leading-[18px]">
-                +1
-              </span>
-              <svg
-                className="w-2 h-2 text-[#484848]"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </div>
-            <input
-              type="tel"
-              className="bg-transparent w-full text-[13px] text-[#484848] outline-none font-normal"
-            />
-          </div>
+          <AuthInput
+            label="Número de teléfono"
+            type="tel"
+            containerClassName="px-2 gap-2"
+            startIcon={
+              <div className="flex items-center gap-1 min-w-[50px] border-r border-[#D1D1D1] pr-2 h-[20px]">
+                <span className="text-lg leading-none">🇩🇴</span>
+                <span className="text-[13px] text-[#484848] font-normal leading-[18px]">
+                  +1
+                </span>
+                <svg
+                  className="w-2 h-2 text-[#484848]"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </div>
+            }
+          />
         </div>
 
         {/* Register Button */}
