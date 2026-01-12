@@ -4,7 +4,7 @@ import { getPartnersList } from "@/src/lib/finalUser/stores/getPartnersList";
 
 export default async function HomePartnersList() {
   const partners = await getPartnersList();
-  
+
   // Show nothing if no partners
   if (!partners || partners.length === 0) return null;
 
@@ -26,7 +26,7 @@ export default async function HomePartnersList() {
               className="w-full h-full object-cover p-1" // Pequeño padding interno como en el mockup
             />
           </div>
-          
+
           {/* Text Name */}
           <span className="text-[10px] font-bold text-center text-black leading-tight font-sans line-clamp-2 w-full">
             {partner.name}
