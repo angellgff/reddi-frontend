@@ -11,10 +11,10 @@ export default function HomeSkeleton() {
       {/* Categories Row */}
       <div className="mb-6 flex gap-4 overflow-hidden px-4">
         {[1, 2, 3, 4].map((i) => (
-           <div key={i} className="flex flex-col items-center gap-2">
-              <Skeleton className="h-16 w-16 rounded-xl" />
-              <Skeleton className="h-3 w-12" />
-           </div>
+          <div key={i} className="flex flex-col items-center gap-2">
+            <Skeleton className="h-16 w-16 rounded-xl" />
+            <Skeleton className="h-3 w-12" />
+          </div>
         ))}
       </div>
 
@@ -25,30 +25,30 @@ export default function HomeSkeleton() {
 
       {/* Promo Banner */}
       <div className="mb-6 px-4">
-         <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
       </div>
 
       {/* Partners List */}
       <div className="mb-8 px-4 space-y-4">
-          <Skeleton className="h-6 w-32 mb-2" />
-          {[1, 2, 3].map((i) => (
-             <div key={i} className="flex items-center gap-4 border-b pb-4">
-                <Skeleton className="h-16 w-16 rounded-lg" />
-                <div className="space-y-2">
-                   <Skeleton className="h-4 w-32" />
-                   <Skeleton className="h-3 w-20" />
-                </div>
-             </div>
-          ))}
+        <Skeleton className="h-6 w-32 mb-2" />
+        {[1, 2, 3].map((i) => (
+          <div key={i} className="flex items-center gap-4 border-b pb-4">
+            <Skeleton className="h-16 w-16 rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-20" />
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* Recommended Section (Slider) */}
       <div className="mb-8 px-4">
         <Skeleton className="h-6 w-40 mb-4" />
         <div className="flex gap-4 overflow-hidden">
-           <Skeleton className="h-40 w-32 rounded-lg flex-shrink-0" />
-           <Skeleton className="h-40 w-32 rounded-lg flex-shrink-0" />
-           <Skeleton className="h-40 w-32 rounded-lg flex-shrink-0" />
+          <Skeleton className="h-40 w-32 rounded-lg flex-shrink-0" />
+          <Skeleton className="h-40 w-32 rounded-lg flex-shrink-0" />
+          <Skeleton className="h-40 w-32 rounded-lg flex-shrink-0" />
         </div>
       </div>
     </div>
