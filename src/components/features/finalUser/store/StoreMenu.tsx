@@ -22,6 +22,7 @@ import ProductCardMarket from "./productCards/ProductCardMarket";
 import ArrowLeftIcon from "@/src/components/icons/ArrowLeftIcon";
 import ArrowRightIcon from "@/src/components/icons/ArrowRightIcon";
 import SearchIcon from "@/src/components/icons/SearchIcon";
+import { useStoreSearchStore } from "@/src/lib/store/store-search";
 
 type PartnerType =
   | "market"
@@ -38,14 +39,19 @@ export default function StoreMenu({
   partnerType?: PartnerType;
 }) {
   const [isPending, startTransition] = useTransition();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const dispatch = useAppDispatch();
   const currentPartnerId = useAppSelector(selectCartPartnerId);
   const scrollersRef = useRef<Record<string, HTMLDivElement | null>>({});
+  const pathname = usePathname();
 
-  const [query, setQuery] = useState(searchParams.get("q") || "");
+  const { searchQuery, setSearchQuery } = useStoreSearchStore();
+  const query = searchQuery;
+
+  // Sync with URL param if needed, but local store is faster for this interaction.
+  // const [query, setQuery] = useState(searchParams.get("q") || "");
+
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || ""
   );
@@ -118,8 +124,10 @@ export default function StoreMenu({
     type: "success" | "error" | "info";
   }>({ open: false, msg: "", type: "info" });
 
+  const shouldShowSearchInMenu = true;
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-4">
       <Toast
         open={toast.open}
         message={toast.msg}
@@ -128,19 +136,20 @@ export default function StoreMenu({
       />
       {/* Search Bar & Categories */}
       <div className="space-y-5 px-1">
-        {/* Search Input Visual - Styled to match CSS: #EBEBEB, Rounded 11px */}
-        <div className="relative">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-            <SearchIcon className="w-5 h-5 text-[#6A6C71]" />
+        {shouldShowSearchInMenu && (
+          <div className="relative px-3 mt-2">
+            <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none">
+              <SearchIcon className="w-5 h-5 text-[#6A6C71]" />
+            </div>
+            <input
+              type="text"
+              placeholder="Busca en el menú"
+              className="w-full pl-12 pr-4 h-[44px] bg-[#EBEBEB] border-none rounded-[11px] text-sm font-semibold text-[#6A6C71] placeholder-[#6A6C71] text-center focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-          <input
-            type="text"
-            placeholder="Busca The Butcher Shop"
-            className="w-full pl-12 pr-4 h-[44px] bg-[#EBEBEB] border-none rounded-[11px] text-sm font-semibold text-[#6A6C71] placeholder-[#6A6C71] text-center focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-        </div>
+        )}
 
         {/* Categories */}
         <div className="relative">

@@ -9,6 +9,8 @@ import { useEffect } from "react";
 import StarIcon from "@/src/components/icons/StarIcon";
 import { ChevronLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import SearchIcon from "@/src/components/icons/SearchIcon";
+import { useStoreSearchStore } from "@/src/lib/store/store-search";
 
 // Extendemos el tipo para permitir nuevos campos opcionales sin romper.
 type ExtendedStoreDetails = BaseStoreDetails & {
@@ -24,6 +26,7 @@ export default function StoreHeader({
 }) {
   const showStore = useFloatingButtonStore((state) => state.showStore);
   const router = useRouter();
+  const { searchQuery, setSearchQuery } = useStoreSearchStore();
 
   useEffect(() => {
     if (store?.name) {
@@ -40,6 +43,117 @@ export default function StoreHeader({
       : 0;
   // const phone = store.phone || "--";
   const deliveryTime = store.delivery_time || "25-35 min"; // fallback
+
+  const isRestaurant =
+    store.partner_type?.toLowerCase() === "restaurant" ||
+    store.partner_type === "Restaurante";
+
+  if (!isRestaurant) {
+    // MARKET / SUPERMARKET VIEW
+    return (
+      // Main container with "Market" styling (white, card overlay)
+      // Use mb-[100px] or similar to push the next content down, because the card is absolute.
+      // Card height 177px. Top 106px relative to this container?
+      // If image is 200px. Card overlaps bottom.
+      // Let's make the container strictly hold the top banner, and push margin bottom for the card space.
+      // Card top: 106px. Height: 177px. Total extent: 283px.
+      // Image height: 200px (approx).
+      // Overlap: 283 - 200 = 83px sticking out.
+      <div className="relative w-full bg-transparent -mt-6 mb-[50px]">
+        {/* Top Banner Background */}
+        <div className="relative w-full h-[220px] overflow-hidden">
+          {/* rounded-b-[15px] to match looking like a banner card? Or typically flat top, rounded bottom? The image shows rounded corners at bottom of header banner? No, image is full width. The CSS says "border-radius: 46px 46px 15px 15px;" for the MARKET frame? No, that's the whole screen. */}
+          {/* The CSS "Rectangle 11878" (the gradient overlay) is inside the image area. */}
+
+          {banner ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={banner}
+              alt={`${store.name} banner`}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200" />
+          )}
+          {/* Dark Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+        </div>
+
+        {/* Back Button (Same position logic) */}
+        <button
+          onClick={() => router.back()}
+          className="absolute top-[49px] left-[21px] w-[37px] h-[37px] bg-white rounded-full flex items-center justify-center z-20 shadow-sm"
+        >
+          <ChevronLeft className="w-5 h-5 text-[#04BD88]" strokeWidth={2.5} />
+        </button>
+
+        {/* Floating Info Card */}
+        {/* CSS reference: Rectangle 11890, top 106px relative, width 333px, height 177px, radius 15px */}
+        <div className="absolute left-1/2 -translate-x-1/2 top-[106px] w-[90vw] h-[128px] bg-white rounded-[15px] z-10">
+          {/* Top Row: Logo, Name, Rating */}
+          <div className="absolute top-[30px] left-[19px] flex items-start gap-[11px]">
+            {/* Logo: 54x54 circle */}
+            <div className="w-[54px] h-[54px] rounded-full overflow-hidden bg-gray-100 flex-shrink-0 shadow-sm relative">
+              {logo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={logo}
+                  alt={store.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : null}
+            </div>
+
+            {/* Info Column */}
+            <div className="flex flex-col pt-[4px]">
+              {/* Name */}
+              <h1 className="text-black text-[20px] font-bold font-['Open_Sans'] leading-[24px]">
+                {store.name}
+              </h1>
+
+              {/* Ratings Row */}
+              <div className="flex items-center gap-1 mt-[6px]">
+                {/* 5.0 */}
+                <span className="text-[#6A6C71] text-[12px] font-semibold font-['Open_Sans'] leading-[18px]">
+                  {rating || "5.0"}
+                </span>
+
+                <StarIcon className="w-[10px] h-[10px] text-[#6A6C71] fill-[#6A6C71]" />
+
+                <span className="text-[#6A6C71] text-[12px] font-normal mx-[2px]">
+                  •
+                </span>
+
+                {/* (143) */}
+                <span className="text-[#6A6C71] text-[12px] font-semibold font-['Open_Sans'] leading-[18px]">
+                  ({store.total_ratings})
+                </span>
+
+                <span className="text-[#6A6C71] text-[12px] font-normal mx-[2px]">
+                  •
+                </span>
+
+                {/* 1.3Km */}
+                <span className="text-[#6A6C71] text-[12px] font-semibold font-['Open_Sans'] leading-[18px]">
+                  1.3Km
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Delivery Green Box */}
+          <div className="absolute top-[100px] left-1/2 -translate-x-1/2 w-[80vw] h-[36px] bg-[rgba(0,213,133,0.07)] rounded-[7px] flex items-center gap-[6px] pl-2">
+            <div className="text-[#04BD88] text-[10px] transform -scale-x-100">
+              ⚡
+            </div>
+            <span className="text-[#494949] text-[11px] font-semibold font-['Open_Sans'] leading-[18px]">
+              Rapido {deliveryTime}
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // Rediseño basado en 'Restaurante' view (Mobile Hero style)
