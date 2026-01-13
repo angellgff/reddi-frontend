@@ -4,7 +4,11 @@ import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export default function MobileSearchBar({ placeholder = "Busca en El Nacional" }: { placeholder?: string }) {
+export default function MobileSearchBar({
+  placeholder = "Busca en El Nacional",
+}: {
+  placeholder?: string;
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") || "");

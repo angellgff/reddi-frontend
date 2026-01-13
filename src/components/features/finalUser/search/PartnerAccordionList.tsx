@@ -10,10 +10,12 @@ export default function PartnerAccordionList({
   partners: SearchResultPartner[];
 }) {
   // By default expand the first one
-  const [expandedId, setExpandedId] = useState<string | null>(partners[0]?.id || null);
+  const [expandedId, setExpandedId] = useState<string | null>(
+    partners[0]?.id || null
+  );
 
   const toggle = (id: string) => {
-    setExpandedId(prev => prev === id ? null : id);
+    setExpandedId((prev) => (prev === id ? null : id));
   };
 
   return (

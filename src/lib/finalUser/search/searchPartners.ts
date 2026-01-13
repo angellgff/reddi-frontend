@@ -30,7 +30,9 @@ export async function searchPartners({
 
   let dbQuery = supabase
     .from("partners")
-    .select("id, name, image_url, partner_type, average_rating, total_ratings, products(id, name, image_url, base_price, display_price, description)")
+    .select(
+      "id, name, image_url, partner_type, average_rating, total_ratings, products(id, name, image_url, base_price, display_price, description)"
+    )
     .eq("is_approved", true);
 
   if (query) {

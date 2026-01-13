@@ -19,13 +19,17 @@ export default function CustomSearchHeader() {
     if (!hydrated) return "Altos De Chavon"; // Mock default for SSR/Initial
     if (!addresses || !selectedAddressId) return "Seleccionar dirección";
     const selected = addresses.find((a) => (a.id as any) === selectedAddressId);
-    
+
     if (selected) {
-        // Construct address similar to UserHeader logic
-        // Assuming location_type and location_number exist or similar.
-        // UserHeader: `${label} ${selected.location_number}`
-        const label = (selected.location_type as string)?.toUpperCase?.() || "";
-        return `${label} ${selected.location_number || ''}`.trim() || selected.address || "Dirección";
+      // Construct address similar to UserHeader logic
+      // Assuming location_type and location_number exist or similar.
+      // UserHeader: `${label} ${selected.location_number}`
+      const label = (selected.location_type as string)?.toUpperCase?.() || "";
+      return (
+        `${label} ${selected.location_number || ""}`.trim() ||
+        selected.address ||
+        "Dirección"
+      );
     }
     return "Seleccionar dirección";
   }, [addresses, selectedAddressId, hydrated]);
@@ -38,10 +42,13 @@ export default function CustomSearchHeader() {
         className="flex flex-col items-start pt-4"
       >
         <div className="flex items-center gap-1">
-            <span className="text-[15px] font-bold text-black font-[Poppins]">
+          <span className="text-[15px] font-bold text-black font-[Poppins]">
             {displayAddress}
-            </span>
-            <ChevronDown size={16} className="text-black bg-gray-100 rounded-full p-[2px]" />
+          </span>
+          <ChevronDown
+            size={16}
+            className="text-black bg-gray-100 rounded-full p-[2px]"
+          />
         </div>
       </button>
 
@@ -56,8 +63,8 @@ export default function CustomSearchHeader() {
         {/* Profile */}
         <Link href="/user/profile">
           <div className="w-[30px] h-[30px] bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-             {/* Abstract user icon or image if available. Just using icon for now to match style */}
-             <User className="w-full h-full p-1 text-gray-500" />
+            {/* Abstract user icon or image if available. Just using icon for now to match style */}
+            <User className="w-full h-full p-1 text-gray-500" />
           </div>
         </Link>
       </div>
