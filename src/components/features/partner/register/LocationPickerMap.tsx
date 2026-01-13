@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import mapboxgl, { Map, Marker } from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { Loader } from "@googlemaps/js-api-loader";
 
 interface LocationPickerMapProps {
   lat: number | null;
@@ -18,69 +17,86 @@ export default function LocationPickerMap({
   className = "h-64 w-full rounded-2xl overflow-hidden",
 }: LocationPickerMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<Map | null>(null);
-  const markerRef = useRef<Marker | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markerRef = useRef<google.maps.Marker | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   useEffect(() => {
-    if (!token) {
-      setError("Falta el token de Mapbox (NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN)");
+    if (!apiKey) {
+      setError("Falta la API Key de Google Maps (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)");
       return;
     }
 
     if (!containerRef.current || mapRef.current) return;
 
-    mapboxgl.accessToken = token;
-
-    // Default center (Santo Domingo) if no location selected
-    const initialCenter: [number, number] =
-      lng && lat ? [lng, lat] : [-69.9312, 18.4861];
-    const initialZoom = lng && lat ? 15 : 12;
-
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: initialCenter,
-      zoom: initialZoom,
+    const loader = new Loader({
+      apiKey,
+      version: "weekly",
+      libraries: ["maps", "marker"],
     });
 
-    mapRef.current = map;
+    loader.load().then(async () => {
+      const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
+      const { Marker } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
 
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
+      const initialCenter = lng && lat ? { lat, lng } : { lat: 18.4861, lng: -69.9312 }; // Santo Domingo
+      const initialZoom = lng && lat ? 15 : 12;
 
-    // Add click listener
-    map.on("click", (e) => {
-      const { lng, lat } = e.lngLat;
-      onLocationSelect(lat, lng);
+      const map = new Map(containerRef.current!, {
+        center: initialCenter,
+        zoom: initialZoom,
+        mapTypeControl: false,
+        streetViewControl: false,
+      });
+
+      mapRef.current = map;
+
+      map.addListener("click", (e: google.maps.MapMouseEvent) => {
+        if (e.latLng) {
+          onLocationSelect(e.latLng.lat(), e.latLng.lng());
+        }
+      });
+
+      // Initial marker
+      if (lat && lng) {
+         updateMarker(lat, lng, Marker);
+      }
+    }).catch((e) => {
+      console.error("Google Maps load error", e);
+      setError("Error al cargar Google Maps");
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
 
-    // Cleanup
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token]);
+  const updateMarker = async (latitude: number, longitude: number, MarkerClass?: typeof google.maps.Marker) => {
+    if (!mapRef.current) return;
+    
+    // Ensure we have the Marker class if called outside init
+    let M = MarkerClass;
+    if (!M) {
+         // Fallback if not passed, though in useEffect below it might be tricky. 
+         // Actually google.maps.Marker is globally available after load.
+         M = google.maps.Marker;
+    }
+
+    if (!markerRef.current) {
+      markerRef.current = new M!({
+        position: { lat: latitude, lng: longitude },
+        map: mapRef.current,
+      });
+    } else {
+      markerRef.current.setPosition({ lat: latitude, lng: longitude });
+    }
+  };
 
   // Update marker when props change
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !lat || !lng) return;
-
-    if (!markerRef.current) {
-      markerRef.current = new mapboxgl.Marker({ color: "#ef4444" }) // Red color
-        .setLngLat([lng, lat])
-        .addTo(map);
-    } else {
-      markerRef.current.setLngLat([lng, lat]);
+    if (lat && lng && mapRef.current) {
+      updateMarker(lat, lng);
+      mapRef.current.panTo({ lat, lng });
     }
-
-    // Fly to location if it changed significantly? 
-    // Maybe better not to fly automatically on every prop update to avoid annoying jumps if user is dragging (if we added drag).
-    // But since we only update on click, flying to it is fine or just setting marker.
-    // Let's just ensure the marker is there.
   }, [lat, lng]);
 
   if (error) {

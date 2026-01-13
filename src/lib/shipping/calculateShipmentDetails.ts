@@ -74,34 +74,65 @@ function point(
   return { type: "Point", coordinates: [lng, lat] };
 }
 
-async function geocodeWithMapbox(
+async function geocodeWithGoogle(
   query: string,
-  token: string
+  key: string
 ): Promise<{ longitude: number; latitude: number } | null> {
   try {
-    const url = new URL(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(
-        query
-      )}.json`
-    );
-    url.searchParams.set("access_token", token);
-    url.searchParams.set("limit", "1");
+    const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
+    url.searchParams.set("address", query);
+    url.searchParams.set("key", key);
+    
     const resp = await fetch(url.toString());
     if (!resp.ok) return null;
+    
     const json = await resp.json();
-    const feat = json?.features?.[0];
-    const center = feat?.center;
-    if (
-      Array.isArray(center) &&
-      typeof center[0] === "number" &&
-      typeof center[1] === "number"
-    ) {
-      return { longitude: center[0], latitude: center[1] };
+    if (json.status !== "OK" || !json.results?.[0]) return null;
+    
+    const location = json.results[0].geometry.location;
+    // Google returns { lat, lng }
+    if (typeof location.lng === "number" && typeof location.lat === "number") {
+      return { longitude: location.lng, latitude: location.lat };
     }
     return null;
   } catch {
     return null;
   }
+}
+
+/**
+ * Decodes an encoded polyline string into an array of [longitude, latitude] coordinates.
+ * Adapted from standard polyline decoding algorithms.
+ */
+function decodePolyline(encoded: string): [number, number][] {
+  const poly: [number, number][] = [];
+  let index = 0, len = encoded.length;
+  let lat = 0, lng = 0;
+
+  while (index < len) {
+      let b, shift = 0, result = 0;
+      do {
+          b = encoded.charCodeAt(index++) - 63;
+          result |= (b & 0x1f) << shift;
+          shift += 5;
+      } while (b >= 0x20);
+      let dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+          b = encoded.charCodeAt(index++) - 63;
+          result |= (b & 0x1f) << shift;
+          shift += 5;
+      } while (b >= 0x20);
+      let dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
+      lng += dlng;
+
+      // Google maps returns (lat, lng), but GeoJSON expects (lng, lat)
+      poly.push([lng / 1e5, lat / 1e5]);
+  }
+  return poly;
 }
 
 /**
@@ -121,13 +152,11 @@ export async function calculateShipmentDetails(
     partnerId,
     userAddressId,
   });
-  const token =
-    process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN ||
-    process.env.MAPBOX_ACCESS_TOKEN;
+  const token = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   if (!token) {
     throw new Error("Map service is not configured.");
   }
-  console.log("[shipping] Mapbox token present:", Boolean(token));
+  console.log("[shipping] Google Maps token present:", Boolean(token));
 
   // 1) Fetch coordinates using RPC functions to get proper GeoJSON
   const [partnerRes, addressRes] = await Promise.all([
@@ -183,7 +212,7 @@ export async function calculateShipmentDetails(
       console.log("[shipping] geocoding partner by address", {
         partnerAddress,
       });
-      const geo = await geocodeWithMapbox(partnerAddress, token);
+      const geo = await geocodeWithGoogle(partnerAddress, token);
       if (geo) {
         console.log("[shipping] partner geocoded", geo);
         origin = geo;
@@ -207,7 +236,7 @@ export async function calculateShipmentDetails(
     if (lt && ln) {
       const query = `${lt} ${ln}, Cap Cana, Punta Cana, Dominican Republic`;
       console.log("[shipping] geocoding user address", { query, lt, ln });
-      const geo = await geocodeWithMapbox(query, token);
+      const geo = await geocodeWithGoogle(query, token);
       if (geo) {
         console.log("[shipping] address geocoded", geo);
         destination = geo;
@@ -228,27 +257,25 @@ export async function calculateShipmentDetails(
     );
   }
 
-  // 2) Call Mapbox Directions API
-  const originParam = `${origin.longitude},${origin.latitude}`;
-  const destinationParam = `${destination.longitude},${destination.latitude}`;
+  // 2) Call Google Maps Directions API
+  const originParam = `${origin.latitude},${origin.longitude}`; // Google uses lat,lng
+  const destinationParam = `${destination.latitude},${destination.longitude}`;
 
-  const url = new URL(
-    `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/${originParam};${destinationParam}`
-  );
-  url.searchParams.set("alternatives", "false");
-  url.searchParams.set("overview", "full");
-  url.searchParams.set("geometries", "geojson");
-  url.searchParams.set("access_token", token);
+  const url = new URL("https://maps.googleapis.com/maps/api/directions/json");
+  url.searchParams.set("origin", originParam);
+  url.searchParams.set("destination", destinationParam);
+  url.searchParams.set("mode", "driving");
+  url.searchParams.set("key", token);
 
   const urlForLog = new URL(url.toString());
-  urlForLog.searchParams.set("access_token", "***");
+  urlForLog.searchParams.set("key", "***");
   console.log("[shipping] directions request", {
     origin,
     destination,
     url: urlForLog.toString(),
   });
 
-  let routeJson: { code?: string; routes?: Record<string, unknown>[] };
+  let routeJson: any;
   try {
     const resp = await fetch(url.toString(), { method: "GET" });
     if (!resp.ok) {
@@ -256,7 +283,10 @@ export async function calculateShipmentDetails(
       throw new Error(`HTTP ${resp.status}`);
     }
     routeJson = await resp.json();
-    console.log("[shipping] directions response code", routeJson?.code);
+    console.log("[shipping] directions response status", routeJson?.status);
+    if (routeJson?.error_message) {
+      console.error("[shipping] directions API error message:", routeJson.error_message);
+    }
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[shipping] directions failed", message);
@@ -265,12 +295,12 @@ export async function calculateShipmentDetails(
 
   if (
     !routeJson ||
-    routeJson.code !== "Ok" ||
+    routeJson.status !== "OK" ||
     !Array.isArray(routeJson.routes)
   ) {
-    // Manejar el caso "NoRoute" con un mensaje más claro
-    if (routeJson?.code === "NoRoute") {
-      console.warn("[shipping] directions API responded with NoRoute");
+    // Handle "ZERO_RESULTS" (equivalent to Mapbox NoRoute)
+    if (routeJson?.status === "ZERO_RESULTS") {
+      console.warn("[shipping] directions API responded with ZERO_RESULTS");
       throw new Error(
         "A driving route could not be found between the origin and destination."
       );
@@ -278,12 +308,14 @@ export async function calculateShipmentDetails(
     throw new Error("Failed to calculate the route.");
   }
   const firstRoute = routeJson.routes[0];
-  if (!firstRoute) {
+  if (!firstRoute || !firstRoute.legs?.[0]) {
     throw new Error("Failed to calculate the route.");
   }
 
-  const distanceMeters = Number(firstRoute.distance);
-  const durationSeconds = Number(firstRoute.duration);
+  const leg = firstRoute.legs[0];
+  const distanceMeters = leg.distance.value;
+  const durationSeconds = leg.duration.value;
+  const routeCoordinates = decodePolyline(firstRoute.overview_polyline.points);
   console.log("[shipping] route metrics", { distanceMeters, durationSeconds });
   if (!Number.isFinite(distanceMeters) || !Number.isFinite(durationSeconds)) {
     throw new Error("Failed to calculate the route.");
@@ -324,9 +356,9 @@ export async function calculateShipmentDetails(
     shippingCost,
     originCoordinates: origin,
     destinationCoordinates: destination,
-    routeGeoJson: firstRoute.geometry as {
-      type: "LineString";
-      coordinates: [number, number][];
+    routeGeoJson: {
+      type: "LineString",
+      coordinates: routeCoordinates,
     },
   };
 }

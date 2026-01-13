@@ -1,5 +1,4 @@
 import "./globals.css";
-import "mapbox-gl/dist/mapbox-gl.css";
 // Mapa: pigeon-maps no requiere CSS global
 // Importanción de fuentes
 import {

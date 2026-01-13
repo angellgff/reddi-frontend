@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import mapboxgl, { Map, Marker } from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css"; // <-- Importante: Añadir el CSS de Mapbox
+import { Loader } from "@googlemaps/js-api-loader";
 import type { AdminMapData } from "@/src/lib/admin/data/dashboard/getMapData";
 
 interface MapShipment {
@@ -19,340 +18,146 @@ export default function AdminMap({
   height?: number;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<Map | null>(null);
-  const markersRef = useRef<Marker[]>([]);
-  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const polylinesRef = useRef<google.maps.Polyline[]>([]);
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
-  if (!token) {
-    // No revelar el token; solo avisar ausencia
-    console.warn("[AdminMap] NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN no configurado");
+  if (!apiKey) {
+    console.warn("[AdminMap] NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is missing");
   }
 
-  // 1. Efecto para inicializar el mapa (se ejecuta solo una vez)
   useEffect(() => {
-    if (!containerRef.current) {
-      console.warn("[AdminMap:init] containerRef.current es null");
-      return;
-    }
-    if (!token) {
-      console.warn("[AdminMap:init] Falta token de Mapbox. Abortando init.");
-      return;
-    }
-    if (mapRef.current) {
-      console.log("[AdminMap:init] Mapa ya inicializado. Skip.");
-      return;
-    } // Ya inicializado
-    mapboxgl.accessToken = token;
+    if (!containerRef.current || mapRef.current) return;
+    if (!apiKey) return;
 
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/navigation-day-v1",
-      interactive: true,
-      center: [-74.006, 40.7128], // Un centro por defecto
-      zoom: 3,
+    const loader = new Loader({
+      apiKey,
+      version: "weekly",
+      libraries: ["maps", "marker"],
     });
 
-    map.addControl(new mapboxgl.NavigationControl(), "top-right");
+    loader.load().then(async () => {
+      const { Map } = (await google.maps.importLibrary(
+        "maps"
+      )) as google.maps.MapsLibrary;
 
-    map.on("load", () => {
-      console.log(
-        "[AdminMap:load] Estilo cargado. Añadiendo source y layer de rutas"
-      );
-      try {
-        // Añade la fuente y la capa para las rutas una sola vez, con datos vacíos
-        if (!map.getSource("admin-shipments")) {
-          map.addSource("admin-shipments", {
-            type: "geojson",
-            data: { type: "FeatureCollection", features: [] },
-          });
-        } else {
-          console.log("[AdminMap:load] Source 'admin-shipments' ya existía");
-        }
-        if (!map.getLayer("admin-shipments-line")) {
-          map.addLayer({
-            id: "admin-shipments-line",
-            type: "line",
-            source: "admin-shipments",
-            layout: { "line-join": "round", "line-cap": "round" },
-            paint: {
-              "line-color": "#10b981",
-              "line-width": 3,
-              "line-opacity": 0.7,
-            },
-          });
-        } else {
-          console.log(
-            "[AdminMap:load] Layer 'admin-shipments-line' ya existía"
-          );
-        }
-      } catch (e) {
-        console.error("[AdminMap:load] Error añadiendo source/layer:", e);
+      const map = new Map(containerRef.current!, {
+        center: { lat: 18.4861, lng: -69.9312 }, // Santo Domingo
+        zoom: 3,
+        mapId: "ADMIN_MAP_ID",
+        mapTypeControl: false,
+        streetViewControl: false,
+      });
+
+      mapRef.current = map;
+
+      if (data) {
+        updateMap(map, data);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
 
-    map.on("error", (e) => {
-      console.error(
-        "[AdminMap:error] Evento de error del mapa:",
-        e?.error || e
-      );
-    });
-
-    mapRef.current = map;
-
-    // Función de limpieza para destruir el mapa cuando el componente se desmonte
-    return () => {
-      console.log("[AdminMap:cleanup] Eliminando mapa y reseteando refs");
-      map.remove();
-      mapRef.current = null;
-    };
-  }, [token]);
-
-  // 2. Efecto para actualizar los datos en el mapa (se ejecuta cuando `data` cambia)
   useEffect(() => {
-    const map = mapRef.current;
-    const isLoaded = map?.isStyleLoaded?.() ?? false;
-
-    if (!map) {
-      console.warn("[AdminMap:update] No hay instancia de mapa aún. Skip.");
-      return;
-    }
-    if (!data) {
-      console.warn("[AdminMap:update] 'data' es null/undefined. Skip.");
-      return;
-    }
-    if (!isLoaded) {
-      console.log(
-        "[AdminMap:update] Estilo NO cargado aún. Esperando 'load' para aplicar datos."
-      );
-      map.once("load", () => {
-        // Re-disparar lógica de actualización cuando cargue el estilo
-        try {
-          console.log(
-            "[AdminMap:update->once(load)] Reintentando actualización tras load"
-          );
-          // Forzar una actualización re-ejecutando esta effect logic
-          // Nota: no podemos invocar el effect directamente; repetimos el bloque mínimo
-          applyDataToMap(map, data);
-        } catch (e) {
-          console.error(
-            "[AdminMap:update->once(load)] Error aplicando datos:",
-            e
-          );
-        }
-      });
-      return;
-    }
-
-    try {
-      applyDataToMap(map, data);
-    } catch (e) {
-      console.error("[AdminMap:update] Error aplicando datos:", e);
-    }
-
-    function applyDataToMap(map: Map, data: AdminMapData) {
-      console.log("[AdminMap:apply] Actualizando mapa con datos", {
-        drivers: data?.drivers?.length ?? 0,
-        partners: data?.partners?.length ?? 0,
-        shipments: data?.shipments?.length ?? 0,
-      });
-
-      // Limpiar marcadores antiguos
-      const removed = markersRef.current.length;
-      markersRef.current.forEach((marker) => marker.remove());
-      markersRef.current = [];
-      if (removed) {
-        console.log(
-          `[AdminMap:apply] Eliminados ${removed} marcadores antiguos`
-        );
-      }
-
-      const bounds = new mapboxgl.LngLatBounds();
-      let hasAnyData = false;
-
-      // Añadir marcadores de conductores
-      if (Array.isArray(data.drivers)) {
-        data.drivers.forEach((d, idx) => {
-          if (typeof d.lng !== "number" || typeof d.lat !== "number") {
-            console.warn(
-              "[AdminMap:drivers] Coordenadas inválidas en índice",
-              idx,
-              d
-            );
-            return;
-          }
-          const marker = new mapboxgl.Marker({ color: "#0ea5e9" })
-            .setLngLat([d.lng, d.lat])
-            .addTo(map);
-          markersRef.current.push(marker);
-          bounds.extend([d.lng, d.lat]);
-          hasAnyData = true;
-        });
-        console.log(
-          `[AdminMap:drivers] Marcadores añadidos: ${markersRef.current.length}`
-        );
-      }
-
-      // Añadir marcadores de socios
-      if (Array.isArray(data.partners)) {
-        const before = markersRef.current.length;
-        data.partners.forEach((p, idx) => {
-          if (typeof p.lng !== "number" || typeof p.lat !== "number") {
-            console.warn(
-              "[AdminMap:partners] Coordenadas inválidas en índice",
-              idx,
-              p
-            );
-            return;
-          }
-          const marker = new mapboxgl.Marker({ color: "#7c3aed" })
-            .setLngLat([p.lng, p.lat])
-            .setPopup(
-              new mapboxgl.Popup({ closeButton: false }).setText(p.name)
-            )
-            .addTo(map);
-          markersRef.current.push(marker);
-          bounds.extend([p.lng, p.lat]);
-          hasAnyData = true;
-        });
-        const added = markersRef.current.length - before;
-        console.log(`[AdminMap:partners] Marcadores añadidos: ${added}`);
-      }
-
-      // Actualizar datos de las rutas (shipments)
-      const source = map.getSource("admin-shipments") as
-        | mapboxgl.GeoJSONSource
-        | undefined;
-      if (!source) {
-        console.warn(
-          "[AdminMap:shipments] Source 'admin-shipments' no encontrado"
-        );
-      } else {
-        const features = (Array.isArray(data.shipments) ? data.shipments : [])
-          .filter((s) => (s as MapShipment)?.routeGeoJson?.coordinates?.length)
-          .map((s) => ({
-            type: "Feature",
-            geometry: (s as MapShipment).routeGeoJson,
-          }));
-
-        const featureCollection = {
-          type: "FeatureCollection",
-          features,
-        };
-        try {
-          // Cast to unknown to avoid 'any' lint error, assuming structure is correct for mapbox
-          source.setData(
-            featureCollection as unknown as GeoJSON.FeatureCollection
-          );
-          console.log(
-            `[AdminMap:shipments] setData con ${features.length} features`
-          );
-        } catch (e) {
-          console.error("[AdminMap:shipments] Error en setData:", e);
-        }
-      }
-
-      // Incluir puntos de origen/destino en los límites del mapa
-      let odCount = 0;
-      (Array.isArray(data.shipments) ? data.shipments : []).forEach((s) => {
-        const ship = s as MapShipment;
-        if (ship?.origin) {
-          bounds.extend([ship.origin.longitude, ship.origin.latitude]);
-          hasAnyData = true;
-          odCount++;
-        }
-        if (ship?.destination) {
-          bounds.extend([
-            ship.destination.longitude,
-            ship.destination.latitude,
-          ]);
-          hasAnyData = true;
-          odCount++;
-        }
-      });
-      if (odCount) {
-        console.log(
-          `[AdminMap:shipments] Puntos O/D añadidos a bounds: ${odCount}`
-        );
-      }
-
-      // Ajustar la vista del mapa para que quepan todos los puntos
-      if (hasAnyData) {
-        const ne = bounds.getNorthEast();
-        const sw = bounds.getSouthWest();
-        console.log("[AdminMap:fitBounds] Ajustando vista", { ne, sw });
-        map.fitBounds(bounds, { padding: 60, duration: 1000, maxZoom: 12 });
-      } else {
-        console.log("[AdminMap:fitBounds] Sin datos. No se ajusta vista.");
-      }
-    }
-    // Limpiar marcadores antiguos
-    markersRef.current.forEach((marker) => marker.remove());
-    markersRef.current = [];
-
-    const bounds = new mapboxgl.LngLatBounds();
-    let hasAnyData = false;
-
-    // Añadir marcadores de conductores
-    data.drivers.forEach((d) => {
-      const marker = new mapboxgl.Marker({ color: "#0ea5e9" })
-        .setLngLat([d.lng, d.lat])
-        .addTo(map);
-      markersRef.current.push(marker);
-      bounds.extend([d.lng, d.lat]);
-      hasAnyData = true;
-    });
-
-    // Añadir marcadores de socios
-    data.partners?.forEach((p) => {
-      const marker = new mapboxgl.Marker({ color: "#7c3aed" })
-        .setLngLat([p.lng, p.lat])
-        .setPopup(new mapboxgl.Popup({ closeButton: false }).setText(p.name))
-        .addTo(map);
-      markersRef.current.push(marker);
-      bounds.extend([p.lng, p.lat]);
-      hasAnyData = true;
-    });
-
-    // Actualizar datos de las rutas (shipments)
-    const source = map.getSource("admin-shipments") as mapboxgl.GeoJSONSource;
-    if (source) {
-      const features = data.shipments
-        .filter((s) => (s as MapShipment).routeGeoJson?.coordinates?.length)
-        .map((s) => ({
-          type: "Feature",
-          geometry: (s as MapShipment).routeGeoJson,
-        }));
-
-      const featureCollection = { type: "FeatureCollection", features };
-      source.setData(featureCollection as unknown as GeoJSON.FeatureCollection);
-    }
-
-    // Incluir puntos de origen/destino en los límites del mapa
-    data.shipments.forEach((s) => {
-      if (s.origin) {
-        bounds.extend([s.origin.longitude, s.origin.latitude]);
-        hasAnyData = true;
-      }
-      if (s.destination) {
-        bounds.extend([s.destination.longitude, s.destination.latitude]);
-        hasAnyData = true;
-      }
-    });
-
-    // Ajustar la vista del mapa para que quepan todos los puntos
-    if (hasAnyData) {
-      map.fitBounds(bounds, { padding: 60, duration: 1000, maxZoom: 12 });
+    if (mapRef.current && data) {
+      updateMap(mapRef.current, data);
     }
   }, [data]);
 
-  if (!token) {
+  const updateMap = (map: google.maps.Map, data: AdminMapData) => {
+    markersRef.current.forEach((m) => m.setMap(null));
+    markersRef.current = [];
+    polylinesRef.current.forEach((p) => p.setMap(null));
+    polylinesRef.current = [];
+
+    const bounds = new google.maps.LatLngBounds();
+    let hasPoints = false;
+
+    data.drivers?.forEach((d) => {
+      if (typeof d.lat === "number" && typeof d.lng === "number") {
+        const pos = { lat: d.lat, lng: d.lng };
+        const marker = new google.maps.Marker({
+          position: pos,
+          map: map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 6,
+            fillColor: "#0ea5e9",
+            fillOpacity: 1,
+            strokeWeight: 1,
+            strokeColor: "white",
+          },
+          title: "Driver",
+        });
+        markersRef.current.push(marker);
+        bounds.extend(pos);
+        hasPoints = true;
+      }
+    });
+
+    data.partners?.forEach((p) => {
+      if (typeof p.lat === "number" && typeof p.lng === "number") {
+        const pos = { lat: p.lat, lng: p.lng };
+        const marker = new google.maps.Marker({
+          position: pos,
+          map: map,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 7,
+            fillColor: "#7c3aed",
+            fillOpacity: 1,
+            strokeWeight: 1,
+            strokeColor: "white",
+          },
+          title: p.name,
+        });
+        markersRef.current.push(marker);
+        bounds.extend(pos);
+        hasPoints = true;
+      }
+    });
+
+    data.shipments?.forEach((s) => {
+      const ship = s as MapShipment;
+      if (ship.origin) {
+        bounds.extend({ lat: ship.origin.latitude, lng: ship.origin.longitude });
+        hasPoints = true;
+      }
+      if (ship.destination) {
+        bounds.extend({ lat: ship.destination.latitude, lng: ship.destination.longitude });
+        hasPoints = true;
+      }
+      if (ship.routeGeoJson?.coordinates) {
+        const path = ship.routeGeoJson.coordinates.map((coord) => ({
+          lat: coord[1],
+          lng: coord[0],
+        }));
+        const polyline = new google.maps.Polyline({
+          path: path,
+          geodesic: true,
+          strokeColor: "#10b981",
+          strokeOpacity: 0.7,
+          strokeWeight: 4,
+          map: map,
+        });
+        polylinesRef.current.push(polyline);
+      }
+    });
+
+    if (hasPoints) {
+      map.fitBounds(bounds);
+    }
+  };
+
+  if (!apiKey) {
     return (
-      <div
-        className="flex items-center justify-center rounded-xl border border-[#D9DCE3] text-sm text-gray-500"
-        style={{ height }}
-      >
-        Mapa no disponible (falta token de Mapbox)
-      </div>
+        <div
+            className="flex items-center justify-center rounded-xl border border-[#D9DCE3] text-sm text-gray-500"
+            style={{ height }}
+        >
+            Mapa no disponible (falta API Key)
+        </div>
     );
   }
 

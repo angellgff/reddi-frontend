@@ -1,11 +1,7 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef } from "react";
-import mapboxgl, {
-  Map as MapboxMap,
-  LngLatLike,
-  GeoJSONSource,
-} from "mapbox-gl";
+import React, { useEffect, useRef } from "react";
+import { Loader } from "@googlemaps/js-api-loader";
 
 export type LatLng = [number, number]; // [lat, lng]
 
@@ -25,147 +21,127 @@ export default function OrderMap({
   destination,
 }: OrderMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<MapboxMap | null>(null);
-  const originMarkerRef = useRef<mapboxgl.Marker | null>(null);
-  const destMarkerRef = useRef<mapboxgl.Marker | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const originMarkerRef = useRef<google.maps.Marker | null>(null);
+  const destMarkerRef = useRef<google.maps.Marker | null>(null);
+  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
 
-  const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const hasRoute = !!origin && !!destination;
 
-  // Convertir [lat, lng] -> [lng, lat]
-  const toLngLat = (latlng: LatLng): [number, number] => [latlng[1], latlng[0]];
-
-  // 1. Initialize Map
   useEffect(() => {
-    if (!containerRef.current || !token) return;
-    if (mapRef.current) return;
+    if (!containerRef.current || mapRef.current) return;
+    if (!apiKey) return;
 
-    mapboxgl.accessToken = token;
-    const initialCenterLngLat = toLngLat(center);
-
-    const map = new mapboxgl.Map({
-      container: containerRef.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: initialCenterLngLat,
-      zoom,
+    const loader = new Loader({
+      apiKey,
+      version: "weekly",
+      libraries: ["maps", "marker", "routes"],
     });
-    mapRef.current = map;
 
-    return () => {
-      map.remove();
-      mapRef.current = null;
-    };
-  }, []); // Init once
+    loader.load().then(async () => {
+      const { Map } = (await google.maps.importLibrary(
+        "maps"
+      )) as google.maps.MapsLibrary;
+      const { DirectionsRenderer } = (await google.maps.importLibrary(
+        "routes"
+      )) as google.maps.RoutesLibrary;
 
-  // 2. Update Map Data (Markers & Route)
+      const map = new Map(containerRef.current!, {
+        center: { lat: center[0], lng: center[1] },
+        zoom,
+        mapTypeControl: false,
+        streetViewControl: false,
+        mapId: "ORDER_MAP_ID",
+      });
+
+      mapRef.current = map;
+
+      directionsRendererRef.current = new DirectionsRenderer({
+        map,
+        suppressMarkers: true,
+        polylineOptions: {
+          strokeColor: "#04BD88",
+          strokeWeight: 5,
+        },
+      });
+
+      updateMap(map);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
+
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    // Helper to add/update/remove marker
-    const updateMarker = (
-      markerRef: React.MutableRefObject<mapboxgl.Marker | null>,
-      position: LatLng | undefined,
-      color: string
-    ) => {
-      if (position) {
-        if (!markerRef.current) {
-          markerRef.current = new mapboxgl.Marker({ color })
-            .setLngLat(toLngLat(position))
-            .addTo(map);
-        } else {
-          markerRef.current.setLngLat(toLngLat(position));
-        }
-      } else if (markerRef.current) {
-        markerRef.current.remove();
-        markerRef.current = null;
-      }
-    };
-
-    const drawRoute = async () => {
-      if (hasRoute && origin && destination) {
-        updateMarker(originMarkerRef, origin, "#04BD88");
-        updateMarker(destMarkerRef, destination, "#222");
-
-        // Fetch & Draw Route
-        try {
-          const start = toLngLat(origin).join(",");
-          const end = toLngLat(destination).join(",");
-          const url = `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?geometries=geojson&overview=full&access_token=${token}`;
-          
-          const res = await fetch(url);
-          const json = await res.json();
-          const route = json?.routes?.[0]?.geometry;
-
-          if (route) {
-            const sourceId = "route";
-            const source = map.getSource(sourceId) as GeoJSONSource;
-            
-            if (!source) {
-              map.addSource(sourceId, {
-                type: "geojson",
-                data: {
-                  type: "Feature",
-                  properties: {},
-                  geometry: route,
-                },
-              });
-              map.addLayer({
-                id: "route-line",
-                type: "line",
-                source: sourceId,
-                layout: { "line-join": "round", "line-cap": "round" },
-                paint: { "line-color": "#04BD88", "line-width": 5 },
-              });
-            } else {
-              source.setData({
-                type: "Feature",
-                properties: {},
-                geometry: route,
-              });
-            }
-
-             // Fit bounds
-             const coords = route.coordinates as [number, number][];
-             const bounds = coords.reduce(
-               (b, c) => b.extend(c),
-               new mapboxgl.LngLatBounds(coords[0], coords[0])
-             );
-             map.fitBounds(bounds, { padding: 40 });
-          }
-        } catch (e) {
-          console.error("Mapbox route error", e);
-        }
-      } else {
-        // No route -> Show Center Marker
-         if (!origin && !destination) {
-              if (!originMarkerRef.current) {
-                 originMarkerRef.current = new mapboxgl.Marker({ color: "#04BD88" })
-                   .setLngLat(toLngLat(center)) 
-                   .addTo(map);
-              } else {
-                   originMarkerRef.current.setLngLat(toLngLat(center));
-              }
-              // Clear destination marker if it exists
-              if (destMarkerRef.current) {
-                  destMarkerRef.current.remove();
-                  destMarkerRef.current = null;
-              }
-              // Clear route line
-              const source = map.getSource("route") as GeoJSONSource;
-              if (source) {
-                  source.setData({ type: "Feature", properties: {}, geometry: { type: "LineString", coordinates: [] } });
-              }
-         }
-      }
-    };
-
-    if (map.loaded() || map.isStyleLoaded()) {
-      drawRoute();
-    } else {
-      map.on("load", drawRoute);
+    if (mapRef.current) {
+      updateMap(mapRef.current);
     }
-  }, [center, hasRoute, origin, destination, token]);
+  }, [center, origin, destination, hasRoute]);
+
+  const updateMap = async (map: google.maps.Map) => {
+    if (hasRoute && origin && destination) {
+      // Markers
+      updateMarker(originMarkerRef, origin, "#04BD88", map);
+      updateMarker(destMarkerRef, destination, "#222", map);
+
+      // Directions
+      const directionsService = new google.maps.DirectionsService();
+      directionsService.route(
+        {
+          origin: { lat: origin[0], lng: origin[1] },
+          destination: { lat: destination[0], lng: destination[1] },
+          travelMode: google.maps.TravelMode.DRIVING,
+        },
+        (result, status) => {
+          if (status === "OK" && result) {
+            directionsRendererRef.current?.setDirections(result);
+          } else {
+            console.error("Directions request failed due to " + status);
+          }
+        }
+      );
+    } else {
+      // No route
+      directionsRendererRef.current?.setDirections(null);
+      if (!origin && !destination) {
+        updateMarker(originMarkerRef, center, "#04BD88", map);
+        destMarkerRef.current?.setMap(null);
+        map.setCenter({ lat: center[0], lng: center[1] });
+      }
+    }
+  };
+
+  const updateMarker = (
+    markerRef: React.MutableRefObject<google.maps.Marker | null>,
+    pos: LatLng,
+    color: string,
+    map: google.maps.Map
+  ) => {
+    if (!markerRef.current) {
+      markerRef.current = new google.maps.Marker({
+        position: { lat: pos[0], lng: pos[1] },
+        map: map,
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 7,
+          fillColor: color,
+          fillOpacity: 1,
+          strokeWeight: 1,
+          strokeColor: "white",
+        },
+      });
+    } else {
+      markerRef.current.setPosition({ lat: pos[0], lng: pos[1] });
+      markerRef.current.setMap(map);
+    }
+  };
+
+  if (!apiKey) {
+    return (
+      <div className={`bg-gray-100 flex items-center justify-center text-sm p-4 ${className}`}>
+        Mapa no disponible
+      </div>
+    );
+  }
 
   return <div ref={containerRef} className={className} />;
 }

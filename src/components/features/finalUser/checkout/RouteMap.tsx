@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import mapboxgl, { Map, Marker } from "mapbox-gl"; // Importa los tipos Map y Marker
-import "mapbox-gl/dist/mapbox-gl.css";
+import { useEffect, useRef } from "react";
+import { Loader } from "@googlemaps/js-api-loader";
 
 type LngLat = { longitude: number; latitude: number };
 
@@ -18,117 +17,120 @@ export default function RouteMap({
   height?: number;
 }) {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<Map | null>(null);
-  // Refs para los marcadores para poder limpiarlos si cambian las props
-  const originMarkerRef = useRef<Marker | null>(null);
-  const destinationMarkerRef = useRef<Marker | null>(null);
+  const mapRef = useRef<google.maps.Map | null>(null);
+  const originMarkerRef = useRef<google.maps.Marker | null>(null);
+  const destinationMarkerRef = useRef<google.maps.Marker | null>(null);
+  const routePolylineRef = useRef<google.maps.Polyline | null>(null);
 
-  const token = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN;
-
-  const bounds = useMemo(() => {
-    // Si tenemos una ruta, ajustamos los límites a la ruta completa
-    if (routeGeoJson && routeGeoJson.coordinates.length > 0) {
-      return routeGeoJson.coordinates.reduce(
-        (b, coord) => b.extend(coord as [number, number]),
-        new mapboxgl.LngLatBounds()
-      );
-    }
-    // Si no, solo a origen y destino
-    const b = new mapboxgl.LngLatBounds();
-    b.extend([origin.longitude, origin.latitude]);
-    b.extend([destination.longitude, destination.latitude]);
-    return b;
-  }, [origin, destination, routeGeoJson]);
+  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
   useEffect(() => {
-    if (!containerRef.current || !token) return;
+    if (!containerRef.current || mapRef.current) return;
+    if (!apiKey) return;
 
-    mapboxgl.accessToken = token;
+    const loader = new Loader({
+      apiKey,
+      version: "weekly",
+      libraries: ["maps", "marker"],
+    });
 
-    // Inicializa el mapa solo una vez
-    if (!mapRef.current) {
-      mapRef.current = new mapboxgl.Map({
-        container: containerRef.current,
-        // --- CAMBIO 1: Estilo de mapa para navegación ---
-        style: "mapbox://styles/mapbox/navigation-day-v1",
-        // --- CAMBIO 2: Habilitar interacción ---
-        interactive: true,
+    loader.load().then(async () => {
+      const { Map } = (await google.maps.importLibrary(
+        "maps"
+      )) as google.maps.MapsLibrary;
+
+      // Initial center can be anywhere, we fitBounds later
+      const map = new Map(containerRef.current!, {
+        center: { lat: origin.latitude, lng: origin.longitude },
+        zoom: 13,
+        mapId: "ROUTE_MAP_ID",
+        mapTypeControl: false,
+        streetViewControl: false,
       });
-      // Añade controles de zoom y rotación
-      mapRef.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+
+      mapRef.current = map;
+
+      updateMap(map);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]); // Init only
+
+  useEffect(() => {
+    if (mapRef.current) {
+      updateMap(mapRef.current);
+    }
+  }, [origin, destination, routeGeoJson]);
+
+  const updateMap = (map: google.maps.Map) => {
+    // 1. Clear previous
+    originMarkerRef.current?.setMap(null);
+    destinationMarkerRef.current?.setMap(null);
+    routePolylineRef.current?.setMap(null);
+
+    const bounds = new google.maps.LatLngBounds();
+
+    // 2. Set new markers
+    // Origin: Green (#04BD88)
+    originMarkerRef.current = new google.maps.Marker({
+      position: { lat: origin.latitude, lng: origin.longitude },
+      map: map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 7,
+        fillColor: "#04BD88",
+        fillOpacity: 1,
+        strokeWeight: 1,
+        strokeColor: "white",
+      },
+      title: "Origin", // Origen
+    });
+    bounds.extend({ lat: origin.latitude, lng: origin.longitude });
+
+    // Destination: Dark (#1f2937)
+    destinationMarkerRef.current = new google.maps.Marker({
+      position: { lat: destination.latitude, lng: destination.longitude },
+      map: map,
+      icon: {
+        path: google.maps.SymbolPath.CIRCLE,
+        scale: 7,
+        fillColor: "#1f2937",
+        fillOpacity: 1,
+        strokeWeight: 1,
+        strokeColor: "white",
+      },
+      title: "Destination", // Destino
+    });
+    bounds.extend({ lat: destination.latitude, lng: destination.longitude });
+
+    // 3. Draw Route
+    if (routeGeoJson && routeGeoJson.coordinates) {
+      const path = routeGeoJson.coordinates.map((c) => ({
+        lat: c[1],
+        lng: c[0],
+      }));
+      routePolylineRef.current = new google.maps.Polyline({
+        path: path,
+        map: map,
+        strokeColor: "#04BD88",
+        strokeOpacity: 1.0,
+        strokeWeight: 5,
+      });
+
+      path.forEach((p) => bounds.extend(p));
     }
 
-    const map = mapRef.current;
+    // 4. Fit bounds
+    // Add some padding by creating simpler logic if needed, but fitBounds works
+    map.fitBounds(bounds, 50); // 50px padding
+  };
 
-    const handleLoad = () => {
-      map.fitBounds(bounds, { padding: 60, duration: 0, maxZoom: 15 });
-
-      // Gestionar la capa de la ruta
-      const sourceId = "route";
-      const source = map.getSource(sourceId) as mapboxgl.GeoJSONSource;
-
-      if (routeGeoJson) {
-        if (!source) {
-          map.addSource(sourceId, {
-            type: "geojson",
-            data: { type: "Feature", geometry: routeGeoJson, properties: {} },
-          });
-          map.addLayer({
-            id: "route-line",
-            type: "line",
-            source: sourceId,
-            layout: {
-              "line-join": "round",
-              "line-cap": "round",
-            },
-            paint: {
-              "line-color": "#04BD88",
-              "line-width": 5,
-            },
-          });
-        } else {
-          source.setData({
-            type: "Feature",
-            geometry: routeGeoJson,
-            properties: {},
-          });
-        }
-      } else if (source) {
-        // Si no hay ruta, limpiamos la capa
-        map.removeLayer("route-line");
-        map.removeSource(sourceId);
-      }
-
-      // Gestionar marcadores para que no se dupliquen en cada render
-      if (originMarkerRef.current) originMarkerRef.current.remove();
-      // --- CAMBIO 3 (Opcional): Intercambiar colores para que coincida con tu imagen ---
-      originMarkerRef.current = new mapboxgl.Marker({ color: "#04BD88" }) // Origen ahora es verde
-        .setLngLat([origin.longitude, origin.latitude])
-        .addTo(map);
-
-      if (destinationMarkerRef.current) destinationMarkerRef.current.remove();
-      destinationMarkerRef.current = new mapboxgl.Marker({ color: "#1f2937" }) // Destino ahora es oscuro
-        .setLngLat([destination.longitude, destination.latitude])
-        .addTo(map);
-    };
-
-    if (map.isStyleLoaded()) {
-      handleLoad();
-    } else {
-      map.on("load", handleLoad);
-    }
-
-    // No es necesario map.remove() aquí para que el mapa persista entre re-renders
-    // Se eliminará cuando el componente se desmonte del DOM
-  }, [bounds, origin, destination, routeGeoJson, token]);
-
-  if (!token) {
+  if (!apiKey) {
     return (
       <div
         className="flex items-center justify-center rounded-xl border border-[#D9DCE3] text-sm text-gray-500"
         style={{ height }}
       >
-        Mapa no disponible (falta token de Mapbox)
+        Mapa no disponible (falta API Key)
       </div>
     );
   }
