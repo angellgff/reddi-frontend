@@ -24,9 +24,7 @@ export default function UserLayout({
       <Suspense fallback={<UserHeaderSkeleton />}>
         <UserHeaderServer />
       </Suspense>
-      <MainWrapper>
-        {children}
-      </MainWrapper>
+      <MainWrapper>{children}</MainWrapper>
       <UserFooter />
       <div className="pt-0 md:pt-[4.45rem]">
         {" "}
