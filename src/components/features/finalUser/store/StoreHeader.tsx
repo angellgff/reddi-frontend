@@ -7,6 +7,8 @@ import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import { useEffect } from "react";
 
 import StarIcon from "@/src/components/icons/StarIcon";
+import { ChevronLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 // Extendemos el tipo para permitir nuevos campos opcionales sin romper.
 type ExtendedStoreDetails = BaseStoreDetails & {
@@ -21,6 +23,7 @@ export default function StoreHeader({
   store: ExtendedStoreDetails & { cover_image_url?: string | null };
 }) {
   const showStore = useFloatingButtonStore((state) => state.showStore);
+  const router = useRouter();
 
   useEffect(() => {
     if (store?.name) {
@@ -40,7 +43,7 @@ export default function StoreHeader({
 
   return (
     // Rediseño basado en 'Restaurante' view (Mobile Hero style)
-    <div className="relative w-full h-[340px] rounded-b-[46px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
+    <div className="relative w-full h-[340px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
       {/* Banner de fondo cubriendo todo el header */}
       <div className="absolute inset-0 w-full h-full bg-gray-200">
         {banner ? (
@@ -55,6 +58,14 @@ export default function StoreHeader({
         {/* Ajustado para legibilidad del texto blanco */}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
       </div>
+
+      {/* Back Button */}
+      <button
+        onClick={() => router.back()}
+        className="absolute top-[49px] left-[21px] w-[37px] h-[37px] bg-white rounded-full flex items-center justify-center z-20 shadow-sm"
+      >
+        <ChevronLeft className="w-5 h-5 text-[#04BD88]" strokeWidth={2.5} />
+      </button>
 
       {/* Contenido superpuesto (Bottom Left) */}
       <div className="absolute bottom-8 left-6 md:bottom-10 md:left-10 z-10 flex flex-col gap-2">

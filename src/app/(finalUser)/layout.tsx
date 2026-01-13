@@ -9,6 +9,8 @@ import UserDefaultPaymentHydratorServer from "@/src/components/features/finalUse
 import GuestFooter from "@/src/components/features/layout/GuestFooter";
 import RouteFloatingResetter from "@/src/components/features/finalUser/layout/RouteFloatingResetter";
 
+import MainWrapper from "@/src/components/features/finalUser/layout/MainWrapper";
+
 export default function UserLayout({
   children,
 }: {
@@ -22,9 +24,9 @@ export default function UserLayout({
       <Suspense fallback={<UserHeaderSkeleton />}>
         <UserHeaderServer />
       </Suspense>
-      <main className="pt-[4rem] sm:pt-[1rem] pb-[4.45rem] md:pb-0">
+      <MainWrapper>
         {children}
-      </main>
+      </MainWrapper>
       <UserFooter />
       <div className="pt-0 md:pt-[4.45rem]">
         {" "}

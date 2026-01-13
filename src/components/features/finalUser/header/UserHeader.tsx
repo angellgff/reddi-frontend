@@ -150,6 +150,10 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     };
   }, [lastScrollY, isClient]);
 
+  if (pathname?.startsWith("/user/stores/")) {
+    return null;
+  }
+
   return (
     <>
       <AddressSlider
