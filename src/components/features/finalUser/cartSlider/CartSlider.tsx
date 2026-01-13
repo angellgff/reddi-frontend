@@ -23,6 +23,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
   const dispatch = useAppDispatch();
   const openFromStore = useAppSelector(selectCartOpen);
   const effectiveOpen = typeof isOpen === "boolean" ? isOpen : openFromStore;
+
   useBodyScrollLock(effectiveOpen);
   const items = useAppSelector(selectCartItems);
   const [partnerName, setPartnerName] = useState<string>("Tu carrito");
@@ -34,13 +35,6 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
   useEffect(() => {
     console.log("🛒 [CartSlider] Items en el carrito (desde Redux):", items);
   }, [items]);
-
-  // <<< LOG AÑADIDO 2: Muestra el estado de isRestaurant cada vez que cambia
-  useEffect(() => {
-    console.log(
-      `🍔 [CartSlider] ¿Es un restaurante? -> ${isRestaurant}. La prop 'enableExtras' se basará en esto.`
-    );
-  }, [isRestaurant]);
 
   useEffect(() => {
     const doClose = () => {
@@ -81,7 +75,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
   return (
     <Portal>
       <div
-        className={`fixed inset-0 z-50 ${
+        className={`fixed inset-0 z-[600] ${
           effectiveOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-hidden={!effectiveOpen}
@@ -151,23 +145,9 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {items.map((it: CartItemType) => {
-                  // <<< LOG AÑADIDO 3: Muestra los datos de cada item ANTES de renderizarlo
-                  console.log(
-                    `  - [CartSlider] Renderizando CartItem para '${it.name}'. Datos pasados:`,
-                    {
-                      item: it,
-                      enableExtras: isRestaurant,
-                    }
-                  );
-                  return (
-                    <CartItem
-                      key={it.id}
-                      item={it}
-                      enableExtras={isRestaurant}
-                    />
-                  );
-                })}
+                {items.map((it: CartItemType) => (
+                  <CartItem key={it.id} item={it} enableExtras={isRestaurant} />
+                ))}
               </div>
             )}
           </main>

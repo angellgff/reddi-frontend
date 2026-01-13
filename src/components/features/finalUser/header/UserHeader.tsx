@@ -19,7 +19,7 @@ import SearchIcon from "@/src/components/icons/SearchIcon";
 
 import UserCarIcon from "@/src/components/icons/UserCarIcon";
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
-import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
+// import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 import { UserHeaderData } from "@/src/lib/finalUser/type";
 import { useState, useEffect, useMemo } from "react";
 import LogoutHeaderIcon from "@/src/components/icons/LogoutHeaderIcon";
@@ -160,7 +160,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
         isOpen={isAddressMenuVisible}
         onClose={() => dispatch(closeAddressSlider())}
       />
-      <CartSlider onClose={() => dispatch(closeCart())} />
+      {/* <CartSlider /> moved to layout to persist across store pages */}
 
       {/* Mobile Header */}
       <header

@@ -8,6 +8,7 @@ import UserAddressesHydratorServer from "@/src/components/features/finalUser/add
 import UserDefaultPaymentHydratorServer from "@/src/components/features/finalUser/payments/UserDefaultPaymentHydratorServer";
 import GuestFooter from "@/src/components/features/layout/GuestFooter";
 import RouteFloatingResetter from "@/src/components/features/finalUser/layout/RouteFloatingResetter";
+import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 
 import MainWrapper from "@/src/components/features/finalUser/layout/MainWrapper";
 
@@ -32,6 +33,7 @@ export default function UserLayout({
         {" "}
         <GuestFooter />
       </div>
+      <CartSlider />
     </>
   );
 }

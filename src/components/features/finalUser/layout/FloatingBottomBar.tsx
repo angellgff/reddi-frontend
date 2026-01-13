@@ -10,12 +10,18 @@ import { toggleCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Badge from "@/src/components/basics/header/Badge";
 import { motion, AnimatePresence } from "framer-motion";
+import { useEffect, useState } from "react";
 
 export default function FloatingBottomBar() {
   const { mode, text, secondaryText, action } = useFloatingButtonStore();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const cartCount = useAppSelector(selectCartCount);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (mode === "hidden") return null;
 
@@ -78,14 +84,45 @@ export default function FloatingBottomBar() {
               {mode === "store" && (
                 <motion.button
                   key="content-store"
+                  type="button"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.2 }}
-                  onClick={action}
-                  className="absolute inset-0 w-full h-full flex items-center justify-center px-4 text-white font-bold text-sm truncate"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (action) {
+                      action();
+                    } else {
+                      dispatch(toggleCart());
+                    }
+                  }}
+                  className="absolute inset-0 w-full h-full flex items-center justify-between px-[13px] text-white cursor-pointer pointer-events-auto"
                 >
-                  {text}
+                  {/* Left: Cart Icon */}
+                  <div className="flex-none w-[20px] flex items-center justify-center">
+                    <ShoppingCart className="w-[20px] h-[20px] text-white stroke-[2]" />
+                  </div>
+
+                  {/* Center: Ver Carrito + Store Name */}
+                  <div className="flex flex-col items-center justify-center h-full">
+                    <span className="font-bold text-[10px] leading-tight tracking-[-0.01em]">
+                      Ver Carrito
+                    </span>
+                    <span className="font-bold text-[16px] leading-tight tracking-[-0.01em]">
+                      {text}
+                    </span>
+                  </div>
+
+                  {/* Right: Badge */}
+                  <div className="flex-none w-[20px] flex items-center justify-center">
+                    <div className="w-[18px] h-[18px] bg-white rounded-full flex items-center justify-center">
+                      <span className="text-[#04BD88] text-[12px] font-bold">
+                        {mounted ? cartCount : 0}
+                      </span>
+                    </div>
+                  </div>
                 </motion.button>
               )}
 
@@ -175,7 +212,7 @@ export default function FloatingBottomBar() {
               className="w-[47px] h-[47px] bg-[#04BD88] rounded-full shadow-lg flex items-center justify-center flex-shrink-0 relative active:scale-95 z-10"
             >
               <ShoppingCart className="w-5 h-5 text-white" />
-              {cartCount > 0 && (
+              {mounted && cartCount > 0 && (
                 <div className="absolute -top-2 -right-2">
                   <Badge
                     count={cartCount}
