@@ -5,9 +5,11 @@ import { cn } from "@/src/lib/utils";
 import { ShoppingCart } from "lucide-react"; // Default icon if none provided or for the secondary button style
 
 export default function DynamicFloatingButton() {
-  const { isVisible, text, icon, action } = useFloatingButtonStore();
+  const { mode, text, action } = useFloatingButtonStore();
 
-  if (!isVisible) return null;
+  if (mode === "hidden") return null;
+
+  const icon = null; // Placeholder as icon is not in store yet
 
   return (
     <div className="fixed bottom-24 left-0 right-0 z-50 px-6 flex justify-center pointer-events-none">

@@ -33,7 +33,7 @@ export default function CustomSearchHeader({
       // Clean simple display for header
       return (
         `${label} ${selected.location_number || ""}`.trim() ||
-        selected.address ||
+        (selected as any).address ||
         "Dirección"
       );
     }

@@ -25,7 +25,9 @@ export default function UserLayout({
         <UserHeaderServer />
       </Suspense>
       <MainWrapper>{children}</MainWrapper>
-      <UserFooter />
+      <Suspense fallback={null}>
+        <UserFooter />
+      </Suspense>
       <div className="pt-0 md:pt-[4.45rem]">
         {" "}
         <GuestFooter />

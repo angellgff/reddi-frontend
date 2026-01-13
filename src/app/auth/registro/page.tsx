@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import AppleIcon from "@/src/components/icons/AppleIcon";
@@ -11,7 +11,7 @@ import { createClient } from "@/src/lib/supabase/client";
 import Spinner from "@/src/components/basics/Spinner";
 import AuthInput from "@/src/components/basics/auth/AuthInput";
 
-export default function Registro() {
+function RegistroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -235,5 +235,13 @@ export default function Registro() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Registro() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <RegistroContent />
+    </Suspense>
   );
 }

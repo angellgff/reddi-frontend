@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import ProductPreviewClient from "@/src/components/features/partner/dashboard/market/preview/ProductPreviewClient";
 import { createClient } from "@/src/lib/supabase/server";
 import { notFound } from "next/navigation";
@@ -65,5 +66,11 @@ export default async function ProductPreviewPage({
     }
   }
 
-  return <ProductPreviewClient serverProduct={serverProduct} />;
+  return (
+    <Suspense
+      fallback={<div className="p-8">Cargando previsualización...</div>}
+    >
+      <ProductPreviewClient serverProduct={serverProduct} />
+    </Suspense>
+  );
 }

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import OrdersTableServer from "../../../../components/features/admin/orders/OrdersTableServer";
 import OrdersFilters from "../../../../components/features/admin/orders/OrdersFilters";
 
@@ -28,7 +29,9 @@ export default async function AdminOrdersPage({
         <div className="text-[18px] font-semibold text-[#1F2937] mb-4">
           Filtros
         </div>
-        <OrdersFilters />
+        <Suspense fallback={<div>Cargando filtros...</div>}>
+          <OrdersFilters />
+        </Suspense>
       </div>
 
       {/* Orders table card */}
@@ -39,7 +42,9 @@ export default async function AdminOrdersPage({
           </h2>
         </div>
         {/* 4. Se pasa el objeto resuelto al componente hijo */}
-        <OrdersTableServer searchParams={resolvedSearchParams} />
+        <Suspense fallback={<div>Cargando pedidos...</div>}>
+          <OrdersTableServer searchParams={resolvedSearchParams} />
+        </Suspense>
       </div>
     </div>
   );

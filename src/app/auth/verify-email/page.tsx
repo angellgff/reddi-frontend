@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/src/lib/supabase/client";
 import Link from "next/link";
 import Spinner from "@/src/components/basics/Spinner";
 
-export default function VerifyEmailPage() {
+function VerifyEmailPageContent() {
   const searchParams = useSearchParams();
   const email = searchParams.get("email") || "";
   const [isLoading, setIsLoading] = useState(false);
@@ -122,5 +122,13 @@ export default function VerifyEmailPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <VerifyEmailPageContent />
+    </Suspense>
   );
 }

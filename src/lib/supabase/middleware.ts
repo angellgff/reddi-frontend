@@ -88,6 +88,11 @@ export async function updateSession(request: NextRequest) {
 
   const isAuthed = !!user;
 
+  // --- GLOBALS ---
+  const isStaticAsset = path.match(
+    /\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|map)$/
+  );
+
   // --- EMAIL VERIFICATION CHECK ---
   if (isAuthed && !user?.email_confirmed_at) {
     // Allows access to verify-email, auth endpoints, callback, sign-out, etc.
@@ -113,9 +118,9 @@ export async function updateSession(request: NextRequest) {
   // Must be done before ANY other redirect to ensure it is seen "en todas las rutas".
   // Except API, Assets, and /onboarding itself.
 
-  const isStaticAsset = path.match(
-    /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
-  );
+  // const isStaticAsset = path.match(
+  //   /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
+  // );
   const onboardingSeenCookie = request.cookies.get("onboarding_seen");
   let hasCompletedOnboardingGlobal = !!onboardingSeenCookie;
 
@@ -224,9 +229,9 @@ export async function updateSession(request: NextRequest) {
     console.log("[MW-DEBUG] Analizando lógica para usuario AUTENTICADO.");
 
     // --- Onboarding Check ---
-    const isStaticAsset = path.match(
-      /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
-    );
+    // const isStaticAsset = path.match(
+    //   /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
+    // );
     const onboardingSeenCookie = request.cookies.get("onboarding_seen");
     let hasCompletedOnboarding = !!onboardingSeenCookie;
 
@@ -255,7 +260,7 @@ export async function updateSession(request: NextRequest) {
       !path.startsWith("/api/") &&
       !path.startsWith("/_next/") &&
       path !== "/onboarding" &&
-      !isStaticAsset
+      !isStaticAsset // This refers to the top helper const now
     ) {
       console.log(
         "[MW-DEBUG] Usuario no ha completado onboarding. Redirigiendo a /onboarding"
@@ -375,4 +380,6 @@ export async function updateSession(request: NextRequest) {
     );
     return supabaseResponse;
   }
+
+  return supabaseResponse;
 }

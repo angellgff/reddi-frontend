@@ -1,5 +1,6 @@
 import NewDishWizard from "@/src/components/features/partner/dashboard/menu/newDish/NewDishWizard";
 import { createClient } from "@/src/lib/supabase/server";
+import { Suspense } from "react";
 
 export default async function NewDishPage() {
   const supabase = await createClient();
@@ -54,20 +55,22 @@ export default async function NewDishPage() {
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       <h1 className="font-semibold">Crear producto</h1>
       <section className="bg-white p-6 rounded-xl shadow-sm mt-6">
-        <NewDishWizard
-          initialSubCategories={subCategories.map((c) => ({
-            id: c.id,
-            name: c.name,
-            categoryId: null,
-          }))}
-          extrasCatalog={extras.map((e) => ({
-            id: e.id,
-            name: e.name,
-            defaultPrice: e.default_price,
-            imageUrl: e.image_url,
-            partnerId: e.partner_id,
-          }))}
-        />
+        <Suspense fallback={<div>Cargando formulario...</div>}>
+          <NewDishWizard
+            initialSubCategories={subCategories.map((c) => ({
+              id: c.id,
+              name: c.name,
+              categoryId: null,
+            }))}
+            extrasCatalog={extras.map((e) => ({
+              id: e.id,
+              name: e.name,
+              defaultPrice: e.default_price,
+              imageUrl: e.image_url,
+              partnerId: e.partner_id,
+            }))}
+          />
+        </Suspense>
       </section>
     </div>
   );

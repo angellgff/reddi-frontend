@@ -46,7 +46,7 @@ export default function StoreHeader({
 
   const isRestaurant =
     store.partner_type?.toLowerCase() === "restaurant" ||
-    store.partner_type === "Restaurante";
+    (store.partner_type as string) === "Restaurante";
 
   if (!isRestaurant) {
     // MARKET / SUPERMARKET VIEW
