@@ -37,7 +37,7 @@ export default async function Home(props: {
   const code = searchParams?.code;
 
   if (code) {
-    // If we land here with an auth code, it means the Auth Provider redirected to root 
+    // If we land here with an auth code, it means the Auth Provider redirected to root
     // instead of the callback. We intercept and forward to the callback to finish login.
     const codeValue = Array.isArray(code) ? code[0] : code;
     console.log("[Home] Redirecting to callback with code", codeValue);
@@ -45,6 +45,8 @@ export default async function Home(props: {
   }
 
   const supabase = await createClient();
+  let destination: string | null = null;
+
   try {
     const {
       data: { user },
@@ -74,14 +76,15 @@ export default async function Home(props: {
           null;
       }
 
-      const destination = getHomePathForRole(role);
-      if (destination) {
-        // Redirect authenticated users straight to their role home.
-        redirect(destination);
-      }
+      destination = getHomePathForRole(role);
     }
   } catch (error) {
     console.warn("Home session pre-check failed", error);
+  }
+
+  if (destination) {
+    // Redirect authenticated users outside the try-catch block to avoid catching the NEXT_REDIRECT error
+    redirect(destination);
   }
 
   return (

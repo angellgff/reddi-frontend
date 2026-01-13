@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/src/components/ui/card";
 import Link from "next/link";
 import PaymentMethodsSection from "@/src/components/features/finalUser/profile/PaymentMethodsSection";
 import AddressesSection from "@/src/components/features/finalUser/profile/AddressesSection";
+import ProfileLogoutButton from "@/src/components/features/finalUser/profile/ProfileLogoutButton";
 import type { Tables } from "@/src/lib/database.types";
 
 export const dynamic = "force-dynamic";
@@ -36,14 +37,17 @@ export default async function ProfilePage() {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 md:px-8 py-6 md:py-8">
       {/* Header */}
-      <div className="mb-4 md:mb-6">
-        <h1 className="text-2xl md:text-3xl font-semibold text-neutral-900">
-          Mi Perfil
-        </h1>
-        <p className="text-sm md:text-base text-neutral-600 mt-1">
-          Gestiona tu información personal, métodos de pago y direcciones
-          guardadas
-        </p>
+      <div className="mb-4 md:mb-6 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-semibold text-neutral-900">
+            Mi Perfil
+          </h1>
+          <p className="text-sm md:text-base text-neutral-600 mt-1">
+            Gestiona tu información personal, métodos de pago y direcciones
+            guardadas
+          </p>
+        </div>
+        <ProfileLogoutButton />
       </div>
 
       {/* Datos Personales */}
