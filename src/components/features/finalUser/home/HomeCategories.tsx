@@ -7,27 +7,27 @@ const categories = [
   {
     name: "Restaurantes",
     image: "/Restaurants.svg",
-    href: "/restaurantes",
+    href: "/user/search?type=restaurant",
   },
   {
     name: "Mercado",
     image: "/Market.png",
-    href: "/mercados",
+    href: "/user/search?type=market",
   },
   {
     name: "Tabaco",
     image: "/tabaco.png",
-    href: "/tabaco",
+    href: "/user/search?type=tobacco",
   },
   {
     name: "Alcohol",
     image: "/alcohol.png",
-    href: "/licores",
+    href: "/user/search?type=liquor_store",
   },
   {
     name: "Farmacia",
     image: "/farmacia-tiny.png",
-    href: "/farmacias",
+    href: "/user/search?type=pharmacy",
   },
 ];
 

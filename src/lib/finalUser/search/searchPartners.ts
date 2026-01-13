@@ -9,17 +9,28 @@ interface SearchOptions {
   minRating?: number;
 }
 
+export interface SearchResultPartner extends SliderCardProps {
+  products: {
+    id: string;
+    name: string;
+    image_url: string | null;
+    base_price: number;
+    description: string | null;
+    display_price: number;
+  }[];
+}
+
 export async function searchPartners({
   query,
   types,
   sort,
   minRating,
-}: SearchOptions): Promise<SliderCardProps[]> {
+}: SearchOptions): Promise<SearchResultPartner[]> {
   const supabase = await createClient();
 
   let dbQuery = supabase
     .from("partners")
-    .select("id, name, image_url, partner_type, average_rating, total_ratings")
+    .select("id, name, image_url, partner_type, average_rating, total_ratings, products(id, name, image_url, base_price, display_price, description)")
     .eq("is_approved", true);
 
   if (query) {
@@ -64,8 +75,9 @@ export async function searchPartners({
       deliveryTime: "25-35 min",
       deliveryFee: "RD$0 ",
       href: `/user/stores/${p.id}`,
+      products: (p.products as any[])?.slice(0, 5) || [],
     };
   });
 
-  return cards;
+  return cards as SearchResultPartner[];
 }
