@@ -2,11 +2,20 @@
 
 import { useAppSelector, useAppDispatch } from "@/src/lib/store/hooks";
 import { toggleAddressSlider } from "@/src/lib/store/uiSlice";
-import { ChevronDown, Bell, User } from "lucide-react";
+import { ChevronDown, Bell, User, ShoppingCart } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
-export default function CustomSearchHeader() {
+interface CustomSearchHeaderProps {
+  title?: string;
+  icon?: string | null;
+}
+
+export default function CustomSearchHeader({
+  title = "Comercios",
+  icon,
+}: CustomSearchHeaderProps) {
   const dispatch = useAppDispatch();
   const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
   const [hydrated, setHydrated] = useState(false);
@@ -19,12 +28,9 @@ export default function CustomSearchHeader() {
     if (!hydrated) return "Altos De Chavon"; // Mock default for SSR/Initial
     if (!addresses || !selectedAddressId) return "Seleccionar dirección";
     const selected = addresses.find((a) => (a.id as any) === selectedAddressId);
-
     if (selected) {
-      // Construct address similar to UserHeader logic
-      // Assuming location_type and location_number exist or similar.
-      // UserHeader: `${label} ${selected.location_number}`
       const label = (selected.location_type as string)?.toUpperCase?.() || "";
+      // Clean simple display for header
       return (
         `${label} ${selected.location_number || ""}`.trim() ||
         selected.address ||
@@ -35,39 +41,61 @@ export default function CustomSearchHeader() {
   }, [addresses, selectedAddressId, hydrated]);
 
   return (
-    <div className="fixed top-0 left-0 right-0 z-[60] bg-white h-[70px] px-4 flex items-center justify-between md:hidden shadow-sm">
-      {/* Address Trigger */}
-      <button
-        onClick={() => dispatch(toggleAddressSlider())}
-        className="flex flex-col items-start pt-4"
-      >
-        <div className="flex items-center gap-1">
-          <span className="text-[15px] font-bold text-black font-[Poppins]">
-            {displayAddress}
-          </span>
-          <ChevronDown
-            size={16}
-            className="text-black bg-gray-100 rounded-full p-[2px]"
-          />
-        </div>
-      </button>
+    <>
+      {/* Spacer to push content down. Layout gives 64px (pt-16), Header is ~96px. Need ~32px extra. */}
+      <div className="md:hidden h-[32px] w-full" />
 
-      {/* Right Icons */}
-      <div className="flex items-center gap-4 pt-4">
-        {/* Bell */}
-        <div className="relative w-[30px] h-[30px] flex items-center justify-center bg-gray-100 rounded-full">
-          <Bell size={16} className="text-black" />
-          <span className="absolute top-[2px] right-[2px] w-[8px] h-[8px] bg-yellow-400 rounded-full border border-white"></span>
+      <div className="fixed top-0 left-0 right-0 z-[60] bg-white pt-2 pb-3 px-4 flex flex-col gap-3 md:hidden shadow-sm">
+        {/* Row 1: Centered Address Trigger */}
+        <div className="flex justify-center w-full py-5">
+          <button
+            onClick={() => dispatch(toggleAddressSlider())}
+            className="flex items-center gap-1"
+          >
+            <span className="text-[14px] font-bold text-black font-[Poppins]">
+              {displayAddress}
+            </span>
+            <ChevronDown size={14} className="text-black" />
+          </button>
         </div>
 
-        {/* Profile */}
-        <Link href="/user/profile">
-          <div className="w-[30px] h-[30px] bg-gray-200 rounded-full overflow-hidden border border-gray-300">
-            {/* Abstract user icon or image if available. Just using icon for now to match style */}
-            <User className="w-full h-full p-1 text-gray-500" />
+        {/* Row 2: Title and Actions */}
+        <div className="flex items-center justify-between w-full">
+          {/* Left: Title & Icon */}
+          <div className="flex items-center gap-2">
+            {icon && (
+              <div className="relative w-6 h-6">
+                <Image src={icon} alt={title} fill className="object-contain" />
+              </div>
+            )}
+            <h1 className="text-xl font-bold text-black font-[Poppins] tracking-tight">
+              {title}
+            </h1>
           </div>
-        </Link>
+
+          {/* Right: Actions (User, Bell, Cart) */}
+          <div className="flex items-center gap-3">
+            {/* Profile */}
+            <Link href="/user/profile">
+              <div className="w-[36px] h-[36px] flex items-center justify-center bg-gray-50 rounded-full">
+                <User size={20} className="text-black" />
+              </div>
+            </Link>
+
+            {/* Bell */}
+            <div className="relative w-[36px] h-[36px] flex items-center justify-center bg-gray-50 rounded-full">
+              <Bell size={20} className="text-black" />
+            </div>
+
+            {/* Cart */}
+            <Link href="/user/cart">
+              <div className="w-[36px] h-[36px] flex items-center justify-center bg-gray-50 rounded-full">
+                <ShoppingCart size={20} className="text-black" />
+              </div>
+            </Link>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

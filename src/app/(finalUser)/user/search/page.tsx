@@ -6,6 +6,10 @@ import CustomSearchHeader from "@/src/components/features/finalUser/search/Custo
 import MobileSearchBar from "@/src/components/features/finalUser/search/MobileSearchBar";
 import PartnerAccordionList from "@/src/components/features/finalUser/search/PartnerAccordionList";
 import Image from "next/image";
+import { Suspense } from "react";
+import SliderSectionSkeleton from "@/src/components/basics/itemsSlider/SliderSectionSkeleton";
+import SearchRecommendedServer from "@/src/components/features/finalUser/search/SearchRecommendedServer";
+import SearchPromoSlider from "@/src/components/features/finalUser/search/SearchPromoSlider";
 
 interface PageProps {
   searchParams: Promise<{
@@ -55,30 +59,14 @@ export default async function SearchPage({ searchParams }: PageProps) {
   return (
     <div className="mx-auto max-w-7xl md:p-4 md:px-6 lg:px-8">
       {/* Mobile-only Header Overrides */}
-      <CustomSearchHeader />
+      <CustomSearchHeader title={title} icon={icon} />
 
-      <div className="pt-[80px] md:pt-4 px-4 md:px-0">
-        {/* Category Title Row (Mobile) */}
-        {!query && (
-          <div className="md:hidden flex items-center gap-3 mb-5">
-            {icon && (
-              <div className="w-[44px] h-[44px] relative rounded-full overflow-hidden shadow-sm bg-gray-50 p-1 flex-shrink-0">
-                <Image
-                  src={icon}
-                  alt={title}
-                  fill
-                  className="object-cover rounded-full"
-                />
-              </div>
-            )}
-            <h1 className="text-2xl font-bold font-[Open Sans] text-black pt-1">
-              {title}
-            </h1>
-          </div>
-        )}
-
+      <div className="pt-10 px-4 md:px-0">
         {/* Search Bar Mobile */}
         <MobileSearchBar placeholder="Busca en El Nacional" />
+
+        {/* Promo Slider Mobile */}
+        <SearchPromoSlider />
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters (Desktop) */}
@@ -103,6 +91,13 @@ export default async function SearchPage({ searchParams }: PageProps) {
                 {/* Mobile Accordion List */}
                 <div className="md:hidden">
                   <PartnerAccordionList partners={results} />
+                </div>
+
+                {/* Mobile Recommended Slider (Reused from Home) */}
+                <div className="md:hidden mt-8 mb-8">
+                  <Suspense fallback={<SliderSectionSkeleton />}>
+                    <SearchRecommendedServer title="Recomendados para ti" />
+                  </Suspense>
                 </div>
 
                 {/* Desktop Grid */}

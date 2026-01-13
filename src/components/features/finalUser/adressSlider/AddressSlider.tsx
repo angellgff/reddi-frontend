@@ -70,7 +70,7 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
       <div
         className={`
           fixed top-0 left-0 h-full w-full
-          bg-white shadow-xl z-50
+          bg-white shadow-xl z-[100]
           flex flex-col
           transform transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full"}
