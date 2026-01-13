@@ -58,33 +58,33 @@ export default function ProductCardRestaurant({
 
         {/* Description line (Subtitle) */}
         {p.description ? (
-            <p className="text-[8px] text-[#6A6C71] font-semibold leading-tight line-clamp-1">
-                {p.description}
-            </p>
+          <p className="text-[8px] text-[#6A6C71] font-semibold leading-tight line-clamp-1">
+            {p.description}
+          </p>
         ) : (
-             // Placeholder or empty
-             <div className="h-2" />
+          // Placeholder or empty
+          <div className="h-2" />
         )}
 
         {/* Tag or Info (e.g. -20%) */}
-         {/* Temporarily hidden or based on discount */}
+        {/* Temporarily hidden or based on discount */}
         {p.discount_percentage ? (
-            <div className="mt-auto mb-1">
-                 <span className="bg-[#04BD88]/25 text-[#04BD88] text-[6px] font-bold px-1 py-0.5 rounded">
-                    -{p.discount_percentage}%
-                 </span>
-            </div>
+          <div className="mt-auto mb-1">
+            <span className="bg-[#04BD88]/25 text-[#04BD88] text-[6px] font-bold px-1 py-0.5 rounded">
+              -{p.discount_percentage}%
+            </span>
+          </div>
         ) : (
-            <div className="mt-auto" />
+          <div className="mt-auto" />
         )}
 
         {/* Add Button - Floating Green + Button */}
-        <button 
-            type="button"
-            onClick={(e) => onAdd(p, e)}
-            className="absolute right-2 top-[-12px] w-[24px] h-[24px] bg-[#04BD88] rounded-[3px] flex items-center justify-center shadow-md z-10"
+        <button
+          type="button"
+          onClick={(e) => onAdd(p, e)}
+          className="absolute right-2 top-[-12px] w-[24px] h-[24px] bg-[#04BD88] rounded-[3px] flex items-center justify-center shadow-md z-10"
         >
-            <PlusIcon className="w-3 h-3 text-white" />
+          <PlusIcon className="w-3 h-3 text-white" />
         </button>
       </div>
     </div>

@@ -131,7 +131,7 @@ export default function StoreMenu({
         {/* Search Input Visual - Styled to match CSS: #EBEBEB, Rounded 11px */}
         <div className="relative">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-             <SearchIcon className="w-5 h-5 text-[#6A6C71]" />
+            <SearchIcon className="w-5 h-5 text-[#6A6C71]" />
           </div>
           <input
             type="text"

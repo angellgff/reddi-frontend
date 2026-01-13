@@ -68,7 +68,7 @@ export default function StoreHeader({
               className="w-full h-full object-cover"
             />
           ) : (
-             <div className="w-full h-full bg-gray-200" />
+            <div className="w-full h-full bg-gray-200" />
           )}
         </div>
 
