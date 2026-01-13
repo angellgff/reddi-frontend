@@ -6,6 +6,8 @@ import type { StoreDetails as BaseStoreDetails } from "@/src/lib/finalUser/store
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import { useEffect } from "react";
 
+import StarIcon from "@/src/components/icons/StarIcon";
+
 // Extendemos el tipo para permitir nuevos campos opcionales sin romper.
 type ExtendedStoreDetails = BaseStoreDetails & {
   banner_url?: string | null;
@@ -19,7 +21,6 @@ export default function StoreHeader({
   store: ExtendedStoreDetails & { cover_image_url?: string | null };
 }) {
   const showStore = useFloatingButtonStore((state) => state.showStore);
-  const showSearch = useFloatingButtonStore((state) => state.showSearch);
 
   useEffect(() => {
     if (store?.name) {
@@ -34,81 +35,68 @@ export default function StoreHeader({
     typeof store.average_rating === "number"
       ? Number(store.average_rating.toFixed(1))
       : 0;
-  const phone = store.phone || "--";
+  // const phone = store.phone || "--";
   const deliveryTime = store.delivery_time || "25-35 min"; // fallback
 
   return (
-    // 1. El contenedor principal ya es 'relative', lo que es perfecto.
-    <div className="rounded-2xl overflow-hidden shadow-sm bg-white relative">
-      {/* Banner */}
-      <div className="relative h-36 md:h-48 w-full bg-gray-100">
+    // Rediseño basado en 'Restaurante' view (Mobile Hero style)
+    <div className="relative w-full h-[340px] rounded-b-[46px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
+      {/* Banner de fondo cubriendo todo el header */}
+      <div className="absolute inset-0 w-full h-full bg-gray-200">
         {banner ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={banner}
             alt={`${store.name} banner`}
-            className="absolute inset-0 w-full h-full object-cover"
+            className="w-full h-full object-cover"
           />
         ) : null}
-        {/* El gradiente puede ser opcional si la imagen ya es oscura */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+        {/* Gradiente estilo 'Restaurante': linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0.4) 100%) */}
+        {/* Ajustado para legibilidad del texto blanco */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
       </div>
 
-      {/* 2. Logo superpuesto */}
-      <div className="absolute left-6 top-[136px] md:left-20 md:top-40 z-10">
-        {logo ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={logo}
-            alt={store.name}
-            // 3. Clases clave para el logo
-            className="w-28 h-28 md:w-40 md:h-40 rounded-full object-cover ring-4 ring-primary shadow-lg"
-          />
-        ) : (
-          <div className="w-24 h-24 md:w-40 md:h-40 rounded-full bg-gray-200 ring-1 ring-primary shadow-lg" />
-        )}
-      </div>
+      {/* Contenido superpuesto (Bottom Left) */}
+      <div className="absolute bottom-8 left-6 md:bottom-10 md:left-10 z-10 flex flex-col gap-2">
+        {/* Logo Profile */}
+        <div className="w-[49px] h-[49px] rounded-full border-2 border-white overflow-hidden bg-gray-100 mb-1">
+          {logo ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logo}
+              alt={store.name}
+              className="w-full h-full object-cover"
+            />
+          ) : (
+             <div className="w-full h-full bg-gray-200" />
+          )}
+        </div>
 
-      {/* 4. Fila de información */}
-      <div className="ml-40 md:ml-0 md:px-5 py-6 flex flex-col md:flex-row md:items-end gap-4">
-        {/* 5. Contenedor de texto con padding a la izquierda para no chocar con el logo */}
-        <div className="md:pl-[240px] w-full">
-          <h1 className="text-2xl font-bold">{store.name}</h1>
+        {/* Nombre del Restaurante */}
+        <h1 className="text-white text-[24px] font-[800] leading-[24px] font-['Open_Sans']">
+          {store.name}
+        </h1>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-black">
-            <span className="inline-flex items-center font-semibold">
-              Valoraciones
-              <span className="font-bold text-black ml-1"> {rating} ⭐</span>
-              {typeof store.total_ratings === "number" && (
-                <span className="text-xs text-gray-600 ml-2">
-                  ({store.total_ratings})
-                </span>
-              )}
+        {/* Rating y Badge */}
+        <div className="flex items-center gap-2">
+          {/* Rating Group */}
+          <div className="flex items-center gap-[2px]">
+            <span className="text-[#F3F3F3] text-[12px] font-[600] font-['Open_Sans'] leading-[18px]">
+              {rating}
             </span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF6FF] text-[#1C398E] border border-[#BEDBFF]">
+            <StarIcon className="w-[9px] h-[9px] text-[#F3F3F3] fill-[#F3F3F3]" />
+            <span className="text-[#F3F3F3] text-[12px] font-[600] font-['Open_Sans'] leading-[18px] ml-[2px]">
+              ({store.total_ratings})
+            </span>
+          </div>
+
+          {/* Delivery Time Badge */}
+          <div className="flex items-center justify-center bg-[#04BD88] px-[4px] py-[2px] rounded-[6px] h-[16px] min-w-[40px]">
+            <span className="text-[#F3F3F3] text-[8px] font-[500] font-['Inter'] leading-[16px] text-center">
               {deliveryTime}
             </span>
           </div>
-
-          {/* Dirección y Teléfono */}
-          <div className="mt-2 text-sm text-black space-y-1">
-            {store.address && (
-              <p>
-                Dirección
-                <span className="font-bold text-black ml-1">
-                  {" "}
-                  {store.address}
-                </span>
-              </p>
-            )}
-            <p>
-              Teléfono
-              <span className="font-bold text-black ml-1"> {phone} </span>
-            </p>
-          </div>
         </div>
-
-        {/* Espacio reservado para futuras acciones (suscripciones, seguir, etc.) */}
       </div>
     </div>
   );

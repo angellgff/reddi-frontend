@@ -21,6 +21,7 @@ import ProductCardRestaurant, {
 import ProductCardMarket from "./productCards/ProductCardMarket";
 import ArrowLeftIcon from "@/src/components/icons/ArrowLeftIcon";
 import ArrowRightIcon from "@/src/components/icons/ArrowRightIcon";
+import SearchIcon from "@/src/components/icons/SearchIcon";
 
 type PartnerType =
   | "market"
@@ -44,7 +45,7 @@ export default function StoreMenu({
   const currentPartnerId = useAppSelector(selectCartPartnerId);
   const scrollersRef = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const [query] = useState(searchParams.get("q") || "");
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || ""
   );
@@ -125,10 +126,25 @@ export default function StoreMenu({
         type={toast.type}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
       />
-      {/* Search + Categories Bar */}
-      <div className="space-y-4">
+      {/* Search Bar & Categories */}
+      <div className="space-y-5 px-1">
+        {/* Search Input Visual - Styled to match CSS: #EBEBEB, Rounded 11px */}
         <div className="relative">
-          <div className="flex gap-2 overflow-x-auto scrollbar-none py-2">
+          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+             <SearchIcon className="w-5 h-5 text-[#6A6C71]" />
+          </div>
+          <input
+            type="text"
+            placeholder="Busca The Butcher Shop"
+            className="w-full pl-12 pr-4 h-[44px] bg-[#EBEBEB] border-none rounded-[11px] text-sm font-semibold text-[#6A6C71] placeholder-[#6A6C71] text-center focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Categories */}
+        <div className="relative">
+          <div className="flex gap-3 overflow-x-auto scrollbar-none py-2">
             <TagsTabs
               tags={[{ value: "", label: "Todos" }, ...menu.categories]}
               selectedCategoryId={selectedCategory}
@@ -136,16 +152,6 @@ export default function StoreMenu({
               disabled={isPending}
             />
           </div>
-        </div>
-        {/* Offer banner placeholder */}
-        <div className="rounded-lg bg-emerald-700 text-white px-5 py-3 flex items-center justify-between">
-          <div className="text-sm font-medium">
-            ¡Oferta especial hoy! Disfruta 25% Off 2 Presas De Pollo. Aplican
-            T&C
-          </div>
-          <button className="text-xs font-semibold bg-white text-emerald-700 px-3 py-1 rounded-md hover:bg-gray-100">
-            Ver detalles
-          </button>
         </div>
       </div>
 
@@ -156,41 +162,9 @@ export default function StoreMenu({
       ) : (
         groups.map((group) => (
           <div key={group.id} className="space-y-4">
-            {/* CAMBIO 1: Contenedor Flex para el título y los botones */}
-            <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">{group.name}</h2>
-
-              {/* CAMBIO 2: Mover los botones aquí y simplificar sus clases */}
-              <div className="hidden md:flex items-center gap-2">
-                <button
-                  type="button"
-                  aria-label="Scroll left"
-                  onClick={() =>
-                    scrollersRef.current[group.id]?.scrollBy({
-                      left: -300,
-                      behavior: "smooth",
-                    })
-                  }
-                  // Se eliminan clases de posicionamiento absoluto
-                  className="flex w-9 h-9 rounded-full bg-white border border-gray-200 shadow-sm hover:shadow items-center justify-center"
-                >
-                  <ArrowLeftIcon />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Scroll right"
-                  onClick={() =>
-                    scrollersRef.current[group.id]?.scrollBy({
-                      left: 300,
-                      behavior: "smooth",
-                    })
-                  }
-                  // Se eliminan clases de posicionamiento absoluto
-                  className="flex w-9 h-9 rounded-full bg-emerald-500 shadow items-center justify-center"
-                >
-                  <ArrowRightIcon fill="#FFFFFF" />
-                </button>
-              </div>
+            {/* Group Title: 'Elegidos por el chef' style */}
+            <div className="flex justify-between items-center px-1">
+              <h2 className="text-xl font-bold text-black">{group.name}</h2>
             </div>
 
             {/* El contenedor de la lista de productos ya no necesita los botones */}
@@ -200,7 +174,7 @@ export default function StoreMenu({
                 ref={(el) => {
                   scrollersRef.current[group.id] = el;
                 }}
-                className="flex gap-4 overflow-x-auto py-1 scroll-smooth scrollbar-none"
+                className="flex gap-4 overflow-x-auto scrollbar-none pb-4 px-1"
               >
                 {group.products.map((p) => {
                   const price = Number(p.display_price) || 0;

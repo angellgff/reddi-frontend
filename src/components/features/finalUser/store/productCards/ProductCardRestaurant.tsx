@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import React from "react";
+import PlusIcon from "@/src/components/icons/PlusIcon";
 
 export interface ProductCardBase {
   id: string;
@@ -26,62 +27,65 @@ export default function ProductCardRestaurant({
   product: p,
   discountedPrice,
   onOpen,
+  onAdd,
 }: Props) {
   return (
     <div
-      className="flex flex-row items-center gap-2.5 bg-white rounded-xl shadow-sm hover:shadow-md transition cursor-pointer flex-shrink-0 w-[260px]"
+      className="flex flex-col bg-white rounded-[12px] shadow-sm hover:shadow-md transition cursor-pointer flex-shrink-0 w-[139px] h-[171px] overflow-hidden relative"
       onClick={() => onOpen(p)}
     >
-      {/* Image Section */}
-      <div className="relative flex-shrink-0 w-[120px] h-[89px]">
+      {/* Image Section - Top half */}
+      <div className="relative w-full h-[90px] bg-gray-100">
         {p.image_url ? (
           <Image
             src={p.image_url}
             alt={p.name}
             fill
-            sizes="153px"
-            className="object-cover rounded-lg"
+            sizes="139px"
+            className="object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-gray-100 rounded-lg" />
+          <div className="w-full h-full bg-gray-200" />
         )}
       </div>
 
-      {/* Text Content Section */}
-      <div className="flex flex-col self-stretch flex-1 py-1 pr-2 gap-1 min-w-0">
-        <p className="font-bold text-black text-base leading-tight truncate">
+      {/* Content Section */}
+      <div className="p-2 flex flex-col flex-1 relative">
+        {/* Title */}
+        <h3 className="text-[12px] font-bold text-black leading-tight line-clamp-2 mb-1">
           {p.name}
-        </p>
+        </h3>
 
-        {p.description && (
-          <p className="text-gray-500 text-xs line-clamp-2 leading-snug">
-            {p.description}
-          </p>
+        {/* Description line (Subtitle) */}
+        {p.description ? (
+            <p className="text-[8px] text-[#6A6C71] font-semibold leading-tight line-clamp-1">
+                {p.description}
+            </p>
+        ) : (
+             // Placeholder or empty
+             <div className="h-2" />
         )}
 
-        <div className="flex items-center gap-1 mt-auto text-xs">
-          {p.discount_percentage && (
-            <>
-              <span style={{ color: "#04BD88" }} className="font-bold">
-                -{p.discount_percentage}%
-              </span>
-              <span className="text-gray-400 font-medium"> • </span>
-            </>
-          )}
+        {/* Tag or Info (e.g. -20%) */}
+         {/* Temporarily hidden or based on discount */}
+        {p.discount_percentage ? (
+            <div className="mt-auto mb-1">
+                 <span className="bg-[#04BD88]/25 text-[#04BD88] text-[6px] font-bold px-1 py-0.5 rounded">
+                    -{p.discount_percentage}%
+                 </span>
+            </div>
+        ) : (
+            <div className="mt-auto" />
+        )}
 
-          <span className="font-bold text-black">
-            RD$ {Math.round(discountedPrice)}
-          </span>
-
-          {p.previous_price && (
-            <>
-              <span className="text-gray-400 font-medium"> • </span>
-              <span className="font-medium text-gray-500 line-through">
-                RD$ {Math.round(p.previous_price)}
-              </span>
-            </>
-          )}
-        </div>
+        {/* Add Button - Floating Green + Button */}
+        <button 
+            type="button"
+            onClick={(e) => onAdd(p, e)}
+            className="absolute right-2 top-[-12px] w-[24px] h-[24px] bg-[#04BD88] rounded-[3px] flex items-center justify-center shadow-md z-10"
+        >
+            <PlusIcon className="w-3 h-3 text-white" />
+        </button>
       </div>
     </div>
   );
