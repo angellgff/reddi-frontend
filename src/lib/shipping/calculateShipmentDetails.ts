@@ -82,13 +82,13 @@ async function geocodeWithGoogle(
     const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
     url.searchParams.set("address", query);
     url.searchParams.set("key", key);
-    
+
     const resp = await fetch(url.toString());
     if (!resp.ok) return null;
-    
+
     const json = await resp.json();
     if (json.status !== "OK" || !json.results?.[0]) return null;
-    
+
     const location = json.results[0].geometry.location;
     // Google returns { lat, lng }
     if (typeof location.lng === "number" && typeof location.lat === "number") {
@@ -106,31 +106,35 @@ async function geocodeWithGoogle(
  */
 function decodePolyline(encoded: string): [number, number][] {
   const poly: [number, number][] = [];
-  let index = 0, len = encoded.length;
-  let lat = 0, lng = 0;
+  let index = 0,
+    len = encoded.length;
+  let lat = 0,
+    lng = 0;
 
   while (index < len) {
-      let b, shift = 0, result = 0;
-      do {
-          b = encoded.charCodeAt(index++) - 63;
-          result |= (b & 0x1f) << shift;
-          shift += 5;
-      } while (b >= 0x20);
-      let dlat = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lat += dlat;
-
-      shift = 0;
+    let b,
+      shift = 0,
       result = 0;
-      do {
-          b = encoded.charCodeAt(index++) - 63;
-          result |= (b & 0x1f) << shift;
-          shift += 5;
-      } while (b >= 0x20);
-      let dlng = ((result & 1) != 0 ? ~(result >> 1) : (result >> 1));
-      lng += dlng;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    let dlat = (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+    lat += dlat;
 
-      // Google maps returns (lat, lng), but GeoJSON expects (lng, lat)
-      poly.push([lng / 1e5, lat / 1e5]);
+    shift = 0;
+    result = 0;
+    do {
+      b = encoded.charCodeAt(index++) - 63;
+      result |= (b & 0x1f) << shift;
+      shift += 5;
+    } while (b >= 0x20);
+    let dlng = (result & 1) != 0 ? ~(result >> 1) : result >> 1;
+    lng += dlng;
+
+    // Google maps returns (lat, lng), but GeoJSON expects (lng, lat)
+    poly.push([lng / 1e5, lat / 1e5]);
   }
   return poly;
 }
@@ -285,7 +289,10 @@ export async function calculateShipmentDetails(
     routeJson = await resp.json();
     console.log("[shipping] directions response status", routeJson?.status);
     if (routeJson?.error_message) {
-      console.error("[shipping] directions API error message:", routeJson.error_message);
+      console.error(
+        "[shipping] directions API error message:",
+        routeJson.error_message
+      );
     }
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";

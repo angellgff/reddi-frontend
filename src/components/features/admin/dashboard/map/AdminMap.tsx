@@ -121,11 +121,17 @@ export default function AdminMap({
     data.shipments?.forEach((s) => {
       const ship = s as MapShipment;
       if (ship.origin) {
-        bounds.extend({ lat: ship.origin.latitude, lng: ship.origin.longitude });
+        bounds.extend({
+          lat: ship.origin.latitude,
+          lng: ship.origin.longitude,
+        });
         hasPoints = true;
       }
       if (ship.destination) {
-        bounds.extend({ lat: ship.destination.latitude, lng: ship.destination.longitude });
+        bounds.extend({
+          lat: ship.destination.latitude,
+          lng: ship.destination.longitude,
+        });
         hasPoints = true;
       }
       if (ship.routeGeoJson?.coordinates) {
@@ -152,12 +158,12 @@ export default function AdminMap({
 
   if (!apiKey) {
     return (
-        <div
-            className="flex items-center justify-center rounded-xl border border-[#D9DCE3] text-sm text-gray-500"
-            style={{ height }}
-        >
-            Mapa no disponible (falta API Key)
-        </div>
+      <div
+        className="flex items-center justify-center rounded-xl border border-[#D9DCE3] text-sm text-gray-500"
+        style={{ height }}
+      >
+        Mapa no disponible (falta API Key)
+      </div>
     );
   }
 

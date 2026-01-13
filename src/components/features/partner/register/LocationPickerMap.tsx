@@ -25,7 +25,9 @@ export default function LocationPickerMap({
 
   useEffect(() => {
     if (!apiKey) {
-      setError("Falta la API Key de Google Maps (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)");
+      setError(
+        "Falta la API Key de Google Maps (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)"
+      );
       return;
     }
 
@@ -37,48 +39,60 @@ export default function LocationPickerMap({
       libraries: ["maps", "marker"],
     });
 
-    loader.load().then(async () => {
-      const { Map } = await google.maps.importLibrary("maps") as google.maps.MapsLibrary;
-      const { Marker } = await google.maps.importLibrary("marker") as google.maps.MarkerLibrary;
+    loader
+      .load()
+      .then(async () => {
+        const { Map } = (await google.maps.importLibrary(
+          "maps"
+        )) as google.maps.MapsLibrary;
+        const { Marker } = (await google.maps.importLibrary(
+          "marker"
+        )) as google.maps.MarkerLibrary;
 
-      const initialCenter = lng && lat ? { lat, lng } : { lat: 18.4861, lng: -69.9312 }; // Santo Domingo
-      const initialZoom = lng && lat ? 15 : 12;
+        const initialCenter =
+          lng && lat ? { lat, lng } : { lat: 18.4861, lng: -69.9312 }; // Santo Domingo
+        const initialZoom = lng && lat ? 15 : 12;
 
-      const map = new Map(containerRef.current!, {
-        center: initialCenter,
-        zoom: initialZoom,
-        mapTypeControl: false,
-        streetViewControl: false,
-      });
+        const map = new Map(containerRef.current!, {
+          center: initialCenter,
+          zoom: initialZoom,
+          mapTypeControl: false,
+          streetViewControl: false,
+        });
 
-      mapRef.current = map;
+        mapRef.current = map;
 
-      map.addListener("click", (e: google.maps.MapMouseEvent) => {
-        if (e.latLng) {
-          onLocationSelect(e.latLng.lat(), e.latLng.lng());
+        map.addListener("click", (e: google.maps.MapMouseEvent) => {
+          if (e.latLng) {
+            onLocationSelect(e.latLng.lat(), e.latLng.lng());
+          }
+        });
+
+        // Initial marker
+        if (lat && lng) {
+          updateMarker(lat, lng, Marker);
         }
+      })
+      .catch((e) => {
+        console.error("Google Maps load error", e);
+        setError("Error al cargar Google Maps");
       });
-
-      // Initial marker
-      if (lat && lng) {
-         updateMarker(lat, lng, Marker);
-      }
-    }).catch((e) => {
-      console.error("Google Maps load error", e);
-      setError("Error al cargar Google Maps");
-    });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [apiKey]);
 
-  const updateMarker = async (latitude: number, longitude: number, MarkerClass?: typeof google.maps.Marker) => {
+  const updateMarker = async (
+    latitude: number,
+    longitude: number,
+    MarkerClass?: typeof google.maps.Marker
+  ) => {
     if (!mapRef.current) return;
-    
+
     // Ensure we have the Marker class if called outside init
     let M = MarkerClass;
     if (!M) {
-         // Fallback if not passed, though in useEffect below it might be tricky. 
-         // Actually google.maps.Marker is globally available after load.
-         M = google.maps.Marker;
+      // Fallback if not passed, though in useEffect below it might be tricky.
+      // Actually google.maps.Marker is globally available after load.
+      M = google.maps.Marker;
     }
 
     if (!markerRef.current) {
@@ -101,7 +115,9 @@ export default function LocationPickerMap({
 
   if (error) {
     return (
-      <div className={`bg-gray-100 flex items-center justify-center text-red-500 text-sm p-4 ${className}`}>
+      <div
+        className={`bg-gray-100 flex items-center justify-center text-red-500 text-sm p-4 ${className}`}
+      >
         {error}
       </div>
     );
