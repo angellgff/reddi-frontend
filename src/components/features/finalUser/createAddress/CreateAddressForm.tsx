@@ -9,7 +9,7 @@ import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import LocationPickerMap from "@/src/components/features/partner/register/LocationPickerMap";
 import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
 
-type LocationType = "Villa" | "Yate" | "Habitaci�n" | "Piscina";
+type LocationType = "Villa" | "Yate" | "Habitación" | "Piscina";
 
 const LOCATION_TYPES: LocationType[] = [
   "Villa",
@@ -46,7 +46,7 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
   const handleSave = () => {
     if (!locationNumber.trim()) {
       toast.error(
-        "Por favor ingresa el n�mero de " + locationType.toLowerCase()
+        "Por favor ingresa el número de " + locationType.toLowerCase()
       );
       return;
     }
@@ -90,7 +90,7 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
   return (
     <div className="w-full h-full flex flex-col bg-white overflow-y-auto">
       {/* Map Section - 35% height */}
-      <div className="relative h-[35%] w-full bg-gray-100">
+      <div className="relative h-[35vh] w-full bg-gray-100 shrink-0">
         <LocationPickerMap
           lat={lat}
           lng={lng}

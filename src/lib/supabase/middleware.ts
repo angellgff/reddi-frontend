@@ -304,7 +304,7 @@ export async function updateSession(request: NextRequest) {
     `);
 
     // SIEMPRE entramos si no hay cookie nueva.
-    if (shouldCheckAddress && !hasAddressCookie) {
+    if (shouldCheckAddress && !hasAddressCookie && user) {
       console.log(
         `[MW-DEBUG] Verificando dirección para Usuario ${user.id}...`
       );

@@ -89,6 +89,19 @@ export default function AddressEditForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+
+    // Validar que exista el número de ubicación
+    if (!formData.location_number.trim()) {
+      setError(`Por favor ingresa el número de ${formData.location_type}`);
+      return;
+    }
+
+    // Validar que se haya seleccionado una ubicación en el mapa (como en CreateAddressForm)
+    if (formData.lat === null || formData.lng === null) {
+      setError("Por favor selecciona una ubicación en el mapa");
+      return;
+    }
+
     const fd = new window.FormData();
     fd.set("location_type", formData.location_type);
     fd.set("location_number", formData.location_number);
