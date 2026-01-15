@@ -1,6 +1,6 @@
 services:
   app:
-    container_name: reddi-frontend
+    container_name: reddi-newdesign
     build:
       context: .
       dockerfile: Dockerfile
