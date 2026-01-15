@@ -280,6 +280,77 @@ export async function updateSession(request: NextRequest) {
       return redirectWithCookies(nextUrl, supabaseResponse);
     }
 
+    // --- CHECK ADDRESS FOR USERS ---
+    // Agregamos proteccion para usuarios sin direccion (finalUser)
+    // Se salta si ya estamos en create-address, api, o assets
+    // CAMBIO: Usamos 'has_address_v2' para invalidar cookies anteriores y forzar chequeo nuevo
+    const hasAddressCookie = request.cookies.get("has_address_v2");
+
+    // Debug Log para Address Check
+    const shouldCheckAddress =
+      user &&
+      (!role || role === "user" || role === "authenticated") &&
+      !path.startsWith("/user/create-address") &&
+      !path.startsWith("/api/") &&
+      !path.startsWith("/_next/") &&
+      path !== "/onboarding" &&
+      !isStaticAsset;
+
+    console.log(`[MW-DEBUG-ADDRESS] Vars: 
+      Role=${role}, 
+      Path=${path}, 
+      hasCookie=${!!hasAddressCookie?.value},
+      shouldCheck=${shouldCheckAddress}
+    `);
+
+    // SIEMPRE entramos si no hay cookie nueva.
+    if (shouldCheckAddress && !hasAddressCookie) {
+      console.log(
+        `[MW-DEBUG] Verificando dirección para Usuario ${user.id}...`
+      );
+
+      try {
+        const { count, error } = await withTimeout(
+          supabase
+            .from("user_addresses")
+            .select("*", { count: "exact", head: true })
+            .eq("user_id", user.id),
+          2000
+        );
+
+        if (error) {
+          console.error(
+            "[MW-DEBUG] Error query user_addresses:",
+            error.message
+          );
+        } else {
+          console.log(`[MW-DEBUG] Conteo direcciones: ${count}`);
+        }
+
+        if (count === 0) {
+          console.log(
+            "[MW-DEBUG] 🚨 Usuario sin dirección (count=0). Redirigiendo a /user/create-address"
+          );
+          return redirectWithCookies(
+            new URL("/user/create-address", request.url),
+            supabaseResponse
+          );
+        } else if (count && count > 0) {
+          console.log(
+            "[MW-DEBUG] ✅ Usuario tiene dirección. Seteando cookie 'has_address_v2'."
+          );
+          supabaseResponse.cookies.set("has_address_v2", "true", {
+            maxAge: 60 * 60 * 24 * 7,
+            path: "/",
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production",
+          });
+        }
+      } catch (err) {
+        console.warn("[MW-DEBUG] ⚠️ Excepción DB:", err);
+      }
+    }
+
     if (isAuthPath || path === "/") {
       const homeUrl = getHomeUrlForRole(role);
       console.log(
@@ -369,16 +440,16 @@ export async function updateSession(request: NextRequest) {
 
   // 6. Lógica para usuarios NO AUTENTICADOS
   if (!isAuthed && !isPublicPath) {
-    // 7. Si ninguna regla se aplicó, permite el acceso
-
-    // Last check for Public Paths for Unauthenticated users who missed the check above because they were hitting a public path?
-    // Wait, if I hit /login (public path), loop 6 is skipped.
-    // I need a global check for onboarding regardless of auth status.
-
+    // Si la ruta no es pública y no está autenticado, redirigir a Login
     console.log(
-      `[MW-DEBUG] ✅ Acceso permitido a: ${path}. No se aplicó ninguna regla de redirección.`
+      `[MW-DEBUG] ⛔ Acceso denegado a ruta protegida: ${path}. Redirigiendo a /login...`
     );
-    return supabaseResponse;
+    const hiddenNext = new URL("/auth/login", request.url);
+    // Opcional: pasar ?next=... si deseamos retorno
+    if (path !== "/") {
+      hiddenNext.searchParams.set("next", path + request.nextUrl.search);
+    }
+    return redirectWithCookies(hiddenNext, supabaseResponse);
   }
 
   return supabaseResponse;

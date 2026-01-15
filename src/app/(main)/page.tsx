@@ -87,6 +87,9 @@ export default async function Home(props: {
     redirect(destination);
   }
 
+  // Redirect unauthenticated users to login as this page is no longer used as a landing page
+  redirect("/auth/login");
+
   return (
     <>
       <div className="mx-auto max-w-7xl w-full pb-[4.45rem] pt-32 md:pt-36 overflow-x-hidden">

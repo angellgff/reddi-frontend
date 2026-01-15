@@ -58,6 +58,16 @@ export async function createUserAddress(formData: FormData) {
   const latRaw = formData.get("lat");
   const lngRaw = formData.get("lng");
 
+  // New fields
+  const sector = String(formData.get("sector") ?? "").trim();
+  const alias = String(formData.get("alias") ?? "").trim();
+  const delivery_preference = String(
+    formData.get("delivery_preference") ?? "door"
+  ); // door | hand
+  const delivery_instructions = String(
+    formData.get("delivery_instructions") ?? ""
+  ).trim();
+
   const location_type = isLocationType(locationTypeRaw)
     ? locationTypeRaw
     : null;
@@ -72,6 +82,10 @@ export async function createUserAddress(formData: FormData) {
       error: "Número de villa/yate requerido.",
     } as const;
   }
+  if (!sector) {
+    return { success: false, error: "Sector requerido." } as const;
+  }
+
   // Basic allowlist to prevent strange characters; adjust as needed
   if (!/^[\w\-\s#]{1,32}$/.test(location_number)) {
     return {
@@ -89,10 +103,15 @@ export async function createUserAddress(formData: FormData) {
     return { success: false, error: "No autenticado." } as const;
   }
 
-  const payload: TablesInsert<"user_addresses"> = {
+  const payload: TablesInsert<"user_addresses"> & { [key: string]: any } = {
     user_id: user.id,
     location_type,
     location_number,
+    // Add new fields (casted via & any above or implicit if types matched)
+    sector,
+    alias,
+    delivery_preference,
+    delivery_instructions,
   };
 
   if (latRaw && lngRaw) {
