@@ -8,13 +8,13 @@ import { cn } from "@/src/lib/utils";
 
 const steps = [
   {
-    image: "/landing-woman.png",
+    image: "/onboard-1.png",
     title: "Todo al instante, desde donde estés.",
     description:
       "Compra fácil y recibe rápido. Reddi reúne tus productos favoritos en un solo toque.",
   },
   {
-    image: "/market.png", // Using market.png as placeholder for the delivery image
+    image: "/onboard-2.png",
     title: "Entrega rápida, justo a tu puerta.",
     description:
       "Pide fácilmente desde tu celular y recibe en solo minutos. ¡Solo crea tu cuenta gratuita y empieza ahora mismo!",
@@ -48,8 +48,6 @@ export default function OnboardingWizard() {
         router.refresh();
       } catch (error) {
         console.error("Failed to complete onboarding", error);
-        // If it fails, we might still want to let them in or show error
-        // For now, let's try to proceed
         router.push("/user/home");
       } finally {
         setLoading(false);
@@ -66,7 +64,6 @@ export default function OnboardingWizard() {
   const step = steps[currentStep];
 
   return (
-    // Outer container for desktop centering/background
     <div className="min-h-screen bg-white font-openSans md:flex md:items-center md:justify-center md:bg-gray-50 md:p-6">
       <div className="relative flex min-h-screen w-full flex-col justify-between bg-white transition-all md:min-h-[600px] md:h-auto md:w-full md:max-w-5xl md:flex-row md:overflow-hidden md:rounded-3xl md:shadow-xl lg:min-h-[650px]">
         {/* Splash Screen Overlay */}
@@ -89,9 +86,21 @@ export default function OnboardingWizard() {
           </div>
         </div>
 
-        {/* Left Section: Image Area */}
-        <div className="flex w-full flex-1 flex-col items-center justify-center bg-white px-6 pt-12 md:w-1/2 md:bg-[#F8F9FA] md:p-12 md:pt-12">
-          <div className="relative aspect-[347/366] w-full max-w-[300px] overflow-hidden rounded-[20px] shadow-sm transition-all md:max-w-[400px]">
+        {/* 
+          CAMBIOS REALIZADOS EN ESTA SECCIÓN:
+          1. h-[50vh]: Fuerza la altura al 50% de la pantalla en móvil.
+          2. p-0: Elimina el padding en móvil para que la imagen toque los bordes.
+          3. md:...: Restaura los valores originales para escritorio.
+        */}
+        <div className="flex h-[50vh] w-full flex-col items-center justify-center bg-white p-0 md:h-auto md:w-1/2 md:flex-1 md:bg-[#F8F9FA] md:p-12 md:pt-12">
+          {/* 
+            CAMBIOS EN EL WRAPPER DE LA IMAGEN:
+            1. h-full w-full: Ocupa todo el espacio del contenedor padre (50vh).
+            2. rounded-none: Quita los bordes redondeados en móvil.
+            3. max-w-none: Permite que la imagen se expanda completamente.
+            4. md:aspect... md:rounded...: Restaura el estilo de "tarjeta" en escritorio.
+          */}
+          <div className="relative h-full w-full overflow-hidden rounded-none shadow-none transition-all md:aspect-[347/366] md:h-auto md:max-w-[400px] md:rounded-[20px] md:shadow-sm">
             <Image
               src={step.image}
               alt="Onboarding"
@@ -103,7 +112,8 @@ export default function OnboardingWizard() {
         </div>
 
         {/* Right Section: Content Area */}
-        <div className="flex w-full flex-col justify-center px-6 pb-8 pt-8 md:w-1/2 md:p-12 lg:p-20">
+        {/* Agregamos min-h-[50vh] para asegurar que ocupe el resto de la pantalla en móvil */}
+        <div className="flex min-h-[50vh] w-full flex-col justify-center px-6 pb-8 pt-8 md:min-h-0 md:w-1/2 md:p-12 lg:p-20">
           <div className="mx-auto w-full max-w-md">
             {/* Indicators */}
             <div className="mb-8 flex gap-3">
