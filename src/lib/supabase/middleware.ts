@@ -188,7 +188,16 @@ export async function updateSession(request: NextRequest) {
   // 4. Definir rutas públicas y de autenticación
   const publicPaths = [
     "/",
+    "/onboarding",
     "/login",
+    "/auth/login",
+    "/auth/registro",
+    "/auth/forgot-password",
+    "/auth/update-password",
+    "/auth/verify-email",
+    "/auth/sign-up",
+    "/auth/error",
+    "/auth/auth-code-error",
     "/registro",
     "/registro/celular",
     "/admin/login",
@@ -206,6 +215,10 @@ export async function updateSession(request: NextRequest) {
   ];
   const authPaths = [
     "/login",
+    "/auth/login",
+    "/auth/registro",
+    "/auth/sign-up",
+    "/auth/forgot-password",
     "/registro",
     "/registro/celular",
     "/admin/login",
