@@ -1,4 +1,5 @@
 import DeliveryHeader from "@/src/components/features/repartidor/header/DeliveryHeader";
+import DriverLocationTracker from "@/src/components/features/delivery/DriverLocationTracker";
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 import RepartidorFooter from "@/src/components/features/repartidor/RepartidorFooter";
@@ -49,10 +50,10 @@ export default async function DeliveryLayout({
     r === "admin"
       ? "/admin/dashboard"
       : r === "market" // Si usas 'market' en el middleware, úsalo aquí también
-      ? "/partner/market/dashboard"
-      : r === "delivery"
-      ? "/repartidor/home"
-      : "/user/home";
+        ? "/partner/market/dashboard"
+        : r === "delivery"
+          ? "/repartidor/home"
+          : "/user/home";
 
   if (role !== "delivery") {
     redirect(toHome(role));
@@ -60,8 +61,11 @@ export default async function DeliveryLayout({
 
   return (
     <>
+      <DriverLocationTracker />
       <DeliveryHeader />
-      <main className="bg-[#ECEFF0] min-h-screen pb-20 md:pb-0">{children}</main>
+      <main className="bg-[#ECEFF0] min-h-screen pb-20 md:pb-0">
+        {children}
+      </main>
       <RepartidorFooter />
     </>
   );

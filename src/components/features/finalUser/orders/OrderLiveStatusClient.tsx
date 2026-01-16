@@ -62,22 +62,26 @@ export default function OrderLiveStatusClient({
     assigned: false,
   });
   const [loadingDriver, setLoadingDriver] = useState(false);
-  const pollRef = useRef<NodeJS.Timeout | null>(null); // Usar NodeJS.Timeout para mayor compatibilidad
+  const pollRef = useRef<NodeJS.Timeout | null>(null);
+  const latestDeliveryRef = useRef(delivery);
 
-  // Ruta inicial ya proviene de server action, no se hace fetch aquí.
+  // Keep ref in sync
+  useEffect(() => {
+    latestDeliveryRef.current = delivery;
+  }, [delivery]);
 
   // Poll for driver assignment until delivered or assigned
   useEffect(() => {
     // LOG: Indica cuándo se activa el efecto y con qué props.
     console.log(
       `--- OrderLiveStatusClient useEffect [orderId: ${orderId}] ---`,
-      { delivered }
+      { delivered },
     );
 
     async function loadDriver() {
       // LOG: Muestra que la función de búsqueda ha comenzado.
       console.log(
-        `🚀 [loadDriver] Buscando repartidor para el pedido: ${orderId}`
+        `🚀 [loadDriver] Buscando repartidor para el pedido: ${orderId}`,
       );
       setLoadingDriver(true);
       try {
@@ -85,7 +89,7 @@ export default function OrderLiveStatusClient({
         const handleSuccess = (user: User, source: string) => {
           console.log(
             `✅ [ÉXITO] Repartidor encontrado a través de '${source}':`,
-            user
+            user,
           );
           const driverData = {
             assigned: true,
@@ -116,7 +120,9 @@ export default function OrderLiveStatusClient({
     }
 
     // Carga inicial
-    loadDriver();
+    const initialLoadTimer = setTimeout(() => {
+      loadDriver();
+    }, 0);
 
     if (delivered) {
       // LOG: Si el pedido ya fue entregado, no se hace sondeo.
@@ -129,25 +135,24 @@ export default function OrderLiveStatusClient({
     // LOG: Informa que el sondeo se va a configurar.
     console.log("⏰ Configurando sondeo cada 15 segundos...");
     pollRef.current = setInterval(() => {
-      // Usa una función de callback con el estado más reciente para evitar problemas de "stale state"
-      setDelivery((currentDelivery) => {
-        console.log(
-          `   [Sondeo] Verificando... ¿Repartidor asignado? ${currentDelivery.assigned}`
-        );
-        if (!currentDelivery.assigned) {
-          console.log("   [Sondeo] No asignado. Volviendo a buscar...");
-          loadDriver();
-        } else {
-          // LOG: Si ya está asignado, el sondeo se detiene.
-          console.log("   [Sondeo] Repartidor ya asignado. Deteniendo sondeo.");
-          if (pollRef.current) clearInterval(pollRef.current);
-        }
-        return currentDelivery; // No se modifica el estado aquí
-      });
+      const currentDelivery = latestDeliveryRef.current;
+      console.log(
+        `   [Sondeo] Verificando... ¿Repartidor asignado? ${currentDelivery.assigned}`,
+      );
+
+      if (!currentDelivery.assigned) {
+        console.log("   [Sondeo] No asignado. Volviendo a buscar...");
+        loadDriver();
+      } else {
+        // LOG: Si ya está asignado, el sondeo se detiene.
+        console.log("   [Sondeo] Repartidor ya asignado. Deteniendo sondeo.");
+        if (pollRef.current) clearInterval(pollRef.current);
+      }
     }, 15000); // cada 15s
 
     // Función de limpieza del efecto
     return () => {
+      clearTimeout(initialLoadTimer);
       // LOG: Informa que el componente se desmonta o el efecto se vuelve a ejecutar.
       console.log("🧹 Limpiando intervalo de sondeo.");
       if (pollRef.current) clearInterval(pollRef.current);
@@ -187,8 +192,8 @@ export default function OrderLiveStatusClient({
               {delivery.assigned
                 ? delivery.name
                 : loadingDriver
-                ? "Buscando repartidor..."
-                : "Sin repartidor asignado"}
+                  ? "Buscando repartidor..."
+                  : "Sin repartidor asignado"}
             </div>
             <div className="text-[14px] leading-[18px] text-[#292929]">
               {delivery.assigned

@@ -49,6 +49,12 @@ export type NormalizedOrder = {
     image_url?: string | null;
     address?: string | null;
   } | null;
+  shipments?: {
+    id: string;
+    origin_coordinates: unknown;
+    destination_coordinates: unknown;
+    driver_id?: string | null;
+  } | null;
   order_detail?: OrderItem[];
 } | null;
 
@@ -96,6 +102,19 @@ function normalizeOrder(data: unknown): NormalizedOrder {
         location_number:
           typeof addrRec["location_number"] === "string"
             ? (addrRec["location_number"] as string)
+            : null,
+      }
+    : null;
+
+  const shipmentRec = firstObj(rec["shipments"]);
+  const shipments = shipmentRec
+    ? {
+        id: String(shipmentRec["id"] ?? ""),
+        origin_coordinates: shipmentRec["origin_coordinates"],
+        destination_coordinates: shipmentRec["destination_coordinates"],
+        driver_id:
+          typeof shipmentRec["driver_id"] === "string"
+            ? (shipmentRec["driver_id"] as string)
             : null,
       }
     : null;
@@ -189,6 +208,7 @@ function normalizeOrder(data: unknown): NormalizedOrder {
         : null,
     user_addresses,
     partners,
+    shipments,
     order_detail,
   };
 }
@@ -198,7 +218,7 @@ export async function getOrderDetails(id: string): Promise<NormalizedOrder> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, payment_method, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))"
+      "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, payment_method, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), shipments!shipments_order_id_fkey(id,origin_coordinates,destination_coordinates,driver_id), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))",
     )
     .eq("id", id)
     .single();
@@ -212,8 +232,8 @@ export async function getOrderDetails(id: string): Promise<NormalizedOrder> {
         (normalized?.order_detail || [])
           .flatMap((it) => it.extras || [])
           .map((e) => e.product_extra_id)
-          .filter((x): x is string => typeof x === "string" && !!x)
-      )
+          .filter((x): x is string => typeof x === "string" && !!x),
+      ),
     );
     if (extraIds.length > 0) {
       const { data: extrasRows } = await supabase
@@ -235,7 +255,7 @@ export async function getOrderDetails(id: string): Promise<NormalizedOrder> {
                   name: info?.name ?? e.name,
                   image_url: info?.image_url ?? e.image_url ?? null,
                   unit_price: Number(
-                    (e.unit_price ?? 0) || info?.default_price || 0
+                    (e.unit_price ?? 0) || info?.default_price || 0,
                   ),
                 };
               }),

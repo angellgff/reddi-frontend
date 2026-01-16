@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import OrderDeliveredRatingDialog from "@/src/components/features/finalUser/orders/OrderDeliveredRatingDialog";
 import OrderLiveStatusClient from "@/src/components/features/finalUser/orders/OrderLiveStatusClient";
+import DeliveryMap from "@/src/components/features/delivery/DeliveryMap";
 import { getOrderDetails } from "@/src/lib/finalUser/orders/getOrderDetails";
 import { getRouteDetails } from "@/src/lib/finalUser/orders/getRouteDetails";
 import { createClient } from "@/src/lib/supabase/server";
@@ -42,7 +43,7 @@ export default async function OrderStatusPage({ params }: PageProps) {
   const order: NormalizedOrder = await getOrderDetails(id);
   const route = await getRouteDetails(
     order?.partner_id,
-    order?.user_address_id || order?.user_addresses?.id
+    order?.user_address_id || order?.user_addresses?.id,
   );
   const supabase = await createClient();
   const {
@@ -123,7 +124,16 @@ export default async function OrderStatusPage({ params }: PageProps) {
       {/* Main content */}
       <section className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Live status (client) */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-6">
+          {order?.shipments?.driver_id ? (
+            <DeliveryMap
+              shipment={order.shipments}
+              forcedOrigin={route?.origin}
+              forcedDestination={route?.destination}
+              className="w-full h-96 rounded-2xl border border-[#D9DCE3] overflow-hidden"
+            />
+          ) : null}
+
           <OrderLiveStatusClient
             orderId={id}
             delivered={order.status === "delivered"}
@@ -245,12 +255,12 @@ export default async function OrderStatusPage({ params }: PageProps) {
               </div>
             ) : null}
             <div className="h-px bg-[#D9DCE3] my-2" />
-            
+
             {/* Payment Method */}
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">Método de pago</span>
               <span className="font-medium text-black flex items-center gap-2">
-                {order?.payment_method === 'cash' ? (
+                {order?.payment_method === "cash" ? (
                   <>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -268,7 +278,7 @@ export default async function OrderStatusPage({ params }: PageProps) {
                     </svg>
                     Efectivo
                   </>
-                ) : order?.payment_method === 'physical_pos' ? (
+                ) : order?.payment_method === "physical_pos" ? (
                   <>
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -286,7 +296,9 @@ export default async function OrderStatusPage({ params }: PageProps) {
                     Tarjeta (Datáfono)
                   </>
                 ) : (
-                  <span className="capitalize">{order?.payment_method || "—"}</span>
+                  <span className="capitalize">
+                    {order?.payment_method || "—"}
+                  </span>
                 )}
               </span>
             </div>
@@ -307,8 +319,8 @@ export default async function OrderStatusPage({ params }: PageProps) {
                 {order?.user_addresses?.location_type === "villa"
                   ? "villa"
                   : order?.user_addresses?.location_type === "yate"
-                  ? "yate"
-                  : "destino"}{" "}
+                    ? "yate"
+                    : "destino"}{" "}
                 {order?.user_addresses?.location_number ?? ""}
               </div>
               <div className="text-sm opacity-90">

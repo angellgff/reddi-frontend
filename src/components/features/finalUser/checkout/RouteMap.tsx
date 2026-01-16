@@ -31,12 +31,12 @@ export default function RouteMap({
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["maps", "marker"],
+      libraries: ["places", "geometry", "marker"],
     });
 
     loader.load().then(async () => {
       const { Map } = (await google.maps.importLibrary(
-        "maps"
+        "maps",
       )) as google.maps.MapsLibrary;
 
       // Initial center can be anywhere, we fitBounds later
