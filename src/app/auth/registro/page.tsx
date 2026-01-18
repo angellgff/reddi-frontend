@@ -11,6 +11,12 @@ import { createClient } from "@/src/lib/supabase/client";
 import Spinner from "@/src/components/basics/Spinner";
 import AuthInput from "@/src/components/basics/auth/AuthInput";
 
+import {
+  checkEmailRegistered,
+  checkPhoneRegistered,
+  registerPhoneForUser,
+} from "@/src/lib/actions/auth-checks";
+
 function RegistroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -22,19 +28,33 @@ function RegistroContent() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const validate = () => {
+    const newErrors: Record<string, string> = {};
+    if (!firstName.trim()) newErrors.firstName = "Ingresar Nombre";
+    if (!lastName.trim()) newErrors.lastName = "Ingresar Apellido";
+    if (!email.trim()) newErrors.email = "Email es requerido";
+    if (!phone.trim()) newErrors.phone = "El número de teléfono es requerido";
+    // Add password validation if needed, for new required UI
+    // if (!password) newErrors.password = "Contraseña requerida";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearError = (field: string) => {
+    if (errors[field]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
 
   const handleRegister = async () => {
-    if (
-      !firstName ||
-      !lastName ||
-      !email ||
-      !phone ||
-      !password ||
-      !confirmPassword
-    ) {
-      alert("Por favor completa todos los campos.");
-      return;
-    }
+    if (!validate()) return;
 
     if (password !== confirmPassword) {
       alert("Las contraseñas no coinciden.");
@@ -42,8 +62,37 @@ function RegistroContent() {
     }
 
     setIsLoading(true);
+
     try {
-      const { error } = await supabase.auth.signUp({
+      // 1. Check if email/phone exists using Server Action (bypassing public security mask)
+      console.log("Checking if email/phone already registered...");
+      console.log(email, phone);
+      const [emailExists, phoneExists] = await Promise.all([
+        checkEmailRegistered(email),
+        checkPhoneRegistered(phone),
+      ]);
+
+      const backendErrors: Record<string, string> = {};
+      if (emailExists) {
+        backendErrors.email =
+          "Este email esta registrado con una cuenta existente";
+      }
+      if (phoneExists) {
+        backendErrors.phone =
+          "Este número está vinculado a una cuenta existente";
+      }
+
+      if (Object.keys(backendErrors).length > 0) {
+        setErrors((prev) => ({ ...prev, ...backendErrors }));
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("Proceeding with sign up...");
+      console.log(phone);
+
+      // 2. Proceed with sign up
+      const { data: signUpData, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -51,18 +100,40 @@ function RegistroContent() {
           data: {
             first_name: firstName,
             last_name: lastName,
-            phone: phone,
+            phone_number: phone,
             full_name: `${firstName} ${lastName}`.trim(),
           },
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.log("Supabase SignUp Error:", error);
+        if (
+          error.code === "user_already_exists" ||
+          error.message?.includes("already registered") ||
+          error.message?.includes("User already exists")
+        ) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "Este email esta registrado con una cuenta existente",
+          }));
+          setIsLoading(false);
+          return;
+        }
+        throw error;
+      }
+
+      // 3. Register phone in Auth table explicitly
+      if (signUpData.user?.id) {
+        await registerPhoneForUser(signUpData.user.id, phone);
+      }
 
       router.push("/auth/sign-up-success");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error signing up:", error);
-      alert("Error al registrarse. Por favor intenta nuevamente.");
+      alert(
+        error.message || "Error al registrarse. Por favor intenta nuevamente.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -85,13 +156,17 @@ function RegistroContent() {
 
       <div className="w-full px-4 flex flex-col gap-4">
         {/* Name & Lastname */}
-        <div className="flex gap-4 w-full">
+        <div className="flex gap-4 w-full items-start">
           <div className="flex-1 w-full">
             <AuthInput
               label="Nombre"
               type="text"
               value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              onChange={(e) => {
+                setFirstName(e.target.value);
+                clearError("firstName");
+              }}
+              error={errors.firstName}
             />
           </div>
           <div className="flex-1 w-full">
@@ -99,7 +174,11 @@ function RegistroContent() {
               label="Apellido"
               type="text"
               value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              onChange={(e) => {
+                setLastName(e.target.value);
+                clearError("lastName");
+              }}
+              error={errors.lastName}
             />
           </div>
         </div>
@@ -109,7 +188,11 @@ function RegistroContent() {
           label="Email"
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clearError("email");
+          }}
+          error={errors.email}
         />
 
         {/* Phone */}
@@ -118,7 +201,11 @@ function RegistroContent() {
             label="Número de teléfono"
             type="tel"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => {
+              setPhone(e.target.value);
+              clearError("phone");
+            }}
+            error={errors.phone}
             containerClassName="px-2 gap-2"
             startIcon={
               <div className="flex items-center gap-1 min-w-[50px] border-r border-[#D1D1D1] pr-2 h-[20px]">

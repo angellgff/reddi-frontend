@@ -10,13 +10,21 @@ export async function loginAction(prevState: unknown, formData: FormData) {
 
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
   });
 
   if (error) {
+    if (error.message.includes("Email not confirmed")) {
+      redirect(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+    }
     return { error: error.message };
+  }
+
+  if (data.user && !data.user.email_confirmed_at) {
+    await supabase.auth.signOut();
+    redirect(`/auth/verify-email?email=${encodeURIComponent(email)}`);
   }
 
   // Resolve role

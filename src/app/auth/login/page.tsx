@@ -9,8 +9,10 @@ import {
   useRef,
   useState,
   Suspense,
+  useActionState,
 } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { loginAction } from "@/src/lib/actions/auth";
 import { createClient } from "@/src/lib/supabase/client";
 
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
@@ -22,12 +24,20 @@ function LoginContent() {
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [state, formAction, isPending] = useActionState(loginAction, null);
+
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const startRef = useRef(false);
-  const debug = !!process.env.NEXT_PUBLIC_DEBUG_AUTH;
+
+  useEffect(() => {
+    if (state?.error) {
+      alert(state.error);
+    }
+  }, [state]);
 
   const handleGoogleLogin = useCallback(async () => {
     try {
@@ -66,46 +76,6 @@ function LoginContent() {
     }
   }, [supabase, searchParams]);
 
-  const handleLogin = async () => {
-    if (!email) return;
-    if (!showPassword) {
-      setShowPassword(true);
-      return;
-    }
-
-    // Attempt login
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      // Manejar específicamente el error de "Email not confirmed"
-      if (error && error.message.includes("Email not confirmed")) {
-        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
-        return;
-      }
-
-      if (error) throw error;
-
-      if (data.user && !data.user.email_confirmed_at) {
-        // Force sign out to prevent unverified access
-        await supabase.auth.signOut();
-        router.push(`/auth/verify-email?email=${encodeURIComponent(email)}`);
-        return;
-      }
-
-      const next = searchParams.get("next") || "/user/home";
-      router.push(next);
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Error iniciando sesión. Verifica tus credenciales.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Handle redirect if already logged in
   useEffect(() => {
     if (startRef.current) return;
@@ -134,16 +104,24 @@ function LoginContent() {
         </Link>
       </div>
 
-      <div className="w-full px-4 flex flex-col gap-[22px]">
+      <form action={formAction} className="w-full px-4 flex flex-col gap-[22px]">
+        <input type="hidden" name="next" value={searchParams.get("next") || "/user/home"} />
+
         {/* Email Input */}
         <AuthInput
+          name="email"
           label="Email"
           type="email"
           placeholder="ejemplo@gmail.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") handleLogin();
+            if (e.key === "Enter") {
+              if (!showPassword) {
+                e.preventDefault();
+                if (email) setShowPassword(true);
+              }
+            }
           }}
         />
 
@@ -151,13 +129,14 @@ function LoginContent() {
         {showPassword && (
           <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
             <AuthInput
+              name="password"
               label="Contraseña"
               type="password"
               placeholder="********"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handleLogin();
+                // Enter submits implicitly
               }}
             />
           </div>
@@ -174,6 +153,7 @@ function LoginContent() {
         {/* Social Buttons */}
         <div className="flex flex-col gap-[10px] w-full">
           <button
+            type="button"
             className="w-full h-[38px] bg-[#3B579D] rounded-[24px] flex items-center justify-center gap-2 transition-all hover:bg-[#2f467d]"
             disabled={true}
           >
@@ -191,12 +171,13 @@ function LoginContent() {
           </button>
 
           <button
+            type="button"
             className="w-full h-[38px] bg-[#DADADA] rounded-[24px] flex items-center justify-center gap-2 transition-all hover:bg-[#c4c4c4]"
             onClick={(e) => {
               e.preventDefault();
               handleGoogleLogin();
             }}
-            disabled={isLoading}
+            disabled={isLoading || isPending}
           >
             <div className="w-[20px] h-[20px] flex items-center justify-center relative">
               <Image
@@ -212,6 +193,7 @@ function LoginContent() {
           </button>
 
           <button
+            type="button"
             className="w-full h-[38px] bg-black rounded-[24px] flex items-center justify-center gap-2 transition-all hover:bg-gray-900"
             disabled={true}
           >
@@ -227,14 +209,21 @@ function LoginContent() {
         {/* Main Continue Button */}
         <div className="mt-4 w-full">
           <button
-            onClick={handleLogin}
+            type="submit"
+            onClick={(e) => {
+              if (!showPassword) {
+                e.preventDefault();
+                if (email) setShowPassword(true);
+              }
+            }}
             className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center"
+            disabled={isPending || isLoading}
           >
-            {isLoading
+            {isPending || isLoading
               ? "Cargando..."
               : showPassword
-                ? "Iniciar Sesión"
-                : "Continuar"}
+              ? "Iniciar Sesión"
+              : "Continuar"}
           </button>
         </div>
 
@@ -252,7 +241,7 @@ function LoginContent() {
             .
           </p>
         </div>
-      </div>
+      </form>
     </div>
   );
 }
