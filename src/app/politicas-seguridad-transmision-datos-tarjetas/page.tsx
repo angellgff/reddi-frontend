@@ -1,16 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
+import GoBackButton from "@/src/components/basics/GoBackButton";
 
 export default function Page() {
   return (
-    <main className="max-w-3xl mx-auto py-12 px-4 space-y-8 text-gray-800">
+    <main className="max-w-3xl mx-auto py-12 px-4 space-y-8 text-foreground">
       {/* Botón de Volver */}
-      <Link
-        href="/"
-        className="text-blue-600 hover:text-blue-800 hover:underline"
-      >
-        &larr; Volver
-      </Link>
+      <GoBackButton />
 
       <h1 className="text-4xl font-bold border-b pb-4">
         Políticas de seguridad para la transmisión de datos de tarjetas

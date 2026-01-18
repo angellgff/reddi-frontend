@@ -238,16 +238,6 @@ function LoginContent() {
           </button>
         </div>
 
-        {/* Partner Login Link */}
-        <div className="w-full flex justify-center mt-2">
-          <Link
-            href="/admin/login"
-            className="text-[13px] font-bold text-[#04BD88] underline hover:text-[#03a072] transition-colors"
-          >
-            Ingresar como socio
-          </Link>
-        </div>
-
         {/* Footer Text */}
         <div className="w-full text-center px-2 pb-6">
           <p className="text-[10px] text-[#6A6C71] leading-[14px]">
