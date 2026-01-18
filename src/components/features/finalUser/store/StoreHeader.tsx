@@ -7,7 +7,7 @@ import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import { useEffect } from "react";
 
 import StarIcon from "@/src/components/icons/StarIcon";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, User, Bell, ShoppingCart } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SearchIcon from "@/src/components/icons/SearchIcon";
 import { useStoreSearchStore } from "@/src/lib/store/store-search";
@@ -61,7 +61,7 @@ export default function StoreHeader({
       // Overlap: 283 - 200 = 83px sticking out.
       <div className="relative w-full bg-transparent -mt-6 mb-[50px]">
         {/* Top Banner Background */}
-        <div className="relative w-full h-[220px] overflow-hidden">
+        <div className="relative w-full h-[250px] overflow-hidden">
           {/* rounded-b-[15px] to match looking like a banner card? Or typically flat top, rounded bottom? The image shows rounded corners at bottom of header banner? No, image is full width. The CSS says "border-radius: 46px 46px 15px 15px;" for the MARKET frame? No, that's the whole screen. */}
           {/* The CSS "Rectangle 11878" (the gradient overlay) is inside the image area. */}
 
@@ -79,13 +79,34 @@ export default function StoreHeader({
           <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
         </div>
 
-        {/* Back Button (Same position logic) */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-[49px] left-[21px] w-[37px] h-[37px] bg-white rounded-full flex items-center justify-center z-20 shadow-sm"
-        >
-          <ChevronLeft className="w-5 h-5 text-[#04BD88]" strokeWidth={2.5} />
-        </button>
+        {/* Top Bar Navigation */}
+        <div className="absolute top-[49px] left-0 w-full px-[21px] flex justify-between items-center z-20 pointer-events-none">
+          {/* Back Button */}
+          <button
+            onClick={() => router.back()}
+            className="w-[37px] h-[37px] bg-white/30 rounded-full flex items-center justify-center pointer-events-auto backdrop-blur-[2px]"
+          >
+            <ChevronLeft className="w-5 h-5 text-primary" strokeWidth={2.5} />
+          </button>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-[15px] pointer-events-auto">
+            {/* Profile */}
+            <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
+              <User className="w-5 h-5 text-primary" strokeWidth={2} />
+            </button>
+
+            {/* Notifications */}
+            <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
+              <Bell className="w-5 h-5 text-primary" strokeWidth={2} />
+            </button>
+
+            {/* Cart */}
+            <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
+              <ShoppingCart className="w-5 h-5 text-primary" strokeWidth={2} />
+            </button>
+          </div>
+        </div>
 
         {/* Floating Info Card */}
         {/* CSS reference: Rectangle 11890, top 106px relative, width 333px, height 177px, radius 15px */}
@@ -157,7 +178,7 @@ export default function StoreHeader({
 
   return (
     // Rediseño basado en 'Restaurante' view (Mobile Hero style)
-    <div className="relative w-full h-[340px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
+    <div className="relative w-full h-[200px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
       {/* Banner de fondo cubriendo todo el header */}
       <div className="absolute inset-0 w-full h-full bg-gray-200">
         {banner ? (
@@ -173,18 +194,46 @@ export default function StoreHeader({
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60" />
       </div>
 
-      {/* Back Button */}
-      <button
-        onClick={() => router.back()}
-        className="absolute top-[49px] left-[21px] w-[37px] h-[37px] bg-white rounded-full flex items-center justify-center z-20 shadow-sm"
-      >
-        <ChevronLeft className="w-5 h-5 text-[#04BD88]" strokeWidth={2.5} />
-      </button>
+      {/* Top Bar Navigation */}
+      <div className="absolute top-[49px] left-0 w-full px-[21px] flex justify-between items-center z-20 pointer-events-none">
+        <div className="flex items-center gap-3 pointer-events-auto">
+          {/* Back Button */}
+          <button
+            onClick={() => router.back()}
+            className="w-[37px] h-[37px] bg-white/30 rounded-full flex items-center justify-center backdrop-blur-[2px]"
+          >
+            <ChevronLeft className="w-5 h-5 text-primary" strokeWidth={2.5} />
+          </button>
+
+          {/* Restaurant Name */}
+          <h1 className="text-white text-[24px] font-[800] leading-[24px] font-['Open_Sans'] drop-shadow-md">
+            {store.name}
+          </h1>
+        </div>
+
+        {/* Right Actions */}
+        <div className="flex items-center gap-[15px] pointer-events-auto">
+          {/* Profile */}
+          <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
+            <User className="w-5 h-5 text-primary" strokeWidth={2} />
+          </button>
+
+          {/* Notifications */}
+          <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
+            <Bell className="w-5 h-5 text-primary" strokeWidth={2} />
+          </button>
+
+          {/* Cart */}
+          <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
+            <ShoppingCart className="w-5 h-5 text-primary" strokeWidth={2} />
+          </button>
+        </div>
+      </div>
 
       {/* Contenido superpuesto (Bottom Left) */}
-      <div className="absolute bottom-8 left-6 md:bottom-10 md:left-10 z-10 flex flex-col gap-2">
+      <div className="absolute bottom-8 left-6 md:bottom-10 md:left-10 z-10 flex items-end gap-3">
         {/* Logo Profile */}
-        <div className="w-[49px] h-[49px] rounded-full border-2 border-white overflow-hidden bg-gray-100 mb-1">
+        <div className="w-[49px] h-[49px] rounded-full border-2 border-white overflow-hidden bg-gray-100">
           {logo ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -197,27 +246,27 @@ export default function StoreHeader({
           )}
         </div>
 
-        {/* Nombre del Restaurante */}
-        <h1 className="text-white text-[24px] font-[800] leading-[24px] font-['Open_Sans']">
-          {store.name}
-        </h1>
-
         {/* Rating y Badge */}
-        <div className="flex items-center gap-2">
-          {/* Rating Group */}
+        <div className="flex items-center gap-[9px]">
+          {/* Rating Group: 4.8 + Star */}
           <div className="flex items-center gap-[2px]">
             <span className="text-[#F3F3F3] text-[12px] font-[600] font-['Open_Sans'] leading-[18px]">
               {rating}
             </span>
-            <StarIcon className="w-[9px] h-[9px] text-[#F3F3F3] fill-[#F3F3F3]" />
-            <span className="text-[#F3F3F3] text-[12px] font-[600] font-['Open_Sans'] leading-[18px] ml-[2px]">
-              ({store.total_ratings})
-            </span>
+            <StarIcon
+              className="w-[9px] h-[9px] text-[#F3F3F3] fill-[#F3F3F3]"
+              fill="#ffffff"
+            />
           </div>
 
+          {/* Review Count */}
+          <span className="text-[#F3F3F3] text-[12px] font-[600] font-['Open_Sans'] leading-[18px]">
+            ({store.total_ratings})
+          </span>
+
           {/* Delivery Time Badge */}
-          <div className="flex items-center justify-center bg-[#04BD88] px-[4px] py-[2px] rounded-[6px] h-[16px] min-w-[40px]">
-            <span className="text-[#F3F3F3] text-[8px] font-[500] font-['Inter'] leading-[16px] text-center">
+          <div className="flex items-center justify-center bg-[#F3F3F3] px-[4px] py-[2px] rounded-[6px] h-[16px] min-w-[40px]">
+            <span className="text-black text-[8px] font-[500] font-['Inter'] leading-[16px] text-center">
               {deliveryTime}
             </span>
           </div>
