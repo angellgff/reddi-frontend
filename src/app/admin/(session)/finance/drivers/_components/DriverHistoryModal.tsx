@@ -61,7 +61,7 @@ export default function DriverHistoryModal({
 
         <div className="py-4">
           {loading ? (
-            <p className="text-center text-sm text-gray-500">Cargando...</p>
+            <p className="text-center text-sm text-gray-500"></p>
           ) : logs.length === 0 ? (
             <p className="text-center text-sm text-gray-500">
               No hay movimientos recientes.
@@ -88,11 +88,15 @@ export default function DriverHistoryModal({
                       <td className="px-3 py-2 capitalize">
                         {log.transaction_type.replace(/_/g, " ")}
                       </td>
-                      <td className={`px-3 py-2 font-medium ${
-                        log.transaction_type === 'settlement' || log.transaction_type === 'payment' 
-                        ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                         {formatCurrency(log.amount)}
+                      <td
+                        className={`px-3 py-2 font-medium ${
+                          log.transaction_type === "settlement" ||
+                          log.transaction_type === "payment"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {formatCurrency(log.amount)}
                       </td>
                       <td className="px-3 py-2 text-xs font-mono text-gray-500">
                         {log.order_id || "-"}

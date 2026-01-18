@@ -64,24 +64,54 @@ export default function OnboardingWizard() {
   const step = steps[currentStep];
 
   return (
-    <div className="min-h-screen bg-white font-openSans md:flex md:items-center md:justify-center md:bg-gray-50 md:p-6">
-      <div className="relative flex min-h-screen w-full flex-col justify-between bg-white transition-all md:min-h-[600px] md:h-auto md:w-full md:max-w-5xl md:flex-row md:overflow-hidden md:rounded-3xl md:shadow-xl lg:min-h-[650px]">
+    <div className="h-screen w-screen overflow-hidden bg-white font-openSans md:flex md:items-center md:justify-center md:bg-gray-50 md:p-6">
+      <div className="relative flex h-full w-full flex-col justify-between bg-white transition-all md:min-h-[600px] md:h-auto md:w-full md:max-w-5xl md:flex-row md:overflow-hidden md:rounded-3xl md:shadow-xl lg:min-h-[650px]">
         {/* Splash Screen Overlay */}
         <div
           className={cn(
-            "fixed inset-0 z-50 flex items-center justify-center bg-white transition-opacity duration-1000 ease-in-out absolute",
+            "fixed inset-0 z-50 flex flex-col items-center justify-center bg-white transition-opacity duration-1000 ease-in-out",
             showSplash
               ? "opacity-100 visible"
-              : "opacity-0 invisible pointer-events-none"
+              : "opacity-0 invisible pointer-events-none",
           )}
         >
-          <div className="relative h-40 w-40 animate-pulse">
+          <div className="relative mb-8 h-40 w-40">
             <Image
               src="/reddi.svg"
               alt="Reddi"
               fill
               className="object-contain"
               priority
+            />
+          </div>
+          <div className="relative h-[38px] w-[38px] animate-spin">
+            {/* Gradient Ring */}
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background:
+                  "conic-gradient(from 90deg at 50% 50%, rgba(255, 255, 255, 0) 0deg, #47BB7E 360deg)",
+              }}
+            />
+            {/* Inner Mask - White to match background */}
+            <div
+              className="absolute rounded-full bg-white"
+              style={{
+                left: "8.33%",
+                right: "8.33%",
+                top: "8.33%",
+                bottom: "8.33%",
+              }}
+            />
+            {/* Cap/Dot */}
+            <div
+              className="absolute rounded-full bg-[#04BD88]"
+              style={{
+                left: "91.29%",
+                right: "0%",
+                top: "39.97%",
+                bottom: "45.83%",
+              }}
             />
           </div>
         </div>
@@ -92,7 +122,7 @@ export default function OnboardingWizard() {
           2. p-0: Elimina el padding en móvil para que la imagen toque los bordes.
           3. md:...: Restaura los valores originales para escritorio.
         */}
-        <div className="flex h-[50vh] w-full flex-col items-center justify-center bg-white p-0 md:h-auto md:w-1/2 md:flex-1 md:bg-[#F8F9FA] md:p-12 md:pt-12">
+        <div className="flex flex-1 min-h-0 w-full flex-col items-center justify-center bg-white p-0 md:h-auto md:w-1/2 md:flex-1 md:bg-[#F8F9FA] md:p-12 md:pt-12">
           {/* 
             CAMBIOS EN EL WRAPPER DE LA IMAGEN:
             1. h-full w-full: Ocupa todo el espacio del contenedor padre (50vh).
@@ -112,8 +142,8 @@ export default function OnboardingWizard() {
         </div>
 
         {/* Right Section: Content Area */}
-        {/* Agregamos min-h-[50vh] para asegurar que ocupe el resto de la pantalla en móvil */}
-        <div className="flex min-h-[50vh] w-full flex-col justify-center px-6 pb-8 pt-8 md:min-h-0 md:w-1/2 md:p-12 lg:p-20">
+        {/* Ajustamos a h-1/2 para ocupar exactamente la mitad restante sin generar scroll */}
+        <div className="flex shrink-0 w-full flex-col justify-center px-6 pb-8 pt-8 md:min-h-0 md:w-1/2 md:p-12 lg:p-20">
           <div className="mx-auto w-full max-w-md">
             {/* Indicators */}
             <div className="mb-8 flex gap-3">
@@ -122,7 +152,7 @@ export default function OnboardingWizard() {
                   key={idx}
                   className={cn(
                     "h-2.5 w-2.5 rounded-full transition-all duration-300",
-                    idx === currentStep ? "bg-[#FFCF58] w-8" : "bg-[#D5DEE7]"
+                    idx === currentStep ? "bg-[#FFCF58] w-8" : "bg-[#D5DEE7]",
                   )}
                 />
               ))}

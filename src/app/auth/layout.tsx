@@ -31,9 +31,7 @@ export default function UserLayout({
       <div className="flex-1 w-full flex flex-col md:justify-center relative z-10 -mt-6 md:mt-0 md:bg-white md:rounded-r-[32px] md:rounded-l-none md:overflow-hidden">
         <div className="w-full h-full md:h-auto flex flex-col md:items-center md:justify-center">
           <Suspense
-            fallback={
-              <div className="p-4 text-white md:text-black">Cargando...</div>
-            }
+            fallback={<div className="p-4 text-white md:text-black"></div>}
           >
             {children}
           </Suspense>

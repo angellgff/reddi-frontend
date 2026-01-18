@@ -240,7 +240,7 @@ function RegistroContent() {
 
 export default function Registro() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div></div>}>
       <RegistroContent />
     </Suspense>
   );

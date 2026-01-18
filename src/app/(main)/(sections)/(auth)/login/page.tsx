@@ -204,7 +204,7 @@ function LoginContent() {
 
 export default function Login() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div></div>}>
       <LoginContent />
     </Suspense>
   );

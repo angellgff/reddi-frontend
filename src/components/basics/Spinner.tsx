@@ -11,7 +11,7 @@ export default function Spinner({ className }: { className?: string }) {
      `}
       role="status"
     >
-      <span className="sr-only">Cargando...</span>
+      <span className="sr-only"></span>
     </div>
   );
 }

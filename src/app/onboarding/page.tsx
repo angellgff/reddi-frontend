@@ -3,7 +3,7 @@ import OnboardingWizard from "@/src/components/features/onboarding/OnboardingWiz
 
 export default function OnboardingPage() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div></div>}>
       <OnboardingWizard />
     </Suspense>
   );

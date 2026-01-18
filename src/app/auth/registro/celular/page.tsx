@@ -3,7 +3,7 @@ import RegisterWizard from "@/src/components/features/auth/register/RegisterWiza
 
 export default function Celular() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div></div>}>
       <RegisterWizard />
     </Suspense>
   );

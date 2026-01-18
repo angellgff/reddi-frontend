@@ -44,7 +44,7 @@ function VerifyEmailPageContent() {
         (msg.includes("after") && msg.includes("seconds"))
       ) {
         setMessage(
-          "Por favor espera unos segundos antes de intentar nuevamente."
+          "Por favor espera unos segundos antes de intentar nuevamente.",
         );
       } else if (msg.includes("rate limit")) {
         setMessage("Límite de intentos excedido. Espera unos minutos.");
@@ -127,7 +127,7 @@ function VerifyEmailPageContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div>Cargando...</div>}>
+    <Suspense fallback={<div></div>}>
       <VerifyEmailPageContent />
     </Suspense>
   );

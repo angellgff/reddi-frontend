@@ -16,7 +16,7 @@ export default async function OrderPage({
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       {/* Título */}
-      <Suspense fallback={<div>Cargando...</div>}>
+      <Suspense fallback={<div></div>}>
         <OrderHeaderServer id={id} />
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Columna 1: Datos del cliente */}

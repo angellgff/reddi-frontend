@@ -13,7 +13,7 @@ export default async function AdminOrderDetailsPage({
   const { orderId } = await params;
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
-      <Suspense fallback={<div>Cargando...</div>}>
+      <Suspense fallback={<div></div>}>
         <ClientOrderHeaderServer id={orderId} />
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white rounded-xl cols-span-1 shadow-md border-2 border-gray-300 p-6">
