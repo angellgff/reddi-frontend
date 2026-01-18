@@ -75,7 +75,7 @@ export async function loginWithGoogleAction(nextPath: string = "/user/home") {
     provider: "google",
     options: {
       redirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(
-        nextPath
+        nextPath,
       )}`,
       queryParams: {
         access_type: "offline",

@@ -104,8 +104,15 @@ function LoginContent() {
         </Link>
       </div>
 
-      <form action={formAction} className="w-full px-4 flex flex-col gap-[22px]">
-        <input type="hidden" name="next" value={searchParams.get("next") || "/user/home"} />
+      <form
+        action={formAction}
+        className="w-full px-4 flex flex-col gap-[22px]"
+      >
+        <input
+          type="hidden"
+          name="next"
+          value={searchParams.get("next") || "/user/home"}
+        />
 
         {/* Email Input */}
         <AuthInput
@@ -222,8 +229,8 @@ function LoginContent() {
             {isPending || isLoading
               ? "Cargando..."
               : showPassword
-              ? "Iniciar Sesión"
-              : "Continuar"}
+                ? "Iniciar Sesión"
+                : "Continuar"}
           </button>
         </div>
 
