@@ -31,61 +31,52 @@ export default function ProductCardRestaurant({
 }: Props) {
   return (
     <div
-      className="flex flex-col bg-white rounded-[12px] shadow-sm hover:shadow-md transition cursor-pointer flex-shrink-0 w-[139px] h-[171px] overflow-hidden relative"
+      className="flex flex-col bg-white rounded-[12px] px-[10px] gap-[10px] justify-center items-center cursor-pointer flex-shrink-0 w-[139px] h-[171px] relative shadow-none"
       onClick={() => onOpen(p)}
     >
-      {/* Image Section - Top half */}
-      <div className="relative w-full h-[90px] bg-gray-100">
+      {/* Image Section */}
+      <div className="relative w-[119px] h-[75px] rounded-[8px] overflow-hidden flex-shrink-0">
         {p.image_url ? (
           <Image
             src={p.image_url}
             alt={p.name}
             fill
-            sizes="139px"
+            sizes="119px"
             className="object-cover"
           />
         ) : (
           <div className="w-full h-full bg-gray-200" />
         )}
-      </div>
 
-      {/* Content Section */}
-      <div className="p-2 flex flex-col flex-1 relative">
-        {/* Title */}
-        <h3 className="text-[12px] font-bold text-black leading-tight line-clamp-2 mb-1">
-          {p.name}
-        </h3>
-
-        {/* Description line (Subtitle) */}
-        {p.description ? (
-          <p className="text-[8px] text-[#6A6C71] font-semibold leading-tight line-clamp-1">
-            {p.description}
-          </p>
-        ) : (
-          // Placeholder or empty
-          <div className="h-2" />
-        )}
-
-        {/* Tag or Info (e.g. -20%) */}
-        {/* Temporarily hidden or based on discount */}
-        {p.discount_percentage ? (
-          <div className="mt-auto mb-1">
-            <span className="bg-[#04BD88]/25 text-[#04BD88] text-[6px] font-bold px-1 py-0.5 rounded">
-              -{p.discount_percentage}%
-            </span>
-          </div>
-        ) : (
-          <div className="mt-auto" />
-        )}
-
-        {/* Add Button - Floating Green + Button */}
+        {/* Add Button */}
         <button
           type="button"
           onClick={(e) => onAdd(p, e)}
-          className="absolute right-2 top-[-12px] w-[24px] h-[24px] bg-[#04BD88] rounded-[3px] flex items-center justify-center shadow-md z-10"
+          className="absolute right-[5px] bottom-[5px] w-[20px] h-[20px] rounded-full z-10 hover:opacity-90 active:scale-95 transition-all"
         >
-          <PlusIcon className="w-3 h-3 text-white" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/add-product.png"
+            alt="Add"
+            className="w-full h-full object-contain"
+          />
         </button>
+      </div>
+
+      {/* Content Section */}
+      <div className="flex flex-col items-start w-[119px] gap-[4px] relative">
+        {/* Title & Price Group */}
+        <div className="w-full flex flex-col items-start gap-1">
+          {/* Title */}
+          <h3 className="text-[12px] font-[600] font-['Open_Sans'] text-black leading-[16px] line-clamp-1 w-full text-left">
+            {p.name}
+          </h3>
+
+          {/* Price */}
+          <span className="text-[8px] font-[600] font-['Open_Sans'] text-[#6A6C71] leading-[10px]">
+            ${p.display_price} RD
+          </span>
+        </div>
       </div>
     </div>
   );
