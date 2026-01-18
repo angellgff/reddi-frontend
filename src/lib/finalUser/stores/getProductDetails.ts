@@ -35,14 +35,14 @@ export type ProductDetails = {
 
 export default async function getProductDetails(
   partnerId: string,
-  productId: string
+  productId: string,
 ): Promise<ProductDetails | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("products")
     .select(
       `id, partner_id, name, description, image_url, base_price, display_price, previous_price, discount_percentage, unit, estimated_time, tax_included,
-      product_sections (id, name, is_required, display_order, product_section_options (id, extra_id, override_price, display_order, product_extras (id, name, default_price, image_url)))`
+      product_sections (id, name, is_required, display_order, product_section_options (id, extra_id, override_price, display_order, product_extras (id, name, default_price, image_url)))`,
     )
     .eq("id", productId)
     .eq("partner_id", partnerId)
@@ -78,7 +78,6 @@ export default async function getProductDetails(
             extra_id: string;
             override_price: number | null;
             display_order: number | null;
-            // Some Supabase typings can return object or array for nested relation; accept both and normalize below
             product_extras?:
               | {
                   id: string;
@@ -124,9 +123,17 @@ export default async function getProductDetails(
                 const ex = Array.isArray(o.product_extras)
                   ? o.product_extras[0]
                   : o.product_extras;
-                const price = Number(
-                  (o.override_price ?? ex?.default_price ?? 0).toFixed(2)
-                );
+
+                // --- Cálculo del precio ajustado (display_price) para el extra ---
+                // Se basa en la proporción (display_price / base_price) del producto principal.
+                let rawPrice = o.override_price ?? ex?.default_price ?? 0;
+                if (data.base_price > 0 && data.display_price > 0) {
+                  const multiplier = data.display_price / data.base_price;
+                  rawPrice = rawPrice * multiplier;
+                }
+                const price = Number(rawPrice.toFixed(2));
+                // -------------------------------------------------------------
+
                 return {
                   id: o.id,
                   extraId: o.extra_id,
@@ -135,17 +142,17 @@ export default async function getProductDetails(
                   imageUrl: ex?.image_url ?? null,
                   displayOrder: o.display_order ?? 0,
                 } as ProductDetailsOption;
-              }
+              },
             )
             .sort(
               (a: ProductDetailsOption, b: ProductDetailsOption) =>
-                a.displayOrder - b.displayOrder
+                a.displayOrder - b.displayOrder,
             ),
-        })
+        }),
       )
       .sort(
         (a: ProductDetailsSection, b: ProductDetailsSection) =>
-          a.displayOrder - b.displayOrder
+          a.displayOrder - b.displayOrder,
       ),
   };
 

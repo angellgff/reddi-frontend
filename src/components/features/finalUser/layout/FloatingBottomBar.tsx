@@ -13,7 +13,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
 
 export default function FloatingBottomBar() {
-  const { mode, text, secondaryText, action } = useFloatingButtonStore();
+  const {
+    mode,
+    text,
+    secondaryText,
+    action,
+    quantity,
+    onIncrement,
+    onDecrement,
+    disabled,
+  } = useFloatingButtonStore();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const cartCount = useAppSelector(selectCartCount);
@@ -31,12 +40,48 @@ export default function FloatingBottomBar() {
         layoutRoot
         className="w-full max-w-md mx-auto pointer-events-auto min-h-[47px] relative flex items-center justify-between gap-3"
       >
+        <AnimatePresence mode="popLayout" initial={false}>
+          {mode === "product-details" && (
+            <motion.div
+              layout
+              key="qty-selector"
+              initial={{ opacity: 0, scale: 0.8, x: -20 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.8, x: -20 }}
+              transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+              className="flex items-center justify-between bg-white shadow-[0_2px_15px_rgba(0,0,0,0.08)] rounded-full px-4 py-2 h-[47px] w-[130px] flex-shrink-0 z-10"
+            >
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onDecrement?.();
+                }}
+                className="text-[#04BD88] text-xl font-medium w-8 flex justify-center active:scale-90 transition-transform"
+              >
+                -
+              </button>
+              <span className="text-black font-semibold text-sm">
+                {quantity || 1}
+              </span>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onIncrement?.();
+                }}
+                className="text-[#04BD88] text-xl font-medium w-8 flex justify-center active:scale-90 transition-transform"
+              >
+                +
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* === MAIN PILL (Search / Store Name / Add / Loading / Full Cart) === */}
         {/* Moved outside AnimatePresence to ensure it never unmounts/remounts during sibling transitions */}
         <motion.div
           layout
           className={cn(
-            "h-[47px] rounded-[25px] flex-grow shadow-lg active:scale-[0.98] overflow-hidden relative z-20 bg-[#04BD88]"
+            "h-[47px] rounded-[25px] flex-grow shadow-lg active:scale-[0.98] overflow-hidden relative z-20 bg-[#04BD88]",
           )}
           initial={false}
           animate={{
@@ -137,6 +182,29 @@ export default function FloatingBottomBar() {
                   className="absolute inset-0 w-full h-full flex items-center justify-center px-6 text-white font-bold text-sm"
                 >
                   {text}
+                </motion.button>
+              )}
+
+              {mode === "product-details" && (
+                <motion.button
+                  key="content-product-details"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={!disabled ? action : undefined}
+                  disabled={disabled}
+                  className={cn(
+                    "absolute inset-0 w-full h-full flex items-center justify-between px-6 text-white font-bold text-sm transition-opacity",
+                    disabled ? "opacity-50 cursor-not-allowed" : "",
+                  )}
+                >
+                  <span>{text}</span>
+                  {secondaryText && (
+                    <span className="font-normal opacity-90">
+                      {secondaryText}
+                    </span>
+                  )}
                 </motion.button>
               )}
 

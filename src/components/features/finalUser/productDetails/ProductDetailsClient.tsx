@@ -21,6 +21,7 @@ const ExtrasAndNoteSection = ({
   decOption,
   note,
   setNote,
+  getOptionPrice,
 }: {
   details: ProductDetails;
   selected: Record<string, number>;
@@ -30,9 +31,9 @@ const ExtrasAndNoteSection = ({
   decOption: (extraId: string) => void;
   note: string;
   setNote: (note: string) => void;
+  getOptionPrice: (price: number) => number;
 }) => (
-  <div className="space-y-4 mt-4">
-    {/* --- INICIO DEL CÓDIGO REINSERTADO --- */}
+  <div className="space-y-6 mt-4">
     {details.sections.length === 0 ? (
       <div className="text-sm text-gray-500">
         Este producto no tiene extras disponibles.
@@ -41,98 +42,118 @@ const ExtrasAndNoteSection = ({
       details.sections.map((s) => {
         const isCollapsed = collapsed[s.id];
         return (
-          <div key={s.id} className="rounded-xl border overflow-hidden">
-            <button
-              type="button"
-              onClick={() => toggleSection(s.id)}
-              className="w-full px-4 py-2 bg-gray-50 flex items-center justify-between text-left"
-            >
-              <span className="text-sm font-medium flex items-center gap-2">
-                {s.name}
-                {s.isRequired ? (
-                  <span className="text-[11px] text-emerald-600 font-normal">
+          <div key={s.id} className="flex flex-col">
+            <div className="bg-[#EFF2F5] rounded-[10px] px-[10px] py-[10px] flex items-center justify-between mb-2">
+              <span className="font-bold text-sm text-black">{s.name}</span>
+              <div className="flex items-center gap-2">
+                {s.isRequired && (
+                  <span className="text-[13px] text-[#28B996] font-semibold">
                     Requerido
                   </span>
-                ) : null}
-              </span>
-              <span className="text-xs text-gray-500">
-                {isCollapsed ? "Mostrar" : "Ocultar"}
-              </span>
-            </button>
+                )}
+              </div>
+            </div>
+
             {!isCollapsed && (
-              <ul className="divide-y">
+              <div className="flex flex-col">
                 {s.options.map((o) => {
                   const qty = selected[o.extraId] || 0;
+                  const finalPrice = getOptionPrice(o.price);
                   return (
-                    <li
+                    <div
                       key={o.id}
-                      className="px-4 py-3 flex items-center gap-3 justify-between"
+                      className="flex items-center justify-between py-3 px-2 border-b border-gray-100 last:border-0"
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        {o.imageUrl ? (
-                          <div className="relative w-10 h-10 rounded-md overflow-hidden flex-shrink-0">
-                            <Image
-                              src={o.imageUrl}
-                              alt={o.name}
-                              fill
-                              className="object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 bg-gray-100 rounded-md" />
+                      <div className="flex items-center gap-2 flex-1">
+                        <span className="text-[18px] sm:text-[20px] font-semibold text-black leading-tight">
+                          {o.name}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        {finalPrice > 0 && (
+                          <span className="text-xs font-semibold text-[#6A6C71]">
+                            + RD$ {finalPrice.toFixed(2)}
+                          </span>
                         )}
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {o.name}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            + RD$ {o.price.toFixed(2)}
-                          </p>
+
+                        <div className="flex items-center gap-3">
+                          {qty > 0 ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => decOption(o.extraId)}
+                                className="w-5 h-5 flex items-center justify-center rounded-full bg-[#04BD88] text-white"
+                              >
+                                <svg
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                              </button>
+                              <span className="font-semibold text-sm w-4 text-center">
+                                {qty}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => incOption(o.extraId)}
+                                className="w-5 h-5 flex items-center justify-center rounded-full bg-[#04BD88] text-white"
+                              >
+                                <svg
+                                  width="12"
+                                  height="12"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="3"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                                </svg>
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => incOption(o.extraId)}
+                              className="w-5 h-5 rounded-full border-[1.5px] border-[#D9DCE3]"
+                            ></button>
+                          )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          className="w-8 h-8 rounded-full border text-lg leading-none disabled:opacity-50"
-                          onClick={() => decOption(o.extraId)}
-                          disabled={qty === 0}
-                        >
-                          −
-                        </button>
-                        <span className="w-6 text-center text-sm">{qty}</span>
-                        <button
-                          className="w-8 h-8 rounded-full border text-lg leading-none"
-                          onClick={() => incOption(o.extraId)}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </li>
+                    </div>
                   );
                 })}
-              </ul>
+              </div>
             )}
           </div>
         );
       })
     )}
 
-    {/* Input de la nota */}
-    <div className="mt-4">
-      <label className="block text-sm font-medium text-gray-700 mb-1">
+    <div className="mt-6">
+      <label className="block text-sm font-bold text-black mb-2">
         Nota para el pedido (opcional)
       </label>
-      <textarea
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="Ej. Sin cebolla, salsa aparte…"
-        rows={3}
-        className="w-full rounded-lg border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40"
-      />
-      <div className="mt-1 text-[11px] text-gray-500">
-        La nota se guardará junto con este producto en tu carrito.
+      <div className="relative">
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder="Ej. Sin cebolla, salsa aparte…"
+          rows={3}
+          className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm outline-none focus:ring-1 focus:ring-[#04BD88] bg-gray-50/50 resize-none"
+        />
       </div>
     </div>
-    {/* --- FIN DEL CÓDIGO REINSERTADO --- */}
   </div>
 );
 
@@ -143,7 +164,9 @@ export default function ProductDetailsClient({
   details: ProductDetails;
   partnerType?: string;
 }) {
-  const showProduct = useFloatingButtonStore((state) => state.showProduct);
+  const showProductDetails = useFloatingButtonStore(
+    (state) => state.showProductDetails,
+  );
   const showSearch = useFloatingButtonStore((state) => state.showSearch);
   const isRestaurant = partnerType === "restaurant";
   const dispatch = useAppDispatch();
@@ -153,13 +176,21 @@ export default function ProductDetailsClient({
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [note, setNote] = useState<string>("");
 
-  const unitPrice = useMemo(() => {
-    const base = Number(details.display_price) || 0;
+  const discountDecimal = useMemo(() => {
     const d = details.discount_percentage
       ? Number(details.discount_percentage)
       : 0;
-    return d ? base * (1 - d / 100) : base;
-  }, [details]);
+    return d ? d / 100 : 0;
+  }, [details.discount_percentage]);
+
+  const unitPrice = useMemo(() => {
+    const base = Number(details.display_price) || 0;
+    return discountDecimal > 0 ? base * (1 - discountDecimal) : base;
+  }, [details.display_price, discountDecimal]);
+
+  const getOptionPrice = (price: number) => {
+    return discountDecimal > 0 ? price * (1 - discountDecimal) : price;
+  };
 
   const extrasPerUnitTotal = useMemo(() => {
     if (!isRestaurant) return 0;
@@ -167,15 +198,15 @@ export default function ProductDetailsClient({
     for (const s of details.sections) {
       for (const o of s.options) {
         const qty = selected[o.extraId] || 0;
-        if (qty > 0) total += o.price * qty;
+        if (qty > 0) total += getOptionPrice(o.price) * qty;
       }
     }
     return total;
-  }, [details.sections, selected, isRestaurant]);
+  }, [details.sections, selected, isRestaurant, discountDecimal]);
 
   const subtotal = useMemo(
     () => (unitPrice + extrasPerUnitTotal) * quantity,
-    [unitPrice, extrasPerUnitTotal, quantity]
+    [unitPrice, extrasPerUnitTotal, quantity],
   );
 
   const requiredSatisfied = useMemo(() => {
@@ -217,10 +248,10 @@ export default function ProductDetailsClient({
               id: "",
               extraId: o.extraId,
               name: o.name,
-              price: o.price,
+              price: getOptionPrice(o.price),
               quantity: selected[o.extraId],
               imageUrl: o.imageUrl,
-            }))
+            })),
         );
     dispatch(
       addItem({
@@ -233,24 +264,37 @@ export default function ProductDetailsClient({
         extras,
         mergeByProduct: true,
         note: note.trim() ? note.trim() : null,
-      })
+      }),
     );
     if (openAfter) dispatch(openCart());
   };
 
   useEffect(() => {
-    showProduct(() => {
-      if (requiredSatisfied) {
-        addToCartHandler(true);
-      } else {
-        setToast({
-          open: true,
-          message: "Por favor selecciona todas las opciones requeridas.",
-          type: "error",
-        });
-      }
+    showProductDetails({
+      quantity,
+      onIncrement: () => setQuantity((q) => q + 1),
+      onDecrement: () => setQuantity((q) => Math.max(1, q - 1)),
+      action: () => {
+        if (requiredSatisfied) {
+          addToCartHandler(true);
+        } else {
+          setToast({
+            open: true,
+            message: "Por favor selecciona todas las opciones requeridas.",
+            type: "error",
+          });
+        }
+      },
+      disabled: !requiredSatisfied,
+      secondaryText: `RD$ ${subtotal.toFixed(2)}`,
     });
-  }, [showProduct, showSearch, requiredSatisfied, addToCartHandler]);
+  }, [
+    showProductDetails,
+    quantity,
+    subtotal,
+    requiredSatisfied,
+    addToCartHandler,
+  ]);
 
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const toggleSection = (id: string) =>
@@ -263,7 +307,7 @@ export default function ProductDetailsClient({
   });
 
   return (
-    <div className="max-w-6xl mx-auto">
+    <div className="max-w-6xl mx-auto pb-24 md:pb-0 font-sans">
       {/* Toast de errores de restricción de tienda */}
       <Toast
         open={toast.open}
@@ -271,188 +315,184 @@ export default function ProductDetailsClient({
         type={toast.type}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
       />
-      <div className="p-4">
+
+      {/* Desktop Back Button */}
+      <div className="p-4 hidden md:block">
         <button
-          className="px-3 py-2 rounded-lg border text-sm"
+          className="px-3 py-2 rounded-lg border text-sm hover:bg-gray-50"
           onClick={() => router.back()}
         >
           Volver
         </button>
       </div>
 
-      <div className="rounded-2xl border overflow-hidden bg-white">
+      {/* Main Container */}
+      <div className="bg-white md:rounded-2xl md:border md:overflow-hidden min-h-screen md:min-h-0">
         <div className="grid grid-cols-1 md:grid-cols-2">
-          {/* Column 1: Image */}
-          <div className="flex justify-center items-center p-4 md:p-0">
-            <div className="relative w-[212px] h-[286px] md:w-full md:h-full md:min-h-[600px]">
+          {/* Mobile Header / Image Section */}
+          <div className="relative md:hidden">
+            {/* Back Button Overlay */}
+            <button
+              onClick={() => router.back()}
+              className="absolute top-4 left-4 z-10 w-10 h-10 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M15 18l-6-6 6-6" />
+              </svg>
+            </button>
+
+            {/* Image */}
+            <div className="w-full aspect-[4/3] relative">
               {details.image_url ? (
                 <Image
                   src={details.image_url}
                   alt={details.name}
                   fill
-                  className="object-cover rounded-lg md:rounded-none"
+                  className="object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gray-100 rounded-lg md:rounded-none" />
+                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-300">
+                  <svg
+                    width="48"
+                    height="48"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                    <circle cx="8.5" cy="8.5" r="1.5" />
+                    <polyline points="21 15 16 10 5 21" />
+                  </svg>
+                </div>
               )}
             </div>
           </div>
 
-          {/* Column 2: Content */}
-          <div className="flex flex-col p-4 pt-0 md:p-6">
-            {/* Info Block */}
-            <div className="order-1">
-              <div className="space-y-2 py-4">
-                <h1 className="font-bold text-lg md:text-xl text-black">
+          {/* Desktop Image */}
+          <div className="hidden md:flex justify-center items-center p-0 bg-gray-50 border-r">
+            <div className="relative w-full h-[500px]">
+              {details.image_url ? (
+                <Image
+                  src={details.image_url}
+                  alt={details.name}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-100" />
+              )}
+            </div>
+          </div>
+
+          {/* Content Section */}
+          <div className="flex flex-col p-5 md:p-8">
+            {/* Header Info */}
+            <div className="mb-6">
+              <div className="flex justify-between items-start mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-black leading-tight">
                   {details.name}
                 </h1>
-                <p className="font-semibold text-xl md:text-2xl text-black">
-                  RD$ {unitPrice.toFixed(0)} /u
-                </p>
-                <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                  <span className="text-sm text-gray-400">
-                    RD$ {unitPrice.toFixed(0)} /und (1 Und)
+              </div>
+
+              {/* Rating Row */}
+              <div className="flex items-center gap-2 mb-3">
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-semibold text-[#6A6C71]">
+                    4.8
                   </span>
-                  {details.previous_price && (
-                    <span className="text-sm text-gray-500 line-through">
-                      RD$ {details.previous_price.toFixed(0)}
-                    </span>
-                  )}
-                  {details.discount_percentage && (
-                    <span className="text-base font-bold text-[#04BD88]">
-                      -{details.discount_percentage}%
-                    </span>
-                  )}
+                  <svg
+                    className="w-3 h-3 text-[#6A6C71] fill-current"
+                    viewBox="0 0 24 24"
+                  >
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                  </svg>
                 </div>
-              </div>
-            </div>
-
-            {/* Description, Extras, and Note Block */}
-            <div className="order-3 md:order-2">
-              <hr className="my-5 border-gray-200 md:hidden" />
-              {/* Mobile Description & Extras */}
-              <div className="space-y-3 md:hidden">
-                <h2 className="text-xl font-semibold">{details.name}</h2>
-                {details.description && (
-                  <p className="text-base text-black/90">
-                    {details.description}
-                  </p>
-                )}
-                {/* // <-- AÑADIDO: Lógica de extras y nota para móvil */}
-                {isRestaurant && (
-                  <ExtrasAndNoteSection
-                    details={details}
-                    selected={selected}
-                    collapsed={collapsed}
-                    toggleSection={toggleSection}
-                    incOption={incOption}
-                    decOption={decOption}
-                    note={note}
-                    setNote={setNote}
-                  />
-                )}
+                <span className="text-xs font-semibold text-[#606060]">
+                  (143)
+                </span>
               </div>
 
-              {/* Desktop Description, Extras & Note */}
-              <div className="hidden md:block space-y-4">
-                {isRestaurant && prepTime ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-[#EEF6FF] text-[#1C398E] border border-[#BEDBFF]">
-                    {prepTime}
+              {/* Price & Description */}
+              <p className="text-sm text-[#6A6C71] leading-relaxed mb-4">
+                {details.description || "Sin descripción disponible."}
+              </p>
+
+              <div className="flex items-center gap-3">
+                <span className="text-xl font-bold text-black">
+                  RD$ {(unitPrice + extrasPerUnitTotal).toFixed(2)}
+                </span>
+                {details.discount_percentage && (
+                  <span className="bg-[#04BD88]/10 text-[#04BD88] text-xs font-bold px-2 py-1 rounded-full">
+                    -{details.discount_percentage}%
                   </span>
-                ) : null}
-                {details.description ? (
-                  <p className="text-sm text-gray-600">{details.description}</p>
-                ) : null}
-                {/* // <-- AÑADIDO: Lógica de extras y nota para escritorio */}
-                {isRestaurant && (
-                  <ExtrasAndNoteSection
-                    details={details}
-                    selected={selected}
-                    collapsed={collapsed}
-                    toggleSection={toggleSection}
-                    incOption={incOption}
-                    decOption={decOption}
-                    note={note}
-                    setNote={setNote}
-                  />
                 )}
               </div>
             </div>
 
-            {/* Controls Block */}
-            <div className="order-2 md:order-3 md:mt-auto md:pt-6">
-              {/* Mobile Controls */}
-              <div className="md:hidden mt-4 p-4 space-y-3 rounded-2xl bg-gray-100/70 border border-gray-200">
-                <div className="flex items-center justify-between">
-                  <span className="font-medium text-base">Cantidad</span>
-                  <div className="flex items-center gap-4 border rounded-full bg-white px-3 py-2 text-center">
+            {/* Extras Section */}
+            <div className="flex-1">
+              {isRestaurant && (
+                <ExtrasAndNoteSection
+                  details={details}
+                  selected={selected}
+                  collapsed={collapsed}
+                  toggleSection={toggleSection}
+                  incOption={incOption}
+                  decOption={decOption}
+                  note={note}
+                  setNote={setNote}
+                  getOptionPrice={getOptionPrice}
+                />
+              )}
+            </div>
+
+            {/* Desktop Controls */}
+            <div className="hidden md:block mt-8">
+              <div className="flex flex-col gap-4">
+                {/* Quantity & Add Row */}
+                <div className="flex items-center gap-4">
+                  {/* Quantity Selector Figma Style */}
+                  <div className="flex items-center justify-between bg-white shadow-[0_2px_15px_rgba(0,0,0,0.08)] rounded-full px-4 py-2 h-[44px] w-[130px] flex-shrink-0">
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                      className="text-lg text-gray-500"
+                      className="text-[#04BD88] text-xl font-medium w-8 flex justify-center"
                     >
                       -
                     </button>
-                    <span className="w-4 text-sm font-medium">{quantity}</span>
+                    <span className="text-black font-semibold text-sm">
+                      {quantity}
+                    </span>
                     <button
                       onClick={() => setQuantity((q) => q + 1)}
-                      className="text-lg text-gray-500"
+                      className="text-[#04BD88] text-xl font-medium w-8 flex justify-center"
                     >
                       +
                     </button>
                   </div>
-                </div>
-                <button
-                  className="w-full text-center py-2.5 rounded-xl border border-[#202124] bg-white text-sm font-medium text-[#202124]"
-                  disabled={!requiredSatisfied}
-                  onClick={() => addToCartHandler(false)}
-                >
-                  Añadir y seguir explorando
-                </button>
-                <button
-                  className="w-full flex justify-between items-center px-4 py-2.5 rounded-xl bg-[#04BD88] text-white text-sm font-medium"
-                  disabled={!requiredSatisfied}
-                  onClick={() => addToCartHandler(true)}
-                >
-                  <span>Agregar</span>
-                  <span>Subtotal: RD$ {subtotal.toFixed(2)}</span>
-                </button>
-              </div>
 
-              {/* Desktop Controls */}
-              <div className="hidden md:flex items-center justify-between gap-3 border-t pt-6">
-                <div className="flex items-center gap-2 border rounded-full px-3 py-1">
+                  {/* Add Button */}
                   <button
-                    onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                    className="text-lg"
-                  >
-                    -
-                  </button>
-                  <span className="w-6 text-center text-sm">{quantity}</span>
-                  <button
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="text-lg"
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="flex items-center gap-3 ml-auto">
-                  <button
-                    className="px-3 py-2 rounded-lg border text-sm"
-                    disabled={!requiredSatisfied}
-                    onClick={() => addToCartHandler(false)}
-                  >
-                    Añadir y seguir explorando
-                  </button>
-                  <button
-                    className="px-3 py-2 rounded-lg bg-primary text-white text-sm"
+                    className="flex-1 bg-[#04BD88] text-white h-[44px] rounded-full font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#04BD88]/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!requiredSatisfied}
                     onClick={() => addToCartHandler(true)}
                   >
-                    Agregar
+                    <span>Agregar</span>
+                    <span className="font-normal opacity-90">
+                      RD$ {subtotal.toFixed(2)}
+                    </span>
                   </button>
-                  <div className="px-3 py-2 rounded-lg bg-gray-100 text-sm font-semibold whitespace-nowrap">
-                    Subtotal: RD$ {subtotal.toFixed(2)}
-                  </div>
                 </div>
               </div>
             </div>

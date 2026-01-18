@@ -22,12 +22,12 @@ export default async function ProductDetailsPage({
     );
   }
   return (
-    <div className="p-2 md:p-4">
+    <div className="bg-white md:bg-transparent min-h-screen md:min-h-0 md:p-4">
       <Suspense>
         <ProductDetailsClient details={data} partnerType={store.partner_type} />
       </Suspense>
       {/* Recommended products from the same store */}
-      <div className="mt-6">
+      <div className="mt-6 px-4 md:px-0">
         <RecommendedProductsSectionServer
           partnerId={id}
           currentProductId={productId}
