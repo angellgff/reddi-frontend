@@ -36,8 +36,10 @@ function RegistroContent() {
     if (!lastName.trim()) newErrors.lastName = "Ingresar Apellido";
     if (!email.trim()) newErrors.email = "Email es requerido";
     if (!phone.trim()) newErrors.phone = "El número de teléfono es requerido";
-    // Add password validation if needed, for new required UI
-    // if (!password) newErrors.password = "Contraseña requerida";
+    
+    if (password !== confirmPassword) {
+      newErrors.confirmPassword = "Las contraseñas no coinciden.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -48,6 +50,7 @@ function RegistroContent() {
       setErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[field];
+        delete newErrors.general; // Clear general error on input change
         return newErrors;
       });
     }
@@ -56,12 +59,8 @@ function RegistroContent() {
   const handleRegister = async () => {
     if (!validate()) return;
 
-    if (password !== confirmPassword) {
-      alert("Las contraseñas no coinciden.");
-      return;
-    }
-
     setIsLoading(true);
+    setErrors({}); // Clear previous errors
 
     try {
       // 1. Check if email/phone exists using Server Action (bypassing public security mask)
@@ -131,9 +130,10 @@ function RegistroContent() {
       router.push("/auth/sign-up-success");
     } catch (error: any) {
       console.error("Error signing up:", error);
-      alert(
-        error.message || "Error al registrarse. Por favor intenta nuevamente.",
-      );
+      setErrors((prev) => ({
+        ...prev,
+        general: error.message || "Error al registrarse. Por favor intenta nuevamente.",
+      }));
     } finally {
       setIsLoading(false);
     }
@@ -191,6 +191,7 @@ function RegistroContent() {
           onChange={(e) => {
             setEmail(e.target.value);
             clearError("email");
+            clearError("general");
           }}
           error={errors.email}
         />
@@ -237,7 +238,10 @@ function RegistroContent() {
           type="password"
           placeholder="********"
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            clearError("confirmPassword"); // Clear mismatch error when editing password
+          }}
         />
 
         {/* Confirm Password */}
@@ -246,8 +250,21 @@ function RegistroContent() {
           type="password"
           placeholder="********"
           value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
+          onChange={(e) => {
+            setConfirmPassword(e.target.value);
+            clearError("confirmPassword"); // Clear mismatch error when editing confirmation
+          }}
+          error={errors.confirmPassword}
         />
+
+        {/* General Error Message */}
+        {errors.general && (
+          <div className="w-full p-3 bg-red-50 border border-red-100 rounded-[18px] text-center">
+            <span className="text-red-500 text-xs font-medium">
+              {errors.general}
+            </span>
+          </div>
+        )}
 
         {/* Register Button */}
         <div className="w-full mb-2">

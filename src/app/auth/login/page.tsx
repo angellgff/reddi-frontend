@@ -33,9 +33,24 @@ function LoginContent() {
   const [password, setPassword] = useState("");
   const startRef = useRef(false);
 
+  /* Removed useEffect that showed alert */
+
+  // Local state for field errors
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+
+  const clearErrors = () => setErrors({});
+
+  // Sync server state error to local errors
   useEffect(() => {
     if (state?.error) {
-      alert(state.error);
+      if (
+        state.error.toLowerCase().includes("email") || 
+        state.error.toLowerCase().includes("user")
+      ) {
+        setErrors({ email: state.error });
+      } else {
+        setErrors({ password: state.error });
+      }
     }
   }, [state]);
 
@@ -121,7 +136,11 @@ function LoginContent() {
           type="email"
           placeholder="ejemplo@gmail.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            clearErrors();
+          }}
+          error={errors.email}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               if (!showPassword) {
@@ -141,10 +160,14 @@ function LoginContent() {
               type="password"
               placeholder="********"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearErrors();
+              }}
               onKeyDown={(e) => {
                 // Enter submits implicitly
               }}
+              error={errors.password}
             />
           </div>
         )}
