@@ -19,17 +19,17 @@ const businessTypes: {
 }[] = [
   {
     name: "Mercado",
-    imageUrl: "/Market.svg",
+    imageUrl: "/market.png",
     value: "market",
   },
   {
     name: "Restaurantes",
-    imageUrl: "/Burger2.svg",
+    imageUrl: "/restaurant.png",
     value: "restaurant",
   },
   {
     name: "Alcohol",
-    imageUrl: "/alcohol.svg",
+    imageUrl: "/alcohol.png",
     value: "alcohol",
   },
   {
@@ -39,7 +39,7 @@ const businessTypes: {
   },
   {
     name: "Tabaco",
-    imageUrl: "/Tobacco.svg",
+    imageUrl: "/tobaco.png",
     value: "tobacco",
   },
 ];
@@ -66,7 +66,7 @@ export default function RegisterFormStep1({
 
   // Función para verificar errores en los campos del formulario
   const verifyErrors = (
-    newErrors: Partial<Record<keyof PartnerRegisterForm["session"], string>>
+    newErrors: Partial<Record<keyof PartnerRegisterForm["session"], string>>,
   ) => {
     const requiredFields: (keyof PartnerRegisterForm["session"])[] = [
       "email",
