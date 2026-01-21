@@ -10,17 +10,17 @@ const inter = Inter({
 export default function LoginHero() {
   return (
     <div
-      className={`hidden lg:flex w-1/2 relative flex-col items-center justify-center pt-32 px-12 ${inter.variable}`}
+      className={`hidden lg:flex w-1/2 h-full relative flex-col items-center justify-center pt-[8vh] pb-[5vh] px-12 ${inter.variable}`}
       style={{
         background: "linear-gradient(180deg, #04BD88 0%, #2E734D 100%)",
       }}
     >
-      <div className="relative z-10 flex flex-col text-left mb-8">
+      <div className="relative z-10 flex flex-col text-left mb-4 flex-shrink-0">
         <h1
-          className={`${inter.className} text-white font-bold text-5xl lg:text-[64px] leading-tight`}
+          className={`${inter.className} text-white font-bold text-5xl xl:text-[64px] leading-tight`}
         >
           ¿Reddi
-          <span className="font-thin lg:text-[48px] leading-none">
+          <span className="font-thin xl:text-[48px] leading-none">
             {" "}
             Pa’ Vender?
           </span>
@@ -30,12 +30,12 @@ export default function LoginHero() {
         </p>
       </div>
 
-      <div className="relative w-full flex-grow">
+      <div className="relative w-full flex-1 min-h-0">
         <Image
           src="/partners-login-phone.png"
           alt="Reddi Login Devices"
           fill
-          className="object-contain object-center scale-110"
+          className="object-contain object-center scale-90"
           priority
         />
       </div>

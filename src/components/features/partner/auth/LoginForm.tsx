@@ -8,7 +8,6 @@ import { loginAction } from "@/src/lib/actions/auth";
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
 import AppleIcon from "@/src/components/icons/AppleIcon";
-import logo from "@/src/assets/images/logo.svg";
 
 import PartnerAuthInput from "./PartnerAuthInput";
 import PartnerSubmitButton from "./PartnerSubmitButton";
@@ -48,7 +47,7 @@ export default function LoginForm() {
         {/* Logo */}
         <div className="w-full mb-8 flex items-center justify-start">
           <Image
-            src={logo}
+            src={"/reddi.svg"}
             alt="Aliados Logo"
             width={50}
             height={50}
@@ -59,7 +58,7 @@ export default function LoginForm() {
           </span>
         </div>
 
-        <form action={formAction} className="w-full flex flex-col gap-6">
+        <form action={formAction} className="w-full flex flex-col gap-2">
           <input type="hidden" name="redirectTo" value="/partner/dashboard" />
 
           {/* Email Field */}
