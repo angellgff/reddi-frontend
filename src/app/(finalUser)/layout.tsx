@@ -29,10 +29,6 @@ export default function UserLayout({
       <Suspense fallback={null}>
         <UserFooter />
       </Suspense>
-      <div className="pt-0 md:pt-[4.45rem]">
-        {" "}
-        <GuestFooter />
-      </div>
       <CartSlider />
     </>
   );

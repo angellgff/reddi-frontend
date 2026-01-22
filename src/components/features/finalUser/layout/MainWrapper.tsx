@@ -14,7 +14,5 @@ export default function MainWrapper({
   // Default padding for header
   const paddingClass = isStorePage ? "pt-0" : "pt-[4rem] sm:pt-[1rem]";
 
-  return (
-    <main className={`${paddingClass} pb-[4.45rem] md:pb-0`}>{children}</main>
-  );
+  return <main className={`${paddingClass}`}>{children}</main>;
 }

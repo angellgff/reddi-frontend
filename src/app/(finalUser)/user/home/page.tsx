@@ -12,7 +12,7 @@ import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkele
 
 export default function Home() {
   return (
-    <div className="mx-auto max-w-md bg-white min-h-screen relative pb-32">
+    <div className="mx-auto max-w-md bg-white min-h-screen relative">
       <HomeFloatingButtonSetter />
 
       {/* 2. Categories Row */}
