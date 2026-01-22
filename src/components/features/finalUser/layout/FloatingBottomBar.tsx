@@ -288,7 +288,7 @@ export default function FloatingBottomBar() {
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
               onClick={() => dispatch(toggleCart())}
-              className="w-[47px] h-[47px] bg-[#04BD88] rounded-full shadow-lg flex items-center justify-center flex-shrink-0 relative active:scale-95 z-10"
+              className="w-[55px] h-[47px] bg-[#04BD88] rounded-full shadow-lg flex items-center justify-center flex-shrink-0 relative active:scale-95 z-10"
             >
               <Image
                 src="/new-design/nd-cart-fill.png"
