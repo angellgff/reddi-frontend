@@ -2,8 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, useActionState, useEffect } from "react";
-import { loginAction } from "@/src/lib/actions/auth";
+import {
+  loginPartnerAction,
+  loginPartnerWithGoogleAction,
+} from "@/src/lib/actions/partner/auth/login";
 
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import facebookLogo from "@/src/assets/images/facebooklogo.svg";
@@ -14,7 +18,11 @@ import PartnerSubmitButton from "./PartnerSubmitButton";
 import PartnerSocialButton from "./PartnerSocialButton";
 
 export default function LoginForm() {
-  const [state, formAction, isPending] = useActionState(loginAction, null);
+  const [state, formAction, isPending] = useActionState(
+    loginPartnerAction,
+    null,
+  );
+  const searchParams = useSearchParams();
 
   // Local state
   const [email, setEmail] = useState("");
@@ -23,12 +31,19 @@ export default function LoginForm() {
     {},
   );
 
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setErrors({ email: errorParam, password: errorParam });
+    }
+  }, [searchParams]);
+
   const handleAppleLogin = () => {
     console.log("Apple login click");
   };
 
-  const handleGoogleLogin = () => {
-    console.log("Google login click");
+  const handleGoogleLogin = async () => {
+    await loginPartnerWithGoogleAction();
   };
 
   const handleFacebookLogin = () => {
