@@ -2,7 +2,8 @@
 
 import type { StoreDetails as BaseStoreDetails } from "@/src/lib/finalUser/stores/getStoreDetails";
 import StarIcon from "@/src/components/icons/StarIcon";
-import { ChevronLeft, User, Bell, ShoppingCart } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 // Reuse the type definition or similar
@@ -30,7 +31,7 @@ export default function RestaurantHeader({
 
   return (
     // Rediseño basado en 'Restaurante' view (Mobile Hero style)
-    <div className="relative w-full h-[200px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
+    <div className="relative w-full h-[190px] overflow-hidden bg-white shadow-sm -mt-6 md:mt-0 md:rounded-2xl">
       {/* Banner de fondo cubriendo todo el header */}
       <div className="absolute inset-0 w-full h-full bg-gray-200">
         {banner ? (
@@ -47,14 +48,14 @@ export default function RestaurantHeader({
       </div>
 
       {/* Top Bar Navigation */}
-      <div className="absolute top-[49px] left-0 w-full px-[21px] flex justify-between items-center z-20 pointer-events-none">
+      <div className="absolute top-[26px] left-0 w-full px-[21px] flex justify-between items-center z-20 pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
           {/* Back Button */}
           <button
             onClick={() => router.back()}
-            className="w-[37px] h-[37px] bg-white/30 rounded-full flex items-center justify-center backdrop-blur-[2px]"
+            className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center"
           >
-            <ChevronLeft className="w-5 h-5 text-white" strokeWidth={2.5} />
+            <ChevronLeft className="w-6 h-6 text-black" strokeWidth={1.5} />
           </button>
 
           {/* Restaurant Name */}
@@ -66,18 +67,36 @@ export default function RestaurantHeader({
         {/* Right Actions */}
         <div className="flex items-center gap-[15px] pointer-events-auto">
           {/* Profile */}
-          <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
-            <User className="w-5 h-5 text-white" strokeWidth={2} />
+          <button className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden">
+            <Image
+              src="/new-design/nd-user.png"
+              alt="Profile"
+              width={18}
+              height={18}
+              className="object-contain"
+            />
           </button>
 
           {/* Notifications */}
-          <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
-            <Bell className="w-5 h-5 text-white" strokeWidth={2} />
+          <button className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden">
+            <Image
+              src="/new-design/nd-bell.png"
+              alt="Notifications"
+              width={20}
+              height={20}
+              className="object-contain"
+            />
           </button>
 
           {/* Cart */}
-          <button className="w-[37px] h-[37px] bg-[#D9D9D9]/30 rounded-full flex items-center justify-center backdrop-blur-[2px]">
-            <ShoppingCart className="w-5 h-5 text-white" strokeWidth={2} />
+          <button className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden">
+            <Image
+              src="/new-design/nd-cart.png"
+              alt="Cart"
+              width={24}
+              height={24}
+              className="object-contain"
+            />
           </button>
         </div>
       </div>

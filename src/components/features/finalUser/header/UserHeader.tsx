@@ -275,19 +275,19 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               {/* Nav pills solo visibles en >= xl */}
               <div className="hidden xl:flex items-center gap-5 border-l border-primary pl-6 flex-shrink min-w-0">
                 <NavPill
-                  icon={<ShoppingBag size={20} />}
+                  iconSrc="/new-design/nd-bag.png"
                   label="Mis pedidos"
-                  active={pathname?.startsWith("/user/orders")}
+                  active={Boolean(pathname?.startsWith("/user/orders"))}
                   onClick={goOrders}
                 />
                 <NavPill
-                  icon={<Heart size={20} />}
+                  iconSrc="/new-design/nd-heart.png"
                   label="Favoritos"
                   active={pathname === "/user/favorites"}
                   onClick={goFavorites}
                 />
                 <NavPill
-                  icon={<MapPin size={20} />}
+                  iconSrc="/new-design/nd-map.png"
                   label="Direcciones guardadas"
                   active={pathname === "/user/profile"}
                   onClick={goAddresses}
@@ -348,19 +348,19 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
             <div className="p-4 flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <NavPill
-                  icon={<ShoppingBag size={20} />}
+                  iconSrc="/new-design/nd-bag.png"
                   label="Mis pedidos"
-                  active={pathname?.startsWith("/user/orders")}
+                  active={Boolean(pathname?.startsWith("/user/orders"))}
                   onClick={goOrders}
                 />
                 <NavPill
-                  icon={<Heart size={20} />}
+                  iconSrc="/new-design/nd-heart.png"
                   label="Favoritos"
                   active={pathname === "/user/favorites"}
                   onClick={goFavorites}
                 />
                 <NavPill
-                  icon={<MapPin size={20} />}
+                  iconSrc="/new-design/nd-map.png"
                   label="Direcciones guardadas"
                   active={pathname === "/user/profile"}
                   onClick={goAddresses}
@@ -411,12 +411,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
 
 // Small reusable pill component for desktop navigation
 function NavPill({
-  icon,
+  iconSrc,
   label,
   active = false,
   onClick,
 }: {
-  icon: React.ReactNode;
+  iconSrc: string;
   label: string;
   active?: boolean;
   onClick?: () => void;
@@ -429,8 +429,8 @@ function NavPill({
         active ? "ring-2 ring-transparent" : ""
       }`}
     >
-      <div className="flex items-start gap-1 h-5">
-        {icon}
+      <div className="flex items-center gap-1 h-5">
+        <Image src={iconSrc} width={15} height={15} alt={label} />
         <span className="text-[14px] leading-5 font-medium font-[Poppins] text-black text-center">
           {label}
         </span>
