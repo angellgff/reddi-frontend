@@ -38,9 +38,9 @@ export default function HomeCategories() {
         <Link
           key={cat.name}
           href={cat.href}
-          className="flex flex-col items-center gap-2 min-w-[60px]"
+          className="flex flex-col items-center gap-2 min-w-[90px]"
         >
-          <div className="w-[64px] h-[64px] relative rounded-full flex items-center justify-center  bg-white overflow-hidden p-1">
+          <div className="w-16 h-16 relative rounded-full flex items-center justify-center  bg-white overflow-hidden p-1">
             <Image
               src={cat.image}
               alt={cat.name}
