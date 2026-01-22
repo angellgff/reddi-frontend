@@ -17,12 +17,12 @@ export default async function HomePartnersList() {
           className="flex flex-col items-center gap-2 flex-shrink-0 w-[80px]"
         >
           {/* Image Container */}
-          <div className="relative w-[57px] h-[57px] rounded-[14px] border border-[#D9D9D9] bg-white overflow-hidden flex items-center justify-center">
+          <div className="relative w-[60px] h-[60px] rounded-[14px] border border-[#D9D9D9] bg-white overflow-hidden flex items-center justify-center">
             <Image
               src={partner.image}
               alt={partner.name}
-              width={57}
-              height={57}
+              width={60}
+              height={60}
               className="w-full h-full object-cover"
             />
           </div>
