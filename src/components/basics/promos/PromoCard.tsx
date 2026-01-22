@@ -21,7 +21,7 @@ export default function PromoCard({
   variant = "mobile",
 }: PromoCardProps) {
   const containerSizeClass =
-    variant === "desktop" ? "w-[317px] h-[146px]" : "w-[375px] h-40";
+    variant === "desktop" ? "w-[317px] h-[146px]" : "w-[350px] h-24";
   return (
     <Link
       href={href || "#"}
