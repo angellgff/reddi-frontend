@@ -11,6 +11,7 @@ export default async function RecommendedSectionServer({
 }) {
   const data = await getRecommendedPartners(partnerType);
   if (!data || data.length === 0) return null;
-  
+  console.log("RecommendedSectionServer data:", data);
+
   return <RecommendedSection recommendedItems={data} title={title} />;
 }
