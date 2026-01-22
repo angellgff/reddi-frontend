@@ -26,14 +26,14 @@ export default function Home() {
       </div>
 
       {/* 4. Promo Banner (Vodka placeholder)  */}
-      <div className="px-4 mb-6">
+      <div className="px-4">
         <Suspense fallback={<PromoSliderSkeleton />}>
           <PromoSliderServer />
         </Suspense>
       </div>
 
       {/* 2.5 Partners List */}
-      <div className="mt-2">
+      <div className="">
         <HomePartnersList />
       </div>
 

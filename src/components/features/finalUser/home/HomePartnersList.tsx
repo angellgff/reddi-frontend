@@ -9,7 +9,7 @@ export default async function HomePartnersList() {
   if (!partners || partners.length === 0) return null;
 
   return (
-    <div className="flex flex-row overflow-x-auto gap-4 px-4 py-4 no-scrollbar scroll-smooth border-b-[1px] border-[rgba(183,183,183,0.37)]">
+    <div className="font-openSans flex flex-row overflow-x-auto gap-4 px-4 py-4 no-scrollbar scroll-smooth border-b-[1px] border-[rgba(183,183,183,0.37)]">
       {partners.map((partner) => (
         <Link
           key={partner.id}
@@ -28,7 +28,7 @@ export default async function HomePartnersList() {
           </div>
 
           {/* Text Name */}
-          <span className="text-[10px] font-bold text-center text-black leading-tight font-sans line-clamp-2 w-full">
+          <span className="text-[10px] font-bold text-center text-black leading-tight line-clamp-2 w-full">
             {partner.name}
           </span>
         </Link>
