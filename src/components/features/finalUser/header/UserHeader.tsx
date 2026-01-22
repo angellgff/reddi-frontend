@@ -2,22 +2,12 @@
 
 "use client";
 
-import {
-  ChevronDown,
-  ShoppingCart,
-  Heart,
-  MapPin,
-  Menu,
-  X,
-  User,
-  Bell,
-} from "lucide-react";
+import { ChevronDown, Heart, MapPin, Menu, X } from "lucide-react";
 
 import Badge from "@/src/components/basics/header/Badge";
 import FiltersIcon from "@/src/components/icons/FiltersIcon";
 import SearchIcon from "@/src/components/icons/SearchIcon";
 
-import UserCarIcon from "@/src/components/icons/UserCarIcon";
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
 // import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 import { UserHeaderData } from "@/src/lib/finalUser/type";
@@ -39,6 +29,7 @@ import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
 import Link from "next/link";
 import { ShoppingBag } from "lucide-react";
+import Image from "next/image";
 
 const badgeColor = "bg-red-500";
 
@@ -109,7 +100,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
   const serverAddressSnapshot = userData?.address?.[0]?.address || "";
   const computedClientAddress = useMemo(() => {
     const selected = addresses.find(
-      (a) => (a.id as unknown as string) === selectedAddressId
+      (a) => (a.id as unknown as string) === selectedAddressId,
     );
     if (selected) {
       const label = (selected.location_type as string)?.toUpperCase?.() || "";
@@ -198,13 +189,23 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
           <div className="flex items-center gap-3">
             <Link href="/user/profile">
               <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <User className="w-5 h-5 text-black" />
+                <Image
+                  src="/new-design/nd-user.png"
+                  width={18}
+                  height={18}
+                  alt="Perfil"
+                />
               </div>
             </Link>
 
             <Link href="/user/notifications" className="relative">
               <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <Bell className="w-5 h-5 text-black" />
+                <Image
+                  src="/new-design/nd-bell.png"
+                  width={20}
+                  height={20}
+                  alt="Notificaciones"
+                />
               </div>
             </Link>
 
@@ -215,7 +216,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               aria-label="Abrir carrito"
             >
               <div className="relative">
-                <UserCarIcon stroke="black" className="w-5 h-5" />
+                <Image
+                  src="/new-design/nd-cart.png"
+                  width={24}
+                  height={24}
+                  alt="Carrito"
+                />
                 <div className="absolute -top-2 -right-2">
                   <Badge
                     count={cartCount || userData.carCount}
@@ -297,7 +303,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               aria-label="Abrir carrito"
             >
               <div className="flex items-center gap-2">
-                <UserCarIcon />
+                <Image
+                  src="/nd-cart.png"
+                  width={20}
+                  height={20}
+                  alt="Carrito"
+                />
                 <span
                   className="whitespace-nowrap text-sm lg:text-base"
                   suppressHydrationWarning
@@ -363,7 +374,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               >
                 <span>Carrito</span>
                 <div className="relative">
-                  <UserCarIcon />
+                  <Image
+                    src="/nd-cart.png"
+                    width={20}
+                    height={20}
+                    alt="Carrito"
+                  />
                   <Badge
                     count={
                       hydrated

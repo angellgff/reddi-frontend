@@ -2,7 +2,7 @@
 
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import { cn } from "@/src/lib/utils";
-import { ShoppingCart } from "lucide-react"; // Default icon if none provided or for the secondary button style
+import Image from "next/image";
 
 export default function DynamicFloatingButton() {
   const { mode, text, action } = useFloatingButtonStore();
@@ -18,7 +18,7 @@ export default function DynamicFloatingButton() {
           onClick={action}
           className={cn(
             "flex-1 flex items-center bg-[#04BD88] h-[47px] rounded-[25px] px-4 shadow-lg text-white font-semibold transform transition-all active:scale-95",
-            "justify-start gap-4"
+            "justify-start gap-4",
           )}
         >
           <div className="bg-white rounded-full w-[29px] h-[29px] flex items-center justify-center">
@@ -27,7 +27,7 @@ export default function DynamicFloatingButton() {
           <span className="text-sm font-semibold truncate">{text}</span>
         </button>
         <button className="bg-[#04BD88] w-[55px] h-[47px] rounded-[25px] flex items-center justify-center shadow-lg transform transition-all active:scale-95">
-          <ShoppingCart className="w-5 h-5 text-white" />
+          <Image src="/nd-cart-fill.png" width={20} height={20} alt="Carrito" />
         </button>
       </div>
     </div>

@@ -2,8 +2,9 @@
 
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import { cn } from "@/src/lib/utils";
-import { ShoppingCart, Tag, Loader2 } from "lucide-react";
+import { Tag, Loader2 } from "lucide-react";
 import SearchIcon from "@/src/components/icons/SearchIcon";
+import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { toggleCart } from "@/src/lib/store/uiSlice";
@@ -147,7 +148,12 @@ export default function FloatingBottomBar() {
                 >
                   {/* Left: Cart Icon */}
                   <div className="flex-none w-[20px] flex items-center justify-center">
-                    <ShoppingCart className="w-[20px] h-[20px] text-white stroke-[2]" />
+                    <Image
+                      src="/new-design/nd-cart-fill.png"
+                      width={20}
+                      height={20}
+                      alt="Carrito"
+                    />
                   </div>
 
                   {/* Center: Ver Carrito + Store Name */}
@@ -226,7 +232,12 @@ export default function FloatingBottomBar() {
                   {mode === "loading" ? (
                     <Loader2 className="w-5 h-5 text-white animate-spin" />
                   ) : (
-                    <ShoppingCart className="w-5 h-5 text-white" />
+                    <Image
+                      src="/new-design/nd-cart-fill.png"
+                      width={20}
+                      height={20}
+                      alt="Carrito"
+                    />
                   )}
                 </motion.button>
               )}
@@ -279,7 +290,12 @@ export default function FloatingBottomBar() {
               onClick={() => dispatch(toggleCart())}
               className="w-[47px] h-[47px] bg-[#04BD88] rounded-full shadow-lg flex items-center justify-center flex-shrink-0 relative active:scale-95 z-10"
             >
-              <ShoppingCart className="w-5 h-5 text-white" />
+              <Image
+                src="/new-design/nd-cart-fill.png"
+                width={20}
+                height={20}
+                alt="Carrito"
+              />
               {mounted && cartCount > 0 && (
                 <div className="absolute -top-2 -right-2">
                   <Badge
