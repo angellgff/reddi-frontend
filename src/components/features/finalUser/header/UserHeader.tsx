@@ -135,7 +135,10 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
     };
   }, [lastScrollY, isClient]);
 
-  if (pathname?.startsWith("/user/stores/")) {
+  if (
+    pathname?.startsWith("/user/stores/") ||
+    pathname === "/user/profile/create-address"
+  ) {
     return null;
   }
 
@@ -148,17 +151,28 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       {/* <CartSlider /> moved to layout to persist across store pages */}
 
       {/* Mobile Header */}
-      {pathname === "/user/profile" || pathname === "/user/orders" ? (
+      {pathname === "/user/profile" ||
+      pathname === "/user/orders" ||
+      pathname === "/user/address" ||
+      pathname === "/user/profile/settings" ? (
         <header className="absolute top-0 left-0 right-0 w-full md:hidden z-0">
           {/* Yellow Shape Background */}
           <div
             className={`absolute top-0 left-0 w-full overflow-hidden ${
-              pathname === "/user/orders" ? "h-[160px]" : "h-[220px]"
+              pathname === "/user/orders" ||
+              pathname === "/user/address" ||
+              pathname === "/user/profile/settings"
+                ? "h-[160px]"
+                : "h-[220px]"
             }`}
           >
             <div
               className={`absolute top-0 left-[-25%] w-[150%] bg-[#E8C500] rounded-b-[100%] shadow-sm ${
-                pathname === "/user/orders" ? "h-[140px]" : "h-[200px]"
+                pathname === "/user/orders" ||
+                pathname === "/user/address" ||
+                pathname === "/user/profile/settings"
+                  ? "h-[140px]"
+                  : "h-[200px]"
               }`}
             />
           </div>
@@ -166,7 +180,12 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
           {/* Icons Row */}
           <div className="relative z-10 flex justify-between items-start px-6 pt-8 mt-2">
             <Link
-              href="/"
+              href={
+                pathname === "/user/address" ||
+                pathname === "/user/profile/settings"
+                  ? "/user/profile"
+                  : "/user/home"
+              }
               className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"
             >
               <ChevronLeft className="w-6 h-6 text-black" />

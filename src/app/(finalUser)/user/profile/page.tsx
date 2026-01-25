@@ -174,7 +174,7 @@ export default async function ProfilePage() {
             label="Soporte"
           />
           <MobileMenuItem
-            href="#"
+            href="/user/profile/settings"
             imageSrc="/new-design/nd-settings.png"
             label="Ajustes"
           />
