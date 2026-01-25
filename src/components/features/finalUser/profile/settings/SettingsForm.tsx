@@ -37,7 +37,7 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
   const handleSave = () => {
     startTransition(async () => {
       const formData = new FormData();
-      
+
       // Split Name
       const parts = formValues.fullName.trim().split(" ");
       const firstName = parts[0] || "";
@@ -48,7 +48,7 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
       formData.append("email", formValues.email);
       formData.append("phone_number", formValues.phone);
       // birthdate handling if needed by backend, currently actions doesn't seem to have it?
-      // checking actions.ts... it allows first_name, last_name, phone_number, email. 
+      // checking actions.ts... it allows first_name, last_name, phone_number, email.
       // I don't see birthdate in the update payload in actions.ts. user didn't ask to add it to backend so I'll skip sending it if not supported.
 
       const result = await updateUserProfile(formData);
@@ -72,12 +72,14 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
             Ajustes
           </h1>
         </div>
-        <button 
-            onClick={toggleEdit} 
-            className={`p-2 rounded-full transition-colors ${isEditing ? 'bg-gray-100' : ''}`}
-            aria-label="Editar"
+        <button
+          onClick={toggleEdit}
+          className={`p-2 rounded-full transition-colors ${isEditing ? "bg-gray-100" : ""}`}
+          aria-label="Editar"
         >
-          <Pencil className={`w-5 h-5 ${isEditing ? 'text-primary' : 'text-black'}`} />
+          <Pencil
+            className={`w-5 h-5 ${isEditing ? "text-primary" : "text-black"}`}
+          />
         </button>
       </div>
 
@@ -88,7 +90,9 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
           <label className="block text-[13px] font-bold text-black mb-2">
             Nombre completo
           </label>
-          <div className={`w-full h-[40px] rounded-lg px-4 flex items-center transition-colors ${isEditing ? 'bg-white border border-gray-200' : 'bg-[#F4F5F7]'}`}>
+          <div
+            className={`w-full h-[40px] rounded-lg px-4 flex items-center transition-colors ${isEditing ? "bg-white border border-gray-200" : "bg-[#F4F5F7]"}`}
+          >
             <input
               type="text"
               value={formValues.fullName}
@@ -105,7 +109,9 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
           <label className="block text-[13px] font-bold text-black mb-2">
             Correo electronico
           </label>
-           <div className={`w-full h-[40px] rounded-lg px-4 flex items-center transition-colors ${isEditing ? 'bg-white border border-gray-200' : 'bg-[#F4F5F7]'}`}>
+          <div
+            className={`w-full h-[40px] rounded-lg px-4 flex items-center transition-colors ${isEditing ? "bg-white border border-gray-200" : "bg-[#F4F5F7]"}`}
+          >
             <input
               type="email"
               value={formValues.email}
@@ -122,14 +128,16 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
           <label className="block text-[13px] font-bold text-black mb-2">
             Número de teléfono
           </label>
-          <div className={`w-full h-[40px] rounded-lg px-4 flex items-center transition-colors ${isEditing ? 'bg-white border border-gray-200' : 'bg-[#F4F5F7]'}`}>
+          <div
+            className={`w-full h-[40px] rounded-lg px-4 flex items-center transition-colors ${isEditing ? "bg-white border border-gray-200" : "bg-[#F4F5F7]"}`}
+          >
             <input
               type="tel"
               value={formValues.phone}
               disabled={!isEditing}
               onChange={(e) => handleChange("phone", e.target.value)}
               className="w-full h-full bg-transparent text-[13px] font-semibold text-black placeholder:text-black/40 focus:outline-none disabled:text-black/40"
-               placeholder="123 456 7890"
+              placeholder="123 456 7890"
             />
           </div>
         </div>
@@ -139,8 +147,10 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
           <label className="block text-[13px] font-bold text-black mb-2">
             Fecha de nacimiento
           </label>
-           <div className={`w-full h-[40px] bg-[#F4F5F7] rounded-lg px-4 flex items-center justify-between`}>
-             <input
+          <div
+            className={`w-full h-[40px] bg-[#F4F5F7] rounded-lg px-4 flex items-center justify-between`}
+          >
+            <input
               type="text" // use date picker if needed but backend support is questionable right now
               value={formValues.birthDate}
               disabled={true} // Keep disabled for now based on request focusing on fields that existed
@@ -154,13 +164,13 @@ export default function SettingsForm({ initialValues }: SettingsFormProps) {
 
       {isEditing && (
         <div className="fixed bottom-8 left-0 w-full px-6 z-20 md:absolute md:bottom-auto md:mt-8">
-            <button
-                onClick={handleSave}
-                disabled={isPending}
-                className="w-full h-[50px] bg-[#E8C500] rounded-[18px] text-white text-[20px] font-bold flex items-center justify-center disabled:opacity-70 shadow-md transition-all active:scale-[0.98]"
-            >
-                {isPending ? <Loader2 className="animate-spin" /> : "Guardar"}
-            </button>
+          <button
+            onClick={handleSave}
+            disabled={isPending}
+            className="w-full h-[50px] bg-[#E8C500] rounded-[18px] text-white text-[20px] font-bold flex items-center justify-center disabled:opacity-70 shadow-md transition-all active:scale-[0.98]"
+          >
+            {isPending ? <Loader2 className="animate-spin" /> : "Guardar"}
+          </button>
         </div>
       )}
     </div>

@@ -6,26 +6,30 @@ import SettingsForm from "@/src/components/features/finalUser/profile/settings/S
 
 export default async function SettingsPage() {
   const supabase = await createClient();
-  const [{ user: profile }, { data: { user: authUser } }] = await Promise.all([
-    getUserProfile(),
-    supabase.auth.getUser(),
-  ]);
+  const [
+    { user: profile },
+    {
+      data: { user: authUser },
+    },
+  ] = await Promise.all([getUserProfile(), supabase.auth.getUser()]);
 
-  const fullName = [profile?.first_name, profile?.last_name].filter(Boolean).join(" ");
+  const fullName = [profile?.first_name, profile?.last_name]
+    .filter(Boolean)
+    .join(" ");
   const email = authUser?.email || profile?.email || "";
   const phone = profile?.phone_number || "";
 
   return (
     <>
       <SettingsClientHooks />
-      
+
       {/* Desktop Placeholder */}
       <div className="hidden md:block mx-auto max-w-2xl px-4 py-6">
         <h1 className="text-xl font-semibold">Ajustes</h1>
         <p className="text-sm text-gray-600 mt-2">
-            Gestiona tus ajustes de perfil.
+          Gestiona tus ajustes de perfil.
         </p>
-         <Link
+        <Link
           href="/user/profile/edit"
           className="text-emerald-600 hover:underline mt-4 block"
         >
@@ -34,12 +38,12 @@ export default async function SettingsPage() {
       </div>
 
       {/* Mobile View */}
-      <SettingsForm 
+      <SettingsForm
         initialValues={{
-            fullName,
-            email,
-            phone,
-            birthDate: "" // Placeholder
+          fullName,
+          email,
+          phone,
+          birthDate: "", // Placeholder
         }}
       />
     </>
