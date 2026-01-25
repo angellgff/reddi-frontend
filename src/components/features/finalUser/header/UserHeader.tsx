@@ -152,10 +152,10 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
 
       {/* Mobile Header */}
       {pathname?.startsWith("/user/orders/") ? null : pathname ===
-        "/user/profile" ||
-      pathname === "/user/orders" ||
-      pathname === "/user/address" ||
-      pathname === "/user/profile/settings" ? (
+          "/user/profile" ||
+        pathname === "/user/orders" ||
+        pathname === "/user/address" ||
+        pathname === "/user/profile/settings" ? (
         <header className="absolute top-0 left-0 right-0 w-full md:hidden z-0">
           {/* Yellow Shape Background */}
           <div
