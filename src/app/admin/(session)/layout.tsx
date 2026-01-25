@@ -40,6 +40,11 @@ export default async function AdminDashboardLayout({
       ],
     },
     {
+      name: "Categorías",
+      href: `${actualURL}/categories`,
+      icon: "categories",
+    },
+    {
       name: "Banner",
       href: `${actualURL}/banners`,
       icon: "banner",
