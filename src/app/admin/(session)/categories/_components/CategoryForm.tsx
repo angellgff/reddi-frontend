@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useState } from "react";
 import InputNotice from "@/src/components/basics/InputNotice";
 
-const initialState = {
+const initialState: { error: string | null } = {
   error: null,
 };
 

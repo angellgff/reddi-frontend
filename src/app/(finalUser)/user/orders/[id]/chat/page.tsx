@@ -22,14 +22,18 @@ export default async function UserChatPage({ params }: Props) {
   // Fetch driver info
   const driverInfo = await getAssignedDriverForOrder(orderId);
   const driverName = driverInfo.user
-    ? (driverInfo.user.first_name + " " + driverInfo.user.last_name).trim() ||
-      driverInfo.user.email
+    ? (
+        (driverInfo.user.first_name ?? "") +
+        " " +
+        (driverInfo.user.last_name ?? "")
+      ).trim() ||
+      (driverInfo.user.email ?? "Conductor")
     : "Conductor";
 
   return (
     <UserChatPageClient
       orderId={orderId}
-      driverId={driverInfo.assigned ? driverInfo.user.id : ""}
+      driverId={driverInfo.assigned ? (driverInfo.user?.id ?? "") : ""}
       driverName={driverName}
       driverImage={null} // TODO: Add driver.avatar if available
       currentUserId={user.id}

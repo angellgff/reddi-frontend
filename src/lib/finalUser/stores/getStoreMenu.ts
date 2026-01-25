@@ -106,10 +106,11 @@ export default async function getStoreMenu(
     groupsMap.set(sc.id, { id: sc.id, name: sc.name, products: [] });
   }
   for (const p of products) {
-    const group = groupsMap.get(p.sub_category_id) || {
-      id: p.sub_category_id,
+    const safeSubCategoryId = p.sub_category_id ?? "";
+    const group = groupsMap.get(safeSubCategoryId) || {
+      id: safeSubCategoryId,
       name:
-        categories.find((c) => c.value === p.sub_category_id)?.label || "Otros",
+        categories.find((c) => c.value === safeSubCategoryId)?.label || "Otros",
       products: [],
     };
     group.products.push({

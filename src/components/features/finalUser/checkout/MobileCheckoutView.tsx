@@ -16,9 +16,7 @@ import {
 import { formatCurrency } from "@/src/lib/utils";
 import TipSliderModal from "./TipSliderModal";
 import AddressSelectionModal, { Address } from "./AddressSelectionModal";
-import PaymentMethodSliderModal, {
-  PaymentMethod,
-} from "./PaymentMethodSliderModal";
+import PaymentMethodSliderModal from "./PaymentMethodSliderModal";
 import CouponModal from "./CouponModal";
 
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
