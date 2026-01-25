@@ -1,14 +1,18 @@
 "use client";
 
 import { useState, useEffect, useTransition, ChangeEvent } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronDown, MapPin, X } from "lucide-react";
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 import LocationPickerMap from "@/src/components/features/partner/register/LocationPickerMap";
-import { createUserAddress } from "@/src/lib/finalUser/addresses/actions";
+import {
+  createUserAddress,
+  updateUserAddress,
+} from "@/src/lib/finalUser/addresses/actions";
+import { Tables } from "@/src/lib/database.types";
 
+type UserAddress = Tables<"user_addresses">;
 type LocationType = "Villa" | "Yate" | "Habitación" | "Piscina";
 
 const LOCATION_TYPES: LocationType[] = [
@@ -18,7 +22,57 @@ const LOCATION_TYPES: LocationType[] = [
   "Piscina",
 ];
 
-export default function CreateAddressForm({ userId }: { userId: string }) {
+function parseWKBPoint(value: unknown): { lat: number; lng: number } | null {
+  try {
+    if (typeof value !== "string") return null;
+    const hex = value;
+    if (!hex) return null;
+    const cleanHex = hex.startsWith("0x") ? hex.slice(2) : hex;
+    if (cleanHex.length < 42) return null;
+    const bytes = new Uint8Array(
+      cleanHex.match(/[\da-f]{2}/gi)!.map((h) => parseInt(h, 16)),
+    );
+    const view = new DataView(bytes.buffer);
+    const littleEndian = view.getUint8(0) === 1;
+    const type = view.getUint32(1, littleEndian);
+    const hasSrid = (type & 0x20000000) !== 0;
+    const offset = hasSrid ? 9 : 5;
+    const lng = view.getFloat64(offset, littleEndian);
+    const lat = view.getFloat64(offset + 8, littleEndian);
+    return { lat, lng };
+  } catch (e) {
+    console.error("Error parsing WKB", e);
+    return null;
+  }
+}
+
+function capitalize(s: string): string {
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function mapDbLocationTypeToUi(dbType: string | null): LocationType {
+  if (!dbType) return "Villa";
+  const lower = dbType.toLowerCase();
+  if (lower === "habitacion de hotel") return "Habitación";
+  const cap = capitalize(lower);
+  if (LOCATION_TYPES.includes(cap as LocationType)) return cap as LocationType;
+  return "Villa";
+}
+
+interface CreateAddressFormProps {
+  userId?: string;
+  onCancel?: () => void;
+  onSuccess?: () => void;
+  initialData?: UserAddress | null;
+}
+
+export default function CreateAddressForm({
+  userId,
+  onCancel,
+  onSuccess,
+  initialData,
+}: CreateAddressFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -27,7 +81,7 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
   const [sector, setSector] = useState("");
   const [addressName, setAlias] = useState("");
   const [deliveryPreference, setDeliveryPreference] = useState<"door" | "hand">(
-    "door"
+    "door",
   );
   const [deliveryInstructions, setDeliveryInstructions] = useState("");
 
@@ -36,6 +90,27 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
   const [lng, setLng] = useState<number | null>(null);
 
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    if (initialData) {
+      setLocationType(mapDbLocationTypeToUi(initialData.location_type));
+      setLocationNumber(initialData.location_number || "");
+      setSector(initialData.sector || "");
+      setAlias(initialData.alias || "");
+      setDeliveryPreference(
+        (initialData.delivery_preference as "door" | "hand") || "door",
+      );
+      setDeliveryInstructions(initialData.delivery_instructions || "");
+
+      const coords = initialData.coordinates
+        ? parseWKBPoint(initialData.coordinates)
+        : null;
+      if (coords) {
+        setLat(coords.lat);
+        setLng(coords.lng);
+      }
+    }
+  }, [initialData]);
 
   const { hideButton, showSearch } = useFloatingButtonStore();
   useEffect(() => {
@@ -46,7 +121,7 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
   const handleSave = () => {
     if (!locationNumber.trim()) {
       toast.error(
-        "Por favor ingresa el número de " + locationType.toLowerCase()
+        "Por favor ingresa el número de " + locationType.toLowerCase(),
       );
       return;
     }
@@ -77,10 +152,24 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
     formData.append("lng", String(lng));
 
     startTransition(async () => {
-      const result = await createUserAddress(formData);
+      let result;
+      if (initialData?.id) {
+        result = await updateUserAddress(String(initialData.id), formData);
+      } else {
+        result = await createUserAddress(formData);
+      }
+
       if (result.success) {
-        toast.success("Dirección guardada exitosamente");
-        router.push("/user/home");
+        toast.success(
+          initialData
+            ? "Dirección actualizada exitosamente"
+            : "Dirección guardada exitosamente",
+        );
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          router.push("/user/home");
+        }
       } else {
         toast.error(result.error || "Error al guardar la dirección");
       }
@@ -103,7 +192,7 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
 
         {/* Back Button Overlay */}
         <button
-          onClick={() => router.back()}
+          onClick={() => (onCancel ? onCancel() : router.back())}
           className="absolute top-4 left-4 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg"
         >
           <X size={24} className="text-black" />
@@ -304,8 +393,10 @@ export default function CreateAddressForm({ userId }: { userId: string }) {
           >
             {isPending ? (
               <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : initialData ? (
+              "Actualizar dirección"
             ) : (
-              "Guardar direcci�n"
+              "Guardar dirección"
             )}
           </button>
         </div>

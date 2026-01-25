@@ -8,7 +8,10 @@ import AddressCard from "./AddressCard";
 import Portal from "@/src/components/basics/Portal";
 import useBodyScrollLock from "@/src/lib/hooks/useScrollBodyLock";
 import { useEffect, useMemo, useState } from "react";
-import NewAddressForm, { UserAddress } from "./NewAddressForm";
+import CreateAddressForm from "@/src/components/features/finalUser/createAddress/CreateAddressForm";
+import { Tables } from "@/src/lib/database.types";
+type UserAddress = Tables<"user_addresses">;
+
 import { deleteUserAddress } from "@/src/lib/finalUser/addresses/actions";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import {
@@ -25,11 +28,11 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
   useBodyScrollLock(isOpen);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [editingAddress, setEditingAddress] = useState<UserAddress | null>(
-    null
+    null,
   );
   const dispatch = useAppDispatch();
   const { addresses, selectedAddressId, status, error } = useAppSelector(
-    (s) => s.addresses
+    (s) => s.addresses,
   );
 
   useEffect(() => {
@@ -81,8 +84,12 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
       >
         {/* Encabezado */}
         {isAddingAddress ? (
-          <NewAddressForm
+          <CreateAddressForm
             onCancel={handleNewAddress}
+            onSuccess={() => {
+              handleNewAddress();
+              dispatch(fetchUserAddresses());
+            }}
             initialData={editingAddress}
           />
         ) : (
@@ -129,7 +136,7 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
                         label={String(item.label).toUpperCase()}
                         onEdit={() => {
                           const fullAddr = addresses.find(
-                            (a) => a.id === item._rawId
+                            (a) => a.id === item._rawId,
                           );
                           if (fullAddr) handleEditAddress(fullAddr);
                         }}
