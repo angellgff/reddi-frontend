@@ -6,7 +6,7 @@ export default function CreateCategoryPage() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center gap-4">
-        <Link 
+        <Link
           href="/admin/categories"
           className="rounded-full p-2 bg-gray-200 hover:bg-gray-300 transition-colors inline-flex items-center justify-center"
         >

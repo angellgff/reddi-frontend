@@ -26,7 +26,7 @@ export type StoreMenu = {
 
 export default async function getStoreMenu(
   partnerId: string,
-  opts?: { category?: string | string[]; q?: string | string[] }
+  opts?: { category?: string | string[]; q?: string | string[] },
 ): Promise<StoreMenu> {
   const supabase = await createClient();
   const selectedCategory = Array.isArray(opts?.category)
@@ -49,7 +49,7 @@ export default async function getStoreMenu(
   let query = supabase
     .from("products")
     .select(
-      "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id"
+      "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id",
     )
     .eq("partner_id", partnerId)
     .eq("is_available", true);
@@ -128,7 +128,7 @@ export default async function getStoreMenu(
 
   // Only keep groups that have products (unless a category is explicitly selected)
   const groups = Array.from(groupsMap.values()).filter((g) =>
-    selectedCategory ? g.id === selectedCategory : g.products.length > 0
+    selectedCategory ? g.id === selectedCategory : g.products.length > 0,
   );
 
   return { categories, groups };
