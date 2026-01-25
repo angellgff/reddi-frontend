@@ -478,7 +478,6 @@ export default function MobileCheckoutView({
           será dejado en la puerta. Al realizar tu pedido, aceptas asumir total
           responsabilidad del mismo una vez haya sido entregado.
         </p>
-
       </div>
     </div>
   );
