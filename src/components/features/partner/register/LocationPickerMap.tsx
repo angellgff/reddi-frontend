@@ -19,6 +19,7 @@ export default function LocationPickerMap({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
   const markerRef = useRef<google.maps.Marker | null>(null);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -36,7 +37,7 @@ export default function LocationPickerMap({
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["maps", "marker"],
+      libraries: ["maps", "marker", "places"],
     });
 
     loader
@@ -48,19 +49,53 @@ export default function LocationPickerMap({
         const { Marker } = (await google.maps.importLibrary(
           "marker"
         )) as google.maps.MarkerLibrary;
+        const { Autocomplete } = (await google.maps.importLibrary(
+          "places"
+        )) as google.maps.PlacesLibrary;
 
         const initialCenter =
-          lng && lat ? { lat, lng } : { lat: 18.4861, lng: -69.9312 }; // Santo Domingo
-        const initialZoom = lng && lat ? 15 : 12;
+          lng && lat ? { lat, lng } : { lat: 18.4273, lng: -68.9728 }; // La Romana
+        const initialZoom = lng && lat ? 15 : 13;
 
         const map = new Map(containerRef.current!, {
           center: initialCenter,
           zoom: initialZoom,
           mapTypeControl: false,
           streetViewControl: false,
+          fullscreenControl: false,
         });
 
         mapRef.current = map;
+
+        // Autocomplete setup
+        if (searchInputRef.current) {
+          const autocomplete = new Autocomplete(searchInputRef.current, {
+            fields: ["geometry", "name"],
+            types: ["geocode", "establishment"],
+          });
+          autocomplete.bindTo("bounds", map);
+
+          autocomplete.addListener("place_changed", () => {
+            const place = autocomplete.getPlace();
+            if (!place.geometry || !place.geometry.location) {
+              return;
+            }
+
+            // If the place has a geometry, then present it on a map.
+            if (place.geometry.viewport) {
+              map.fitBounds(place.geometry.viewport);
+            } else {
+              map.setCenter(place.geometry.location);
+              map.setZoom(17);
+            }
+
+            const newLat = place.geometry.location.lat();
+            const newLng = place.geometry.location.lng();
+            
+            updateMarker(newLat, newLng, Marker);
+            onLocationSelect(newLat, newLng);
+          });
+        }
 
         map.addListener("click", (e: google.maps.MapMouseEvent) => {
           if (e.latLng) {
@@ -123,5 +158,16 @@ export default function LocationPickerMap({
     );
   }
 
-  return <div ref={containerRef} className={className} />;
+  return (
+    <div className={`relative ${className}`}>
+      <div ref={containerRef} className="w-full h-full" />
+      <input
+        ref={searchInputRef}
+        type="text"
+        placeholder="Buscar dirección..."
+        className="absolute top-4 left-1/2 -translate-x-1/2 w-[65%] max-w-xs h-10 bg-white rounded-full px-4 shadow-xl text-sm font-medium text-gray-700 outline-none border-0 placeholder:text-gray-400 z-0 focus:ring-2 focus:ring-primary/20 transition-all"
+        style={{ zIndex: 5 }}
+      />
+    </div>
+  );
 }

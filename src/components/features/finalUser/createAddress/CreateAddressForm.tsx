@@ -65,6 +65,7 @@ interface CreateAddressFormProps {
   onCancel?: () => void;
   onSuccess?: () => void;
   initialData?: UserAddress | null;
+  shouldRestoreFloatingButton?: boolean;
 }
 
 export default function CreateAddressForm({
@@ -72,6 +73,7 @@ export default function CreateAddressForm({
   onCancel,
   onSuccess,
   initialData,
+  shouldRestoreFloatingButton = true,
 }: CreateAddressFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -115,8 +117,12 @@ export default function CreateAddressForm({
   const { hideButton, showSearch } = useFloatingButtonStore();
   useEffect(() => {
     hideButton();
-    return () => showSearch();
-  }, [hideButton, showSearch]);
+    return () => {
+      if (shouldRestoreFloatingButton) {
+        showSearch();
+      }
+    };
+  }, [hideButton, showSearch, shouldRestoreFloatingButton]);
 
   const handleSave = () => {
     if (!locationNumber.trim()) {
