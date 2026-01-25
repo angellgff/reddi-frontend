@@ -69,6 +69,14 @@ export default function MobileOrderDetail({
   route,
 }: MobileOrderDetailProps) {
   const [driver, setDriver] = useState<any>(null);
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+
+  const toggleItem = (itemId: string) => {
+    setExpandedItems((prev) => ({
+      ...prev,
+      [itemId]: !prev[itemId],
+    }));
+  };
 
   useEffect(() => {
     if (order?.id) {
@@ -218,7 +226,10 @@ export default function MobileOrderDetail({
         <div className="space-y-6 mb-8 relative">
           <div className="absolute left-[14px] top-4 bottom-4 w-[1px] bg-[#F6F6F6] -z-10"></div>
 
-          {order.order_detail?.map((item, idx) => (
+          {order.order_detail?.map((item, idx) => {
+            const isExpanded = !!expandedItems[item.id];
+            
+            return (
             <div key={item.id} className="relative pl-12 bg-white">
               <div className="absolute left-0 top-0 w-[29px] h-[29px] bg-[#EEEEEE] rounded-md flex items-center justify-center text-sm font-semibold z-10">
                 {idx + 1}
@@ -227,12 +238,62 @@ export default function MobileOrderDetail({
                 <div className="text-base text-black mb-1">
                   {item.products?.name}
                 </div>
-                <div className="text-sm text-black cursor-pointer flex items-center gap-1">
-                  Show more <ChevronDown className="w-3.5 h-3.5" />
-                </div>
+                <button 
+                  onClick={() => toggleItem(item.id)}
+                  className="text-sm text-black cursor-pointer flex items-center gap-1 hover:opacity-70 transition-opacity"
+                >
+                  {isExpanded ? "Show less" : "Show more"}{" "}
+                  <ChevronDown 
+                    className={`w-3.5 h-3.5 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} 
+                  />
+                </button>
+
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <div className="mt-3 bg-gray-50 rounded-lg p-3 text-sm animate-in fade-in slide-in-from-top-1 duration-200">
+                    <div className="flex gap-3">
+                      {/* Product Image */}
+                      {item.products?.image_url && (
+                        <div className="h-16 w-16 relative rounded-md overflow-hidden bg-gray-200 flex-shrink-0">
+                          <Image
+                            src={item.products.image_url}
+                            alt={item.products.name || "Producto"}
+                            fill
+                            className="object-cover"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="flex-1 space-y-1">
+                        <div className="flex justify-between items-start">
+                          <span className="font-medium text-gray-900">
+                            {item.quantity}x {item.products?.unit || "ud"}
+                          </span>
+                          <span className="font-semibold text-gray-900">
+                            {currency(item.unit_price * item.quantity)}
+                          </span>
+                        </div>
+                        
+                        {/* Extras list if any */}
+                        {item.extras && item.extras.length > 0 && (
+                          <div className="pt-2 text-xs space-y-1 border-t border-gray-200 mt-2">
+                            {item.extras.map((extra: any) => (
+                              <div key={extra.id} className="flex justify-between text-gray-600">
+                                <span>
+                                  + {extra.name} {extra.quantity > 1 ? `(x${extra.quantity})` : ""}
+                                </span>
+                                <span>{currency(extra.unit_price * extra.quantity)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          ))}
+          )})}
         </div>
 
         {/* Fees */}
