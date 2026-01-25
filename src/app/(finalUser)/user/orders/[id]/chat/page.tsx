@@ -21,8 +21,9 @@ export default async function UserChatPage({ params }: Props) {
 
   // Fetch driver info
   const driverInfo = await getAssignedDriverForOrder(orderId);
-  const driverName = driverInfo.user 
-    ? (driverInfo.user.first_name + " " + driverInfo.user.last_name).trim() || driverInfo.user.email 
+  const driverName = driverInfo.user
+    ? (driverInfo.user.first_name + " " + driverInfo.user.last_name).trim() ||
+      driverInfo.user.email
     : "Conductor";
 
   return (

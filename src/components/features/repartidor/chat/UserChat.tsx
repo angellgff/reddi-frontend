@@ -65,7 +65,8 @@ export default function UserChat({
           if (data) setMessages(data);
         }
       } catch (err) {
-        if (isMounted) console.error("[UserChat] Exception fetching messages:", err);
+        if (isMounted)
+          console.error("[UserChat] Exception fetching messages:", err);
       }
     };
 
@@ -137,11 +138,14 @@ export default function UserChat({
       if (error) {
         console.error("[UserChat] Error sending message:", error);
       } else {
-        console.log("[UserChat] Message sent successfully. ID:", insertedData.id);
+        console.log(
+          "[UserChat] Message sent successfully. ID:",
+          insertedData.id,
+        );
         // Optimistic update with deduplication check
         setMessages((prev) => {
-            if (prev.some((msg) => msg.id === insertedData.id)) return prev;
-            return [...prev, insertedData];
+          if (prev.some((msg) => msg.id === insertedData.id)) return prev;
+          return [...prev, insertedData];
         });
       }
     } catch (err) {
@@ -272,7 +276,7 @@ export default function UserChat({
                   }`}
                 >
                   {isImage ? (
-                    <div 
+                    <div
                       className="relative w-48 h-48 rounded-md overflow-hidden bg-black/10 cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => setViewingImage(msg.content)}
                     >
@@ -386,4 +390,3 @@ export default function UserChat({
     </div>
   );
 }
-

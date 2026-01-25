@@ -73,7 +73,7 @@ export default function MobileOrderDetail({
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {},
   );
-  
+
   const toggleItem = (itemId: string) => {
     setExpandedItems((prev) => ({
       ...prev,

@@ -59,7 +59,8 @@ export default function ChatPageClient({
           setMessages(data);
         }
       } catch (err) {
-        if (isMounted) console.error("[ChatPage] Exception fetching messages:", err);
+        if (isMounted)
+          console.error("[ChatPage] Exception fetching messages:", err);
       }
     };
 
@@ -82,7 +83,7 @@ export default function ChatPageClient({
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
-        }
+        },
       )
       .subscribe();
 
@@ -111,7 +112,7 @@ export default function ChatPageClient({
         .single();
 
       if (error) throw error;
-      
+
       setMessages((prev) => {
         if (prev.some((m) => m.id === data.id)) return prev;
         return [...prev, data];
@@ -136,9 +137,9 @@ export default function ChatPageClient({
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("chat-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("chat-images").getPublicUrl(fileName);
 
       const { data: msgData, error: sendError } = await supabase
         .from("chat_messages")
@@ -158,7 +159,6 @@ export default function ChatPageClient({
         if (prev.some((m) => m.id === msgData.id)) return prev;
         return [...prev, msgData];
       });
-
     } catch (err) {
       console.error("[ChatPage] Upload error:", err);
     } finally {
@@ -181,7 +181,7 @@ export default function ChatPageClient({
 
           <div className="flex-1 flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-gray-500 font-bold bg-white overflow-hidden">
-                {customerName.charAt(0)}
+              {customerName.charAt(0)}
             </div>
             <div className="text-white">
               <div className="font-semibold text-base leading-tight">
@@ -200,8 +200,13 @@ export default function ChatPageClient({
           const isImage = msg.message_type === "image";
 
           return (
-            <div key={msg.id} className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}>
-              <div className={`flex max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-2`}>
+            <div
+              key={msg.id}
+              className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div
+                className={`flex max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-2`}
+              >
                 <div
                   className={`relative px-4 py-2 text-sm shadow-sm ${
                     isMe
@@ -210,7 +215,7 @@ export default function ChatPageClient({
                   }`}
                 >
                   {isImage ? (
-                    <div 
+                    <div
                       className="relative w-48 h-48 rounded-md overflow-hidden bg-black/10 cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => setViewingImage(msg.content)}
                     >
@@ -223,11 +228,23 @@ export default function ChatPageClient({
                       />
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    <p className="whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
                   )}
-                  <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? "text-white/70" : "text-gray-400"}`}>
+                  <div
+                    className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? "text-white/70" : "text-gray-400"}`}
+                  >
                     {format(new Date(msg.created_at), "h:mm a", { locale: es })}
-                    {isMe && <span>{msg.is_read ? <span className="text-blue-300">✓✓</span> : <span>✓</span>}</span>}
+                    {isMe && (
+                      <span>
+                        {msg.is_read ? (
+                          <span className="text-blue-300">✓✓</span>
+                        ) : (
+                          <span>✓</span>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -245,7 +262,11 @@ export default function ChatPageClient({
             className="text-gray-400 hover:text-gray-600 transition-colors"
             disabled={isUploading}
           >
-            {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Paperclip size={20} />}
+            {isUploading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <Paperclip size={20} />
+            )}
           </button>
           <input
             type="file"

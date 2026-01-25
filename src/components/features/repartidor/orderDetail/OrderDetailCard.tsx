@@ -168,8 +168,8 @@ export default function OrderDetailCard({ data }: Props) {
           // User said: redirige al driver al Dashboard o muestra un mensaje de éxito.
           // I'll redirect after a short delay or let the user close the success modal
           import("next/navigation").then(({ useRouter }) => {
-             // We can't use useRouter inside async callback easily if not initialized, 
-             // but I can initialize it at top level.
+            // We can't use useRouter inside async callback easily if not initialized,
+            // but I can initialize it at top level.
           });
         }}
       />

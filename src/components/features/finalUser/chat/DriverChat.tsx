@@ -67,7 +67,8 @@ export default function DriverChat({
           if (data) setMessages(data);
         }
       } catch (err) {
-        if (isMounted) console.error("[DriverChat] Exception fetching messages:", err);
+        if (isMounted)
+          console.error("[DriverChat] Exception fetching messages:", err);
       }
     };
 
@@ -86,7 +87,7 @@ export default function DriverChat({
         (payload) => {
           console.log("[DriverChat] Incoming message payload:", payload);
           if (!isMounted) return;
-          
+
           const newMessage = payload.new as Message;
           setMessages((prev) => {
             if (prev.some((msg) => msg.id === newMessage.id)) {
@@ -139,11 +140,14 @@ export default function DriverChat({
       if (error) {
         console.error("[DriverChat] Error sending message:", error);
       } else {
-        console.log("[DriverChat] Message sent successfully. ID:", insertedData.id);
+        console.log(
+          "[DriverChat] Message sent successfully. ID:",
+          insertedData.id,
+        );
         // Optimistic update with deduplication check
         setMessages((prev) => {
-            if (prev.some((msg) => msg.id === insertedData.id)) return prev;
-            return [...prev, insertedData];
+          if (prev.some((msg) => msg.id === insertedData.id)) return prev;
+          return [...prev, insertedData];
         });
       }
     } catch (err) {
@@ -274,7 +278,7 @@ export default function DriverChat({
                   }`}
                 >
                   {isImage ? (
-                    <div 
+                    <div
                       className="relative w-48 h-48 rounded-md overflow-hidden bg-black/10 cursor-pointer hover:opacity-90 transition-opacity"
                       onClick={() => setViewingImage(msg.content)}
                     >
