@@ -7,6 +7,7 @@ import Image from "next/image";
 import PaymentMethodsSection from "@/src/components/features/finalUser/profile/PaymentMethodsSection";
 import AddressesSection from "@/src/components/features/finalUser/profile/AddressesSection";
 import ProfileLogoutButton from "@/src/components/features/finalUser/profile/ProfileLogoutButton";
+import MobileLogoutButton from "@/src/components/features/finalUser/profile/MobileLogoutButton";
 import type { Tables } from "@/src/lib/database.types";
 import { ChevronRight, User } from "lucide-react";
 import React from "react";
@@ -178,6 +179,7 @@ export default async function ProfilePage() {
             imageSrc="/new-design/nd-settings.png"
             label="Ajustes"
           />
+          <MobileLogoutButton />
         </div>
       </div>
     </>
