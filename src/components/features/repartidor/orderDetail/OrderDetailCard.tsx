@@ -2,11 +2,13 @@
 
 import Image from "next/image";
 import OrderDetailRouteMap from "./OrderDetailRouteMap";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import Toast from "@/src/components/basics/Toast";
 import DeliveryCollectionModal from "@/src/components/features/repartidor/delivery/DeliveryCollectionModal";
-import { Banknote } from "lucide-react";
+import { Banknote, MessageSquare, Phone } from "lucide-react";
+import { createClient } from "@/src/lib/supabase/client";
+import Link from "next/link";
 
 interface Props {
   data: {
@@ -39,6 +41,14 @@ export default function OrderDetailCard({ data }: Props) {
 
   const [successOpen, setSuccessOpen] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+  }, []);
 
   if (!data) {
     return (
@@ -94,23 +104,41 @@ export default function OrderDetailCard({ data }: Props) {
       {/* Accept button when unassigned */}
       {data.canAccept && !delivered ? <AcceptButton orderId={data.id} /> : null}
 
-      {/* Contact button */}
-      {data.canContact && data.customerPhone && !delivered ? (
-        <a
-          href={`tel:${data.customerPhone}`}
-          className="flex items-center justify-center gap-2 w-full h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
-        >
-          Contactar a cliente
-        </a>
+      {/* Contact buttons */}
+      {data.canContact && !delivered ? (
+        <div className="flex gap-2 w-full">
+          {data.customerPhone && (
+            <a
+              href={`tel:${data.customerPhone}`}
+              className="flex-1 flex items-center justify-center gap-2 h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
+            >
+              <Phone size={16} /> Llamar
+            </a>
+          )}
+          <Link
+            href={`/repartidor/orders/${data.id}/chat`}
+            className="flex-1 flex items-center justify-center gap-2 h-9 bg-black text-white rounded-xl text-[14px] font-medium transition-transform active:scale-95"
+          >
+            <MessageSquare size={16} /> Chat Cliente
+          </Link>
+        </div>
       ) : (
-        <button
-          type="button"
-          disabled
-          className="flex items-center justify-center gap-2 w-full h-9 bg-white border border-gray-300 text-gray-400 rounded-xl text-[14px] font-medium cursor-not-allowed"
-          title="Solo disponible para el repartidor asignado"
-        >
-          Contactar a cliente
-        </button>
+        <div className="flex gap-2 w-full">
+          <button
+            type="button"
+            disabled
+            className="flex-1 flex items-center justify-center gap-2 h-9 bg-white border border-gray-300 text-gray-400 rounded-xl text-[14px] font-medium cursor-not-allowed"
+          >
+            <Phone size={16} /> Llamar
+          </button>
+          <button
+            type="button"
+            disabled
+            className="flex-1 flex items-center justify-center gap-2 h-9 bg-white border border-gray-300 text-gray-400 rounded-xl text-[14px] font-medium cursor-not-allowed"
+          >
+            <MessageSquare size={16} /> Chat
+          </button>
+        </div>
       )}
 
       {/* Botón de Cobro y Entrega (Dentro de la tarjeta) */}

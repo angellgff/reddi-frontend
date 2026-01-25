@@ -10,23 +10,21 @@ import { type Database } from "@/src/lib/database.types";
 
 type Message = Database["public"]["Tables"]["chat_messages"]["Row"];
 
-interface DriverChatProps {
+interface UserChatProps {
   orderId: string;
-  driverId: string;
-  driverName: string;
-  driverImage?: string | null;
+  customerName: string;
+  customerImage?: string | null;
   currentUserId: string;
   onClose: () => void;
 }
 
-export default function DriverChat({
+export default function UserChat({
   orderId,
-  driverId,
-  driverName,
-  driverImage,
+  customerName,
+  customerImage,
   currentUserId,
   onClose,
-}: DriverChatProps) {
+}: UserChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -47,10 +45,10 @@ export default function DriverChat({
   // Load initial messages and subscribe
   useEffect(() => {
     let isMounted = true;
-    console.log("[DriverChat] Setting up chat for order:", orderId);
+    console.log("[UserChat] Setting up chat for order:", orderId);
 
     const fetchMessages = async () => {
-      console.log("[DriverChat] Fetching messages for order:", orderId);
+      console.log("[UserChat] Fetching messages for order:", orderId);
       try {
         const { data, error } = await supabase
           .from("chat_messages")
@@ -61,13 +59,13 @@ export default function DriverChat({
         if (!isMounted) return;
 
         if (error) {
-          console.error("[DriverChat] Error fetching messages:", error);
+          console.error("[UserChat] Error fetching messages:", error);
         } else {
-          console.log("[DriverChat] Messages fetched:", data?.length || 0);
+          console.log("[UserChat] Messages fetched:", data?.length || 0);
           if (data) setMessages(data);
         }
       } catch (err) {
-        if (isMounted) console.error("[DriverChat] Exception fetching messages:", err);
+        if (isMounted) console.error("[UserChat] Exception fetching messages:", err);
       }
     };
 
@@ -84,9 +82,9 @@ export default function DriverChat({
           filter: `order_id=eq.${orderId}`,
         },
         (payload) => {
-          console.log("[DriverChat] Incoming message payload:", payload);
+          console.log("[UserChat] Incoming message payload:", payload);
           if (!isMounted) return;
-          
+
           const newMessage = payload.new as Message;
           setMessages((prev) => {
             if (prev.some((msg) => msg.id === newMessage.id)) {
@@ -97,27 +95,27 @@ export default function DriverChat({
         },
       )
       .subscribe((status) => {
-        if (isMounted) console.log("[DriverChat] Subscription status:", status);
+        if (isMounted) console.log("[UserChat] Subscription status:", status);
       });
 
     return () => {
       isMounted = false;
-      console.log("[DriverChat] Unsubscribing from chat:", orderId);
+      console.log("[UserChat] Unsubscribing from chat:", orderId);
       supabase.removeChannel(channel);
     };
   }, [orderId, supabase]);
 
   const handleSendMessage = async () => {
-    console.log("[DriverChat] Attempting to send message:", newMessage);
+    console.log("[UserChat] Attempting to send message:", newMessage);
     if (!newMessage.trim()) {
-      console.log("[DriverChat] Empty message, skipping.");
+      console.log("[UserChat] Empty message, skipping.");
       return;
     }
 
     const content = newMessage.trim();
     setNewMessage(""); // Optimistic clear
 
-    console.log("[DriverChat] Inserting into DB:", {
+    console.log("[UserChat] Inserting into DB:", {
       order_id: orderId,
       sender_id: currentUserId,
       content,
@@ -137,9 +135,9 @@ export default function DriverChat({
         .single();
 
       if (error) {
-        console.error("[DriverChat] Error sending message:", error);
+        console.error("[UserChat] Error sending message:", error);
       } else {
-        console.log("[DriverChat] Message sent successfully. ID:", insertedData.id);
+        console.log("[UserChat] Message sent successfully. ID:", insertedData.id);
         // Optimistic update with deduplication check
         setMessages((prev) => {
             if (prev.some((msg) => msg.id === insertedData.id)) return prev;
@@ -147,25 +145,25 @@ export default function DriverChat({
         });
       }
     } catch (err) {
-      console.error("[DriverChat] Exception sending message:", err);
+      console.error("[UserChat] Exception sending message:", err);
     }
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-      console.log("[DriverChat] No file selected.");
+      console.log("[UserChat] No file selected.");
       return;
     }
 
-    console.log("[DriverChat] File selected:", file.name, file.size, file.type);
+    console.log("[UserChat] File selected:", file.name, file.size, file.type);
     setIsUploading(true);
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${orderId}/${Date.now()}.${fileExt}`;
 
       console.log(
-        "[DriverChat] Uploading to storage bucket: chat-images, path:",
+        "[UserChat] Uploading to storage bucket: chat-images, path:",
         fileName,
       );
 
@@ -174,7 +172,7 @@ export default function DriverChat({
         .upload(fileName, file);
 
       if (uploadError) {
-        console.error("[DriverChat] Upload error:", uploadError);
+        console.error("[UserChat] Upload error:", uploadError);
         throw uploadError;
       }
 
@@ -182,7 +180,7 @@ export default function DriverChat({
         data: { publicUrl },
       } = supabase.storage.from("chat-images").getPublicUrl(fileName);
 
-      console.log("[DriverChat] File uploaded. Public URL:", publicUrl);
+      console.log("[UserChat] File uploaded. Public URL:", publicUrl);
 
       const { error: sendError } = await supabase.from("chat_messages").insert({
         order_id: orderId,
@@ -193,13 +191,13 @@ export default function DriverChat({
       });
 
       if (sendError) {
-        console.error("[DriverChat] Error inserting image message:", sendError);
+        console.error("[UserChat] Error inserting image message:", sendError);
         throw sendError;
       }
 
-      console.log("[DriverChat] Image message sent successfully.");
+      console.log("[UserChat] Image message sent successfully.");
     } catch (error) {
-      console.error("[DriverChat] Exception during image upload/send:", error);
+      console.error("[UserChat] Exception during image upload/send:", error);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -209,7 +207,7 @@ export default function DriverChat({
   // Group messages logic here if needed (e.g. consecutive messages from same user)
 
   return (
-    <div className="fixed inset-0 bg-[#F6F6F6] z-50 flex flex-col font-sans">
+    <div className="fixed inset-0 bg-[#F6F6F6] z-[100] flex flex-col font-sans">
       {/* Header */}
       <div className="bg-[#04BD88] pt-safe px-4 pb-4">
         <div className="flex items-center gap-4 pt-4">
@@ -222,16 +220,16 @@ export default function DriverChat({
 
           <div className="flex-1 flex items-center gap-3">
             <div className="relative w-10 h-10 rounded-full bg-gray-200 border-2 border-white overflow-hidden">
-              {driverImage ? (
+              {customerImage ? (
                 <Image
-                  src={driverImage}
-                  alt={driverName}
+                  src={customerImage}
+                  alt={customerName}
                   fill
                   className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold bg-white">
-                  {driverName.charAt(0)}
+                  {customerName.charAt(0)}
                 </div>
               )}
               {/* Online indicator placeholder */}
@@ -239,9 +237,9 @@ export default function DriverChat({
             </div>
             <div className="text-white">
               <div className="font-semibold text-base leading-tight">
-                {driverName}
+                {customerName}
               </div>
-              <div className="text-white/80 text-xs">Conductor</div>
+              <div className="text-white/80 text-xs">Cliente</div>
             </div>
           </div>
 
@@ -367,7 +365,7 @@ export default function DriverChat({
       </div>
       {/* Image Preview Modal */}
       {viewingImage && (
-        <div className="fixed inset-0 z-[60] bg-black bg-opacity-95 flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[110] bg-black bg-opacity-95 flex items-center justify-center p-4">
           <div className="relative w-full h-full max-w-4xl max-h-[90vh]">
             <Image
               src={viewingImage}
@@ -379,7 +377,7 @@ export default function DriverChat({
           </div>
           <button
             onClick={() => setViewingImage(null)}
-            className="absolute top-6 right-6 z-[70] p-3 bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-all shadow-lg"
+            className="absolute top-6 right-6 z-[120] p-3 bg-white/10 backdrop-blur-sm rounded-full text-white hover:bg-white/20 transition-all shadow-lg"
           >
             <X size={24} />
           </button>
@@ -388,3 +386,4 @@ export default function DriverChat({
     </div>
   );
 }
+

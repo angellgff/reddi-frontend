@@ -7,7 +7,6 @@ import { ChevronDown, X, Check } from "lucide-react"; // Eliminados Search y Pho
 import DeliveryMap from "@/src/components/features/delivery/DeliveryMap";
 import { type NormalizedOrder } from "@/src/lib/finalUser/orders/getOrderDetails";
 import { getAssignedDriverForOrder } from "@/src/components/features/finalUser/orders/actions";
-import DriverChat from "@/src/components/features/finalUser/chat/DriverChat";
 import { createClient } from "@/src/lib/supabase/client";
 
 interface MobileOrderDetailProps {
@@ -74,9 +73,7 @@ export default function MobileOrderDetail({
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
     {},
   );
-  const [showChat, setShowChat] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-
+  
   const toggleItem = (itemId: string) => {
     setExpandedItems((prev) => ({
       ...prev,
@@ -85,15 +82,6 @@ export default function MobileOrderDetail({
   };
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) setCurrentUserId(user.id);
-    };
-    fetchUser();
-
     if (order?.id) {
       getAssignedDriverForOrder(order.id).then((res) => {
         if (res.assigned) {
@@ -104,19 +92,6 @@ export default function MobileOrderDetail({
   }, [order?.id]);
 
   if (!order) return null;
-
-  if (showChat && driver && currentUserId) {
-    return (
-      <DriverChat
-        orderId={order.id}
-        driverId={driver.id}
-        driverName={displayName(driver)}
-        driverImage={null} // TODO: Add driver.avatar if available
-        currentUserId={currentUserId}
-        onClose={() => setShowChat(false)}
-      />
-    );
-  }
 
   const statusLevels: Record<string, number> = {
     pending: 1,
@@ -214,9 +189,9 @@ export default function MobileOrderDetail({
 
           {/* Buttons (UPDATED SECTION) */}
           <div className="flex items-center gap-4">
-            <button
-              onClick={() => setShowChat(true)}
-              className="w-11 h-11 bg-[#47BB7E] rounded-full flex items-center justify-center relative"
+            <Link
+              href={`/user/orders/${order.id}/chat`}
+              className="w-11 h-11 bg-[#47BB7E] rounded-full flex items-center justify-center relative shadow-sm hover:scale-105 transition-transform"
             >
               <Image
                 src="/new-design/nd-messages.png"
@@ -225,7 +200,7 @@ export default function MobileOrderDetail({
                 height={20}
                 className="object-contain"
               />
-            </button>
+            </Link>
             <button className="w-[37px] h-[37px] bg-[#47BB7E] rounded-full flex items-center justify-center shadow-sm relative">
               {/* RECUERDA: Cambia el src por tu icono de Teléfono */}
               <Image
