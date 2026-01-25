@@ -19,6 +19,8 @@ import PaymentMethodSliderModal, {
   PaymentMethod,
 } from "./PaymentMethodSliderModal";
 
+import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
+
 interface MobileCheckoutViewProps {
   storeName: string;
   storeImage?: string | null;
@@ -97,6 +99,17 @@ export default function MobileCheckoutView({
   const [isTipSliderOpen, setIsTipSliderOpen] = useState(false);
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
   const [isPaymentListOpen, setIsPaymentListOpen] = useState(false);
+
+  const { showCheckout, hideButton } = useFloatingButtonStore();
+  React.useEffect(() => {
+    showCheckout(
+      "Proceder a pagar",
+      formatCurrency(total),
+      onPlaceOrder,
+      !canProceed,
+    );
+    return () => hideButton();
+  }, [total, canProceed, onPlaceOrder, showCheckout, hideButton]);
 
   // Address logic
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
@@ -460,22 +473,12 @@ export default function MobileCheckoutView({
           </div>
         </section>
 
-        <p className="text-xs text-gray-500 leading-relaxed text-center mt-6 mb-8">
+        <p className="text-xs text-gray-500 leading-relaxed text-center mt-6 mb-24">
           Si no te encuentras disponible cuando llegue el repartidor, tu pedido
           será dejado en la puerta. Al realizar tu pedido, aceptas asumir total
           responsabilidad del mismo una vez haya sido entregado.
         </p>
 
-        {/* Footer Action Button */}
-        <div className="sticky bottom-0 bg-white p-4 border-t border-gray-200 pb-8">
-          <button
-            onClick={onPlaceOrder}
-            disabled={!canProceed}
-            className="w-full h-12 rounded-[28px] bg-black text-white font-bold text-[15px] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Realizar Pedido • {formatCurrency(total)}
-          </button>
-        </div>
       </div>
     </div>
   );

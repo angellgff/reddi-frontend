@@ -199,6 +199,25 @@ export default function FloatingBottomBar() {
                 </motion.button>
               )}
 
+              {mode === "checkout" && (
+                <motion.button
+                  key="content-checkout"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  onClick={!disabled ? action : undefined}
+                  disabled={disabled}
+                  className={cn(
+                    "absolute inset-0 w-full h-full flex items-center justify-between px-6 text-white font-bold text-[16px] transition-opacity",
+                    disabled ? "opacity-50 cursor-not-allowed" : "",
+                  )}
+                >
+                  <span>{text}</span>
+                  {secondaryText && <span>{secondaryText}</span>}
+                </motion.button>
+              )}
+
               {mode === "product-details" && (
                 <motion.button
                   key="content-product-details"

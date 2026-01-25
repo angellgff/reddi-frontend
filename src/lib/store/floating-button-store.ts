@@ -7,6 +7,7 @@ export type FloatingMode =
   | "store"
   | "cart"
   | "loading"
+  | "checkout"
   | "hidden";
 
 interface FloatingButtonState {
@@ -41,6 +42,12 @@ interface FloatingButtonState {
   ) => void;
   showCartButton: (text?: string, action?: () => void) => void;
   showLoading: (text?: string) => void;
+  showCheckout: (
+    text: string,
+    amount: string,
+    action: () => void,
+    disabled?: boolean,
+  ) => void;
   hideButton: () => void;
 }
 
@@ -121,6 +128,17 @@ export const useFloatingButtonStore = create<FloatingButtonState>((set) => ({
       mode: "loading",
       text,
       action: undefined,
+      onIncrement: undefined,
+      onDecrement: undefined,
+    }),
+
+  showCheckout: (text, amount, action, disabled = false) =>
+    set({
+      mode: "checkout",
+      text,
+      secondaryText: amount,
+      action,
+      disabled,
       onIncrement: undefined,
       onDecrement: undefined,
     }),
