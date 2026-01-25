@@ -34,7 +34,7 @@ export default function FloatingBottomBar() {
     setMounted(true);
   }, []);
 
-  if (pathname === "/user/profile") return null;
+  if (pathname === "/user/profile" || pathname === "/user/orders") return null;
 
   if (mode === "hidden") return null;
 

@@ -2,12 +2,9 @@
 
 "use client";
 
-import { ChevronDown, Heart, MapPin, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
 
 import Badge from "@/src/components/basics/header/Badge";
-import FiltersIcon from "@/src/components/icons/FiltersIcon";
-import SearchIcon from "@/src/components/icons/SearchIcon";
-
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
 // import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 import { UserHeaderData } from "@/src/lib/finalUser/type";
@@ -18,8 +15,6 @@ import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import {
   selectCartOpen,
   toggleCart,
-  closeCart,
-  toggleFilters,
   selectAddressSliderOpen,
   toggleAddressSlider,
   closeAddressSlider,
@@ -28,7 +23,6 @@ import { useSearchParams } from "next/navigation";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
 import Link from "next/link";
-import { ShoppingBag } from "lucide-react";
 import Image from "next/image";
 
 const badgeColor = "bg-red-500";
@@ -154,7 +148,70 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       {/* <CartSlider /> moved to layout to persist across store pages */}
 
       {/* Mobile Header */}
-      {pathname !== "/user/profile" && (
+      {pathname === "/user/profile" || pathname === "/user/orders" ? (
+        <header className="absolute top-0 left-0 right-0 w-full md:hidden z-0">
+          {/* Yellow Shape Background */}
+          <div
+            className={`absolute top-0 left-0 w-full overflow-hidden ${
+              pathname === "/user/orders" ? "h-[160px]" : "h-[220px]"
+            }`}
+          >
+            <div
+              className={`absolute top-0 left-[-25%] w-[150%] bg-[#E8C500] rounded-b-[100%] shadow-sm ${
+                pathname === "/user/orders" ? "h-[140px]" : "h-[200px]"
+              }`}
+            />
+          </div>
+
+          {/* Icons Row */}
+          <div className="relative z-10 flex justify-between items-start px-6 pt-8 mt-2">
+            <Link
+              href="/"
+              className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"
+            >
+              <ChevronLeft className="w-6 h-6 text-black" />
+            </Link>
+
+            <div className="flex gap-3">
+              <Link
+                href="/user/notifications"
+                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm relative"
+              >
+                <div className="w-5 h-5 relative">
+                  <Image
+                    src="/new-design/nd-bell.png"
+                    fill
+                    alt="Notificaciones"
+                    className="object-contain"
+                  />
+                </div>
+              </Link>
+
+              <button
+                className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm relative"
+                onClick={onToggleCart}
+                aria-label="Abrir carrito"
+              >
+                <div className="w-6 h-6 relative">
+                  <Image
+                    src="/new-design/nd-cart.png"
+                    fill
+                    alt="Carrito"
+                    className="object-contain"
+                  />
+                  <div className="absolute -top-2 -right-2">
+                    <Badge
+                      count={cartCount || userData.carCount}
+                      color={badgeColor}
+                      className="rounded-full shadow-sm ring-2 ring-white"
+                    />
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </header>
+      ) : (
         <header
           className={`
           fixed top-0 left-0 right-0 z-50 md:hidden

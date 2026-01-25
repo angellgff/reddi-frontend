@@ -101,8 +101,79 @@ export default async function OrdersHistoryPage({
   const endItem = Math.min(total, to + 1);
   const totalPages = Math.max(1, Math.ceil((total || 1) / pageSize));
 
+  // Logic to split items for Mobile View
+  const now = new Date();
+  const weekItems: OrderListItem[] = [];
+  const monthItems: OrderListItem[] = [];
+  const olderItems: OrderListItem[] = [];
+
+  items.forEach((item) => {
+    const d = new Date(item.created_at);
+    const diffTime = Math.abs(now.getTime() - d.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays <= 7) {
+      weekItems.push(item);
+    } else if (diffDays <= 30) {
+      monthItems.push(item);
+    } else {
+      olderItems.push(item);
+    }
+  });
+
+  const MobileOrderCard = ({ item }: { item: OrderListItem }) => (
+    <div className="flex flex-col gap-3 bg-white rounded-2xl p-3 shadow-sm mb-4">
+      <div className="flex gap-4">
+        <div className="relative w-[119px] h-[75px] bg-[#F6F6F6] rounded-lg overflow-hidden flex-shrink-0 border border-gray-100">
+          {item.partner?.image_url ? (
+            <Image
+              src={item.partner.image_url}
+              alt={item.partner.name ?? "Tienda"}
+              fill
+              className="object-cover"
+            />
+          ) : (
+            <div className="flex items-center justify-center w-full h-full text-xs text-gray-400">
+              Logo
+            </div>
+          )}
+        </div>
+        <div className="flex flex-col justify-center gap-1">
+          <h3 className="text-base font-bold text-black leading-tight">
+            {item.partner?.name ?? "Tienda"}
+          </h3>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="font-bold text-black">4.8</span>
+            <span className="text-yellow-400 text-sm">★</span>
+            <span className="text-[#606060] font-semibold">(254)</span>
+          </div>
+          <div className="text-xs font-semibold text-[#6A6C71]">
+            {formatCurrency(item.total_amount)}
+          </div>
+        </div>
+      </div>
+      <div className="flex gap-3 mt-1">
+        <Link
+          href={`/user/orders/${item.id}`}
+          className="flex-1 bg-white border border-gray-100 hover:bg-gray-50 rounded-md py-2 text-center text-sm font-medium text-[#202124] shadow-sm flex items-center justify-center gap-2"
+        >
+          Ver detalle
+        </Link>
+        <Link
+          href={
+            item.partner?.id ? `/user/stores/${item.partner.id}` : "/user/stores"
+          }
+          className="flex-1 bg-[#47BB7E] hover:bg-[#3ea870] rounded-md py-2 text-center text-sm font-medium text-white shadow-sm flex items-center justify-center gap-2"
+        >
+          Pedir otra vez
+        </Link>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="max-w-[1440px] mx-auto">
+    <>
+    <div className="hidden md:block max-w-[1440px] mx-auto">
       {/* Header */}
       <header className="flex flex-col justify-center items-start px-4 sm:px-6 lg:px-12 py-6 sm:py-8 gap-3 bg-white">
         <h1 className="text-xl sm:text-2xl font-bold">Historial de pedidos</h1>
@@ -235,5 +306,71 @@ export default async function OrdersHistoryPage({
         )}
       </section>
     </div>
+
+    {/* Mobile View */}
+    <div className="md:hidden w-full min-h-screen relative pt-[120px] px-6 bg-transparent pb-32">
+        {/* Title */}
+        <div className="flex items-center gap-3 mb-8 relative z-10">
+          <div className="relative w-[22px] h-[27px]">
+             <Image
+                src="/new-design/nd-orders.png"
+                fill
+                alt="Orders"
+                className="object-contain"
+             />
+          </div>
+          <h1 className="text-xl font-bold text-black font-open-sans">
+            Historial de órdenes
+          </h1>
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-col gap-6 relative z-10 pb-10">
+            {weekItems.length > 0 && (
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-bold text-black font-open-sans">Esta Semana</h2>
+                    {weekItems.map(item => (
+                        <MobileOrderCard key={item.id} item={item} />
+                    ))}
+                </div>
+            )}
+
+            {monthItems.length > 0 && (
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-bold text-black font-open-sans">Este Mes</h2>
+                    {monthItems.map(item => (
+                        <MobileOrderCard key={item.id} item={item} />
+                    ))}
+                </div>
+            )}
+            
+             {olderItems.length > 0 && (
+                <div className="flex flex-col gap-4">
+                    <h2 className="text-xl font-bold text-black font-open-sans">Anteriores</h2>
+                    {olderItems.map(item => (
+                        <MobileOrderCard key={item.id} item={item} />
+                    ))}
+                </div>
+            )}
+
+            {items.length === 0 && (
+                <div className="text-center py-10 text-gray-400">
+                    No se encontraron órdenes
+                </div>
+            )}
+            
+             {totalPages > 1 && (
+                 <div className="flex justify-center gap-4 mt-4 text-black">
+                     {page > 1 && (
+                         <Link href={`?page=${page - 1}`} className="px-4 py-2 bg-white rounded-lg shadow text-sm">Anterior</Link>
+                     )}
+                     {page < totalPages && (
+                         <Link href={`?page=${page + 1}`} className="px-4 py-2 bg-white rounded-lg shadow text-sm">Siguiente</Link>
+                     )}
+                 </div>
+            )}
+        </div>
+    </div>
+    </>
   );
 }

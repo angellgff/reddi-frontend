@@ -3,22 +3,12 @@ import { getUserProfile } from "@/src/lib/finalUser/profile/actions";
 import { getUserAddressesAndSelected } from "@/src/lib/finalUser/addresses/actions";
 import { Card, CardContent } from "@/src/components/ui/card";
 import Link from "next/link";
+import Image from "next/image";
 import PaymentMethodsSection from "@/src/components/features/finalUser/profile/PaymentMethodsSection";
 import AddressesSection from "@/src/components/features/finalUser/profile/AddressesSection";
 import ProfileLogoutButton from "@/src/components/features/finalUser/profile/ProfileLogoutButton";
 import type { Tables } from "@/src/lib/database.types";
-import {
-  Bell,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
-  LifeBuoy,
-  MapPin,
-  Settings,
-  ShoppingCart,
-  User,
-  Wallet,
-} from "lucide-react";
+import { ChevronRight, User } from "lucide-react";
 import React from "react";
 
 export const dynamic = "force-dynamic";
@@ -140,31 +130,9 @@ export default async function ProfilePage() {
         </section>
       </div>
 
-      <div className="md:hidden relative bg-white min-h-screen pb-20 overflow-hidden font-sans">
-        {/* Yellow Header Shape */}
-        <div className="absolute top-[-50px] left-[-25%] w-[150%] h-[220px] bg-[#E8C500] rounded-b-[100%] z-0" />
-
-        {/* Top Bar (Icons) */}
-        <div className="relative z-10 flex justify-between items-center px-6 pt-8 pb-4">
-          <Link
-            href="/"
-            className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm"
-          >
-            <ChevronLeft className="w-6 h-6 text-black" />
-          </Link>
-
-          <div className="flex gap-3">
-            <button className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <Bell className="w-5 h-5 text-black" />
-            </button>
-            <button className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm">
-              <ShoppingCart className="w-5 h-5 text-black" />
-            </button>
-          </div>
-        </div>
-
+      <div className="md:hidden relative min-h-screen pb-20 overflow-hidden font-sans bg-transparent">
         {/* Profile Pic */}
-        <div className="relative z-10 flex justify-center mt-4">
+        <div className="relative z-10 flex justify-center mt-20">
           <div className="w-[116px] h-[116px] rounded-full bg-gray-200 border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
             {profile?.first_name ? ( // Avatar placeholder logic
               <span className="text-4xl text-gray-400">
@@ -187,17 +155,29 @@ export default async function ProfilePage() {
         <div className="relative z-10 px-4 space-y-1">
           <MobileMenuItem
             href="/user/orders"
-            icon={<ClipboardList />}
+            imageSrc="/new-design/nd-orders.png"
             label="Historial de órdenes"
           />
-          <MobileMenuItem href="#" icon={<Wallet />} label="Billetera" />
+          <MobileMenuItem
+            href="#"
+            imageSrc="/new-design/nd-wallet.png"
+            label="Billetera"
+          />
           <MobileMenuItem
             href="/user/address"
-            icon={<MapPin />}
+            imageSrc="/new-design/nd-address.png"
             label="Direcciones guardadas"
           />
-          <MobileMenuItem href="#" icon={<LifeBuoy />} label="Soporte" />
-          <MobileMenuItem href="#" icon={<Settings />} label="Ajustes" />
+          <MobileMenuItem
+            href="#"
+            imageSrc="/new-design/nd-support.png"
+            label="Soporte"
+          />
+          <MobileMenuItem
+            href="#"
+            imageSrc="/new-design/nd-settings.png"
+            label="Ajustes"
+          />
         </div>
       </div>
     </>
@@ -206,11 +186,11 @@ export default async function ProfilePage() {
 
 function MobileMenuItem({
   href,
-  icon,
+  imageSrc,
   label,
 }: {
   href: string;
-  icon: React.ReactNode;
+  imageSrc: string;
   label: string;
 }) {
   return (
@@ -219,9 +199,8 @@ function MobileMenuItem({
       className="flex items-center justify-between p-4 bg-white hover:bg-gray-50 transition-colors"
     >
       <div className="flex items-center gap-4">
-        <div className="text-black">
-          {/* Render Icon with specific size */}
-          {React.cloneElement(icon as React.ReactElement, { size: 24 })}
+        <div className="w-6 h-6 relative shrink-0">
+          <Image src={imageSrc} alt={label} fill className="object-contain" />
         </div>
         <span className="font-semibold text-sm text-black">{label}</span>
       </div>
