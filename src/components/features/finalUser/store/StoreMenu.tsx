@@ -19,10 +19,8 @@ import ProductCardRestaurant, {
   ProductCardBase,
 } from "./productCards/ProductCardRestaurant";
 import ProductCardMarket from "./productCards/ProductCardMarket";
-import ArrowLeftIcon from "@/src/components/icons/ArrowLeftIcon";
-import ArrowRightIcon from "@/src/components/icons/ArrowRightIcon";
-import SearchIcon from "@/src/components/icons/SearchIcon";
 import { useStoreSearchStore } from "@/src/lib/store/store-search";
+import Image from "next/image";
 
 type PartnerType =
   | "market"
@@ -53,7 +51,7 @@ export default function StoreMenu({
   // const [query, setQuery] = useState(searchParams.get("q") || "");
 
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
+    searchParams.get("category") || "",
   );
   const nav = useNextRouter();
 
@@ -68,7 +66,7 @@ export default function StoreMenu({
       // Evitar push si los params no han cambiado
       if (params.toString() !== searchParams.toString()) {
         startTransition(() =>
-          router.push(`${pathname}?${params.toString()}`, { scroll: false })
+          router.push(`${pathname}?${params.toString()}`, { scroll: false }),
         );
       }
     }, 250);
@@ -107,7 +105,7 @@ export default function StoreMenu({
         quantity: 1,
         extras: [],
         mergeByProduct: true,
-      })
+      }),
     );
     dispatch(openCart());
   };
@@ -137,14 +135,20 @@ export default function StoreMenu({
       {/* Search Bar & Categories */}
       <div className="space-y-5 px-1">
         {shouldShowSearchInMenu && (
-          <div className="relative px-3 mt-2">
+          <div className="relative mt-2">
             <div className="absolute inset-y-0 left-7 flex items-center pointer-events-none">
-              <SearchIcon className="w-5 h-5 text-[#6A6C71]" />
+              <Image
+                src="/new-design/nd-search.png"
+                alt="Buscar"
+                width={20}
+                height={20}
+                className="w-5 h-5 object-contain"
+              />
             </div>
             <input
               type="text"
               placeholder="Busca en el menú"
-              className="w-full pl-12 pr-4 h-[44px] bg-[#EBEBEB] border-none rounded-[11px] text-sm font-semibold text-[#6A6C71] placeholder-[#6A6C71] text-center focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              className="w-full pl-14 pr-4 h-[44px] bg-[#EBEBEB] border-none rounded-[11px] text-sm font-semibold text-[#6A6C71] placeholder-[#6A6C71] text-left focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -195,7 +199,7 @@ export default function StoreMenu({
 
                   const onAdd = (
                     product: ProductCardBase,
-                    e: React.MouseEvent
+                    e: React.MouseEvent,
                   ) => {
                     e.stopPropagation();
                     handleAddToCart(product as unknown as ProductCard);
@@ -204,7 +208,10 @@ export default function StoreMenu({
                     openDetails(product as unknown as ProductCard);
 
                   return (
-                    <div key={p.id} className="flex-shrink-0">
+                    <div
+                      key={p.id}
+                      className="flex-shrink-0 w-[calc(50%-0.5rem)] sm:w-auto flex justify-center"
+                    >
                       {isRestaurant ? (
                         <ProductCardRestaurant
                           product={p as unknown as ProductCardBase}

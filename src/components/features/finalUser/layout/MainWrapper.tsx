@@ -12,7 +12,9 @@ export default function MainWrapper({
   const isStorePage = pathname?.startsWith("/user/stores/");
 
   // Default padding for header
-  const paddingClass = isStorePage ? "pt-0" : "pt-[4rem] sm:pt-[1rem]";
+  const paddingClass = isStorePage
+    ? "pt-0 pb-10"
+    : "pt-[4rem] sm:pt-[1rem] pb-10";
 
   return <main className={`${paddingClass}`}>{children}</main>;
 }
