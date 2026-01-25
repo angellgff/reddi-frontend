@@ -8,7 +8,11 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { type Database } from "@/src/lib/database.types";
-import { getChatMessages, sendMessage, uploadChatImage } from "@/src/lib/actions/chat";
+import {
+  getChatMessages,
+  sendMessage,
+  uploadChatImage,
+} from "@/src/lib/actions/chat";
 
 type Message = Database["public"]["Tables"]["chat_messages"]["Row"];
 
@@ -83,7 +87,7 @@ export default function ChatPageClient({
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
-        }
+        },
       )
       .subscribe((status) => {
         console.log(`[ChatPage] Realtime status: ${status}`);
@@ -150,9 +154,9 @@ export default function ChatPageClient({
       formData.append("orderId", String(orderId));
 
       const uploadResult = await uploadChatImage(formData);
-      
+
       if (!uploadResult.success || !uploadResult.publicUrl) {
-          throw new Error(uploadResult.error || "Error uploading image");
+        throw new Error(uploadResult.error || "Error uploading image");
       }
 
       const publicUrl = uploadResult.publicUrl;
