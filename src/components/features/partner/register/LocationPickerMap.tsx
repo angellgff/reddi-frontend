@@ -27,7 +27,7 @@ export default function LocationPickerMap({
   useEffect(() => {
     if (!apiKey) {
       setError(
-        "Falta la API Key de Google Maps (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)"
+        "Falta la API Key de Google Maps (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY)",
       );
       return;
     }
@@ -44,13 +44,13 @@ export default function LocationPickerMap({
       .load()
       .then(async () => {
         const { Map } = (await google.maps.importLibrary(
-          "maps"
+          "maps",
         )) as google.maps.MapsLibrary;
         const { Marker } = (await google.maps.importLibrary(
-          "marker"
+          "marker",
         )) as google.maps.MarkerLibrary;
         const { Autocomplete } = (await google.maps.importLibrary(
-          "places"
+          "places",
         )) as google.maps.PlacesLibrary;
 
         const initialCenter =
@@ -91,7 +91,7 @@ export default function LocationPickerMap({
 
             const newLat = place.geometry.location.lat();
             const newLng = place.geometry.location.lng();
-            
+
             updateMarker(newLat, newLng, Marker);
             onLocationSelect(newLat, newLng);
           });
@@ -118,7 +118,7 @@ export default function LocationPickerMap({
   const updateMarker = async (
     latitude: number,
     longitude: number,
-    MarkerClass?: typeof google.maps.Marker
+    MarkerClass?: typeof google.maps.Marker,
   ) => {
     if (!mapRef.current) return;
 

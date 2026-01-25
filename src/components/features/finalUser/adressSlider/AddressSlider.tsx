@@ -45,7 +45,7 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
       // Asumiremos que volver a showSearch es seguro por ahora,
       // o dejamos que la página subyacente lo maneje si se remonta/actualiza.
       // Si el botón debe reaparecer al cerrar, showSearch() es lo más común.
-      
+
       // NOTA: Si esto causa problemas en páginas que NO deben tener botón,
       // habría que hacerlo condicional. Por ahora,AddressSlider se usa principalmente donde hay botón.
       showSearch();
