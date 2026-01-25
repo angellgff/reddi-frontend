@@ -122,7 +122,7 @@ export default function OnboardingWizard() {
           2. p-0: Elimina el padding en móvil para que la imagen toque los bordes.
           3. md:...: Restaura los valores originales para escritorio.
         */}
-        <div className="flex flex-1 min-h-0 w-full flex-col items-center justify-center bg-white p-0 md:h-auto md:w-1/2 md:flex-1 md:bg-[#F8F9FA] md:p-12 md:pt-12">
+        <div className="flex h-[50vh] shrink-0 w-full flex-col items-center justify-center bg-white p-0 md:h-auto md:w-1/2 md:flex-1 md:bg-[#F8F9FA] md:p-12 md:pt-12">
           {/* 
             CAMBIOS EN EL WRAPPER DE LA IMAGEN:
             1. h-full w-full: Ocupa todo el espacio del contenedor padre (50vh).
@@ -143,10 +143,10 @@ export default function OnboardingWizard() {
 
         {/* Right Section: Content Area */}
         {/* Ajustamos a h-1/2 para ocupar exactamente la mitad restante sin generar scroll */}
-        <div className="flex shrink-0 w-full flex-col justify-center px-6 pb-8 pt-8 md:min-h-0 md:w-1/2 md:p-12 lg:p-20">
-          <div className="mx-auto w-full max-w-md">
+        <div className="flex h-[50vh] shrink-0 w-full flex-col px-6 pb-8 pt-8 md:h-auto md:min-h-0 md:w-1/2 md:justify-center md:p-12 lg:p-20">
+          <div className="mx-auto w-full max-w-md flex flex-col h-full md:block md:h-auto">
             {/* Indicators */}
-            <div className="mb-8 flex gap-3">
+            <div className="mb-8 flex gap-3 shrink-0">
               {steps.map((_, idx) => (
                 <div
                   key={idx}
@@ -169,7 +169,7 @@ export default function OnboardingWizard() {
             </div>
 
             {/* Buttons */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mt-auto md:mt-0">
               {currentStep > 0 && (
                 <button
                   onClick={handleBack}
