@@ -154,86 +154,88 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       {/* <CartSlider /> moved to layout to persist across store pages */}
 
       {/* Mobile Header */}
-      <header
-        className={`
+      {pathname !== "/user/profile" && (
+        <header
+          className={`
           fixed top-0 left-0 right-0 z-50 md:hidden
           bg-white text-black
           shadow-sm
           pt-safe
         `}
-      >
-        <div className="flex justify-between items-start pt-2 pb-4 px-4">
-          <div className="flex flex-col">
-            <span className="text-xs font-medium text-black/60">
-              {userData.userName}
-            </span>
-            <button
-              onClick={toggleAddressMenu}
-              aria-label="Cambiar dirección"
-              className="flex items-center gap-1"
-            >
-              <span
-                className="text-[15px] font-bold text-black truncate max-w-[200px]"
-                suppressHydrationWarning
-              >
-                {displayedAddress}
+        >
+          <div className="flex justify-between items-start pt-2 pb-4 px-4">
+            <div className="flex flex-col">
+              <span className="text-xs font-medium text-black/60">
+                {userData.userName}
               </span>
-              <ChevronDown
-                className={`w-4 h-4 text-black transition-transform duration-300 ${
-                  isAddressMenuVisible && "rotate-180"
-                }`}
-              />
-            </button>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <Link href="/user/profile">
-              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <Image
-                  src="/new-design/nd-user.png"
-                  width={18}
-                  height={18}
-                  alt="Perfil"
+              <button
+                onClick={toggleAddressMenu}
+                aria-label="Cambiar dirección"
+                className="flex items-center gap-1"
+              >
+                <span
+                  className="text-[15px] font-bold text-black truncate max-w-[200px]"
+                  suppressHydrationWarning
+                >
+                  {displayedAddress}
+                </span>
+                <ChevronDown
+                  className={`w-4 h-4 text-black transition-transform duration-300 ${
+                    isAddressMenuVisible && "rotate-180"
+                  }`}
                 />
-              </div>
-            </Link>
+              </button>
+            </div>
 
-            <Link href="/user/notifications" className="relative">
-              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                <Image
-                  src="/new-design/nd-bell.png"
-                  width={20}
-                  height={20}
-                  alt="Notificaciones"
-                />
-              </div>
-            </Link>
-
-            {/* Cart Button */}
-            <button
-              className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
-              onClick={onToggleCart}
-              aria-label="Abrir carrito"
-            >
-              <div className="relative">
-                <Image
-                  src="/new-design/nd-cart.png"
-                  width={24}
-                  height={24}
-                  alt="Carrito"
-                />
-                <div className="absolute -top-2 -right-2">
-                  <Badge
-                    count={cartCount || userData.carCount}
-                    color={badgeColor}
-                    className="rounded-full shadow-sm ring-2 ring-white"
+            <div className="flex items-center gap-3">
+              <Link href="/user/profile">
+                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Image
+                    src="/new-design/nd-user.png"
+                    width={18}
+                    height={18}
+                    alt="Perfil"
                   />
                 </div>
-              </div>
-            </button>
+              </Link>
+
+              <Link href="/user/notifications" className="relative">
+                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                  <Image
+                    src="/new-design/nd-bell.png"
+                    width={20}
+                    height={20}
+                    alt="Notificaciones"
+                  />
+                </div>
+              </Link>
+
+              {/* Cart Button */}
+              <button
+                className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+                onClick={onToggleCart}
+                aria-label="Abrir carrito"
+              >
+                <div className="relative">
+                  <Image
+                    src="/new-design/nd-cart.png"
+                    width={24}
+                    height={24}
+                    alt="Carrito"
+                  />
+                  <div className="absolute -top-2 -right-2">
+                    <Badge
+                      count={cartCount || userData.carCount}
+                      color={badgeColor}
+                      className="rounded-full shadow-sm ring-2 ring-white"
+                    />
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      )}
 
       {/* Desktop Header */}
       <div className="hidden md:block w-full bg-white border-b border-primary relative z-40">

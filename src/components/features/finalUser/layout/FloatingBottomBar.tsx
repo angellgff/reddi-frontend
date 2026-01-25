@@ -5,7 +5,7 @@ import { cn } from "@/src/lib/utils";
 import { Tag, Loader2 } from "lucide-react";
 import SearchIcon from "@/src/components/icons/SearchIcon";
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { toggleCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
@@ -25,6 +25,7 @@ export default function FloatingBottomBar() {
     disabled,
   } = useFloatingButtonStore();
   const searchParams = useSearchParams();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const cartCount = useAppSelector(selectCartCount);
   const [mounted, setMounted] = useState(false);
@@ -32,6 +33,8 @@ export default function FloatingBottomBar() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  if (pathname === "/user/profile") return null;
 
   if (mode === "hidden") return null;
 
