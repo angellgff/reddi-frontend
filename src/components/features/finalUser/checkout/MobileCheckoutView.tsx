@@ -11,6 +11,7 @@ import {
   X,
   Banknote,
   CreditCard,
+  Ticket,
 } from "lucide-react";
 import { formatCurrency } from "@/src/lib/utils";
 import TipSliderModal from "./TipSliderModal";
@@ -18,6 +19,7 @@ import AddressSelectionModal, { Address } from "./AddressSelectionModal";
 import PaymentMethodSliderModal, {
   PaymentMethod,
 } from "./PaymentMethodSliderModal";
+import CouponModal from "./CouponModal";
 
 import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 
@@ -53,7 +55,11 @@ interface MobileCheckoutViewProps {
   // Coupon
   couponCode?: string;
   couponDiscount: number;
-  onAddCoupon: () => void; // Opens coupon input
+  couponInput: string;
+  setCouponInput: (val: string) => void;
+  validateCoupon: () => void;
+  isValidatingCoupon: boolean;
+  couponMsg: string | null;
 
   // Totals
   subtotal: number;
@@ -86,7 +92,11 @@ export default function MobileCheckoutView({
   onChangePayment, // kept if used by parent but overridden here
   couponCode,
   couponDiscount,
-  onAddCoupon,
+  couponInput,
+  setCouponInput,
+  validateCoupon,
+  isValidatingCoupon,
+  couponMsg,
   subtotal,
   promotion,
   deliveryFee,
@@ -99,6 +109,7 @@ export default function MobileCheckoutView({
   const [isTipSliderOpen, setIsTipSliderOpen] = useState(false);
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
   const [isPaymentListOpen, setIsPaymentListOpen] = useState(false);
+  const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
 
   const { showCheckout, hideButton } = useFloatingButtonStore();
   React.useEffect(() => {
@@ -144,6 +155,18 @@ export default function MobileCheckoutView({
           onClose={() => setIsPaymentListOpen(false)}
           selectedMethod={selectedPaymentMethod || null}
           onSelectMethod={(method) => onSelectPaymentMethod(method)}
+        />
+      )}
+
+      {isCouponModalOpen && (
+        <CouponModal
+          onClose={() => setIsCouponModalOpen(false)}
+          couponInput={couponInput}
+          setCouponInput={setCouponInput}
+          validateCoupon={validateCoupon}
+          isValidatingCoupon={isValidatingCoupon}
+          couponMsg={couponMsg}
+          storedCouponCode={couponCode}
         />
       )}
 
@@ -380,39 +403,43 @@ export default function MobileCheckoutView({
             <ChevronRight className="h-4 w-4 text-black" />
           </button>
 
-          {/* Coupon - Using "Agregar" style from CSS */}
+          {/* Coupon */}
           <button
-            onClick={onAddCoupon}
+            onClick={() => setIsCouponModalOpen(true)}
             className="flex-1 flex items-center justify-between border border-gray-200 rounded-lg p-3 bg-white"
           >
             <div className="flex flex-col items-start gap-1">
               <span className="text-xs font-bold text-black flex items-center gap-1">
-                Agregar <Pencil className="h-3 w-3" />
+                Cupón de descuento <Ticket className="h-3 w-3" />
               </span>
               <div className="flex items-center gap-1 mt-1">
-                {/* Payment icons row placeholder per CSS */}
-                <div className="flex gap-0.5">
-                  <span className="text-[10px] text-blue-600 font-bold">
-                    VISA
-                  </span>
-                  <span className="text-[10px] text-indigo-600 font-bold">
-                    stripe
-                  </span>
-                </div>
+                <span className="text-[10px] text-gray-500 font-medium">
+                  {couponCode ? (
+                    <span className="text-emerald-600 font-bold">
+                      {couponCode}
+                    </span>
+                  ) : (
+                    "Agregar código"
+                  )}
+                </span>
               </div>
             </div>
+            <ChevronRight className="h-4 w-4 text-black" />
           </button>
         </section>
 
         {/* Coupon Applied Row (if applicable) */}
+        {/* We can hide this if we show it inside the button, or keep both. 
+            Keeping both is clearer for "Savings" amount. 
+        */}
         {couponDiscount > 0 && (
           <div className="flex items-center justify-between py-2 border-b border-gray-100">
             <div>
               <span className="block text-base font-semibold text-black">
-                Cupon aplicado
+                Cupón aplicado
               </span>
               <span className="text-sm text-[#05A357]">
-                Te estas ahorrando {formatCurrency(couponDiscount)}
+                Te estás ahorrando {formatCurrency(couponDiscount)}
               </span>
             </div>
             <ChevronRight className="h-5 w-5 text-black" />

@@ -370,7 +370,11 @@ export default function CheckoutPaymentPage() {
           }}
           couponCode={storedCoupon?.code}
           couponDiscount={discount}
-          onAddCoupon={() => {}}
+          couponInput={couponInput}
+          setCouponInput={setCouponInput}
+          validateCoupon={validateCoupon}
+          isValidatingCoupon={isValidatingCoupon}
+          couponMsg={couponMsg}
           subtotal={subtotal}
           promotion={discount}
           deliveryFee={shipping}
