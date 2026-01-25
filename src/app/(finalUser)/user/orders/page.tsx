@@ -19,8 +19,6 @@ type OrderListItem = {
   } | null;
 };
 
-
-
 // 1. Cambiamos la firma de la función para que acepte `props` como una promesa.
 export default async function OrdersHistoryPage({
   searchParams,
@@ -57,7 +55,7 @@ export default async function OrdersHistoryPage({
     .from("orders")
     .select(
       "id, created_at, status, total_amount, partner_id, partners:partner_id(id, name, image_url, address)",
-      { count: "exact" }
+      { count: "exact" },
     )
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
@@ -161,7 +159,9 @@ export default async function OrdersHistoryPage({
         </Link>
         <Link
           href={
-            item.partner?.id ? `/user/stores/${item.partner.id}` : "/user/stores"
+            item.partner?.id
+              ? `/user/stores/${item.partner.id}`
+              : "/user/stores"
           }
           className="flex-1 bg-[#47BB7E] hover:bg-[#3ea870] rounded-md py-2 text-center text-sm font-medium text-white shadow-sm flex items-center justify-center gap-2"
         >
@@ -173,151 +173,153 @@ export default async function OrdersHistoryPage({
 
   return (
     <>
-    <div className="hidden md:block max-w-[1440px] mx-auto">
-      {/* Header */}
-      <header className="flex flex-col justify-center items-start px-4 sm:px-6 lg:px-12 py-6 sm:py-8 gap-3 bg-white">
-        <h1 className="text-xl sm:text-2xl font-bold">Historial de pedidos</h1>
-        <p className="text-xs sm:text-sm text-[#6C7280] max-w-prose">
-          Revisa tus pedidos anteriores y vuelve a pedir fácilmente
-        </p>
-      </header>
+      <div className="hidden md:block max-w-[1440px] mx-auto">
+        {/* Header */}
+        <header className="flex flex-col justify-center items-start px-4 sm:px-6 lg:px-12 py-6 sm:py-8 gap-3 bg-white">
+          <h1 className="text-xl sm:text-2xl font-bold">
+            Historial de pedidos
+          </h1>
+          <p className="text-xs sm:text-sm text-[#6C7280] max-w-prose">
+            Revisa tus pedidos anteriores y vuelve a pedir fácilmente
+          </p>
+        </header>
 
-      {/* List section */}
-      <section className="flex flex-col items-start gap-6 bg-white px-4 sm:px-6 lg:px-12 pt-6 sm:pt-8 pb-10">
-        <div className="flex items-center gap-3 text-sm">
-          <span className="text-[#6C7280]">Mis pedidos anteriores</span>
-          <span className="inline-flex h-6 items-center rounded-full bg-[#ECFDF5] px-2 text-xs font-medium text-[#047857]">
-            {total} pedidos
-          </span>
-        </div>
+        {/* List section */}
+        <section className="flex flex-col items-start gap-6 bg-white px-4 sm:px-6 lg:px-12 pt-6 sm:pt-8 pb-10">
+          <div className="flex items-center gap-3 text-sm">
+            <span className="text-[#6C7280]">Mis pedidos anteriores</span>
+            <span className="inline-flex h-6 items-center rounded-full bg-[#ECFDF5] px-2 text-xs font-medium text-[#047857]">
+              {total} pedidos
+            </span>
+          </div>
 
-        <div className="w-full flex flex-col divide-y divide-[#E5E7EB]">
-          {items.length === 0 && (
-            <div className="py-10 text-sm text-[#6C7280]">
-              No tienes pedidos aún.
-            </div>
-          )}
+          <div className="w-full flex flex-col divide-y divide-[#E5E7EB]">
+            {items.length === 0 && (
+              <div className="py-10 text-sm text-[#6C7280]">
+                No tienes pedidos aún.
+              </div>
+            )}
 
-          {items.map((it) => {
-            const active = isActiveOrderStatus(it.status);
-            const storeHref = it.partner?.id
-              ? `/user/stores/${it.partner.id}`
-              : "/user/stores";
-            return (
-              <div
-                key={it.id}
-                className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-              >
-                {/* left: store info */}
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="h-[74px] w-[126px] sm:h-[66px] sm:w-[66px] flex-shrink-0 overflow-hidden rounded-xl border border-[#D9DCE3] bg-[#F0F2F5]">
-                    {it.partner?.image_url ? (
-                      <Image
-                        src={it.partner.image_url}
-                        alt={it.partner?.name ?? "Tienda"}
-                        width={126}
-                        height={74}
-                        className="object-contain sm:object-cover h-full w-full"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center text-xs text-[#9BA1AE]">
-                        Logo
+            {items.map((it) => {
+              const active = isActiveOrderStatus(it.status);
+              const storeHref = it.partner?.id
+                ? `/user/stores/${it.partner.id}`
+                : "/user/stores";
+              return (
+                <div
+                  key={it.id}
+                  className="py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
+                >
+                  {/* left: store info */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-[74px] w-[126px] sm:h-[66px] sm:w-[66px] flex-shrink-0 overflow-hidden rounded-xl border border-[#D9DCE3] bg-[#F0F2F5]">
+                      {it.partner?.image_url ? (
+                        <Image
+                          src={it.partner.image_url}
+                          alt={it.partner?.name ?? "Tienda"}
+                          width={126}
+                          height={74}
+                          className="object-contain sm:object-cover h-full w-full"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-[#9BA1AE]">
+                          Logo
+                        </div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold truncate">
+                        {it.partner?.name ?? "Tienda"}
                       </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-semibold truncate">
-                      {it.partner?.name ?? "Tienda"}
-                    </div>
-                    <div className="text-[11px] sm:text-xs text-[#6C7280] flex flex-wrap items-center gap-1 sm:gap-2">
-                      <span className="inline-flex items-center gap-1">
-                        <span>4.8</span>
-                        <span className="text-[#9BA1AE]">(245)</span>
-                      </span>
-                      <span className="hidden xs:inline">•</span>
-                      <span>25-35 min</span>
-                      <span className="hidden xs:inline">•</span>
-                      <span>{CURRENCY_SYMBOL}0 envío</span>
-                    </div>
-                    <div className="text-[11px] text-[#0F766E]">
-                      {formatCurrency(it.total_amount)}
+                      <div className="text-[11px] sm:text-xs text-[#6C7280] flex flex-wrap items-center gap-1 sm:gap-2">
+                        <span className="inline-flex items-center gap-1">
+                          <span>4.8</span>
+                          <span className="text-[#9BA1AE]">(245)</span>
+                        </span>
+                        <span className="hidden xs:inline">•</span>
+                        <span>25-35 min</span>
+                        <span className="hidden xs:inline">•</span>
+                        <span>{CURRENCY_SYMBOL}0 envío</span>
+                      </div>
+                      <div className="text-[11px] text-[#0F766E]">
+                        {formatCurrency(it.total_amount)}
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* right: actions */}
-                <div className="w-full sm:w-auto flex items-center gap-2">
-                  <Link
-                    href={`/user/orders/${it.id}`}
-                    className="h-9 flex flex-1 items-center justify-center rounded-xl border border-[#9BA1AE] px-4 text-xs font-medium hover:bg-gray-50"
-                  >
-                    Ver detalle
-                  </Link>
-                  {active && (
+                  {/* right: actions */}
+                  <div className="w-full sm:w-auto flex items-center gap-2">
                     <Link
                       href={`/user/orders/${it.id}`}
-                      className="h-9 flex flex-1 items-center justify-center rounded-xl border border-[#04BD88] text-[#047857] px-4 text-xs font-medium bg-[#ECFDF5] hover:bg-[#D1FAE5]"
+                      className="h-9 flex flex-1 items-center justify-center rounded-xl border border-[#9BA1AE] px-4 text-xs font-medium hover:bg-gray-50"
                     >
-                      Hacer seguimiento
+                      Ver detalle
                     </Link>
-                  )}
-                  <Link
-                    href={storeHref}
-                    className="h-9 flex flex-1 items-center justify-center rounded-xl border border-black px-4 text-xs font-medium hover:bg-gray-50"
-                  >
-                    Pedir otra vez
-                  </Link>
+                    {active && (
+                      <Link
+                        href={`/user/orders/${it.id}`}
+                        className="h-9 flex flex-1 items-center justify-center rounded-xl border border-[#04BD88] text-[#047857] px-4 text-xs font-medium bg-[#ECFDF5] hover:bg-[#D1FAE5]"
+                      >
+                        Hacer seguimiento
+                      </Link>
+                    )}
+                    <Link
+                      href={storeHref}
+                      className="h-9 flex flex-1 items-center justify-center rounded-xl border border-black px-4 text-xs font-medium hover:bg-gray-50"
+                    >
+                      Pedir otra vez
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {/* pagination */}
-        {totalPages > 1 && (
-          <div className="w-full flex items-center justify-between pt-4 text-xs text-[#6C7280]">
-            <div>
-              {startItem}-{endItem} de {total}
-            </div>
-            <div className="flex items-center gap-2">
-              <Link
-                aria-disabled={page <= 1}
-                className={`h-8 w-8 grid place-items-center rounded-lg border ${
-                  page <= 1 ? "opacity-40 pointer-events-none" : ""
-                }`}
-                href={`?page=${Math.max(1, page - 1)}`}
-              >
-                ◀
-              </Link>
-              <span>
-                {page} / {totalPages}
-              </span>
-              <Link
-                aria-disabled={page >= totalPages}
-                className={`h-8 w-8 grid place-items-center rounded-lg border ${
-                  page >= totalPages ? "opacity-40 pointer-events-none" : ""
-                }`}
-                href={`?page=${Math.min(totalPages, page + 1)}`}
-              >
-                ▶
-              </Link>
-            </div>
+              );
+            })}
           </div>
-        )}
-      </section>
-    </div>
 
-    {/* Mobile View */}
-    <div className="md:hidden w-full min-h-screen relative pt-[120px] px-6 bg-transparent pb-32">
+          {/* pagination */}
+          {totalPages > 1 && (
+            <div className="w-full flex items-center justify-between pt-4 text-xs text-[#6C7280]">
+              <div>
+                {startItem}-{endItem} de {total}
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  aria-disabled={page <= 1}
+                  className={`h-8 w-8 grid place-items-center rounded-lg border ${
+                    page <= 1 ? "opacity-40 pointer-events-none" : ""
+                  }`}
+                  href={`?page=${Math.max(1, page - 1)}`}
+                >
+                  ◀
+                </Link>
+                <span>
+                  {page} / {totalPages}
+                </span>
+                <Link
+                  aria-disabled={page >= totalPages}
+                  className={`h-8 w-8 grid place-items-center rounded-lg border ${
+                    page >= totalPages ? "opacity-40 pointer-events-none" : ""
+                  }`}
+                  href={`?page=${Math.min(totalPages, page + 1)}`}
+                >
+                  ▶
+                </Link>
+              </div>
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* Mobile View */}
+      <div className="md:hidden w-full min-h-screen relative pt-[120px] px-6 bg-transparent pb-32">
         {/* Title */}
         <div className="flex items-center gap-3 mb-8 relative z-10">
           <div className="relative w-[22px] h-[27px]">
-             <Image
-                src="/new-design/nd-orders.png"
-                fill
-                alt="Orders"
-                className="object-contain"
-             />
+            <Image
+              src="/new-design/nd-orders.png"
+              fill
+              alt="Orders"
+              className="object-contain"
+            />
           </div>
           <h1 className="text-xl font-bold text-black font-open-sans">
             Historial de órdenes
@@ -326,51 +328,67 @@ export default async function OrdersHistoryPage({
 
         {/* Content */}
         <div className="flex flex-col gap-6 relative z-10 pb-10">
-            {weekItems.length > 0 && (
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold text-black font-open-sans">Esta Semana</h2>
-                    {weekItems.map(item => (
-                        <MobileOrderCard key={item.id} item={item} />
-                    ))}
-                </div>
-            )}
+          {weekItems.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-bold text-black font-open-sans">
+                Esta Semana
+              </h2>
+              {weekItems.map((item) => (
+                <MobileOrderCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
 
-            {monthItems.length > 0 && (
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold text-black font-open-sans">Este Mes</h2>
-                    {monthItems.map(item => (
-                        <MobileOrderCard key={item.id} item={item} />
-                    ))}
-                </div>
-            )}
-            
-             {olderItems.length > 0 && (
-                <div className="flex flex-col gap-4">
-                    <h2 className="text-xl font-bold text-black font-open-sans">Anteriores</h2>
-                    {olderItems.map(item => (
-                        <MobileOrderCard key={item.id} item={item} />
-                    ))}
-                </div>
-            )}
+          {monthItems.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-bold text-black font-open-sans">
+                Este Mes
+              </h2>
+              {monthItems.map((item) => (
+                <MobileOrderCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
 
-            {items.length === 0 && (
-                <div className="text-center py-10 text-gray-400">
-                    No se encontraron órdenes
-                </div>
-            )}
-            
-             {totalPages > 1 && (
-                 <div className="flex justify-center gap-4 mt-4 text-black">
-                     {page > 1 && (
-                         <Link href={`?page=${page - 1}`} className="px-4 py-2 bg-white rounded-lg shadow text-sm">Anterior</Link>
-                     )}
-                     {page < totalPages && (
-                         <Link href={`?page=${page + 1}`} className="px-4 py-2 bg-white rounded-lg shadow text-sm">Siguiente</Link>
-                     )}
-                 </div>
-            )}
+          {olderItems.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <h2 className="text-xl font-bold text-black font-open-sans">
+                Anteriores
+              </h2>
+              {olderItems.map((item) => (
+                <MobileOrderCard key={item.id} item={item} />
+              ))}
+            </div>
+          )}
+
+          {items.length === 0 && (
+            <div className="text-center py-10 text-gray-400">
+              No se encontraron órdenes
+            </div>
+          )}
+
+          {totalPages > 1 && (
+            <div className="flex justify-center gap-4 mt-4 text-black">
+              {page > 1 && (
+                <Link
+                  href={`?page=${page - 1}`}
+                  className="px-4 py-2 bg-white rounded-lg shadow text-sm"
+                >
+                  Anterior
+                </Link>
+              )}
+              {page < totalPages && (
+                <Link
+                  href={`?page=${page + 1}`}
+                  className="px-4 py-2 bg-white rounded-lg shadow text-sm"
+                >
+                  Siguiente
+                </Link>
+              )}
+            </div>
+          )}
         </div>
-    </div>
+      </div>
     </>
   );
 }
