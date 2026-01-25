@@ -293,12 +293,13 @@ export default function CheckoutPaymentPage() {
         addressId: selectedAddressId,
         placeType: null, // Si aplica
         placeNumber: null, // Si aplica
-        instructions: instruction === "door" ? "Dejar en la puerta" : "Entrégamelo a mí",
+        instructions:
+          instruction === "door" ? "Dejar en la puerta" : "Entrégamelo a mí",
         schedule: { mode: "now" },
         couponId: storedCoupon?.id ?? null,
         tipPercent: effectiveTipPercent,
         shippingCost: shipping,
-        
+
         // Enviamos el pago tal cual (ej. manual/cash)
         payment: storedPayment,
 
@@ -340,7 +341,6 @@ export default function CheckoutPaymentPage() {
       } else {
         router.push("/user/orders");
       }
-
     } catch (err) {
       console.error("handleCreateOrder error:", err);
       alert("No se pudo completar el pedido. Inténtalo de nuevo.");
