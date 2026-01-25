@@ -4,10 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 import { getStoresByIds, type StoreDetails } from "./actions";
 
 export function useStoreDetailsClient(partnerIds: string[]) {
+  // Memoize uniqueIds based on the content string to allow stable array references
+  const uniqueIdsStr = (partnerIds || []).filter(Boolean).sort().join(",");
   const uniqueIds = useMemo(
     () => Array.from(new Set((partnerIds || []).filter(Boolean))),
-    [partnerIds]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [uniqueIdsStr],
   );
+
   const [data, setData] = useState<Record<string, StoreDetails>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +50,7 @@ export function useStoreDetailsClient(partnerIds: string[]) {
             idx + 1,
             "/",
             chunks.length,
-            part
+            part,
           );
           try {
             const res = await getStoresByIds(part);
@@ -90,7 +94,7 @@ export function useStoreDetailsClient(partnerIds: string[]) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [uniqueIds.join(",")]);
+  }, [uniqueIds]);
 
   return { data, loading, error } as const;
 }
