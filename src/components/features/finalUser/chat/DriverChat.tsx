@@ -1,0 +1,314 @@
+"use client";
+
+import { useEffect, useRef, useState, useMemo } from "react";
+import Image from "next/image";
+import { ArrowLeft, Send, Paperclip, Loader2, Phone } from "lucide-react";
+import { createClient } from "@/src/lib/supabase/client";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
+import { type Database } from "@/src/lib/database.types";
+
+type Message = Database["public"]["Tables"]["chat_messages"]["Row"];
+
+interface DriverChatProps {
+  orderId: string;
+  driverId: string;
+  driverName: string;
+  driverImage?: string | null;
+  currentUserId: string;
+  onClose: () => void;
+}
+
+export default function DriverChat({
+  orderId,
+  driverId,
+  driverName,
+  driverImage,
+  currentUserId,
+  onClose,
+}: DriverChatProps) {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const supabase = createClient();
+
+  // Scroll to bottom
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  // Load initial messages and subscribe
+  useEffect(() => {
+    console.log("[DriverChat] Subscribing to chat:", orderId);
+    
+    const fetchMessages = async () => {
+      const { data, error } = await supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("order_id", orderId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+         console.error("[DriverChat] Error fetching messages:", error);
+      } else if (data) {
+        console.log("[DriverChat] Initial messages loaded:", data.length);
+        setMessages(data);
+      }
+    };
+
+    fetchMessages();
+
+    const channel = supabase
+      .channel(`chat:${orderId}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `order_id=eq.${orderId}`,
+        },
+        (payload) => {
+          console.log("[DriverChat] Incoming message payload:", payload);
+          setMessages((prev) => [...prev, payload.new as Message]);
+        }
+      )
+      .subscribe((status) => {
+         console.log("[DriverChat] Subscription status:", status);
+      });
+
+    return () => {
+      console.log("[DriverChat] Unsubscribing from chat:", orderId);
+      supabase.removeChannel(channel);
+    };
+  }, [orderId, supabase]);
+
+  const handleSendMessage = async () => {
+    console.log("[DriverChat] Attempting to send message:", newMessage);
+    if (!newMessage.trim()) {
+       console.log("[DriverChat] Empty message, skipping.");
+       return;
+    }
+
+    const content = newMessage.trim();
+    setNewMessage(""); // Optimistic clear
+
+    console.log("[DriverChat] Inserting into DB:", { order_id: orderId, sender_id: currentUserId, content });
+    
+    const { error } = await supabase.from("chat_messages").insert({
+      order_id: orderId,
+      sender_id: currentUserId,
+      content: content,
+      message_type: "text",
+      is_read: false,
+    });
+
+    if (error) {
+      console.error("[DriverChat] Error sending message:", error);
+      // Optionally restore message if failed
+    } else {
+      console.log("[DriverChat] Message sent successfully.");
+    }
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+        console.log("[DriverChat] No file selected.");
+        return;
+    }
+
+    console.log("[DriverChat] File selected:", file.name, file.size, file.type);
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${orderId}/${Date.now()}.${fileExt}`;
+      
+      console.log("[DriverChat] Uploading to storage bucket: chat-images, path:", fileName);
+
+      const { error: uploadError } = await supabase.storage
+        .from("chat-images")
+        .upload(fileName, file);
+
+      if (uploadError) {
+         console.error("[DriverChat] Upload error:", uploadError);
+         throw uploadError;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("chat-images")
+        .getPublicUrl(fileName);
+
+      console.log("[DriverChat] File uploaded. Public URL:", publicUrl);
+
+      const { error: sendError } = await supabase.from("chat_messages").insert({
+        order_id: orderId,
+        sender_id: currentUserId,
+        content: publicUrl,
+        message_type: "image",
+        is_read: false,
+      });
+
+      if (sendError) {
+         console.error("[DriverChat] Error inserting image message:", sendError);
+         throw sendError;
+      }
+      
+      console.log("[DriverChat] Image message sent successfully.");
+
+    } catch (error) {
+      console.error("[DriverChat] Exception during image upload/send:", error);
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
+  // Group messages logic here if needed (e.g. consecutive messages from same user)
+
+  return (
+    <div className="fixed inset-0 bg-[#F6F6F6] z-50 flex flex-col font-sans">
+      {/* Header */}
+      <div className="bg-[#04BD88] pt-safe px-4 pb-4">
+        <div className="flex items-center gap-4 pt-4">
+          <button 
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white"
+          >
+            <ArrowLeft size={20} />
+          </button>
+          
+          <div className="flex-1 flex items-center gap-3">
+             <div className="relative w-10 h-10 rounded-full bg-gray-200 border-2 border-white overflow-hidden">
+                {driverImage ? (
+                    <Image src={driverImage} alt={driverName} fill className="object-cover" />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold bg-white">
+                        {driverName.charAt(0)}
+                    </div>
+                )}
+                {/* Online indicator placeholder */}
+                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+             </div>
+             <div className="text-white">
+                <div className="font-semibold text-base leading-tight">{driverName}</div>
+                <div className="text-white/80 text-xs">Conductor</div>
+             </div>
+          </div>
+
+          <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white">
+            <Phone size={20} fill="currentColor" />
+          </button>
+        </div>
+      </div>
+
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F6F6F6]">
+        {messages.map((msg) => {
+          const isMe = msg.sender_id === currentUserId;
+          const isImage = msg.message_type === "image";
+          
+          return (
+            <div
+              key={msg.id}
+              className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
+            >
+              <div className={`flex max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-2`}>
+                {/* Message Bubble */}
+                <div
+                  className={`relative px-4 py-2 text-sm shadow-sm ${
+                    isMe
+                      ? "bg-[#595959] text-white rounded-t-lg rounded-bl-lg"
+                      : "bg-white text-[#363D4E] rounded-t-lg rounded-br-lg"
+                  }`}
+                >
+                  {isImage ? (
+                    <div className="relative w-48 h-48 rounded-md overflow-hidden bg-black/10">
+                        <Image 
+                            src={msg.content} 
+                            alt="Image" 
+                            fill 
+                            className="object-cover"
+                            sizes="(max-width: 768px) 100vw, 33vw"
+                        />
+                    </div>
+                  ) : (
+                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                  )}
+                  
+                  {/* Metadata / Time */}
+                  <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${
+                      isMe ? "text-white/70" : "text-gray-400"
+                  }`}>
+                    {format(new Date(msg.created_at), "h:mm a", { locale: es })}
+                    {isMe && (
+                        <span>
+                           {/* Simple checks for read/sent could go here */}
+                           {msg.is_read ? (
+                             <span className="text-blue-300">✓✓</span>
+                           ) : (
+                             <span>✓</span>
+                           )}
+                        </span>
+                    )}
+                  </div>
+                  
+                  {/* Tail Decorations (Optional, pure CSS or SVG can be used) */}
+                  {/* Simplified tail effect via border radius */}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area */}
+      <div className="bg-white p-4 pb-8 border-t border-gray-100">
+         <div className="flex items-center gap-3 bg-[#F4F5F7] rounded-lg px-3 py-2">
+            <button 
+                onClick={() => fileInputRef.current?.click()}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                disabled={isUploading}
+            >
+                {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Paperclip size={20} />}
+            </button>
+            <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleFileUpload}
+            />
+            
+            <input
+                type="text"
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                placeholder="Escribe un mensaje..."
+                className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-sm h-10"
+            />
+            
+            <button 
+                onClick={handleSendMessage}
+                disabled={!newMessage.trim()}
+                className={`p-2 rounded-full transition-colors ${
+                    newMessage.trim() 
+                    ? "bg-[#04BD88] text-white shadow-md active:scale-95" 
+                    : "bg-gray-200 text-gray-400"
+                }`}
+            >
+                <Send size={18} />
+            </button>
+         </div>
+      </div>
+    </div>
+  );
+}
