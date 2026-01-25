@@ -9,7 +9,9 @@ export default function MainWrapper({
 }) {
   const pathname = usePathname();
   // Check if we are in the store details page
-  const isStorePage = pathname?.startsWith("/user/stores/");
+  const isStorePage =
+    pathname?.startsWith("/user/stores/") ||
+    pathname?.startsWith("/user/orders/");
 
   // Default padding for header
   const paddingClass = isStorePage

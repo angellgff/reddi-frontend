@@ -7,6 +7,7 @@ import { getOrderDetails } from "@/src/lib/finalUser/orders/getOrderDetails";
 import { getRouteDetails } from "@/src/lib/finalUser/orders/getRouteDetails";
 import { createClient } from "@/src/lib/supabase/server";
 import type { NormalizedOrder } from "@/src/lib/finalUser/orders/getOrderDetails";
+import MobileOrderDetail from "../../../../../components/features/finalUser/orders/MobileOrderDetail";
 
 type PageProps = {
   params: Promise<{ [key: string]: string }>;
@@ -61,290 +62,298 @@ export default async function OrderStatusPage({ params }: PageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header card */}
-      <section className="rounded-2xl border border-[#D9DCE3] bg-white p-6 md:p-8 flex flex-col items-center gap-6">
-        <h1 className="text-[28px] leading-8 font-semibold text-[#04BD88] text-center">
-          Estado del Pedido{" "}
-          <span className="block text-sm text-gray-700">#{id}</span>
-        </h1>
+    <>
+      <div className="block md:hidden">
+        <MobileOrderDetail order={order} route={route} />
+      </div>
+      <div className="hidden md:block mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        {/* Header card */}
+        <section className="rounded-2xl border border-[#D9DCE3] bg-white p-6 md:p-8 flex flex-col items-center gap-6">
+          <h1 className="text-[28px] leading-8 font-semibold text-[#04BD88] text-center">
+            Estado del Pedido{" "}
+            <span className="block text-sm text-gray-700">#{id}</span>
+          </h1>
 
-        {/* Steps row */}
-        <div className="w-full max-w-[846px] flex items-center justify-between">
-          {ORDER_STEPS.map((step, i) => (
-            <div key={step.key} className="flex flex-col items-center w-[86px]">
+          {/* Steps row */}
+          <div className="w-full max-w-[846px] flex items-center justify-between">
+            {ORDER_STEPS.map((step, i) => (
               <div
-                className={
-                  i <= idx
-                    ? "h-12 w-12 rounded-full border border-[#04BD88] opacity-80 grid place-items-center"
-                    : "h-12 w-12 rounded-full border border-[#9BA1AE] grid place-items-center"
-                }
+                key={step.key}
+                className="flex flex-col items-center w-[86px]"
               >
                 <div
                   className={
                     i <= idx
-                      ? "h-5 w-5 rounded-full bg-[#04BD88]"
-                      : "h-5 w-5 rounded-full border border-[#9BA1AE]"
+                      ? "h-12 w-12 rounded-full border border-[#04BD88] opacity-80 grid place-items-center"
+                      : "h-12 w-12 rounded-full border border-[#9BA1AE] grid place-items-center"
                   }
-                />
-              </div>
-              <div
-                className={
-                  i <= idx
-                    ? "mt-2 text-[14px] leading-[18px] text-[#525252]"
-                    : "mt-2 text-[14px] leading-[18px] text-[#9BA1AE]"
-                }
-              >
-                {step.label}
-              </div>
-              <div className="text-[12px] leading-4 text-gray-500">
-                {i === 0 ? "13:30" : "--:--"}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Info banner */}
-        <div className="w-full max-w-[862px] rounded-xl border border-[#04BD88] bg-[#CDF7E7] p-4 flex items-center gap-4">
-          <div className="h-9 w-9 pl-3 flex items-center justify-center">
-            <Image src="/clock.png" width={28} height={28} alt="Info" />
-          </div>
-          <div>
-            <div className="font-semibold text-[#04BD88] text-sm">
-              Tu pedido se está preparando
-            </div>
-            <div className="text-sm text-black">
-              El restaurante está preparando tu orden. Tiempo estimado: 5–10
-              minutos.
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Main content */}
-      <section className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Live status (client) */}
-        <div className="lg:col-span-2 space-y-6">
-          {order?.shipments?.driver_id ? (
-            <DeliveryMap
-              shipment={order.shipments}
-              forcedOrigin={route?.origin}
-              forcedDestination={route?.destination}
-              className="w-full h-96 rounded-2xl border border-[#D9DCE3] overflow-hidden"
-            />
-          ) : null}
-
-          <OrderLiveStatusClient
-            orderId={id}
-            delivered={order.status === "delivered"}
-            initialRoute={route}
-          />
-        </div>
-        {/* Order details */}
-        <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)] lg:col-span-2">
-          <div className="text-[16px] font-bold">Detalles del pedido</div>
-          {/* Partner */}
-          <div className="mt-4 flex items-center gap-4">
-            <div className="h-[60px] w-[60px] rounded-md bg-gray-200 overflow-hidden">
-              {order?.partners?.image_url ? (
-                <Image
-                  src={order.partners.image_url}
-                  alt={order?.partners?.name ?? "Tienda"}
-                  width={60}
-                  height={60}
-                  className="object-cover"
-                />
-              ) : null}
-            </div>
-            <div>
-              <div className="text-[16px] leading-5 font-medium">
-                {order?.partners?.name ?? "Tienda"}
-              </div>
-              <div className="text-[14px] leading-[18px] text-black">
-                Tiempo estimado: 25–35 min
-              </div>
-            </div>
-          </div>
-
-          {/* Items */}
-          <div className="mt-4 divide-y divide-[#D9DCE3]">
-            {order?.order_detail?.map((d) => (
-              <div key={d.id} className="py-4">
-                <div className="flex items-center gap-4">
-                  <div className="h-20 w-20 rounded-md bg-gray-200 relative overflow-hidden">
-                    {d.products?.image_url ? (
-                      <Image
-                        src={d.products.image_url}
-                        alt={d.products?.name ?? "producto"}
-                        fill
-                        className="object-cover"
-                      />
-                    ) : null}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-medium">
-                      {d.products?.name ?? "Producto"}
-                    </div>
-                    <div className="text-sm">
-                      {d.quantity} {d.products?.unit ?? "ud"}
-                    </div>
-                  </div>
-                  <div className="text-right font-semibold">
-                    {currency(d.unit_price * d.quantity)}
-                  </div>
+                >
+                  <div
+                    className={
+                      i <= idx
+                        ? "h-5 w-5 rounded-full bg-[#04BD88]"
+                        : "h-5 w-5 rounded-full border border-[#9BA1AE]"
+                    }
+                  />
                 </div>
-                {/* Extras list */}
-                {d.extras && d.extras.length > 0 ? (
-                  <div className="mt-2 ml-24 space-y-1">
-                    {d.extras.map((ex) => (
-                      <div
-                        key={ex.id}
-                        className="flex items-center justify-between text-sm text-gray-700"
-                      >
-                        <div className="flex items-center gap-2">
-                          {ex.image_url ? (
-                            <div className="h-6 w-6 rounded bg-gray-200 overflow-hidden relative">
-                              <Image
-                                src={ex.image_url}
-                                alt={ex.name ?? "extra"}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <div className="h-6 w-6 rounded bg-gray-100" />
-                          )}
-                          <span>
-                            + {ex.name ?? "Extra"}
-                            {ex.quantity > 1 ? ` x${ex.quantity}` : ""}
-                          </span>
-                        </div>
-                        <span className="text-gray-900">
-                          {currency(ex.unit_price * ex.quantity)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
+                <div
+                  className={
+                    i <= idx
+                      ? "mt-2 text-[14px] leading-[18px] text-[#525252]"
+                      : "mt-2 text-[14px] leading-[18px] text-[#9BA1AE]"
+                  }
+                >
+                  {step.label}
+                </div>
+                <div className="text-[12px] leading-4 text-gray-500">
+                  {i === 0 ? "13:30" : "--:--"}
+                </div>
               </div>
             ))}
           </div>
 
-          {/* Totals */}
-          <div className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{currency(order?.subtotal)}</span>
+          {/* Info banner */}
+          <div className="w-full max-w-[862px] rounded-xl border border-[#04BD88] bg-[#CDF7E7] p-4 flex items-center gap-4">
+            <div className="h-9 w-9 pl-3 flex items-center justify-center">
+              <Image src="/clock.png" width={28} height={28} alt="Info" />
             </div>
-            {order?.delivery_fee != null && (
-              <div className="flex justify-between">
-                <span>Entrega</span>
-                <span>{currency(order.delivery_fee)}</span>
-              </div>
-            )}
-            {order?.discount_amount ? (
-              <div className="flex justify-between">
-                <span>Descuento</span>
-                <span>-{currency(order.discount_amount)}</span>
-              </div>
-            ) : null}
-            {order?.tip_amount ? (
-              <div className="flex justify-between">
-                <span>Propina</span>
-                <span>{currency(order.tip_amount)}</span>
-              </div>
-            ) : null}
-            <div className="h-px bg-[#D9DCE3] my-2" />
-
-            {/* Payment Method */}
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Método de pago</span>
-              <span className="font-medium text-black flex items-center gap-2">
-                {order?.payment_method === "cash" ? (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-4 h-4 text-emerald-600"
-                    >
-                      <rect x="2" y="6" width="20" height="12" rx="2" />
-                      <circle cx="12" cy="12" r="2" />
-                      <path d="M6 12h.01M18 12h.01" />
-                    </svg>
-                    Efectivo
-                  </>
-                ) : order?.payment_method === "physical_pos" ? (
-                  <>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="w-4 h-4 text-emerald-600"
-                    >
-                      <rect x="2" y="5" width="20" height="14" rx="2" />
-                      <line x1="2" y1="10" x2="22" y2="10" />
-                    </svg>
-                    Tarjeta (Datáfono)
-                  </>
-                ) : (
-                  <span className="capitalize">
-                    {order?.payment_method || "—"}
-                  </span>
-                )}
-              </span>
-            </div>
-
-            <div className="h-px bg-[#D9DCE3] my-2" />
-            <div className="flex justify-between text-base font-bold">
-              <span>Total</span>
-              <span>{currency(order?.total_amount)}</span>
-            </div>
-          </div>
-
-          {/* Address footer card */}
-          <div className="mt-4 flex items-center gap-3 rounded-xl bg-black text-white p-4">
-            <div className="h-[61px] w-[64px] rounded-xl bg-[#292929] flex items-center justify-center" />
             <div>
-              <div className="text-[#04BD88] font-medium">
-                Entrega en{" "}
-                {order?.user_addresses?.location_type === "villa"
-                  ? "villa"
-                  : order?.user_addresses?.location_type === "yate"
-                    ? "yate"
-                    : "destino"}{" "}
-                {order?.user_addresses?.location_number ?? ""}
+              <div className="font-semibold text-[#04BD88] text-sm">
+                Tu pedido se está preparando
               </div>
-              <div className="text-sm opacity-90">
-                {order?.instructions ?? "Sin instrucciones"}
+              <div className="text-sm text-black">
+                El restaurante está preparando tu orden. Tiempo estimado: 5–10
+                minutos.
               </div>
             </div>
           </div>
+        </section>
+
+        {/* Main content */}
+        <section className="mt-6 grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Live status (client) */}
+          <div className="lg:col-span-2 space-y-6">
+            {order?.shipments?.driver_id ? (
+              <DeliveryMap
+                shipment={order.shipments}
+                forcedOrigin={route?.origin}
+                forcedDestination={route?.destination}
+                className="w-full h-96 rounded-2xl border border-[#D9DCE3] overflow-hidden"
+              />
+            ) : null}
+
+            <OrderLiveStatusClient
+              orderId={id}
+              delivered={order.status === "delivered"}
+              initialRoute={route}
+            />
+          </div>
+          {/* Order details */}
+          <div className="rounded-2xl border border-[#D9DCE3] bg-white p-6 shadow-[0_1px_4px_rgba(12,12,13,0.1),0_1px_4px_rgba(12,12,13,0.05)] lg:col-span-2">
+            <div className="text-[16px] font-bold">Detalles del pedido</div>
+            {/* Partner */}
+            <div className="mt-4 flex items-center gap-4">
+              <div className="h-[60px] w-[60px] rounded-md bg-gray-200 overflow-hidden">
+                {order?.partners?.image_url ? (
+                  <Image
+                    src={order.partners.image_url}
+                    alt={order?.partners?.name ?? "Tienda"}
+                    width={60}
+                    height={60}
+                    className="object-cover"
+                  />
+                ) : null}
+              </div>
+              <div>
+                <div className="text-[16px] leading-5 font-medium">
+                  {order?.partners?.name ?? "Tienda"}
+                </div>
+                <div className="text-[14px] leading-[18px] text-black">
+                  Tiempo estimado: 25–35 min
+                </div>
+              </div>
+            </div>
+
+            {/* Items */}
+            <div className="mt-4 divide-y divide-[#D9DCE3]">
+              {order?.order_detail?.map((d) => (
+                <div key={d.id} className="py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-20 w-20 rounded-md bg-gray-200 relative overflow-hidden">
+                      {d.products?.image_url ? (
+                        <Image
+                          src={d.products.image_url}
+                          alt={d.products?.name ?? "producto"}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium">
+                        {d.products?.name ?? "Producto"}
+                      </div>
+                      <div className="text-sm">
+                        {d.quantity} {d.products?.unit ?? "ud"}
+                      </div>
+                    </div>
+                    <div className="text-right font-semibold">
+                      {currency(d.unit_price * d.quantity)}
+                    </div>
+                  </div>
+                  {/* Extras list */}
+                  {d.extras && d.extras.length > 0 ? (
+                    <div className="mt-2 ml-24 space-y-1">
+                      {d.extras.map((ex) => (
+                        <div
+                          key={ex.id}
+                          className="flex items-center justify-between text-sm text-gray-700"
+                        >
+                          <div className="flex items-center gap-2">
+                            {ex.image_url ? (
+                              <div className="h-6 w-6 rounded bg-gray-200 overflow-hidden relative">
+                                <Image
+                                  src={ex.image_url}
+                                  alt={ex.name ?? "extra"}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="h-6 w-6 rounded bg-gray-100" />
+                            )}
+                            <span>
+                              + {ex.name ?? "Extra"}
+                              {ex.quantity > 1 ? ` x${ex.quantity}` : ""}
+                            </span>
+                          </div>
+                          <span className="text-gray-900">
+                            {currency(ex.unit_price * ex.quantity)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+
+            {/* Totals */}
+            <div className="mt-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span>Subtotal</span>
+                <span>{currency(order?.subtotal)}</span>
+              </div>
+              {order?.delivery_fee != null && (
+                <div className="flex justify-between">
+                  <span>Entrega</span>
+                  <span>{currency(order.delivery_fee)}</span>
+                </div>
+              )}
+              {order?.discount_amount ? (
+                <div className="flex justify-between">
+                  <span>Descuento</span>
+                  <span>-{currency(order.discount_amount)}</span>
+                </div>
+              ) : null}
+              {order?.tip_amount ? (
+                <div className="flex justify-between">
+                  <span>Propina</span>
+                  <span>{currency(order.tip_amount)}</span>
+                </div>
+              ) : null}
+              <div className="h-px bg-[#D9DCE3] my-2" />
+
+              {/* Payment Method */}
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-gray-600">Método de pago</span>
+                <span className="font-medium text-black flex items-center gap-2">
+                  {order?.payment_method === "cash" ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-4 h-4 text-emerald-600"
+                      >
+                        <rect x="2" y="6" width="20" height="12" rx="2" />
+                        <circle cx="12" cy="12" r="2" />
+                        <path d="M6 12h.01M18 12h.01" />
+                      </svg>
+                      Efectivo
+                    </>
+                  ) : order?.payment_method === "physical_pos" ? (
+                    <>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-4 h-4 text-emerald-600"
+                      >
+                        <rect x="2" y="5" width="20" height="14" rx="2" />
+                        <line x1="2" y1="10" x2="22" y2="10" />
+                      </svg>
+                      Tarjeta (Datáfono)
+                    </>
+                  ) : (
+                    <span className="capitalize">
+                      {order?.payment_method || "—"}
+                    </span>
+                  )}
+                </span>
+              </div>
+
+              <div className="h-px bg-[#D9DCE3] my-2" />
+              <div className="flex justify-between text-base font-bold">
+                <span>Total</span>
+                <span>{currency(order?.total_amount)}</span>
+              </div>
+            </div>
+
+            {/* Address footer card */}
+            <div className="mt-4 flex items-center gap-3 rounded-xl bg-black text-white p-4">
+              <div className="h-[61px] w-[64px] rounded-xl bg-[#292929] flex items-center justify-center" />
+              <div>
+                <div className="text-[#04BD88] font-medium">
+                  Entrega en{" "}
+                  {order?.user_addresses?.location_type === "villa"
+                    ? "villa"
+                    : order?.user_addresses?.location_type === "yate"
+                      ? "yate"
+                      : "destino"}{" "}
+                  {order?.user_addresses?.location_number ?? ""}
+                </div>
+                <div className="text-sm opacity-90">
+                  {order?.instructions ?? "Sin instrucciones"}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Back link */}
+        <div className="mt-6">
+          <Link href="/user/home" className="text-sm underline">
+            Volver al inicio
+          </Link>
         </div>
-      </section>
 
-      {/* Back link */}
-      <div className="mt-6">
-        <Link href="/user/home" className="text-sm underline">
-          Volver al inicio
-        </Link>
+        {/* Rating dialog appears when delivered */}
+        <OrderDeliveredRatingDialog
+          orderId={id}
+          partnerId={order?.partner_id}
+          userId={userId}
+          delivered={order?.status === "delivered"}
+        />
       </div>
-
-      {/* Rating dialog appears when delivered */}
-      <OrderDeliveredRatingDialog
-        orderId={id}
-        partnerId={order?.partner_id}
-        userId={userId}
-        delivered={order?.status === "delivered"}
-      />
-    </div>
+    </>
   );
 }

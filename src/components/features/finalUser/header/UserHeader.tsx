@@ -151,7 +151,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       {/* <CartSlider /> moved to layout to persist across store pages */}
 
       {/* Mobile Header */}
-      {pathname === "/user/profile" ||
+      {pathname?.startsWith("/user/orders/") ? null : pathname ===
+        "/user/profile" ||
       pathname === "/user/orders" ||
       pathname === "/user/address" ||
       pathname === "/user/profile/settings" ? (
