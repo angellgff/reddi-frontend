@@ -76,7 +76,7 @@ export default function CouponModal({
         </div>
 
         <div className="mt-8">
-           <button
+          <button
             onClick={onClose}
             className="w-full h-12 rounded-[25px] border border-gray-200 text-black font-bold hover:bg-gray-50 bg-white"
           >
