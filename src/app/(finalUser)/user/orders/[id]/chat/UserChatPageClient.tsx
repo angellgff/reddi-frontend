@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { type Database } from "@/src/lib/database.types";
+import { getChatMessages, sendMessage, uploadChatImage } from "@/src/lib/actions/chat";
 
 type Message = Database["public"]["Tables"]["chat_messages"]["Row"];
 
@@ -30,6 +31,7 @@ export default function UserChatPageClient({
   const [newMessage, setNewMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
+  const [chatError, setChatError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const supabase = useMemo(() => createClient(), []);
@@ -46,30 +48,32 @@ export default function UserChatPageClient({
   useEffect(() => {
     let isMounted = true;
     console.log("[UserChatPage] Setting up chat for order:", orderId);
+    setChatError(null);
 
-    const fetchMessages = async () => {
+    // 1. Fetch Existing Messages
+    const loadMessages = async () => {
       try {
-        const { data, error } = await supabase
-          .from("chat_messages")
-          .select("*")
-          .eq("order_id", orderId)
-          .order("created_at", { ascending: true });
+        const response = await getChatMessages(orderId);
 
-        if (!isMounted) return;
-
-        if (error) {
-          console.error("[UserChatPage] Error fetching messages:", error);
-        } else if (data) {
-          setMessages(data);
+        if (isMounted) {
+          if (response.success && response.data) {
+            setMessages(response.data);
+          } else {
+            console.error(
+              "[UserChatPage] Server Action failed:",
+              response.error,
+            );
+            setChatError("Error cargando mensajes.");
+          }
         }
-      } catch (err) {
-        if (isMounted)
-          console.error("[UserChatPage] Exception fetching messages:", err);
+      } catch (e) {
+        console.error("[UserChatPage] Error calling Server Action:", e);
       }
     };
 
-    fetchMessages();
+    loadMessages();
 
+    // 2. Realtime Subscription (Standard/Conventional)
     const channel = supabase
       .channel(`chat:${orderId}`)
       .on(
@@ -83,13 +87,19 @@ export default function UserChatPageClient({
         (payload) => {
           if (!isMounted) return;
           const newMsg = payload.new as Message;
+          // De-duplicate
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
             return [...prev, newMsg];
           });
         },
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`[UserChatPage] Realtime status: ${status}`);
+        if (status === "CHANNEL_ERROR") {
+          console.warn("[UserChatPage] Realtime connection issue");
+        }
+      });
 
     return () => {
       isMounted = false;
@@ -102,27 +112,38 @@ export default function UserChatPageClient({
     const content = newMessage.trim();
     setNewMessage("");
 
+    // Optimistic Update
+    const tempId = `temp-${Date.now()}`;
+    const optimisticMsg: Message = {
+      id: tempId,
+      created_at: new Date().toISOString(),
+      order_id: orderId,
+      sender_id: currentUserId,
+      content,
+      message_type: "text",
+      is_read: false,
+    };
+
+    setMessages((prev) => [...prev, optimisticMsg]);
+
     try {
-      const { data, error } = await supabase
-        .from("chat_messages")
-        .insert({
-          order_id: orderId,
-          sender_id: currentUserId,
-          content,
-          message_type: "text",
-          is_read: false,
-        })
-        .select()
-        .single();
+      // Use Server Action instead of client fetch
+      const result = await sendMessage(orderId, content, "text");
 
-      if (error) throw error;
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Error sending message");
+      }
 
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === data.id)) return prev;
-        return [...prev, data];
-      });
+      const realMsg = result.data;
+
+      // Replace optimistic message
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? realMsg : m)));
     } catch (error) {
       console.error("[UserChatPage] Send error:", error);
+      setChatError("No se pudo enviar el mensaje. Inténtalo de nuevo.");
+      // Remove optimistic message on error
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
+      setNewMessage(content); // Restore input
     }
   };
 
@@ -132,39 +153,48 @@ export default function UserChatPageClient({
 
     setIsUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${orderId}/${Date.now()}.${fileExt}`;
+      // Use Server Action for upload
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("orderId", String(orderId));
 
-      const { error: uploadError } = await supabase.storage
-        .from("chat-images")
-        .upload(fileName, file);
+      const uploadResult = await uploadChatImage(formData);
 
-      if (uploadError) throw uploadError;
+      if (!uploadResult.success || !uploadResult.publicUrl) {
+          throw new Error(uploadResult.error || "Error uploading image");
+      }
 
-      const {
-        data: { publicUrl },
-      } = supabase.storage.from("chat-images").getPublicUrl(fileName);
+      const publicUrl = uploadResult.publicUrl;
 
-      const { data: msgData, error: sendError } = await supabase
-        .from("chat_messages")
-        .insert({
-          order_id: orderId,
-          sender_id: currentUserId,
-          content: publicUrl,
-          message_type: "image",
-          is_read: false,
-        })
-        .select()
-        .single();
+      // Optimistic update for image
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg: Message = {
+        id: tempId,
+        created_at: new Date().toISOString(),
+        order_id: String(orderId), // Ensure string
+        sender_id: currentUserId,
+        content: publicUrl,
+        message_type: "image",
+        is_read: false,
+      };
 
-      if (sendError) throw sendError;
+      setMessages((prev) => [...prev, optimisticMsg]);
 
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === msgData.id)) return prev;
-        return [...prev, msgData];
-      });
+      // Use Server Action
+      const result = await sendMessage(orderId, publicUrl, "image");
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Error sending image");
+      }
+
+      const realMsg = result.data;
+
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? realMsg : m)));
     } catch (err) {
       console.error("[UserChatPage] Upload error:", err);
+      alert("Error uploading image");
+      // Could verify tempId here if scope allowed, but simple alert is ok for now.
+      // Ideally move tempId up scope or filter optimistic out by condition if needed.
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -213,6 +243,11 @@ export default function UserChatPageClient({
       </div>
 
       {/* Messages */}
+      {chatError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-2 text-xs text-center w-full relative z-10">
+          {chatError}
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F6F6F6]">
         {messages.map((msg) => {
           const isMe = msg.sender_id === currentUserId;

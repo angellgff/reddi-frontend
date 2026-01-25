@@ -45,8 +45,9 @@ type Props = {
 };
 
 export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
-  // Usamos createClient() directamente, ya que el hook lo memoriza internamente
-  const supabase = createClient();
+  // Usamos createClient() directamente, pero debemos memorizarlo para evitar re-renderizados infinitos
+  // ya que se usa como dependencia en useEffects.
+  const supabase = useMemo(() => createClient(), []);
   const [notifications, setNotifications] = useState<NotificationRow[]>([]);
   const [loading, setLoading] = useState<boolean>(true); // Correcto, inicia en true
   const [error, setError] = useState<string | null>(null);
