@@ -29,10 +29,10 @@ export async function createCategory(prevState: any, formData: FormData) {
   const imageFile = formData.get("image") as File;
 
   if (!name) {
-      return { error: "El nombre es requerido" };
+    return { error: "El nombre es requerido" };
   }
   if (!imageFile || imageFile.size === 0) {
-      return { error: "La imagen es requerida" };
+    return { error: "La imagen es requerida" };
   }
 
   // 3. Upload Image
@@ -49,17 +49,16 @@ export async function createCategory(prevState: any, formData: FormData) {
       });
 
     if (uploadError) {
-        // Fallback to 'public' bucket if 'categories' doesn't exist
-        console.error("Upload error to categories bucket:", uploadError);
-         return { error: "Error subiendo la imagen: " + uploadError.message };
+      // Fallback to 'public' bucket if 'categories' doesn't exist
+      console.error("Upload error to categories bucket:", uploadError);
+      return { error: "Error subiendo la imagen: " + uploadError.message };
     }
 
-    const { data: { publicUrl } } = supabase.storage
-      .from("categories")
-      .getPublicUrl(filePath);
-      
-    imageUrl = publicUrl;
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("categories").getPublicUrl(filePath);
 
+    imageUrl = publicUrl;
   } catch (error) {
     return { error: "Error procesando la imagen" };
   }
@@ -80,19 +79,20 @@ export async function createCategory(prevState: any, formData: FormData) {
   redirect("/admin/categories");
 }
 
-
 export async function deleteCategory(id: string) {
-    const supabase = await createClient();
-    
-    // Check Auth
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { error: "No autorizado" };
+  const supabase = await createClient();
 
-    const { error } = await supabase.from("categories").delete().eq("id", id);
-    
-    if (error) {
-        return { error: error.message };
-    }
+  // Check Auth
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autorizado" };
 
-    revalidatePath("/admin/categories");
+  const { error } = await supabase.from("categories").delete().eq("id", id);
+
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/admin/categories");
 }

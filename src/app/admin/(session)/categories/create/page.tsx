@@ -8,7 +8,9 @@ export default function CreateCategoryPage() {
         <BasicBackButton />
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Nueva Categoría</h1>
-          <p className="text-gray-500">Crea una nueva categoría para clasificar productos o aliados.</p>
+          <p className="text-gray-500">
+            Crea una nueva categoría para clasificar productos o aliados.
+          </p>
         </div>
       </div>
 

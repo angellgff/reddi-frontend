@@ -14,12 +14,12 @@ export default async function CategoriesPage() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">Categorías</h1>
-          <p className="text-gray-500">Gestiona las categorías de la plataforma.</p>
+          <p className="text-gray-500">
+            Gestiona las categorías de la plataforma.
+          </p>
         </div>
         <Link href="/admin/categories/create">
-          <BasicButton 
-            className="w-auto px-4 py-2 bg-primary text-white hover:bg-primary/90 font-medium text-sm"
-          >
+          <BasicButton className="w-auto px-4 py-2 bg-primary text-white hover:bg-primary/90 font-medium text-sm">
             Nueva Categoría
           </BasicButton>
         </Link>
@@ -30,22 +30,36 @@ export default async function CategoriesPage() {
           <table className="w-full text-left text-sm text-gray-600">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-4 font-semibold text-gray-900">Imagen</th>
-                <th className="px-6 py-4 font-semibold text-gray-900">Nombre</th>
-                <th className="px-6 py-4 font-semibold text-gray-900">Descripción</th>
-                <th className="px-6 py-4 font-semibold text-gray-900 max-w-[150px] text-right">Acciones</th>
+                <th className="px-6 py-4 font-semibold text-gray-900">
+                  Imagen
+                </th>
+                <th className="px-6 py-4 font-semibold text-gray-900">
+                  Nombre
+                </th>
+                <th className="px-6 py-4 font-semibold text-gray-900">
+                  Descripción
+                </th>
+                <th className="px-6 py-4 font-semibold text-gray-900 max-w-[150px] text-right">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {categories.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500">
+                  <td
+                    colSpan={4}
+                    className="px-6 py-12 text-center text-gray-500"
+                  >
                     No hay categorías creadas
                   </td>
                 </tr>
               ) : (
                 categories.map((category) => (
-                  <tr key={category.id} className="hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={category.id}
+                    className="hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-6 py-4">
                       {category.image_url ? (
                         <div className="relative w-12 h-12 rounded-lg overflow-hidden border border-gray-200">
@@ -58,7 +72,7 @@ export default async function CategoriesPage() {
                         </div>
                       ) : (
                         <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center text-gray-400">
-                           <span className="text-xs">No img</span>
+                          <span className="text-xs">No img</span>
                         </div>
                       )}
                     </td>
@@ -70,8 +84,8 @@ export default async function CategoriesPage() {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
-                         {/* Edit logic can be added later */}
-                         <DeleteCategoryButton id={category.id} />
+                        {/* Edit logic can be added later */}
+                        <DeleteCategoryButton id={category.id} />
                       </div>
                     </td>
                   </tr>

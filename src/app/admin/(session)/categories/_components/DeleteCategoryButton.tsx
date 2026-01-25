@@ -19,23 +19,23 @@ export default function DeleteCategoryButton({ id }: { id: string }) {
 
   return (
     <>
-        <button 
-            onClick={() => setShowModal(true)}
-            className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
-            disabled={isPending}
-        >
-            Eliminar
-        </button>
+      <button
+        onClick={() => setShowModal(true)}
+        className="text-red-600 hover:text-red-800 text-sm font-medium transition-colors"
+        disabled={isPending}
+      >
+        Eliminar
+      </button>
 
-        <ConfirmModal
-            open={showModal}
-            onCancel={() => setShowModal(false)}
-            onConfirm={handleDelete}
-            title="¿Eliminar categoría?"
-            description="Esta acción no se puede deshacer. Se eliminará la categoría permanentemente."
-            confirmText="Eliminar"
-            loading={isPending}
-        />
+      <ConfirmModal
+        open={showModal}
+        onCancel={() => setShowModal(false)}
+        onConfirm={handleDelete}
+        title="¿Eliminar categoría?"
+        description="Esta acción no se puede deshacer. Se eliminará la categoría permanentemente."
+        confirmText="Eliminar"
+        loading={isPending}
+      />
     </>
   );
 }
