@@ -7,7 +7,7 @@ export async function getPartnersList() {
     .from("partners")
     .select("id, name, image_url, partner_type")
     .eq("is_active", true)
-    .eq("is_approved", true)
+    //    .eq("is_approved", true)
     .order("name");
 
   if (error) {

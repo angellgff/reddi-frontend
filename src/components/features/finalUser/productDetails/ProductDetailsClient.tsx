@@ -167,7 +167,6 @@ export default function ProductDetailsClient({
   const showProductDetails = useFloatingButtonStore(
     (state) => state.showProductDetails,
   );
-  const showSearch = useFloatingButtonStore((state) => state.showSearch);
   const isRestaurant = partnerType === "restaurant";
   const dispatch = useAppDispatch();
   const currentPartnerId = useAppSelector(selectCartPartnerId);
@@ -175,6 +174,34 @@ export default function ProductDetailsClient({
   const [quantity, setQuantity] = useState(1);
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [note, setNote] = useState<string>("");
+
+  useEffect(() => {
+    const state = useFloatingButtonStore.getState();
+    const prev = {
+      mode: state.mode,
+      text: state.text,
+      secondaryText: state.secondaryText,
+      action: state.action,
+    };
+
+    return () => {
+      // Restore previous state on unmount
+      const store = useFloatingButtonStore.getState();
+      if (prev.mode === "store") {
+        store.showStore(prev.text, prev.secondaryText, prev.action);
+      } else if (prev.mode === "search") {
+        store.showSearch();
+      } else if (prev.mode === "cart") {
+        store.showCartButton(prev.text, prev.action);
+      } else {
+        // Fallback or hide
+        if (prev.mode !== "product-details") {
+          if (prev.mode === "hidden") store.hideButton();
+          // If loading or other modes, maybe just leave it or hide
+        }
+      }
+    };
+  }, []);
 
   const discountDecimal = useMemo(() => {
     const d = details.discount_percentage
@@ -332,24 +359,6 @@ export default function ProductDetailsClient({
           {/* Mobile Header / Image Section */}
           <div className="relative md:hidden">
             {/* Back Button Overlay */}
-            <button
-              onClick={() => router.back()}
-              className="absolute top-4 left-4 z-10 w-10 h-10 bg-black/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white"
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M15 18l-6-6 6-6" />
-              </svg>
-            </button>
-
             {/* Image */}
             <div className="w-full aspect-[4/3] relative">
               {details.image_url ? (

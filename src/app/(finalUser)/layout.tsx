@@ -6,7 +6,6 @@ import UserHeaderSkeleton from "@/src/components/features/finalUser/header/UserH
 import UserFooter from "@/src/components/basics/UserFooter";
 import UserAddressesHydratorServer from "@/src/components/features/finalUser/addresses/UserAddressesHydratorServer";
 import UserDefaultPaymentHydratorServer from "@/src/components/features/finalUser/payments/UserDefaultPaymentHydratorServer";
-import GuestFooter from "@/src/components/features/layout/GuestFooter";
 import RouteFloatingResetter from "@/src/components/features/finalUser/layout/RouteFloatingResetter";
 import CartSlider from "@/src/components/features/finalUser/cartSlider/CartSlider";
 

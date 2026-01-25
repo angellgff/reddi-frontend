@@ -5,7 +5,6 @@ import OrderAgainServer from "@/src/components/features/finalUser/orderAgain/Ord
 import HomeCategories from "@/src/components/features/finalUser/home/HomeCategories";
 import HomePartnersList from "@/src/components/features/finalUser/home/HomePartnersList";
 import HomeYachtBanner from "@/src/components/features/finalUser/home/HomeYachtBanner";
-import HomeHeader from "@/src/components/features/finalUser/home/HomeHeader";
 import HomeFloatingButtonSetter from "@/src/components/features/finalUser/home/HomeFloatingButtonSetter";
 import PromoSliderServer from "@/src/components/basics/promos/PromoSliderServer";
 import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkeleton";

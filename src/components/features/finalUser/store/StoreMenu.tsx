@@ -14,10 +14,10 @@ import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
 import { openCart } from "@/src/lib/store/uiSlice";
 import Toast from "@/src/components/basics/Toast";
-import { useRouter as useNextRouter } from "next/navigation";
 import ProductCardRestaurant, {
   ProductCardBase,
 } from "./productCards/ProductCardRestaurant";
+import ProductDetailsDrawer from "../productDetails/ProductDetailsDrawer";
 import ProductCardMarket from "./productCards/ProductCardMarket";
 import { useStoreSearchStore } from "@/src/lib/store/store-search";
 import Image from "next/image";
@@ -53,7 +53,12 @@ export default function StoreMenu({
   const [selectedCategory, setSelectedCategory] = useState(
     searchParams.get("category") || "",
   );
-  const nav = useNextRouter();
+  // const nav = useNextRouter();
+
+  const [selectedProduct, setSelectedProduct] = useState<{
+    id: string;
+    partnerId: string;
+  } | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -112,7 +117,8 @@ export default function StoreMenu({
 
   const openDetails = (p: ProductCard) => {
     if (!partnerId) return;
-    nav.push(`/user/stores/${partnerId}/product/${p.id}`);
+    // nav.push(`/user/stores/${partnerId}/product/${p.id}`);
+    setSelectedProduct({ id: p.id, partnerId });
   };
 
   const isRestaurant = partnerType === "restaurant";
@@ -122,10 +128,17 @@ export default function StoreMenu({
     type: "success" | "error" | "info";
   }>({ open: false, msg: "", type: "info" });
 
-  const shouldShowSearchInMenu = true;
+  const shouldShowSearchInMenu = !isRestaurant;
 
   return (
     <div className="space-y-4">
+      <ProductDetailsDrawer
+        open={!!selectedProduct}
+        onClose={(v) => !v && setSelectedProduct(null)}
+        partnerId={selectedProduct?.partnerId || ""}
+        productId={selectedProduct?.id || null}
+        partnerType={partnerType}
+      />
       <Toast
         open={toast.open}
         message={toast.msg}

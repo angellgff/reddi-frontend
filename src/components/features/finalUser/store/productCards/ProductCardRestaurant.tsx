@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import React from "react";
-import PlusIcon from "@/src/components/icons/PlusIcon";
 
 export interface ProductCardBase {
   id: string;
@@ -25,7 +24,6 @@ interface Props {
 
 export default function ProductCardRestaurant({
   product: p,
-  discountedPrice,
   onOpen,
   onAdd,
 }: Props) {
@@ -52,7 +50,7 @@ export default function ProductCardRestaurant({
         <button
           type="button"
           onClick={(e) => onAdd(p, e)}
-          className="absolute right-[5px] bottom-[5px] w-[20px] h-[20px] rounded-full z-10 hover:opacity-90 active:scale-95 transition-all"
+          className="absolute right-[5px] bottom-[5px] w-[24px] h-[24px] rounded-full z-10 hover:opacity-90 active:scale-95 transition-all"
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img

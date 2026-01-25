@@ -12,7 +12,7 @@ export default function DynamicFloatingButton() {
   const icon = null; // Placeholder as icon is not in store yet
 
   return (
-    <div className="fixed bottom-24 left-0 right-0 z-50 px-6 flex justify-center pointer-events-none">
+    <div className="fixed bottom-24 left-0 right-0 z-[200] px-6 flex justify-center pointer-events-none">
       <div className="flex items-center gap-3 w-full justify-between pointer-events-auto max-w-md mx-auto">
         <button
           onClick={action}

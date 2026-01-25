@@ -36,7 +36,7 @@ export default function FloatingBottomBar() {
   if (mode === "hidden") return null;
 
   return (
-    <footer className="fixed bottom-6 left-0 right-0 z-50 px-6 flex justify-center pointer-events-none md:hidden gap-3">
+    <footer className="fixed bottom-6 left-0 right-0 z-[100] px-6 flex justify-center pointer-events-none md:hidden gap-3">
       <motion.div
         layoutRoot
         className="w-full max-w-md mx-auto pointer-events-auto min-h-[47px] relative flex items-center justify-between gap-3"
