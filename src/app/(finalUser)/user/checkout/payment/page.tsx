@@ -27,11 +27,13 @@ import {
   setTipPercent as setTipGlobal,
   setTipAmountManual,
   setInstructions,
+  resetCheckout,
 } from "@/src/lib/store/checkoutSlice";
 import { withTimeout } from "@/src/lib/utils";
 import { validateCouponAction } from "@/src/lib/actions/coupon";
 import { useRouter } from "next/navigation";
 import MobileCheckoutView from "@/src/components/features/finalUser/checkout/MobileCheckoutView";
+import { clearCart } from "@/src/lib/store/cartSlice";
 
 export default function CheckoutPaymentPage() {
   const [isMounted, setIsMounted] = useState(false);
@@ -252,9 +254,101 @@ export default function CheckoutPaymentPage() {
     return (subtotal * tipPercent) / 100;
   }, [subtotal, tipPercent, manualTipAmount, showManualTip]);
 
+  const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const total = Math.max(0, subtotal - discount) + shipping + serviceFee + tip;
 
   // --- Manejadores de Eventos ---
+  async function handleCreateOrder() {
+    if (isPlacingOrder) return;
+    setIsPlacingOrder(true);
+
+    try {
+      // Validar que exista método de pago
+      if (!storedPayment) {
+        throw new Error("Por favor selecciona un método de pago.");
+      }
+
+      // 1. Preparar items para la DB
+      const cart_items = items.map((it) => ({
+        productId: it.productId,
+        partnerId: it.partnerId,
+        unitPrice: it.unitPrice,
+        quantity: it.quantity,
+        note: it.note ?? null,
+        extras: it.extras.map((e) => ({
+          extraId: e.extraId,
+          quantity: e.quantity,
+          price: e.price,
+        })),
+      }));
+
+      // Calculate effective tip percent for the backend (same as confirm page)
+      const effectiveTipPercent =
+        subtotal > 0 && showManualTip && manualTipAmount > 0
+          ? (manualTipAmount / subtotal) * 100
+          : tipPercent;
+
+      // 2. Preparar datos del checkout
+      const checkout_data = {
+        addressId: selectedAddressId,
+        placeType: null, // Si aplica
+        placeNumber: null, // Si aplica
+        instructions: instruction === "door" ? "Dejar en la puerta" : "Entrégamelo a mí",
+        schedule: { mode: "now" },
+        couponId: storedCoupon?.id ?? null,
+        tipPercent: effectiveTipPercent,
+        shippingCost: shipping,
+        
+        // Enviamos el pago tal cual (ej. manual/cash)
+        payment: storedPayment,
+
+        shippingMeta: shippingEstimate
+          ? {
+              cost: shippingEstimate.cost,
+              distanceMeters: shippingEstimate.distanceMeters,
+              durationSeconds: shippingEstimate.durationSeconds,
+              origin: shippingEstimate.originCoordinates,
+              destination: shippingEstimate.destinationCoordinates,
+              routeGeoJson: shippingEstimate.routeGeoJson ?? null,
+            }
+          : null,
+      };
+
+      console.log("checkout_data to send (mobile flow):", checkout_data);
+
+      // 3. Crear orden en Base de Datos (Supabase)
+      const response = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cart_items, checkout_data }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "No se pudo crear el pedido.");
+      }
+
+      const orderId = result.orderId;
+
+      // 4. ÉXITO (Pago Manual)
+      dispatch(clearCart());
+      dispatch(resetCheckout());
+
+      if (typeof orderId === "string" && orderId) {
+        router.push(`/user/orders/${orderId}`);
+      } else {
+        router.push("/user/orders");
+      }
+
+    } catch (err) {
+      console.error("handleCreateOrder error:", err);
+      alert("No se pudo completar el pedido. Inténtalo de nuevo.");
+    } finally {
+      setIsPlacingOrder(false);
+    }
+  }
+
   const validateCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
     if (!code) {
@@ -380,7 +474,7 @@ export default function CheckoutPaymentPage() {
           deliveryFee={shipping}
           serviceFee={serviceFee}
           total={total}
-          onPlaceOrder={() => router.push("/user/checkout/status")}
+          onPlaceOrder={handleCreateOrder}
           canProceed={canProceed}
           onBack={() => router.back()}
         />
