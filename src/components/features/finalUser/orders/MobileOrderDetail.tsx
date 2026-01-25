@@ -86,12 +86,14 @@ export default function MobileOrderDetail({
 
   useEffect(() => {
     const fetchUser = async () => {
-        const supabase = createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) setCurrentUserId(user.id);
+      const supabase = createClient();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) setCurrentUserId(user.id);
     };
     fetchUser();
-    
+
     if (order?.id) {
       getAssignedDriverForOrder(order.id).then((res) => {
         if (res.assigned) {
@@ -105,15 +107,15 @@ export default function MobileOrderDetail({
 
   if (showChat && driver && currentUserId) {
     return (
-        <DriverChat 
-            orderId={order.id} 
-            driverId={driver.id} 
-            driverName={displayName(driver)}
-            driverImage={null} // TODO: Add driver.avatar if available
-            currentUserId={currentUserId}
-            onClose={() => setShowChat(false)}
-        />
-    )
+      <DriverChat
+        orderId={order.id}
+        driverId={driver.id}
+        driverName={displayName(driver)}
+        driverImage={null} // TODO: Add driver.avatar if available
+        currentUserId={currentUserId}
+        onClose={() => setShowChat(false)}
+      />
+    );
   }
 
   const statusLevels: Record<string, number> = {
@@ -212,7 +214,7 @@ export default function MobileOrderDetail({
 
           {/* Buttons (UPDATED SECTION) */}
           <div className="flex items-center gap-4">
-            <button 
+            <button
               onClick={() => setShowChat(true)}
               className="w-11 h-11 bg-[#47BB7E] rounded-full flex items-center justify-center relative"
             >

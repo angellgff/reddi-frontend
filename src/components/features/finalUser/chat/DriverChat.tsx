@@ -46,7 +46,7 @@ export default function DriverChat({
   // Load initial messages and subscribe
   useEffect(() => {
     console.log("[DriverChat] Subscribing to chat:", orderId);
-    
+
     const fetchMessages = async () => {
       const { data, error } = await supabase
         .from("chat_messages")
@@ -55,7 +55,7 @@ export default function DriverChat({
         .order("created_at", { ascending: true });
 
       if (error) {
-         console.error("[DriverChat] Error fetching messages:", error);
+        console.error("[DriverChat] Error fetching messages:", error);
       } else if (data) {
         console.log("[DriverChat] Initial messages loaded:", data.length);
         setMessages(data);
@@ -77,10 +77,10 @@ export default function DriverChat({
         (payload) => {
           console.log("[DriverChat] Incoming message payload:", payload);
           setMessages((prev) => [...prev, payload.new as Message]);
-        }
+        },
       )
       .subscribe((status) => {
-         console.log("[DriverChat] Subscription status:", status);
+        console.log("[DriverChat] Subscription status:", status);
       });
 
     return () => {
@@ -92,15 +92,19 @@ export default function DriverChat({
   const handleSendMessage = async () => {
     console.log("[DriverChat] Attempting to send message:", newMessage);
     if (!newMessage.trim()) {
-       console.log("[DriverChat] Empty message, skipping.");
-       return;
+      console.log("[DriverChat] Empty message, skipping.");
+      return;
     }
 
     const content = newMessage.trim();
     setNewMessage(""); // Optimistic clear
 
-    console.log("[DriverChat] Inserting into DB:", { order_id: orderId, sender_id: currentUserId, content });
-    
+    console.log("[DriverChat] Inserting into DB:", {
+      order_id: orderId,
+      sender_id: currentUserId,
+      content,
+    });
+
     const { error } = await supabase.from("chat_messages").insert({
       order_id: orderId,
       sender_id: currentUserId,
@@ -120,8 +124,8 @@ export default function DriverChat({
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) {
-        console.log("[DriverChat] No file selected.");
-        return;
+      console.log("[DriverChat] No file selected.");
+      return;
     }
 
     console.log("[DriverChat] File selected:", file.name, file.size, file.type);
@@ -129,21 +133,24 @@ export default function DriverChat({
     try {
       const fileExt = file.name.split(".").pop();
       const fileName = `${orderId}/${Date.now()}.${fileExt}`;
-      
-      console.log("[DriverChat] Uploading to storage bucket: chat-images, path:", fileName);
+
+      console.log(
+        "[DriverChat] Uploading to storage bucket: chat-images, path:",
+        fileName,
+      );
 
       const { error: uploadError } = await supabase.storage
         .from("chat-images")
         .upload(fileName, file);
 
       if (uploadError) {
-         console.error("[DriverChat] Upload error:", uploadError);
-         throw uploadError;
+        console.error("[DriverChat] Upload error:", uploadError);
+        throw uploadError;
       }
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("chat-images")
-        .getPublicUrl(fileName);
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from("chat-images").getPublicUrl(fileName);
 
       console.log("[DriverChat] File uploaded. Public URL:", publicUrl);
 
@@ -156,12 +163,11 @@ export default function DriverChat({
       });
 
       if (sendError) {
-         console.error("[DriverChat] Error inserting image message:", sendError);
-         throw sendError;
+        console.error("[DriverChat] Error inserting image message:", sendError);
+        throw sendError;
       }
-      
-      console.log("[DriverChat] Image message sent successfully.");
 
+      console.log("[DriverChat] Image message sent successfully.");
     } catch (error) {
       console.error("[DriverChat] Exception during image upload/send:", error);
     } finally {
@@ -177,29 +183,36 @@ export default function DriverChat({
       {/* Header */}
       <div className="bg-[#04BD88] pt-safe px-4 pb-4">
         <div className="flex items-center gap-4 pt-4">
-          <button 
+          <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white"
           >
             <ArrowLeft size={20} />
           </button>
-          
+
           <div className="flex-1 flex items-center gap-3">
-             <div className="relative w-10 h-10 rounded-full bg-gray-200 border-2 border-white overflow-hidden">
-                {driverImage ? (
-                    <Image src={driverImage} alt={driverName} fill className="object-cover" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold bg-white">
-                        {driverName.charAt(0)}
-                    </div>
-                )}
-                {/* Online indicator placeholder */}
-                <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
-             </div>
-             <div className="text-white">
-                <div className="font-semibold text-base leading-tight">{driverName}</div>
-                <div className="text-white/80 text-xs">Conductor</div>
-             </div>
+            <div className="relative w-10 h-10 rounded-full bg-gray-200 border-2 border-white overflow-hidden">
+              {driverImage ? (
+                <Image
+                  src={driverImage}
+                  alt={driverName}
+                  fill
+                  className="object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-500 font-bold bg-white">
+                  {driverName.charAt(0)}
+                </div>
+              )}
+              {/* Online indicator placeholder */}
+              <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-400 border-2 border-white rounded-full"></div>
+            </div>
+            <div className="text-white">
+              <div className="font-semibold text-base leading-tight">
+                {driverName}
+              </div>
+              <div className="text-white/80 text-xs">Conductor</div>
+            </div>
           </div>
 
           <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white">
@@ -213,13 +226,15 @@ export default function DriverChat({
         {messages.map((msg) => {
           const isMe = msg.sender_id === currentUserId;
           const isImage = msg.message_type === "image";
-          
+
           return (
             <div
               key={msg.id}
               className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
             >
-              <div className={`flex max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-2`}>
+              <div
+                className={`flex max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-2`}
+              >
                 {/* Message Bubble */}
                 <div
                   className={`relative px-4 py-2 text-sm shadow-sm ${
@@ -230,35 +245,39 @@ export default function DriverChat({
                 >
                   {isImage ? (
                     <div className="relative w-48 h-48 rounded-md overflow-hidden bg-black/10">
-                        <Image 
-                            src={msg.content} 
-                            alt="Image" 
-                            fill 
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                        />
+                      <Image
+                        src={msg.content}
+                        alt="Image"
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                      />
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
+                    <p className="whitespace-pre-wrap leading-relaxed">
+                      {msg.content}
+                    </p>
                   )}
-                  
+
                   {/* Metadata / Time */}
-                  <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${
+                  <div
+                    className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${
                       isMe ? "text-white/70" : "text-gray-400"
-                  }`}>
+                    }`}
+                  >
                     {format(new Date(msg.created_at), "h:mm a", { locale: es })}
                     {isMe && (
-                        <span>
-                           {/* Simple checks for read/sent could go here */}
-                           {msg.is_read ? (
-                             <span className="text-blue-300">✓✓</span>
-                           ) : (
-                             <span>✓</span>
-                           )}
-                        </span>
+                      <span>
+                        {/* Simple checks for read/sent could go here */}
+                        {msg.is_read ? (
+                          <span className="text-blue-300">✓✓</span>
+                        ) : (
+                          <span>✓</span>
+                        )}
+                      </span>
                     )}
                   </div>
-                  
+
                   {/* Tail Decorations (Optional, pure CSS or SVG can be used) */}
                   {/* Simplified tail effect via border radius */}
                 </div>
@@ -271,43 +290,47 @@ export default function DriverChat({
 
       {/* Input Area */}
       <div className="bg-white p-4 pb-8 border-t border-gray-100">
-         <div className="flex items-center gap-3 bg-[#F4F5F7] rounded-lg px-3 py-2">
-            <button 
-                onClick={() => fileInputRef.current?.click()}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
-                disabled={isUploading}
-            >
-                {isUploading ? <Loader2 className="animate-spin" size={20} /> : <Paperclip size={20} />}
-            </button>
-            <input 
-                type="file" 
-                ref={fileInputRef} 
-                className="hidden" 
-                accept="image/*" 
-                onChange={handleFileUpload}
-            />
-            
-            <input
-                type="text"
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-                placeholder="Escribe un mensaje..."
-                className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-sm h-10"
-            />
-            
-            <button 
-                onClick={handleSendMessage}
-                disabled={!newMessage.trim()}
-                className={`p-2 rounded-full transition-colors ${
-                    newMessage.trim() 
-                    ? "bg-[#04BD88] text-white shadow-md active:scale-95" 
-                    : "bg-gray-200 text-gray-400"
-                }`}
-            >
-                <Send size={18} />
-            </button>
-         </div>
+        <div className="flex items-center gap-3 bg-[#F4F5F7] rounded-lg px-3 py-2">
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-gray-400 hover:text-gray-600 transition-colors"
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              <Paperclip size={20} />
+            )}
+          </button>
+          <input
+            type="file"
+            ref={fileInputRef}
+            className="hidden"
+            accept="image/*"
+            onChange={handleFileUpload}
+          />
+
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+            placeholder="Escribe un mensaje..."
+            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-sm h-10"
+          />
+
+          <button
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim()}
+            className={`p-2 rounded-full transition-colors ${
+              newMessage.trim()
+                ? "bg-[#04BD88] text-white shadow-md active:scale-95"
+                : "bg-gray-200 text-gray-400"
+            }`}
+          >
+            <Send size={18} />
+          </button>
+        </div>
       </div>
     </div>
   );
