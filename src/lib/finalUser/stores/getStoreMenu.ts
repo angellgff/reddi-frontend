@@ -40,8 +40,11 @@ export default async function getStoreMenu(
   const searchQ = Array.isArray(opts?.q) ? opts?.q[0] : opts?.q;
   const isRestaurant = !opts?.partnerType || opts.partnerType === "restaurant";
 
-  let categoriesList: { id: string; name: string; image_url?: string | null }[] =
-    [];
+  let categoriesList: {
+    id: string;
+    name: string;
+    image_url?: string | null;
+  }[] = [];
   let products: Array<
     Pick<
       ProductRow,
@@ -145,7 +148,7 @@ export default async function getStoreMenu(
     label: c.name,
     imageUrl: c.image_url,
   }));
-  
+
   const groupsMap = new Map<
     string,
     {
@@ -164,8 +167,8 @@ export default async function getStoreMenu(
   for (const p of products) {
     // Determine which ID to use for grouping
     const groupId = isRestaurant
-      ? p.sub_category_id ?? ""
-      : p.category_id ?? "";
+      ? (p.sub_category_id ?? "")
+      : (p.category_id ?? "");
 
     const group = groupsMap.get(groupId);
     if (group) {
@@ -192,8 +195,8 @@ export default async function getStoreMenu(
     if (selectedCategory && g.id === selectedCategory) return true;
     return g.products.length > 0;
   });
-  
-  // Sort groups? We iterated over categoriesList which was sorted. 
+
+  // Sort groups? We iterated over categoriesList which was sorted.
   // Map insertion order is preserved in JS, so initialization order matters.
   // The 'others' or new groups added later will be at the end. Correct.
 
