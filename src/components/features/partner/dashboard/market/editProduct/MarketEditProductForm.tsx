@@ -107,6 +107,7 @@ export default function MarketEditProductForm({
         subCategories={subCategories}
         errors={errorsStep1}
         allowCreateCategory={false}
+        openCreateCategoryModal={() => {}}
         onSaveAndExit={submitIfValid}
         isSubmitting={isSubmitting}
       />
