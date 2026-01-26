@@ -29,21 +29,21 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
   const { data: productRow, error: productError } = await supabase
     .from("products")
     .select(
-      `id, name, description, base_price, previous_price, unit, estimated_time, sub_category_id, is_available, tax_included, image_url`
+      `id, name, description, base_price, previous_price, unit, estimated_time, sub_category_id, is_available, tax_included, image_url, category_id`,
     )
     .eq("id", id) // Se usa la variable 'id'
     .eq("partner_id", partner.id)
     .single();
   if (productError || !productRow) notFound();
 
-  // Subcategorías solo del partner
-  const { data: subCatsData } = await supabase
-    .from("sub_categories")
-    .select("id, name, partner_id")
-    .eq("partner_id", partner.id)
+  // Subcategorías (Categorías globales) para el selector
+  const { data: categoriesData } = await supabase
+    .from("categories")
+    .select("id, name")
+    .eq("is_active", true)
     .order("name");
 
-  const subCategories = (subCatsData || []).map((c) => ({
+  const subCategories = (categoriesData || []).map((c) => ({
     id: c.id,
     name: c.name,
     categoryId: null as string | null,
@@ -58,7 +58,9 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     unit: productRow.unit || "",
     estimatedTimeRange: productRow.estimated_time || "",
     description: productRow.description || "",
-    subCategoryId: productRow.sub_category_id || null,
+    subCategoryId:
+      // Si el producto tiene sub_category_id, usarlo; sino, intentar traer la categoría global si existiera una columna category_id (según esquema actual products.category_id existe)
+      productRow.sub_category_id || (productRow as any).category_id || null,
     isAvailable: productRow.is_available ?? true,
     taxIncluded: productRow.tax_included ?? false,
     sections: [], // Market sin extras/secciones

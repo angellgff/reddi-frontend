@@ -2,7 +2,6 @@
 
 import { useCallback, useState } from "react";
 import NewDishStep1 from "@/src/components/features/partner/dashboard/menu/newDish/NewDishStep1";
-import CreateCategoryModal from "@/src/components/features/partner/dashboard/menu/newDish/CreateCategoryModal";
 import {
   CreateProductFormState,
   ProductSubCategory,
@@ -31,7 +30,6 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
     useState<ProductSubCategory[]>(initialSubCategories);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorsStep1, setErrorsStep1] = useState<Record<string, string>>({});
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
   const [formData, setFormData] = useState<CreateProductFormState>({
     image: null,
@@ -103,7 +101,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
             try {
               sessionStorage.setItem(
                 `marketPreview:${draftId}`,
-                JSON.stringify(draftPayload)
+                JSON.stringify(draftPayload),
               );
             } catch {}
           }
@@ -118,18 +116,10 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
         onNextStep={submitIfValid}
         subCategories={subCategories}
         errors={errorsStep1}
-        openCreateCategoryModal={() => setShowCategoryModal(true)}
+        openCreateCategoryModal={() => {}}
         onSaveAndExit={submitIfValid}
         isSubmitting={isSubmitting}
-      />
-
-      <CreateCategoryModal
-        isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
-        onCreated={(sc) => {
-          setSubCategories((prev) => [...prev, sc]);
-          setFormData((prev) => ({ ...prev, subCategoryId: sc.id }));
-        }}
+        allowCreateCategory={false}
       />
     </>
   );

@@ -18,7 +18,7 @@ import Toast from "@/src/components/basics/Toast";
 type DishesListProps = {
   dishes: DishData[];
   categories: { value: string; label: string }[];
-  tags: { value: string; label: string }[];
+  tags: { value: string; label: string; imageUrl?: string | null }[];
 };
 
 export default function DishesSection({
@@ -34,7 +34,7 @@ export default function DishesSection({
   const [isPending, startTransition] = useTransition();
   const [query, setQuery] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
+    searchParams.get("category") || "",
   );
   const [items, setItems] = useState(dishes);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -193,7 +193,7 @@ export default function DishesSection({
           disabled={isPending}
         />
       </div>
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-start gap-6 flex-wrap mt-2">
         {/* Conectamos los tags al estado y setter de la categoría principal */}
         <TagsTabs
           tags={tags}

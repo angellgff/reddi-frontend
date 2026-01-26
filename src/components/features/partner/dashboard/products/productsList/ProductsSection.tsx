@@ -8,7 +8,6 @@ import SearchInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import SearchPartnerIcon from "@/src/components/icons/SearchPartnerIcon";
 import ProductImportModal from "../ProductImportModal";
-import CreateCategoryModal from "./CreateCategoryModal";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import Spinner from "@/src/components/basics/Spinner";
 import {
@@ -35,9 +34,8 @@ export default function ProductsSection({
   // Estados locales para los inputs
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") || "");
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
+    searchParams.get("category") || "",
   );
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
 
   // Estados para eliminación
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -125,11 +123,6 @@ export default function ProductsSection({
     }
   };
 
-  const handleCategoryCreated = () => {
-    setIsCategoryModalOpen(false);
-    startTransition(() => router.refresh());
-  };
-
   // Manejador de cambio de disponibilidad
   const handleAvailabilityChange = (val: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -145,11 +138,6 @@ export default function ProductsSection({
 
   return (
     <>
-      <CreateCategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        onCreated={handleCategoryCreated}
-      />
       {/* Cabecera */}
       <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-4">
         <h1 className="font-semibold text-gray-800 font-montserrat">
@@ -157,12 +145,6 @@ export default function ProductsSection({
         </h1>
         {/* Usamos Link para el botón de añadir nuevo producto */}
         <div className="flex gap-4">
-          <button
-            onClick={() => setIsCategoryModalOpen(true)}
-            className="px-6 py-2 text-center text-primary bg-white border border-primary rounded-xl hover:bg-green-50 transition-colors font-medium text-sm"
-          >
-            Crear Categoría
-          </button>
           <Link
             href="productos/nuevo"
             className="px-8 py-2 text-center text-white bg-primary rounded-xl hover:bg-teal-600 transition-colors font-medium text-sm"
@@ -187,7 +169,7 @@ export default function ProductsSection({
         <SelectInput
           id="category"
           label="Categoría"
-          options={categories}
+          options={[{ value: "", label: "Todas" }, ...categories]}
           getOptionValue={(option) => option.value}
           getOptionLabel={(option) => option.label}
           value={selectedCategory}

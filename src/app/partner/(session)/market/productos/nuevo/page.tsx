@@ -17,15 +17,15 @@ export default async function NewProductPage() {
     partnerId = partner?.id || null;
   }
 
-  // Obtener SOLO las sub-categorías del partner autenticado
+  // Obtener SOLO las categorías globales (tabla 'categories')
   let subCategories: Array<{ id: string; name: string }> = [];
   if (partnerId) {
-    const { data: subCategoriesRows } = await supabase
-      .from("sub_categories")
-      .select("id, name, partner_id")
-      .eq("partner_id", partnerId)
+    const { data: categoriesRows } = await supabase
+      .from("categories")
+      .select("id, name")
+      .eq("is_active", true)
       .order("name");
-    subCategories = (subCategoriesRows || []).map((c) => ({
+    subCategories = (categoriesRows || []).map((c) => ({
       id: c.id,
       name: c.name,
     }));

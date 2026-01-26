@@ -13,7 +13,7 @@ export interface FetchProductsParams {
  * NOTE: Se asume moneda "DoP" ya que el esquema no define currency. Ajusta si existe columna.
  */
 export default async function getProductsData(
-  params: FetchProductsParams = {}
+  params: FetchProductsParams = {},
 ): Promise<ProductData[]> {
   const supabase = await createClient();
 
@@ -36,7 +36,7 @@ export default async function getProductsData(
   let query = supabase
     .from("products")
     .select(
-      "id,name,description,base_price,previous_price,image_url,is_available,sub_category_id"
+      "id,name,description,base_price,previous_price,image_url,is_available,sub_category_id",
     )
     .eq("partner_id", partner.id);
 
@@ -53,7 +53,7 @@ export default async function getProductsData(
     typeof params.category === "string" &&
     params.category
   ) {
-    query = query.eq("sub_category_id", params.category);
+    query = query.eq("category_id", params.category);
   }
 
   // Filtro de disponibilidad
@@ -88,6 +88,6 @@ export default async function getProductsData(
       imageUrl: row.image_url || "/placeholder-product.svg",
       categoryId: row.sub_category_id,
       isAvailable: row.is_available,
-    })
+    }),
   );
 }

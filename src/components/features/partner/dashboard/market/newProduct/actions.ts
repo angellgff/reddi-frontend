@@ -16,7 +16,7 @@ const generateUniqueFileName = (originalName: string) => {
  * Sube imagen a Supabase Storage y guarda URL pública en products.image_url
  */
 export async function createMarketProductAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<CreateMarketProductResult> {
   const supabase = await createClient();
   const {
@@ -58,11 +58,13 @@ export async function createMarketProductAction(
     unit: formData.get("unit") as string,
     estimated_time: formData.get("estimatedTimeRange") as string,
     description: formData.get("description") as string,
-    sub_category_id: formData.get("subCategoryId") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",
     partner_id: partner.id,
     image_url: imageUrl,
+    // Para market products, usamos category_id en lugar de sub_category_id
+    category_id: formData.get("subCategoryId") as string,
+    sub_category_id: null,
   };
 
   // Insert en products

@@ -34,6 +34,7 @@ interface NewDishStep1Props {
   openCreateCategoryModal: () => void;
   onSaveAndExit: () => void;
   isSubmitting?: boolean;
+  allowCreateCategory?: boolean;
 }
 
 export default function NewDishStep1({
@@ -47,6 +48,7 @@ export default function NewDishStep1({
   openCreateCategoryModal,
   onSaveAndExit,
   isSubmitting,
+  allowCreateCategory = true,
 }: NewDishStep1Props) {
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -55,7 +57,7 @@ export default function NewDishStep1({
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
     updateFormData({ [name]: value });
@@ -98,7 +100,7 @@ export default function NewDishStep1({
         if (!val || (typeof val === "string" && !val.trim())) {
           newErrors[f] = "Este campo es obligatorio";
         }
-      }
+      },
     );
     if (!formData.subCategoryId) {
       newErrors["subCategoryId"] = "Seleccione una categoría";
@@ -139,7 +141,7 @@ export default function NewDishStep1({
         fileUploadRef.current?.focus();
       } else {
         const elementToFocus = formRef.current?.querySelector(
-          `[name="${firstErrorField}"]`
+          `[name="${firstErrorField}"]`,
         ) as HTMLElement;
         elementToFocus?.focus();
       }
@@ -164,7 +166,7 @@ export default function NewDishStep1({
         fileUploadRef.current?.focus();
       } else {
         const elementToFocus = formRef.current?.querySelector(
-          `[name="${firstErrorField}"]`
+          `[name="${firstErrorField}"]`,
         ) as HTMLElement;
         elementToFocus?.focus();
       }
@@ -281,10 +283,14 @@ export default function NewDishStep1({
                   label="Categoría"
                   placeholder="Seleccione"
                   options={[
-                    {
-                      value: "__create__",
-                      label: "➕ Crear nueva categoría...",
-                    },
+                    ...(allowCreateCategory
+                      ? [
+                          {
+                            value: "__create__",
+                            label: "➕ Crear nueva categoría...",
+                          },
+                        ]
+                      : []),
                     ...subCategories.map((c) => ({
                       value: c.id,
                       label: c.name,

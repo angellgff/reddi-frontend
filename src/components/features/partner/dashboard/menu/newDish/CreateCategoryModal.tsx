@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import Portal from "@/src/components/basics/Portal";
 import BasicInput from "@/src/components/basics/BasicInput";
 import Spinner from "@/src/components/basics/Spinner";
+import FileUploadZone from "@/src/components/basics/FileUploadZone";
+import { uploadFile } from "@/src/lib/storage/uploadFile";
 import { createSubCategoryAction } from "./actions";
 import { ProductSubCategory } from "@/src/lib/partner/productTypes";
 
@@ -18,6 +20,7 @@ export default function CreateCategoryModal({
   onCreated,
 }: CreateCategoryModalProps) {
   const [name, setName] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,12 +28,13 @@ export default function CreateCategoryModal({
     if (isOpen) {
       setTimeout(() => {
         const el = document.getElementById(
-          "new-category-name"
+          "new-category-name",
         ) as HTMLInputElement | null;
         el?.focus();
       }, 50);
     } else {
       setName("");
+      setImageFile(null);
       setError(null);
     }
   }, [isOpen]);
@@ -59,7 +63,13 @@ export default function CreateCategoryModal({
     }
     try {
       setLoading(true);
-      const res = await createSubCategoryAction(trimmed);
+
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        imageUrl = await uploadFile(imageFile, "categories", "sub-categories");
+      }
+
+      const res = await createSubCategoryAction(trimmed, imageUrl);
       onCreated({ id: res.id, name: res.name, categoryId: null });
       onClose();
     } catch (e: unknown) {
@@ -94,6 +104,13 @@ export default function CreateCategoryModal({
               onChange={(e) => setName(e.target.value)}
               required
               error={error || undefined}
+            />
+            <FileUploadZone
+              id="category-image-upload"
+              label="Imagen (Opcional)"
+              acceptedFileTypes="image"
+              onFileChange={setImageFile}
+              value={imageFile}
             />
             <div className="flex justify-end gap-3 pt-2">
               <button

@@ -39,11 +39,7 @@ export default async function ProductServer({
   // Fetch parallel data: products and categories
   const [products, categoriesResult] = await Promise.all([
     getProductsData({ q, category, isAvailable: available }),
-    supabase
-      .from("sub_categories")
-      .select("id, name")
-      .eq("partner_id", partner.id)
-      .order("name"),
+    supabase.from("categories").select("id, name").order("name"),
   ]);
 
   const categories =

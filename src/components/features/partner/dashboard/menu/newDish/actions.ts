@@ -15,7 +15,10 @@ const generateUniqueFileName = (originalName: string) => {
 };
 
 // Crear nueva sub-categoría (modal)
-export async function createSubCategoryAction(name: string) {
+export async function createSubCategoryAction(
+  name: string,
+  imageUrl?: string | null,
+) {
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,6 +43,7 @@ export async function createSubCategoryAction(name: string) {
   const payload = {
     name: trimmed,
     partner_id: partner.id,
+    image_url: imageUrl || null,
     // category_id: null, // opcional si luego se soporta categoría padre
   };
   const { data, error } = await supabase
@@ -55,7 +59,7 @@ export async function createSubCategoryAction(name: string) {
 
 // Crear producto + secciones + opciones
 export async function createDishAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<CreateDishResult> {
   const supabase = await createClient();
   const {
@@ -130,7 +134,7 @@ export async function createDishAction(
 
   // 5. Extraer y procesar las secciones y opciones (sin cambios en la lógica, solo en la fuente de datos)
   const sections: ProductSectionForm[] = JSON.parse(
-    formData.get("sections") as string
+    formData.get("sections") as string,
   );
 
   if (sections.length) {
@@ -163,7 +167,7 @@ export async function createDishAction(
               ? parseFloat(o.overridePrice)
               : null,
           display_order: optionIndex,
-        }))
+        })),
     );
     if (optionsFlatten.length) {
       const { error: optErr } = await supabase
@@ -246,7 +250,7 @@ export async function createExtraAction({
 
 export async function updateDishAction(dishId: string, formData: FormData) {
   console.group(
-    `\n\n--- 🚀 INICIO DE ACCIÓN: updateDishAction para plato ID: ${dishId} ---`
+    `\n\n--- 🚀 INICIO DE ACCIÓN: updateDishAction para plato ID: ${dishId} ---`,
   );
   console.log(`Timestamp: ${new Date().toISOString()}`);
 
@@ -275,7 +279,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   if (pErr || !partner) {
     console.error(
       "❌ ERROR CRÍTICO: No se pudo encontrar un partner para este usuario.",
-      { userId: user.id, dbError: pErr }
+      { userId: user.id, dbError: pErr },
     );
     console.groupEnd();
     console.groupEnd();
@@ -307,7 +311,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   const imageFile = formData.get("image") as File | null;
   if (imageFile && imageFile.size > 0) {
     console.log(
-      `Nueva imagen detectada: ${imageFile.name}, tamaño: ${imageFile.size} bytes.`
+      `Nueva imagen detectada: ${imageFile.name}, tamaño: ${imageFile.size} bytes.`,
     );
     const fileName = generateUniqueFileName(imageFile.name);
     const filePath = `${partner.id}/${fileName}`;
@@ -321,7 +325,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     if (uploadError) {
       console.error(
         "❌ ERROR CRÍTICO: Falló la subida de la imagen.",
-        uploadError
+        uploadError,
       );
       console.groupEnd();
       console.groupEnd();
@@ -342,7 +346,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   console.group("4. Ejecutando actualización en la tabla 'products'");
   console.log(
     "Enviando el siguiente payload a la tabla 'products':",
-    updatePayload
+    updatePayload,
   );
   const { error: updateError } = await supabase
     .from("products")
@@ -352,12 +356,12 @@ export async function updateDishAction(dishId: string, formData: FormData) {
 
   console.log(
     "Respuesta de la actualización de 'products'. Error:",
-    updateError
+    updateError,
   );
   if (updateError) {
     console.error(
       "❌ ERROR CRÍTICO: Falló la actualización del producto principal.",
-      updateError
+      updateError,
     );
     console.groupEnd();
     console.groupEnd();
@@ -373,7 +377,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     console.log("Datos de secciones recibidos (raw string):", sectionsRaw);
     const sections: ProductSectionForm[] = JSON.parse(sectionsRaw);
     console.log(
-      `JSON parseado con éxito. ${sections.length} secciones para procesar.`
+      `JSON parseado con éxito. ${sections.length} secciones para procesar.`,
     );
 
     // 5.1. PROCESO DE BORRADO
@@ -385,18 +389,18 @@ export async function updateDishAction(dishId: string, formData: FormData) {
 
     console.log(
       "Respuesta de la búsqueda de secciones antiguas. Error:",
-      fetchOldSectionsError
+      fetchOldSectionsError,
     );
     if (fetchOldSectionsError)
       throw new Error(
-        `Error buscando secciones antiguas: ${fetchOldSectionsError.message}`
+        `Error buscando secciones antiguas: ${fetchOldSectionsError.message}`,
       );
 
     if (oldSections && oldSections.length > 0) {
       const oldSectionIds = oldSections.map((s) => s.id);
       console.log(
         `Se encontraron ${oldSections.length} secciones antiguas para borrar. IDs:`,
-        oldSectionIds
+        oldSectionIds,
       );
 
       console.log("Intentando borrar opciones antiguas...");
@@ -407,7 +411,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
       console.log("Respuesta del borrado de opciones. Error:", deleteOptErr);
       if (deleteOptErr)
         throw new Error(
-          `Error borrando opciones antiguas: ${deleteOptErr.message}`
+          `Error borrando opciones antiguas: ${deleteOptErr.message}`,
         );
       console.log("✅ Opciones antiguas borradas.");
 
@@ -419,7 +423,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
       console.log("Respuesta del borrado de secciones. Error:", deleteSecErr);
       if (deleteSecErr)
         throw new Error(
-          `Error borrando secciones antiguas: ${deleteSecErr.message}`
+          `Error borrando secciones antiguas: ${deleteSecErr.message}`,
         );
       console.log("✅ Secciones antiguas borradas.");
     } else {
@@ -465,7 +469,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
                 ? parseFloat(o.overridePrice)
                 : null,
             display_order: optionIndex,
-          }))
+          })),
       );
 
       if (optionsFlatten.length > 0) {
@@ -487,14 +491,14 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   } catch (error: unknown) {
     console.error(
       "❌ ERROR CRÍTICO: Falló el bloque de actualización de secciones/opciones.",
-      error
+      error,
     );
     console.groupEnd();
     console.groupEnd();
     throw new Error(
       `No se pudieron actualizar las secciones y opciones: ${
         (error as Error).message
-      }`
+      }`,
     );
   }
   console.groupEnd();
@@ -502,7 +506,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   // 6. FINALIZACIÓN Y REVALIDACIÓN
   console.group("6. Finalización");
   console.log(
-    "Todas las operaciones de base de datos se han ejecutado. Intentando revalidar paths..."
+    "Todas las operaciones de base de datos se han ejecutado. Intentando revalidar paths...",
   );
   // Descomenta estas líneas una vez que el problema principal esté resuelto.
   // revalidatePath("/aliado/menu");
@@ -542,7 +546,7 @@ export async function deleteDishAction(dishId: string) {
     .select("id, partner_id")
     .eq("id", dishId)
     .single();
-  
+
   if (fetchErr || !productRow)
     throw new Error(fetchErr?.message || "Producto no encontrado");
   if (productRow.partner_id !== partner.id)
@@ -590,7 +594,7 @@ export async function restoreDishAction(dishId: string) {
     .select("id, partner_id")
     .eq("id", dishId)
     .single();
-  
+
   if (fetchErr || !productRow)
     throw new Error(fetchErr?.message || "Producto no encontrado");
   if (productRow.partner_id !== partner.id)
@@ -607,7 +611,7 @@ export async function restoreDishAction(dishId: string) {
 
   // 5) Revalidar listado
   revalidatePath("/partner/restaurant/menu");
-  revalidatePath("/aliado/menu"); 
+  revalidatePath("/aliado/menu");
 
   return { success: true };
 }
