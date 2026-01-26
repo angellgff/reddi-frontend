@@ -1,20 +1,16 @@
 "use client";
 
-import { createClient } from "@/src/lib/supabase/client";
+import { logoutAction } from "@/src/lib/actions/auth";
 import { Button } from "@/src/components/ui/button";
-import { useRouter } from "next/navigation";
 
 export function LogoutButton() {
-  const router = useRouter();
-
-  const logout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/admin/login");
-  };
-
   return (
-    <Button onClick={logout} className="hover:bg-emerald-800">
+    <Button
+      onClick={async () => {
+        await logoutAction();
+      }}
+      className="hover:bg-emerald-800"
+    >
       Logout
     </Button>
   );

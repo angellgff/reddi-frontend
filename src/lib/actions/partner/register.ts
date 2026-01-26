@@ -13,7 +13,7 @@ type FormState = {
 
 export async function registerPartner(
   prevState: FormState,
-  formData: FormData
+  formData: FormData,
 ) {
   // 1. Cliente normal para Auth (para mantener el contexto de sesión del usuario)
   const supabase = await createClient();
@@ -27,7 +27,7 @@ export async function registerPartner(
         autoRefreshToken: false,
         persistSession: false,
       },
-    }
+    },
   );
 
   // ... [Extracción de datos: email, password, etc. SE MANTIENE IGUAL] ...
@@ -87,44 +87,110 @@ export async function registerPartner(
     });
 
     if (authError) throw authError;
+    // Si no hay user, lanzamos error (aunque signUp suele devolver user o error)
     if (!authData.user) throw new Error("User creation failed.");
+
     createdUserId = authData.user.id;
+    // IMPORTANTE: Al crear el usuario, el trigger "on_auth_user_created"
+    // debería crear la entrada en "profiles" automáticamente.
 
-    // --- RPC Call ---
-    const partnerDataForDb = {
-      firstName: name,
-      lastName: "",
-      category: category,
-      name: name,
-      userRnc: userRnc,
-      phone: phone,
-      billingMail: billingMail,
-      isPhysical: isPhysical,
-      address: address,
-      lat: lat,
-      lng: lng,
-      imageUrl: null,
-      bankDocumentUrl: null,
-      holderName: holderName,
-      accountNumber: accountNumber,
-      accountType: accountType,
-      bankRnc: bankRnc,
-      conditionsAccepted: conditionsAccepted,
-      businessHours: businessHours,
-      cuisineType: null,
-      hasOutdoorSeating: false,
-      licenseNumber: null,
-      specializesIn: null,
-    };
+    // --- Insert en Partners (Reemplazo RPC) ---
+    // Preparamos coordenadas en formato GeoJSON si existen
+    let coordinates = null;
+    // PostGIS espera el formato "POINT(lng lat)"
+    // Importante: Longitud primero, espacio en medio (no coma).
+    if (lat && lng) {
+      coordinates = `POINT(${lng} ${lat})`;
+    }
 
-    const { error: rpcError } = await supabase.rpc("complete_partner_profile", {
-      partner_data: partnerDataForDb,
-    });
+    // Insertar Partner
+    const { data: partnerData, error: insertError } = await supabaseAdmin
+      .from("partners")
+      .insert({
+        id: createdUserId, // <--- ESTO FALTABA: Forzamos que el ID sea el mismo del usuario
+        user_id: createdUserId, // Mantenemos la FK explícita también
+        name: name,
+        partner_type: category as any,
+        user_rnc: userRnc,
+        phone: phone,
+        billing_email: billingMail,
+        is_physical: isPhysical,
+        address: address,
+        coordinates: coordinates,
+        bank_holder_name: holderName,
+        bank_account_number: accountNumber,
+        bank_account_type: accountType,
+        bank_rnc: bankRnc,
+        conditions_accepted: conditionsAccepted,
+        business_hours: businessHours,
+        // Campos por defecto
+        is_approved: false,
+        is_active: false,
+      })
+      .select("id")
+      .single();
 
-    if (rpcError) throw new Error(`Error guardando datos: ${rpcError.message}`);
+    if (insertError) {
+      throw new Error(`Error insertando partner: ${insertError.message}`);
+    }
 
-    // --- Sign In (Para sesión del usuario) ---
-    await supabase.auth.signInWithPassword({ email, password });
+    const partnerId = partnerData.id;
+
+    // --- Insertar en Sub-tablas según categoría ---
+    // Usamos Promesas para no bloquear si hay varios inserts (aunque aquí es uno)
+    if (category === "restaurant") {
+      const { error: restError } = await supabaseAdmin
+        .from("restaurants")
+        .insert({
+          id: partnerId,
+          cuisine_type: null,
+          has_outdoor_seating: false,
+        });
+      if (restError)
+        throw new Error(
+          `Error creando restaurant detalles: ${restError.message}`,
+        );
+    } else if (category === "liquor_store") {
+      const { error: liquorError } = await supabaseAdmin
+        .from("liquor_stores")
+        .insert({
+          id: partnerId,
+          license_number: null,
+          specializes_in: null,
+        });
+      if (liquorError)
+        throw new Error(
+          `Error creando liquor store detalles: ${liquorError.message}`,
+        );
+    } else if (category === "market") {
+      const { error: marketError } = await supabaseAdmin
+        .from("markets")
+        .insert({
+          id: partnerId,
+          has_bakery: null,
+          has_butchery: null,
+        });
+      if (marketError)
+        throw new Error(
+          `Error creando market detalles: ${marketError.message}`,
+        );
+    } else if (category === "pharmacy") {
+      const { error: pharmError } = await supabaseAdmin
+        .from("pharmacies")
+        .insert({
+          id: partnerId,
+          is_on_duty: false,
+          license_number: null,
+        });
+      if (pharmError)
+        throw new Error(
+          `Error creando pharmacy detalles: ${pharmError.message}`,
+        );
+    }
+    // Si hay otras categorías como 'tobacco' que no tienen tabla específica, no hacemos nada extra.
+
+    // --- Subida de Imágenes (Mantenemos lógica) ---
+    // Ya NO hacemos signInWithPassword porque el usuario no está verificado aún.
 
     let imageUrl: string | null = null;
 
@@ -163,7 +229,7 @@ export async function registerPartner(
       // Corrección 2: Sanitizar nombre (opcional, pero ayuda a evitar errores con espacios)
       const fileNameSanitized = documentFile.name.replace(
         /[^a-zA-Z0-9.]/g,
-        "_"
+        "_",
       );
 
       const docPath = `${createdUserId}/${Date.now()}_${fileNameSanitized}`;
@@ -194,7 +260,7 @@ export async function registerPartner(
           image_url: imageUrl,
           bank_document_url: documentUrl, // Ahora sí es una URL completa
         })
-        .eq("id", createdUserId);
+        .eq("id", partnerId); // Usamos partnerId devuelto por insert
 
       if (updateError) throw updateError;
     }
@@ -204,6 +270,7 @@ export async function registerPartner(
     console.error("Registration error:", error);
 
     // Rollback usando Admin
+
     // 1. Borrar imagen si se subió
     if (uploadedImagePath) {
       await supabaseAdmin.storage
@@ -211,14 +278,30 @@ export async function registerPartner(
         .remove([uploadedImagePath]);
     }
 
-    // 2. Borrar documento si se subió (Soluciona el error de variable no usada)
+    // 2. Borrar documento si se subió
     if (uploadedDocumentPath) {
       await supabaseAdmin.storage
         .from("bank-documents")
         .remove([uploadedDocumentPath]);
     }
 
-    let friendly = "Ocurrió un error inesperado.";
+    // 3. MANUAL ROLLBACK: Borrar el usuario de Authentication
+    //    Si algo falló después de crear el auth user, lo borramos para no dejar "basura".
+    if (createdUserId) {
+      console.log(
+        `[Rollback] Eliminando usuario ${createdUserId} por fallo en proceso.`,
+      );
+      const { error: deleteUserError } =
+        await supabaseAdmin.auth.admin.deleteUser(createdUserId);
+      if (deleteUserError) {
+        console.error(
+          "Error crítico durante rollback (deleteUser):",
+          deleteUserError,
+        );
+      }
+    }
+
+    let friendly = "Ocurrió un error inesperado al registrar el aliado.";
     if (error.code === "23505" || error.message?.includes("duplicate")) {
       friendly = "Este correo electrónico ya está registrado.";
     } else if (error.message) {
