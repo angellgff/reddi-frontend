@@ -15,7 +15,7 @@ export default async function StoreMenuServer({
   q?: string | string[];
   partnerType: PartnerType;
 }) {
-  const menu = await getStoreMenu(id, { category, q });
+  const menu = await getStoreMenu(id, { category, q, partnerType });
 
   return <StoreMenu menu={menu} partnerType={partnerType} />;
 }
