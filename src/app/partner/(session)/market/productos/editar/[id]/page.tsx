@@ -1,6 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import MarketEditProductForm from "@/src/components/features/partner/dashboard/market/editProduct/MarketEditProductForm";
 import { notFound } from "next/navigation";
+import MarketProductVariants from "@/src/components/features/partner/dashboard/market/editProduct/MarketProductVariants";
 
 // 1. Se actualiza la interfaz para que 'params' sea una Promise
 interface EditPageProps {
@@ -36,6 +37,39 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     .single();
   if (productError || !productRow) notFound();
 
+  // Fetch Variants and Groups
+  const { data: groupsData } = await supabase
+    .from("product_variant_groups")
+    .select(
+      `
+      id,
+      name,
+      is_required,
+      product_variants (
+        id,
+        name,
+        base_price,
+        is_available,
+        group_id
+      )
+    `,
+    )
+    .eq("product_id", id)
+    .order("display_order", { ascending: true });
+
+  const formattedGroups = (groupsData || []).map((g) => ({
+    id: g.id,
+    name: g.name,
+    is_required: g.is_required,
+    product_variants: (g.product_variants as any[]).map((v) => ({
+      id: v.id,
+      name: v.name,
+      base_price: v.base_price,
+      is_available: v.is_available,
+      group_id: v.group_id,
+    })),
+  }));
+
   // Subcategorías (Categorías globales) para el selector
   const { data: categoriesData } = await supabase
     .from("categories")
@@ -69,6 +103,12 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       <h1 className="font-semibold">Editar producto</h1>
+      <section className="bg-white p-6 rounded-xl shadow-sm mt-6 mb-10">
+        <MarketProductVariants
+          productId={productRow.id}
+          groups={formattedGroups}
+        />
+      </section>
       <section className="bg-white p-6 rounded-xl shadow-sm mt-6">
         <MarketEditProductForm
           productId={productRow.id}
