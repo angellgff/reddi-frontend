@@ -33,6 +33,10 @@ export type OrderDetails = {
       quantity: number;
       unit_price: number;
     }[];
+    variant?: {
+      name: string;
+      group_name?: string;
+    };
   }[];
   subtotal: number;
   total: number;
@@ -59,7 +63,7 @@ export default async function getOrderDetailsData(
     .select(
       `id, status, subtotal, shipping_fee, total_amount, tip_amount, discount_amount, scheduled_at, user_address_id, partner_id, instructions,
        partners:partner_id(name, image_url),
-       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url), order_detail_extras(id, product_extra_id, quantity, unit_price))`
+       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url), variant:product_variants!order_detail_variant_id_fkey(name, group:product_variant_groups(name)), order_detail_extras(id, product_extra_id, quantity, unit_price))`
     )
     .eq("id", id)
     .maybeSingle();
@@ -93,6 +97,12 @@ export default async function getOrderDetailsData(
         description?: string | null;
         image_url?: string | null;
       } | null;
+      variant: {
+        name: string;
+        group: {
+          name: string;
+        } | null;
+      } | null;
       order_detail_extras?: Array<{
         id: string;
         product_extra_id: string | null;
@@ -112,6 +122,12 @@ export default async function getOrderDetailsData(
     price: it.unit_price ?? 0,
     quantity: it.quantity ?? 0,
     imageUrl: it.products?.image_url ?? "/images/store-logo.png",
+    variant: it.variant
+      ? {
+          name: it.variant.name,
+          group_name: it.variant.group?.name,
+        }
+      : undefined,
     extras: (it.order_detail_extras ?? []).map((ex) => ({
       id: ex.id,
       product_extra_id: ex.product_extra_id ?? null,

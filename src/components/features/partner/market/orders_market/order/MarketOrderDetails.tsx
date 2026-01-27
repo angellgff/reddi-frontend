@@ -57,6 +57,14 @@ export default function MarketOrderDetails({ order }: MarketOrderDetailsProps) {
                       <span className="text-gray-500 font-normal"> x{item.quantity}</span>
                     )}
                   </p>
+                  {item.variant?.name && (
+                    <p className="text-sm font-roboto text-gray-500">
+                      {item.variant.group_name
+                        ? `${item.variant.group_name}: `
+                        : ""}
+                      {item.variant.name}
+                    </p>
+                  )}
                   <p className="text-sm font-roboto text-gray-500">
                     {item.description}
                   </p>
