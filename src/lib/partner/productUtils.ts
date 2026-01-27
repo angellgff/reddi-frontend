@@ -24,7 +24,7 @@ export function isPositiveNumberString(v: string): boolean {
 }
 
 export function buildCreateProductPayload(
-  form: CreateProductFormState
+  form: CreateProductFormState,
 ): CreateProductPayload {
   if (!form.subCategoryId) {
     throw new Error("La categoría (sub-categoría) es obligatoria");
@@ -33,7 +33,7 @@ export function buildCreateProductPayload(
   if (!estimated) throw new Error("Formato de tiempo estimado inválido");
 
   const sectionsPayload = form.sections.map((sec, sIdx) =>
-    sectionToPayload(sec, sIdx)
+    sectionToPayload(sec, sIdx),
   );
 
   return {
@@ -42,7 +42,12 @@ export function buildCreateProductPayload(
       basePrice: Number(form.basePrice),
       previousPrice: toNumberOrNull(form.previousPrice),
       discountPercentage: toNumberOrNull(form.discountPercent),
-      unit: form.unit.trim(),
+      unit: form.measurementUnit, // Legacy field filled with measurementUnit
+      measurementUnit: form.measurementUnit,
+      minQuantity:
+        form.measurementUnit === "unit" ? 1 : Number(form.minQuantity),
+      quantityStep:
+        form.measurementUnit === "unit" ? 1 : Number(form.quantityStep),
       estimatedTime: estimated,
       description: form.description.trim() || null,
       subCategoryId: form.subCategoryId,
@@ -79,7 +84,7 @@ export function validateStep1(form: CreateProductFormState): ValidationIssue[] {
   const required: Array<keyof CreateProductFormState> = [
     "name",
     "basePrice",
-    "unit",
+    "measurementUnit",
     "estimatedTimeRange",
     "description",
   ];
@@ -89,6 +94,17 @@ export function validateStep1(form: CreateProductFormState): ValidationIssue[] {
       issues.push({ field: f, message: "Este campo es obligatorio" });
     }
   });
+
+  // Validaciones para minQuantity y quantityStep si no es 'unit'
+  if (form.measurementUnit !== "unit") {
+    if (!isPositiveNumberString(form.minQuantity)) {
+      issues.push({ field: "minQuantity", message: "Requerido" });
+    }
+    if (!isPositiveNumberString(form.quantityStep)) {
+      issues.push({ field: "quantityStep", message: "Requerido" });
+    }
+  }
+
   if (!form.subCategoryId) {
     issues.push({
       field: "subCategoryId",

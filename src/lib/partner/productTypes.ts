@@ -38,7 +38,10 @@ export interface CreateProductFormState {
   basePrice: string;
   previousPrice: string;
   discountPercent: string; // porcentaje de descuento (opcional)
-  unit: string;
+  // unit: string; // Removed in favor of measurementUnit
+  measurementUnit: string;
+  minQuantity: string;
+  quantityStep: string;
   estimatedTimeRange: string; // formato "10-20min"
   description: string;
   subCategoryId: string | null; // FK sub_category_id
@@ -54,7 +57,10 @@ export interface CreateProductPayload {
     basePrice: number;
     previousPrice: number | null;
     discountPercentage: number | null;
-    unit: string;
+    unit: string; // Legacy field, populated from measurementUnit
+    measurementUnit: string;
+    minQuantity: number;
+    quantityStep: number;
     estimatedTime: string; // se guarda tal cual (estimated_time)
     description: string | null;
     subCategoryId: string; // requerido en BD

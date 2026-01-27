@@ -110,6 +110,7 @@ export async function createDishAction(
     // Asumo que discountPercent se calcula en el cliente o aquí. Lo añadiré por si acaso.
     // discount_percentage: formData.get("discountPercent") ? parseInt(formData.get("discountPercent") as string, 10) : null,
     unit: formData.get("unit") as string,
+    measurement_unit: formData.get("measurementUnit") as string,
     // Cambia estimatedTime a estimated_time si así se llama en tu DB
     estimated_time: formData.get("estimatedTimeRange") as string,
     description: formData.get("description") as string,
@@ -296,6 +297,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     description: formData.get("description") as string,
     sub_category_id: formData.get("subCategoryId") as string,
     unit: formData.get("unit") as string,
+    measurement_unit: formData.get("measurementUnit") as string,
     estimated_time: formData.get("estimatedTimeRange") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",

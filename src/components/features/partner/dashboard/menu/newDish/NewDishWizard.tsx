@@ -46,7 +46,9 @@ export default function NewDishWizard({
     basePrice: "",
     previousPrice: "",
     discountPercent: "",
-    unit: "",
+    measurementUnit: "unit",
+    minQuantity: "1",
+    quantityStep: "1",
     estimatedTimeRange: "",
     description: "",
     subCategoryId: subCategories[0]?.id || null,
@@ -66,7 +68,7 @@ export default function NewDishWizard({
   } | null>(null);
 
   const handleSectionsChange = (
-    newSections: CreateProductFormState["sections"]
+    newSections: CreateProductFormState["sections"],
   ) => {
     setFormData((prev) => ({ ...prev, sections: newSections }));
   };
@@ -121,10 +123,10 @@ export default function NewDishWizard({
     const s2 = validateStep2(formData);
     if (s1.length || s2.length) {
       setErrorsStep1(
-        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
       );
       setErrorsStep2(
-        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
       );
       router.push(`${basePath}?step=1`); // fallback
       return;
@@ -139,7 +141,10 @@ export default function NewDishWizard({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
-      data.append("unit", formData.unit);
+      data.append("unit", formData.measurementUnit);
+      data.append("measurementUnit", formData.measurementUnit);
+      data.append("minQuantity", formData.minQuantity);
+      data.append("quantityStep", formData.quantityStep);
       data.append("estimatedTimeRange", formData.estimatedTimeRange);
       if (formData.previousPrice) {
         data.append("previousPrice", formData.previousPrice);
@@ -177,10 +182,10 @@ export default function NewDishWizard({
     const s2 = validateStep2(formData);
     if (s1.length || s2.length) {
       setErrorsStep1(
-        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+        s1.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
       );
       setErrorsStep2(
-        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+        s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
       );
       // En caso de errores, vuelve al primer paso con errores
       router.push(`${basePath}?step=1`);
@@ -193,7 +198,10 @@ export default function NewDishWizard({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
-      data.append("unit", formData.unit);
+      data.append("unit", formData.measurementUnit);
+      data.append("measurementUnit", formData.measurementUnit);
+      data.append("minQuantity", formData.minQuantity);
+      data.append("quantityStep", formData.quantityStep);
       data.append("estimatedTimeRange", formData.estimatedTimeRange);
       if (formData.previousPrice) {
         data.append("previousPrice", formData.previousPrice);
@@ -283,10 +291,10 @@ export default function NewDishWizard({
                           options: sec.options.map((opt) =>
                             opt.clientId === pendingExtraTarget.optionId
                               ? { ...opt, extraId: extra.id }
-                              : opt
+                              : opt,
                           ),
                         }
-                      : sec
+                      : sec,
                   ),
                 }));
               }

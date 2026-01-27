@@ -21,6 +21,8 @@ const mustBeNumber: Array<keyof CreateProductFormState> = [
   "basePrice",
   "previousPrice",
   "discountPercent",
+  "minQuantity",
+  "quantityStep",
 ];
 
 interface NewDishStep1Props {
@@ -94,14 +96,29 @@ export default function NewDishStep1({
   };
 
   const verifyErrors = (newErrors: Partial<Record<string, string>>) => {
-    ["name", "basePrice", "unit", "estimatedTimeRange", "description"].forEach(
-      (f) => {
-        const val = (formData as unknown as Record<string, unknown>)[f];
-        if (!val || (typeof val === "string" && !val.trim())) {
-          newErrors[f] = "Este campo es obligatorio";
-        }
-      },
-    );
+    [
+      "name",
+      "basePrice",
+      "measurementUnit",
+      "estimatedTimeRange",
+      "description",
+    ].forEach((f) => {
+      const val = (formData as unknown as Record<string, unknown>)[f];
+      if (!val || (typeof val === "string" && !val.trim())) {
+        newErrors[f] = "Este campo es obligatorio";
+      }
+    });
+
+    // Validación condicional para minQuantity y quantityStep
+    if (formData.measurementUnit !== "unit") {
+      if (!formData.minQuantity || !String(formData.minQuantity).trim()) {
+        newErrors.minQuantity = "Este campo es obligatorio";
+      }
+      if (!formData.quantityStep || !String(formData.quantityStep).trim()) {
+        newErrors.quantityStep = "Este campo es obligatorio";
+      }
+    }
+
     if (!formData.subCategoryId) {
       newErrors["subCategoryId"] = "Seleccione una categoría";
     }
@@ -240,14 +257,42 @@ export default function NewDishStep1({
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <BasicInput
-                id="unit"
-                label="Unidad"
-                placeholder="/u"
-                value={formData.unit}
-                onChange={handleChange}
+              <SelectInput
+                id="measurementUnit"
+                name="measurementUnit"
+                label="Unidad de medida"
+                placeholder="Seleccione"
+                value={formData.measurementUnit || ""}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  // Si selecciona 'unit', reseteamos min y step a 1
+                  if (val === "unit") {
+                    updateFormData({
+                      measurementUnit: val,
+                      minQuantity: "1",
+                      quantityStep: "1",
+                    });
+                    // Limpiar error asociado si existe
+                    if (errors.measurementUnit) {
+                      const newE = { ...errors };
+                      delete newE.measurementUnit;
+                      setErrors(newE);
+                    }
+                  } else {
+                    handleChange(e);
+                  }
+                }}
+                options={[
+                  { value: "unit", label: "Unidad (unit)" },
+                  { value: "lb", label: "Libras (lb)" },
+                  { value: "kg", label: "Kilogramos (kg)" },
+                  { value: "oz", label: "Onzas (oz)" },
+                  { value: "g", label: "Gramos (g)" },
+                ]}
+                getOptionLabel={(o) => o.label}
+                getOptionValue={(o) => o.value}
                 required
-                error={errors.unit}
+                error={errors.measurementUnit}
               />
 
               <BasicInput
@@ -262,6 +307,30 @@ export default function NewDishStep1({
                 }
               />
             </div>
+
+            {formData.measurementUnit &&
+              formData.measurementUnit !== "unit" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  <BasicInput
+                    id="minQuantity"
+                    label="Cantidad mínima"
+                    placeholder="Ej. 0.5"
+                    value={formData.minQuantity}
+                    onChange={handleChange}
+                    required
+                    error={errors.minQuantity}
+                  />
+                  <BasicInput
+                    id="quantityStep"
+                    label="Pasos de cantidad"
+                    placeholder="Ej. 0.5"
+                    value={formData.quantityStep}
+                    onChange={handleChange}
+                    required
+                    error={errors.quantityStep}
+                  />
+                </div>
+              )}
 
             <div>
               <TextArea

@@ -1216,9 +1216,12 @@ export type Database = {
           id: string
           image_url: string | null
           is_available: boolean
+          measurement_unit: Database["public"]["Enums"]["measurement_unit_type"]
+          min_quantity: number
           name: string
           partner_id: string
           previous_price: number | null
+          quantity_step: number
           sub_category_id: string | null
           tax_included: boolean
           unit: string
@@ -1234,9 +1237,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_available?: boolean
+          measurement_unit?: Database["public"]["Enums"]["measurement_unit_type"]
+          min_quantity?: number
           name: string
           partner_id: string
           previous_price?: number | null
+          quantity_step?: number
           sub_category_id?: string | null
           tax_included?: boolean
           unit: string
@@ -1252,9 +1258,12 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_available?: boolean
+          measurement_unit?: Database["public"]["Enums"]["measurement_unit_type"]
+          min_quantity?: number
           name?: string
           partner_id?: string
           previous_price?: number | null
+          quantity_step?: number
           sub_category_id?: string | null
           tax_included?: boolean
           unit?: string
@@ -2737,6 +2746,7 @@ export type Database = {
         | "in_delivery"
         | "pending_approval"
         | "inactive"
+      measurement_unit_type: "unit" | "lb" | "kg" | "oz" | "g"
       order_status:
         | "awaiting_payment"
         | "pending"
@@ -2931,6 +2941,7 @@ export const Constants = {
         "pending_approval",
         "inactive",
       ],
+      measurement_unit_type: ["unit", "lb", "kg", "oz", "g"],
       order_status: [
         "awaiting_payment",
         "pending",

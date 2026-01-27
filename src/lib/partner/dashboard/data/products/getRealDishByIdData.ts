@@ -19,6 +19,9 @@ type ProductData = {
   previous_price?: number;
   discount_percentage?: number;
   unit?: string;
+  measurement_unit?: string;
+  min_quantity?: number;
+  quantity_step?: number;
   estimated_time?: string;
   description?: string;
   sub_category_id?: string;
@@ -44,7 +47,9 @@ function mapProductToFormState(product: ProductData): CreateProductFormState {
     basePrice: String(product.base_price || "0"),
     previousPrice: String(product.previous_price || ""),
     discountPercent: String(product.discount_percentage || ""), // Asegúrate de que esta columna exista
-    unit: product.unit || "",
+    measurementUnit: product.measurement_unit || "unit",
+    minQuantity: String(product.min_quantity || "1"),
+    quantityStep: String(product.quantity_step || "1"),
     estimatedTimeRange: product.estimated_time || "",
     description: product.description || "",
     subCategoryId: product.sub_category_id || null,
@@ -75,9 +80,9 @@ function mapProductToFormState(product: ProductData): CreateProductFormState {
               // extraName: extraDetails?.name || 'Extra no encontrado',
               // extraDefaultPrice: extraDetails?.default_price || 0,
             };
-          }
+          },
         ),
-      })
+      }),
     ),
   };
 }
@@ -124,7 +129,7 @@ async function getDishByIdUncached({
           product_extras (*)
         )
       )
-    `
+    `,
     )
     .eq("id", id)
     .eq("partner_id", partner.id) // ¡FILTRO DE SEGURIDAD AÑADIDO!
@@ -138,7 +143,7 @@ async function getDishByIdUncached({
       notFound();
     }
     throw new Error(
-      "Product not found or you do not have permission to view it."
+      "Product not found or you do not have permission to view it.",
     );
   }
 

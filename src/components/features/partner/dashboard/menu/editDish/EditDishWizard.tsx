@@ -52,7 +52,7 @@ export default function EditDishWizard({
   } | null>(null);
 
   const handleSectionsChange = (
-    newSections: CreateProductFormState["sections"]
+    newSections: CreateProductFormState["sections"],
   ) => {
     setFormData((prev) => ({ ...prev, sections: newSections }));
   };
@@ -64,7 +64,7 @@ export default function EditDishWizard({
   const handleNextStep1 = () => {
     const issues = validateStep1(formData);
     setErrorsStep1(
-      issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
     );
     if (issues.length === 0) {
       router.push(`${basePath}?step=2`);
@@ -74,7 +74,7 @@ export default function EditDishWizard({
   const handleNextStep2 = () => {
     const issues = validateStep2(formData);
     setErrorsStep2(
-      issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {})
+      issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
     );
     if (issues.length === 0) {
       router.push(`${basePath}?step=preview`);
@@ -111,11 +111,11 @@ export default function EditDishWizard({
       console.warn("❌ Validación fallida. Hay errores.");
       const errors1 = s1.reduce(
         (acc, i) => ({ ...acc, [i.field]: i.message }),
-        {}
+        {},
       );
       const errors2 = s2.reduce(
         (acc, i) => ({ ...acc, [i.field]: i.message }),
-        {}
+        {},
       );
 
       console.log("Errores a establecer en el estado (Step 1):", errors1);
@@ -134,7 +134,7 @@ export default function EditDishWizard({
 
     // 3. Si la validación es exitosa, proceder con el envío
     console.log(
-      "✅ Validación exitosa. Procediendo a preparar los datos para el envío."
+      "✅ Validación exitosa. Procediendo a preparar los datos para el envío.",
     );
 
     try {
@@ -147,7 +147,10 @@ export default function EditDishWizard({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
-      data.append("unit", formData.unit);
+      data.append("unit", formData.measurementUnit);
+      data.append("measurementUnit", formData.measurementUnit);
+      data.append("minQuantity", formData.minQuantity);
+      data.append("quantityStep", formData.quantityStep);
       data.append("estimatedTimeRange", formData.estimatedTimeRange);
       if (formData.previousPrice)
         data.append("previousPrice", formData.previousPrice);
@@ -193,7 +196,7 @@ export default function EditDishWizard({
     } finally {
       // Limpieza
       console.log(
-        "Ejecutando el bloque 'finally'. Finalizando el estado de envío."
+        "Ejecutando el bloque 'finally'. Finalizando el estado de envío.",
       );
       setIsSubmitting(false);
       console.groupEnd(); // Fin de Fase de Envío (API Call)
@@ -264,10 +267,10 @@ export default function EditDishWizard({
                           options: sec.options.map((opt) =>
                             opt.clientId === pendingExtraTarget.optionId
                               ? { ...opt, extraId: extra.id }
-                              : opt
+                              : opt,
                           ),
                         }
-                      : sec
+                      : sec,
                   ),
                 }));
               }

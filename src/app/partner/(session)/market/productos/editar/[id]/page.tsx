@@ -30,7 +30,7 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
   const { data: productRow, error: productError } = await supabase
     .from("products")
     .select(
-      `id, name, description, base_price, previous_price, unit, estimated_time, sub_category_id, is_available, tax_included, image_url, category_id`,
+      `id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, sub_category_id, is_available, tax_included, image_url, category_id`,
     )
     .eq("id", id) // Se usa la variable 'id'
     .eq("partner_id", partner.id)
@@ -89,7 +89,9 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     basePrice: String(productRow.base_price ?? ""),
     previousPrice: String(productRow.previous_price ?? ""),
     discountPercent: "", // Market aún sin campo específico
-    unit: productRow.unit || "",
+    measurementUnit: productRow.measurement_unit || "unit",
+    minQuantity: String(productRow.min_quantity || "1"),
+    quantityStep: String(productRow.quantity_step || "1"),
     estimatedTimeRange: productRow.estimated_time || "",
     description: productRow.description || "",
     subCategoryId:

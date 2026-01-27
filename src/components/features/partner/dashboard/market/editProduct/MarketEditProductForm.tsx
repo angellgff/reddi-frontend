@@ -55,7 +55,10 @@ export default function MarketEditProductForm({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
-      data.append("unit", formData.unit);
+      data.append("unit", formData.measurementUnit);
+      data.append("measurementUnit", formData.measurementUnit);
+      data.append("minQuantity", formData.minQuantity);
+      data.append("quantityStep", formData.quantityStep);
       data.append("estimatedTimeRange", formData.estimatedTimeRange);
       if (formData.previousPrice)
         data.append("previousPrice", formData.previousPrice);
