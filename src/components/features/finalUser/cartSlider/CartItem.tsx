@@ -218,9 +218,16 @@ export default function CartItem({
               }).format(unitWithExtras * item.quantity)}
             </div>
           </div>
-          <div className="text-xs text-gray-500">
-            Hamburguesa de carne de...
-          </div>
+          {/* Variantes */}
+          {item.variants && item.variants.length > 0 && (
+            <div className="flex flex-col mt-1">
+              {item.variants.map((v) => (
+                <div key={v.id} className="text-xs text-gray-500">
+                  <span className="font-medium">{v.groupName}:</span> {v.name}
+                </div>
+              ))}
+            </div>
+          )}
           {/* Controles */}
           <div className="mt-2 flex items-center justify-between">
             <button
