@@ -101,29 +101,29 @@ const cartSlice = createSlice({
         // En caso de unidades fraccionarias (ej 0.5 lb) no podemos iterar "0.5 veces".
         // Asumimos que si se agrega con extras y es unidad fraccionaria, se agrega como UNA linea con esa cantidad.
         if (action.payload.quantityStep && action.payload.quantityStep < 1) {
-            state.items.push({
+          state.items.push({
+            id: nanoid(),
+            productId,
+            partnerId,
+            name,
+            imageUrl,
+            unitPrice,
+            quantity,
+            measurementUnit: action.payload.measurementUnit,
+            quantityStep: action.payload.quantityStep,
+            minQuantity: action.payload.minQuantity,
+            extras: (extras || []).map((e) => ({
               id: nanoid(),
-              productId,
-              partnerId,
-              name,
-              imageUrl,
-              unitPrice,
-              quantity,
-              measurementUnit: action.payload.measurementUnit,
-              quantityStep: action.payload.quantityStep,
-              minQuantity: action.payload.minQuantity,
-              extras: (extras || []).map((e) => ({
-                id: nanoid(),
-                imageUrl: e.imageUrl ?? null,
-                extraId: e.extraId,
-                name: e.name,
-                price: e.price,
-                quantity: e.quantity,
-              })),
-              variants: variants || [], 
-              note: note ?? null,
-            });
-            return;
+              imageUrl: e.imageUrl ?? null,
+              extraId: e.extraId,
+              name: e.name,
+              price: e.price,
+              quantity: e.quantity,
+            })),
+            variants: variants || [],
+            note: note ?? null,
+          });
+          return;
         }
 
         const times = Math.max(1, quantity);
@@ -220,8 +220,10 @@ const cartSlice = createSlice({
       // para permitir personalización futura individual.
       // Si tiene variantes PERO NO extras, simplemente subimos la cantidad (ej: 2 Pizzas Grandes iguales).
       // EXCEPCION: Si es unidad de medida fraccionaria (quantityStep < 1 o measurementUnit != unit), NO dividimos.
-      const isFractional = (it.quantityStep && it.quantityStep < 1) || (it.measurementUnit && it.measurementUnit !== "unit");
-      
+      const isFractional =
+        (it.quantityStep && it.quantityStep < 1) ||
+        (it.measurementUnit && it.measurementUnit !== "unit");
+
       if (nextQty > it.quantity && it.extras.length > 0 && !isFractional) {
         const inc = nextQty - it.quantity;
         for (let k = 0; k < inc; k++) {
