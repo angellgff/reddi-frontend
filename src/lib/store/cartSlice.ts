@@ -18,7 +18,7 @@ export interface SelectedVariant {
   variantId: string; // FK to product_variants
   groupName: string;
   name: string;
-  price: number; // precio adicional (diferencia o absoluto sumado)
+  price: number; // IMPORTANTE: Normalmente es 0 si el precio ya está incluido en unitPrice
 }
 
 export interface CartItem {
@@ -27,11 +27,10 @@ export interface CartItem {
   partnerId: string; // para agrupar por restaurante/partner
   name: string;
   imageUrl?: string | null;
-  unitPrice: number; // base_price con descuento aplicado si existe
+  unitPrice: number; // PRECIO FINAL (Base o Variante)
   quantity: number;
   extras: SelectedExtra[];
   variants?: SelectedVariant[];
-  // opcional: notas, variantes, etc.
   note?: string | null;
 }
 
@@ -49,6 +48,8 @@ const calcItemTotal = (item: CartItem) => {
     (s, e) => s + e.price * e.quantity,
     0,
   );
+  // Nota: Si usas unitPrice como el precio de la variante,
+  // asegúrate de que v.price sea 0 al hacer dispatch, o se sumará doble.
   const variantsTotalPerUnit = (item.variants || []).reduce(
     (s, v) => s + v.price,
     0,
@@ -86,8 +87,9 @@ const cartSlice = createSlice({
         note,
       } = action.payload;
 
-      // Si el item tiene extras o variantes, no hacemos merge y forzamos líneas unitarias
-      if ((extras && extras.length > 0) || (variants && variants.length > 0)) {
+      // 1. Si el item tiene EXTRAS, forzamos líneas separadas (no merge).
+      // Esto es porque los extras suelen ser personalizaciones únicas.
+      if (extras && extras.length > 0) {
         const times = Math.max(1, quantity);
         for (let i = 0; i < times; i++) {
           state.items.push({
@@ -106,35 +108,39 @@ const cartSlice = createSlice({
               price: e.price,
               quantity: e.quantity,
             })),
-            variants: (variants || []).map((v) => ({
-              id: nanoid(),
-              variantId: v.variantId,
-              groupName: v.groupName,
-              name: v.name,
-              price: v.price,
-            })),
+            variants: variants || [], // Pasamos las variantes
             note: note ?? null,
           });
         }
         return;
       }
 
+      // 2. Intento de MERGE (Agrupar)
+      // Agrupamos si: Mismo Producto + Misma Variante + Misma Nota + Sin Extras
       if (mergeByProduct) {
-        const found = state.items.find(
-          (i: CartItem) =>
-            i.productId === productId &&
-            i.partnerId === partnerId &&
-            (i.extras?.length ?? 0) === 0 &&
-            (i.variants?.length ?? 0) === 0 &&
-            // Merge solo si la nota coincide (tratando undefined y "" como iguales)
-            (i.note ?? "") === (note ?? ""),
-        );
+        const found = state.items.find((i: CartItem) => {
+          // Chequeos básicos
+          if (i.productId !== productId || i.partnerId !== partnerId)
+            return false;
+          if ((i.note ?? "") !== (note ?? "")) return false;
+          // Solo mergeamos si el existente tampoco tiene extras
+          if ((i.extras?.length ?? 0) > 0) return false;
+
+          // Chequeo de Variantes (Array Deep Check simplificado)
+          // Asumimos que si tienen variantes, el ID de la primera debe coincidir.
+          const incomingVariantId = variants?.[0]?.variantId;
+          const existingVariantId = i.variants?.[0]?.variantId;
+
+          return incomingVariantId === existingVariantId;
+        });
+
         if (found) {
           found.quantity += quantity;
           return;
         }
       }
 
+      // 3. Si no se agrupó, crear nueva línea
       state.items.push({
         id,
         productId,
@@ -143,8 +149,8 @@ const cartSlice = createSlice({
         imageUrl,
         unitPrice,
         quantity,
-        extras: [],
-        variants: [],
+        extras: [], // Ya validamos arriba que si tenía extras entraba en el paso 1
+        variants: variants || [],
         note: note ?? null,
       });
     },
@@ -166,29 +172,22 @@ const cartSlice = createSlice({
 
       if (nextQty === it.quantity) return;
 
-      // Si el item tiene extras y se intenta aumentar su cantidad,
-      // no multiplicamos los extras. En su lugar, creamos nuevas líneas
-      // base (sin extras) por cada incremento requerido.
+      // Si aumentamos cantidad y tiene extras, dividimos en nuevas líneas
+      // para permitir personalización futura individual.
+      // Si tiene variantes PERO NO extras, simplemente subimos la cantidad (ej: 2 Pizzas Grandes iguales).
       if (nextQty > it.quantity && it.extras.length > 0) {
         const inc = nextQty - it.quantity;
         for (let k = 0; k < inc; k++) {
           state.items.push({
+            ...JSON.parse(JSON.stringify(it)), // Deep copy rápido
             id: nanoid(),
-            productId: it.productId,
-            partnerId: it.partnerId,
-            name: it.name,
-            imageUrl: it.imageUrl,
-            unitPrice: it.unitPrice,
             quantity: 1,
-            extras: [],
-            note: it.note ?? null,
           });
         }
-        // La línea original mantiene su cantidad intacta (no se cambia)
         return;
       }
 
-      // Caso normal (sin extras o disminuir cantidad): actualizar la cantidad directamente
+      // Caso normal
       it.quantity = nextQty;
     },
     addExtraToItem: (
@@ -201,50 +200,33 @@ const cartSlice = createSlice({
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (!it) return;
 
-      // Nueva regla: si agregamos un extra a un producto con cantidad > 1,
-      // dividimos: restamos 1 a la línea actual y creamos una nueva línea con qty=1 y el extra.
+      // Si agregamos extra a item con cantidad > 1, separamos uno
       if (it.quantity > 1) {
         it.quantity -= 1;
-        // Copiamos los extras actuales a la nueva línea (para no perder configuración)
-        const newExtras: SelectedExtra[] = it.extras.map((e) => ({
+        const newItem: CartItem = {
+          ...JSON.parse(JSON.stringify(it)), // Copia profunda para extras/variantes
           id: nanoid(),
-          imageUrl: e.imageUrl ?? null,
-          extraId: e.extraId,
-          name: e.name,
-          price: e.price,
-          quantity: e.quantity,
-        }));
-        // Agregamos o incrementamos el extra nuevo en la nueva línea
-        const target = newExtras.find(
+          quantity: 1,
+        };
+
+        // Agregar el extra al nuevo item
+        const existingExtra = newItem.extras.find(
           (e) => e.extraId === action.payload.extra.extraId,
         );
-        if (target) target.quantity += action.payload.extra.quantity ?? 1;
-        else
-          newExtras.push({
+        if (existingExtra) {
+          existingExtra.quantity += action.payload.extra.quantity ?? 1;
+        } else {
+          newItem.extras.push({
             id: nanoid(),
-            imageUrl: action.payload.extra.imageUrl ?? null,
-            extraId: action.payload.extra.extraId,
-            name: action.payload.extra.name,
-            price: action.payload.extra.price,
+            ...action.payload.extra,
             quantity: action.payload.extra.quantity ?? 1,
           });
-
-        const newItem: CartItem = {
-          id: nanoid(),
-          productId: it.productId,
-          partnerId: it.partnerId,
-          name: it.name,
-          imageUrl: it.imageUrl,
-          unitPrice: it.unitPrice,
-          quantity: 1,
-          extras: newExtras,
-          note: it.note ?? null,
-        };
+        }
         state.items.push(newItem);
         return;
       }
 
-      // Caso normal (qty === 1): agregar/incrementar el extra en la misma línea
+      // Agregar al item actual (qty 1)
       const existing = it.extras.find(
         (e: SelectedExtra) => e.extraId === action.payload.extra.extraId,
       );
@@ -328,7 +310,6 @@ export const selectCartCount = (s: { cart: CartState }) =>
   s.cart.items.reduce((acc, it) => acc + it.quantity, 0);
 export const selectCartSubtotal = (s: { cart: CartState }) =>
   s.cart.items.reduce((acc, it) => acc + calcItemTotal(it), 0);
-// Nuevo selector: partner actual (primera línea del carrito) o null si vacío
 export const selectCartPartnerId = (s: { cart: CartState }) =>
   s.cart.items.length > 0 ? s.cart.items[0].partnerId : null;
 
