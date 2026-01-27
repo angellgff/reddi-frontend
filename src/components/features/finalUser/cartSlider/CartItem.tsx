@@ -41,7 +41,7 @@ export default function CartItem({
           extras: [],
           mergeByProduct: true,
           note: item.note ?? null,
-        })
+        }),
       );
     } else {
       dispatch(setQuantity({ id: item.id, quantity: item.quantity + 1 }));
@@ -49,7 +49,7 @@ export default function CartItem({
   };
   const decrease = () =>
     dispatch(
-      setQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) })
+      setQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) }),
     );
 
   // Cargar secciones y opciones (extras disponibles) del producto
@@ -90,7 +90,7 @@ export default function CartItem({
              product_section_options (
                id,override_price,display_order,
                product_extras ( id,name,image_url,default_price )
-             )`
+             )`,
           )
           .eq("product_id", item.productId)
           .order("display_order", { ascending: true });
@@ -129,7 +129,7 @@ export default function CartItem({
             })
             .sort(
               (a: ExtraOption, b: ExtraOption) =>
-                a.displayOrder - b.displayOrder
+                a.displayOrder - b.displayOrder,
             ),
         }));
         setSections(mapped);
@@ -150,7 +150,7 @@ export default function CartItem({
     if (!enableExtras) return item.unitPrice;
     const extras = item.extras.reduce(
       (sum, ex) => sum + (Number(ex.price) || 0) * (ex.quantity || 0),
-      0
+      0,
     );
     return item.unitPrice + extras;
   }, [item.unitPrice, item.extras, enableExtras]);
@@ -168,7 +168,10 @@ export default function CartItem({
   };
   const saveNote = () => {
     dispatch(
-      updateItemNote({ id: item.id, note: draftNote.trim() ? draftNote : null })
+      updateItemNote({
+        id: item.id,
+        note: draftNote.trim() ? draftNote : null,
+      }),
     );
     setEditingNote(false);
   };
@@ -185,14 +188,14 @@ export default function CartItem({
             sectionName: section.name,
             sectionRequired: section.isRequired,
             sectionOrder: section.displayOrder,
-          }))
+          })),
         )
         .sort((a, b) =>
           a.sectionOrder !== b.sectionOrder
             ? a.sectionOrder - b.sectionOrder
-            : a.displayOrder - b.displayOrder
+            : a.displayOrder - b.displayOrder,
         ),
-    [sections]
+    [sections],
   );
 
   return (
@@ -298,7 +301,7 @@ export default function CartItem({
                         decrementExtraQuantity({
                           id: item.id,
                           extraId: ex.extraId,
-                        })
+                        }),
                       )
                     }
                     className="h-7 w-7 rounded-full border grid place-items-center"
@@ -315,7 +318,7 @@ export default function CartItem({
                         incrementExtraQuantity({
                           id: item.id,
                           extraId: ex.extraId,
-                        })
+                        }),
                       )
                     }
                     className="h-7 w-7 rounded-full border grid place-items-center"
@@ -330,7 +333,7 @@ export default function CartItem({
                         removeExtraFromItem({
                           id: item.id,
                           extraId: ex.extraId,
-                        })
+                        }),
                       )
                     }
                   >
@@ -352,7 +355,7 @@ export default function CartItem({
             <div className="flex gap-3 overflow-x-auto pb-1">
               {flatOptions.map((opt) => {
                 const selected = item.extras.find(
-                  (e) => e.extraId === opt.extraId
+                  (e) => e.extraId === opt.extraId,
                 );
                 const priceLabel =
                   opt.price > 0
@@ -407,7 +410,7 @@ export default function CartItem({
                                   name: opt.name,
                                   price: opt.price,
                                 },
-                              })
+                              }),
                             )
                           }
                         >
