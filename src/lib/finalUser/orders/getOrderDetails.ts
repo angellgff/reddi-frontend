@@ -17,6 +17,10 @@ type OrderItem = {
     image_url?: string | null;
     unit?: string;
   } | null;
+  variant?: {
+    name?: string;
+    group_name?: string;
+  } | null;
   extras?: {
     id: string;
     product_extra_id?: string | null;
@@ -127,6 +131,8 @@ function normalizeOrder(data: unknown): NormalizedOrder {
     .filter((x): x is Record<string, unknown> => !!x)
     .map((it) => {
       const p = asRecord(it["products"]);
+      const v = asRecord(it["variant"]);
+      const g = v ? asRecord(v["group"]) : null;
       const exArr = Array.isArray(it["order_detail_extras"])
         ? (it["order_detail_extras"] as unknown[])
         : [];
@@ -162,6 +168,13 @@ function normalizeOrder(data: unknown): NormalizedOrder {
                   : undefined,
             }
           : undefined,
+        variant: v
+          ? {
+              name: typeof v["name"] === "string" ? (v["name"] as string) : "",
+              group_name:
+                g && typeof g["name"] === "string" ? (g["name"] as string) : "",
+            }
+          : null,
         extras,
       } as OrderItem;
     });
@@ -218,7 +231,7 @@ export async function getOrderDetails(id: string): Promise<NormalizedOrder> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, payment_method, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), shipments!shipments_order_id_fkey(id,origin_coordinates,destination_coordinates,driver_id), order_detail(id,quantity,unit_price, products(name,image_url,unit), order_detail_extras(id,product_extra_id,quantity,unit_price))",
+      "id,status,subtotal,shipping_fee,discount_amount,total_amount,tip_amount,instructions, partner_id, payment_method, user_address_id, user_addresses(id,location_type,location_number), partners(name,image_url,address), shipments!shipments_order_id_fkey(id,origin_coordinates,destination_coordinates,driver_id), order_detail(id,quantity,unit_price, products(name,image_url,unit), variant:product_variants!order_detail_variant_id_fkey(name, group:product_variant_groups(name)), order_detail_extras(id,product_extra_id,quantity,unit_price))",
     )
     .eq("id", id)
     .single();

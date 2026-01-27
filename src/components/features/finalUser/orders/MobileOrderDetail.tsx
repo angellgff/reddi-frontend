@@ -243,6 +243,14 @@ export default function MobileOrderDetail({
                   <div className="text-base text-black mb-1">
                     {item.products?.name}
                   </div>
+                  {item.variant?.name && (
+                    <div className="text-sm text-gray-500 mb-1">
+                      {item.variant.group_name
+                        ? `${item.variant.group_name}: `
+                        : ""}
+                      {item.variant.name}
+                    </div>
+                  )}
                   <button
                     onClick={() => toggleItem(item.id)}
                     className="text-sm text-black cursor-pointer flex items-center gap-1 hover:opacity-70 transition-opacity"

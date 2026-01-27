@@ -268,13 +268,19 @@ export default function CheckoutPaymentPage() {
         throw new Error("Por favor selecciona un método de pago.");
       }
 
-      // 1. Preparar items para la DB
+      // 1. Preparar items para la DB (CORREGIDO)
       const cart_items = items.map((it) => ({
         productId: it.productId,
         partnerId: it.partnerId,
         unitPrice: it.unitPrice,
         quantity: it.quantity,
         note: it.note ?? null,
+        name: it.name, // Útil para debugging y emails
+
+        // CORRECCIÓN CRÍTICA: Enviamos el array completo de variantes.
+        // Redux ya tiene [{ variantId: 'uuid', ... }] dentro de it.variants
+        variants: it.variants || [],
+
         extras: it.extras.map((e) => ({
           extraId: e.extraId,
           quantity: e.quantity,

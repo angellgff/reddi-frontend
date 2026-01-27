@@ -1878,6 +1878,14 @@ export type Database = {
         Args: { cart_items: Json; checkout_data: Json }
         Returns: string
       }
+      create_order_with_variants: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_with_variants_v2: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
       disablelongtransactions: { Args: never; Returns: string }
       display_price: {
         Args: { product_row: Database["public"]["Tables"]["products"]["Row"] }

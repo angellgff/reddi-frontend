@@ -15,8 +15,6 @@ import {
 import { clearCart } from "@/src/lib/store/cartSlice";
 import { resetCheckout } from "@/src/lib/store/checkoutSlice";
 
-
-
 function currency(n: number) {
   if (!isFinite(n)) return "RD$0.00";
   return new Intl.NumberFormat("es-DO", {
@@ -65,7 +63,7 @@ export default function CheckoutConfirmPage() {
         ? addresses.find((a) => String(a.id) === String(effectiveAddressId)) ||
           null
         : null,
-    [addresses, effectiveAddressId]
+    [addresses, effectiveAddressId],
   );
 
   const addressType = selectedAddress?.location_type
@@ -109,13 +107,19 @@ export default function CheckoutConfirmPage() {
         throw new Error("Por favor selecciona un método de pago.");
       }
 
-      // 1. Preparar items para la DB
+      // 1. Preparar items para la DB (CORREGIDO)
       const cart_items = items.map((it) => ({
         productId: it.productId,
         partnerId: it.partnerId,
         unitPrice: it.unitPrice,
         quantity: it.quantity,
         note: it.note ?? null,
+        name: it.name, // Útil para debugging y emails
+
+        // CORRECCIÓN CRÍTICA: Enviamos el array completo de variantes.
+        // Redux ya tiene [{ variantId: 'uuid', ... }] dentro de it.variants
+        variants: it.variants || [],
+
         extras: it.extras.map((e) => ({
           extraId: e.extraId,
           quantity: e.quantity,
@@ -133,7 +137,7 @@ export default function CheckoutConfirmPage() {
         couponId: checkout.coupon?.id ?? null,
         tipPercent: effectiveTipPercent,
         shippingCost: shipping,
-        
+
         // Enviamos el pago tal cual (ej. manual/cash)
         payment: checkout.payment,
 
@@ -175,7 +179,6 @@ export default function CheckoutConfirmPage() {
       } else {
         router.push("/user/orders");
       }
-
     } catch (err) {
       console.error("handleCreateOrder error:", err);
       let extracted = "No se pudo completar el pedido. Inténtalo de nuevo.";

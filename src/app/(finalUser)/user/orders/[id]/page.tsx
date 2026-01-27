@@ -193,6 +193,14 @@ export default async function OrderStatusPage({ params }: PageProps) {
                       <div className="font-medium">
                         {d.products?.name ?? "Producto"}
                       </div>
+                      {d.variant?.name ? (
+                        <div className="text-sm text-gray-500">
+                          {d.variant.group_name
+                            ? `${d.variant.group_name}: `
+                            : ""}
+                          {d.variant.name}
+                        </div>
+                      ) : null}
                       <div className="text-sm">
                         {d.quantity} {d.products?.unit ?? "ud"}
                       </div>
