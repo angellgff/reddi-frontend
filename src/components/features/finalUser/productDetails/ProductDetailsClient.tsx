@@ -310,9 +310,7 @@ export default function ProductDetailsClient({
       if (vId) {
         const v = g.variants.find((x) => x.id === vId);
         if (v) {
-          total += getOptionPrice(
-            v.display_variant_price ?? v.base_price ?? 0,
-          );
+          total += getOptionPrice(v.display_variant_price ?? v.base_price ?? 0);
         }
       }
     }
@@ -358,7 +356,13 @@ export default function ProductDetailsClient({
     });
 
     return variantsOk && sectionsOk;
-  }, [details.sections, details.variant_groups, selected, selectedVariants, isRestaurant]);
+  }, [
+    details.sections,
+    details.variant_groups,
+    selected,
+    selectedVariants,
+    isRestaurant,
+  ]);
 
   const incOption = (extraId: string) =>
     setSelected((m) => ({ ...m, [extraId]: (m[extraId] || 0) + 1 }));

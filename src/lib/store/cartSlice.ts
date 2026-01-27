@@ -47,11 +47,11 @@ const initialState: CartState = {
 const calcItemTotal = (item: CartItem) => {
   const extrasTotalPerUnit = item.extras.reduce(
     (s, e) => s + e.price * e.quantity,
-    0
+    0,
   );
   const variantsTotalPerUnit = (item.variants || []).reduce(
     (s, v) => s + v.price,
-    0
+    0,
   );
   return (
     (item.unitPrice + extrasTotalPerUnit + variantsTotalPerUnit) * item.quantity
@@ -70,7 +70,7 @@ const cartSlice = createSlice({
       state: CartState,
       action: PayloadAction<
         Omit<CartItem, "id"> & { id?: string; mergeByProduct?: boolean }
-      >
+      >,
     ) => {
       const {
         id = nanoid(),
@@ -87,10 +87,7 @@ const cartSlice = createSlice({
       } = action.payload;
 
       // Si el item tiene extras o variantes, no hacemos merge y forzamos líneas unitarias
-      if (
-        (extras && extras.length > 0) ||
-        (variants && variants.length > 0)
-      ) {
+      if ((extras && extras.length > 0) || (variants && variants.length > 0)) {
         const times = Math.max(1, quantity);
         for (let i = 0; i < times; i++) {
           state.items.push({
@@ -130,7 +127,7 @@ const cartSlice = createSlice({
             (i.extras?.length ?? 0) === 0 &&
             (i.variants?.length ?? 0) === 0 &&
             // Merge solo si la nota coincide (tratando undefined y "" como iguales)
-            (i.note ?? "") === (note ?? "")
+            (i.note ?? "") === (note ?? ""),
         );
         if (found) {
           found.quantity += quantity;
@@ -153,15 +150,15 @@ const cartSlice = createSlice({
     },
     removeItem: (state: CartState, action: PayloadAction<{ id: string }>) => {
       state.items = state.items.filter(
-        (i: CartItem) => i.id !== action.payload.id
+        (i: CartItem) => i.id !== action.payload.id,
       );
     },
     setQuantity: (
       state: CartState,
-      action: PayloadAction<{ id: string; quantity: number }>
+      action: PayloadAction<{ id: string; quantity: number }>,
     ) => {
       const itIdx = state.items.findIndex(
-        (i: CartItem) => i.id === action.payload.id
+        (i: CartItem) => i.id === action.payload.id,
       );
       if (itIdx === -1) return;
       const it = state.items[itIdx];
@@ -199,7 +196,7 @@ const cartSlice = createSlice({
       action: PayloadAction<{
         id: string;
         extra: Omit<SelectedExtra, "id" | "quantity"> & { quantity?: number };
-      }>
+      }>,
     ) => {
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (!it) return;
@@ -219,7 +216,7 @@ const cartSlice = createSlice({
         }));
         // Agregamos o incrementamos el extra nuevo en la nueva línea
         const target = newExtras.find(
-          (e) => e.extraId === action.payload.extra.extraId
+          (e) => e.extraId === action.payload.extra.extraId,
         );
         if (target) target.quantity += action.payload.extra.quantity ?? 1;
         else
@@ -249,7 +246,7 @@ const cartSlice = createSlice({
 
       // Caso normal (qty === 1): agregar/incrementar el extra en la misma línea
       const existing = it.extras.find(
-        (e: SelectedExtra) => e.extraId === action.payload.extra.extraId
+        (e: SelectedExtra) => e.extraId === action.payload.extra.extraId,
       );
       if (existing) {
         existing.quantity += action.payload.extra.quantity ?? 1;
@@ -263,7 +260,7 @@ const cartSlice = createSlice({
     },
     incrementExtraQuantity: (
       state: CartState,
-      action: PayloadAction<{ id: string; extraId: string }>
+      action: PayloadAction<{ id: string; extraId: string }>,
     ) => {
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (!it) return;
@@ -272,12 +269,12 @@ const cartSlice = createSlice({
     },
     decrementExtraQuantity: (
       state: CartState,
-      action: PayloadAction<{ id: string; extraId: string }>
+      action: PayloadAction<{ id: string; extraId: string }>,
     ) => {
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (!it) return;
       const exIdx = it.extras.findIndex(
-        (e) => e.extraId === action.payload.extraId
+        (e) => e.extraId === action.payload.extraId,
       );
       if (exIdx === -1) return;
       const ex = it.extras[exIdx];
@@ -286,18 +283,18 @@ const cartSlice = createSlice({
     },
     removeExtraFromItem: (
       state: CartState,
-      action: PayloadAction<{ id: string; extraId: string }>
+      action: PayloadAction<{ id: string; extraId: string }>,
     ) => {
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (it) {
         it.extras = it.extras.filter(
-          (e: SelectedExtra) => e.extraId !== action.payload.extraId
+          (e: SelectedExtra) => e.extraId !== action.payload.extraId,
         );
       }
     },
     updateItemNote: (
       state: CartState,
-      action: PayloadAction<{ id: string; note: string | null }>
+      action: PayloadAction<{ id: string; note: string | null }>,
     ) => {
       const it = state.items.find((i: CartItem) => i.id === action.payload.id);
       if (!it) return;
