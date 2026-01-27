@@ -9,6 +9,7 @@ export async function createVariantGroup(
   productId: string,
   name: string,
   isRequired: boolean = false,
+  path: string,
 ) {
   const supabase = await createClient();
   const { error } = await supabase.from("product_variant_groups").insert({
@@ -19,7 +20,7 @@ export async function createVariantGroup(
   });
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/partner/market/productos/editar/${productId}`);
+  revalidatePath(path);
 }
 
 export async function updateVariantGroup(
@@ -29,6 +30,7 @@ export async function updateVariantGroup(
     name?: string;
     is_required?: boolean;
   },
+  path: string,
 ) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -37,10 +39,14 @@ export async function updateVariantGroup(
     .eq("id", groupId);
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/partner/market/productos/editar/${productId}`);
+  revalidatePath(path);
 }
 
-export async function deleteVariantGroup(groupId: string, productId: string) {
+export async function deleteVariantGroup(
+  groupId: string,
+  productId: string,
+  path: string,
+) {
   const supabase = await createClient();
   // Variants with this group_id should be deleted or cascaded.
   // Assuming cascade delete is set in DB or we delete manually.
@@ -51,7 +57,7 @@ export async function deleteVariantGroup(groupId: string, productId: string) {
     .eq("id", groupId);
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/partner/market/productos/editar/${productId}`);
+  revalidatePath(path);
 }
 
 // --- Variants ---
@@ -64,6 +70,7 @@ export async function createVariant(
     base_price: number;
     is_available: boolean;
   },
+  path: string,
 ) {
   const supabase = await createClient();
   const { error } = await supabase.from("product_variants").insert({
@@ -75,10 +82,14 @@ export async function createVariant(
   });
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/partner/market/productos/editar/${productId}`);
+  revalidatePath(path);
 }
 
-export async function deleteVariant(variantId: string, productId: string) {
+export async function deleteVariant(
+  variantId: string,
+  productId: string,
+  path: string,
+) {
   const supabase = await createClient();
   const { error } = await supabase
     .from("product_variants")
@@ -86,7 +97,7 @@ export async function deleteVariant(variantId: string, productId: string) {
     .eq("id", variantId);
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/partner/market/productos/editar/${productId}`);
+  revalidatePath(path);
 }
 
 export async function updateVariant(
@@ -97,6 +108,7 @@ export async function updateVariant(
     base_price?: number;
     is_available?: boolean;
   },
+  path: string,
 ) {
   const supabase = await createClient();
   const { error } = await supabase
@@ -105,5 +117,5 @@ export async function updateVariant(
     .eq("id", variantId);
 
   if (error) throw new Error(error.message);
-  revalidatePath(`/partner/market/productos/editar/${productId}`);
+  revalidatePath(path);
 }

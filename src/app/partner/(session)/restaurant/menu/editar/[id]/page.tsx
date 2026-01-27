@@ -4,6 +4,8 @@ import { getPartnerDataForProductForms } from "@/src/lib/partner/dashboard/data/
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import EditDishSkeleton from "@/src/components/features/partner/dashboard/menu/editDish/EditDishSkeleton";
+import ProductVariantsManager from "@/src/components/features/partner/dashboard/shared/ProductVariantsManager";
+import { createClient } from "@/src/lib/supabase/server";
 
 export default async function EditDishPage({
   params,
@@ -13,6 +15,7 @@ export default async function EditDishPage({
 }) {
   // Tu uso de 'await' ya era correcto
   const { id } = await params;
+  const supabase = createClient();
 
   try {
     // 1. Obtener los datos del producto a editar y los datos generales del partner
@@ -20,6 +23,41 @@ export default async function EditDishPage({
       getRealDishById({ id }),
       getPartnerDataForProductForms(), // Esta función obtiene subcategorías y extras
     ]);
+
+    // Fetch Variants and Groups
+    const { data: groupsData } = await (
+      await supabase
+    )
+      .from("product_variant_groups")
+      .select(
+        `
+        id,
+        name,
+        is_required,
+        product_variants (
+          id,
+          name,
+          base_price,
+          is_available,
+          group_id
+        )
+      `,
+      )
+      .eq("product_id", id)
+      .order("display_order", { ascending: true });
+
+    const formattedGroups = (groupsData || []).map((g) => ({
+      id: g.id,
+      name: g.name,
+      is_required: g.is_required,
+      product_variants: (g.product_variants as any[]).map((v) => ({
+        id: v.id,
+        name: v.name,
+        base_price: v.base_price,
+        is_available: v.is_available,
+        group_id: v.group_id,
+      })),
+    }));
 
     if (!partnerData) {
       // Manejar el caso en que no se puedan obtener los datos del partner
@@ -41,6 +79,13 @@ export default async function EditDishPage({
               extrasCatalog={partnerData.extras}
             />
           </Suspense>
+        </section>
+        <section className="bg-white p-6 rounded-xl shadow-sm mt-6">
+          <ProductVariantsManager
+            productId={id}
+            groups={formattedGroups}
+            revalidateUrl={`/partner/restaurant/menu/editar/${id}`}
+          />
         </section>
       </div>
     );

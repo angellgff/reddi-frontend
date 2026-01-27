@@ -1,7 +1,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import MarketEditProductForm from "@/src/components/features/partner/dashboard/market/editProduct/MarketEditProductForm";
 import { notFound } from "next/navigation";
-import MarketProductVariants from "@/src/components/features/partner/dashboard/market/editProduct/MarketProductVariants";
+import ProductVariantsManager from "@/src/components/features/partner/dashboard/shared/ProductVariantsManager";
 
 // 1. Se actualiza la interfaz para que 'params' sea una Promise
 interface EditPageProps {
@@ -104,16 +104,16 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       <h1 className="font-semibold">Editar producto</h1>
       <section className="bg-white p-6 rounded-xl shadow-sm mt-6 mb-10">
-        <MarketProductVariants
-          productId={productRow.id}
-          groups={formattedGroups}
-        />
-      </section>
-      <section className="bg-white p-6 rounded-xl shadow-sm mt-6">
         <MarketEditProductForm
           productId={productRow.id}
           initialSubCategories={subCategories}
           initialFormData={initialFormData}
+        />
+      </section>
+      <section className="bg-white p-6 rounded-xl shadow-sm mt-6">
+        <ProductVariantsManager
+          productId={productRow.id}
+          groups={formattedGroups}
         />
       </section>
     </div>

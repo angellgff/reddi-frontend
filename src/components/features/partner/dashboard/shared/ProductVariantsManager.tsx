@@ -33,13 +33,19 @@ type VariantGroup = {
 interface MarketProductVariantsProps {
   productId: string;
   groups: VariantGroup[];
+  revalidateUrl?: string; // Optional custom path to revalidate
 }
 
-export default function MarketProductVariants({
+export default function ProductVariantsManager({
   productId,
   groups,
+  revalidateUrl,
 }: MarketProductVariantsProps) {
   const router = useRouter();
+
+  // If no URL provided, default to market path (legacy support)
+  const path = revalidateUrl || `/partner/market/productos/editar/${productId}`;
+
   const [newGroupName, setNewGroupName] = useState("");
   const [newGroupRequired, setNewGroupRequired] = useState(false);
   const [isAddingGroup, setIsAddingGroup] = useState(false);
@@ -74,7 +80,7 @@ export default function MarketProductVariants({
     if (!newGroupName.trim()) return;
     try {
       setLoading(true);
-      await createVariantGroup(productId, newGroupName, newGroupRequired);
+      await createVariantGroup(productId, newGroupName, newGroupRequired, path);
       setNewGroupName("");
       setNewGroupRequired(false);
       setIsAddingGroup(false);
@@ -99,7 +105,12 @@ export default function MarketProductVariants({
     if (!editingGroupId || !editingGroupData.name.trim()) return;
     try {
       setLoading(true);
-      await updateVariantGroup(productId, editingGroupId, editingGroupData);
+      await updateVariantGroup(
+        productId,
+        editingGroupId,
+        editingGroupData,
+        path,
+      );
       setEditingGroupId(null);
       router.refresh();
     } catch (error) {
@@ -114,7 +125,7 @@ export default function MarketProductVariants({
     if (!confirm("¿Eliminar grupo y sus variantes?")) return;
     try {
       setLoading(true);
-      await deleteVariantGroup(groupId, productId);
+      await deleteVariantGroup(groupId, productId, path);
       router.refresh();
     } catch (error) {
       console.error(error);
@@ -133,11 +144,16 @@ export default function MarketProductVariants({
     if (!newVariantData.name.trim()) return;
     try {
       setLoading(true);
-      await createVariant(productId, groupId, {
-        name: newVariantData.name,
-        base_price: parseFloat(newVariantData.base_price) || 0,
-        is_available: newVariantData.is_available,
-      });
+      await createVariant(
+        productId,
+        groupId,
+        {
+          name: newVariantData.name,
+          base_price: parseFloat(newVariantData.base_price) || 0,
+          is_available: newVariantData.is_available,
+        },
+        path,
+      );
       setAddingVariantToGroupId(null);
       router.refresh();
     } catch (error) {
@@ -161,11 +177,16 @@ export default function MarketProductVariants({
     if (!editingVariantId || !editingVariantData.name.trim()) return;
     try {
       setLoading(true);
-      await updateVariant(productId, editingVariantId, {
-        name: editingVariantData.name,
-        base_price: parseFloat(editingVariantData.base_price) || 0,
-        is_available: editingVariantData.is_available,
-      });
+      await updateVariant(
+        productId,
+        editingVariantId,
+        {
+          name: editingVariantData.name,
+          base_price: parseFloat(editingVariantData.base_price) || 0,
+          is_available: editingVariantData.is_available,
+        },
+        path,
+      );
       setEditingVariantId(null);
       router.refresh();
     } catch (error) {
@@ -180,7 +201,7 @@ export default function MarketProductVariants({
     if (!confirm("¿Eliminar variante?")) return;
     try {
       setLoading(true);
-      await deleteVariant(variantId, productId);
+      await deleteVariant(variantId, productId, path);
       router.refresh();
     } catch (error) {
       console.error(error);
