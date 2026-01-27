@@ -54,7 +54,10 @@ export default function MarketOrderDetails({ order }: MarketOrderDetailsProps) {
                   <p className="font-medium ">
                     {item.name}
                     {item.quantity > 1 && (
-                      <span className="text-gray-500 font-normal"> x{item.quantity}</span>
+                      <span className="text-gray-500 font-normal">
+                        {" "}
+                        x{item.quantity}
+                      </span>
                     )}
                   </p>
                   {item.variant?.name && (

@@ -53,7 +53,7 @@ export type OrderDetails = {
 };
 
 export default async function getOrderDetailsData(
-  id: string
+  id: string,
 ): Promise<OrderDetails> {
   const supabase = await createClient();
 
@@ -63,7 +63,7 @@ export default async function getOrderDetailsData(
     .select(
       `id, status, subtotal, shipping_fee, total_amount, tip_amount, discount_amount, scheduled_at, user_address_id, partner_id, instructions,
        partners:partner_id(name, image_url),
-       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url), variant:product_variants!order_detail_variant_id_fkey(name, group:product_variant_groups(name)), order_detail_extras(id, product_extra_id, quantity, unit_price))`
+       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url), variant:product_variants!order_detail_variant_id_fkey(name, group:product_variant_groups(name)), order_detail_extras(id, product_extra_id, quantity, unit_price))`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -143,8 +143,8 @@ export default async function getOrderDetailsData(
         items
           .flatMap((it) => it.extras ?? [])
           .map((e) => e.product_extra_id)
-          .filter((x): x is string => typeof x === "string" && !!x)
-      )
+          .filter((x): x is string => typeof x === "string" && !!x),
+      ),
     );
     if (extraIds.length > 0) {
       const { data: extrasRows } = await supabase
@@ -169,7 +169,7 @@ export default async function getOrderDetailsData(
               e.unit_price ||
                 (info as { default_price?: number } | null | undefined)
                   ?.default_price ||
-                0
+                0,
             ),
           };
         }),
