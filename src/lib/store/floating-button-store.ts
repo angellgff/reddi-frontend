@@ -20,6 +20,7 @@ interface FloatingButtonState {
 
   // Product Details specific
   quantity?: number;
+  quantityUnit?: string;
   onIncrement?: () => void;
   onDecrement?: () => void;
 
@@ -30,6 +31,7 @@ interface FloatingButtonState {
     text?: string;
     secondaryText?: string;
     quantity: number;
+    quantityUnit?: string;
     onIncrement: () => void;
     onDecrement: () => void;
     action: () => void;
@@ -59,6 +61,7 @@ export const useFloatingButtonStore = create<FloatingButtonState>((set) => ({
   secondaryAction: undefined,
   disabled: false,
   quantity: 1,
+  quantityUnit: undefined,
   onIncrement: undefined,
   onDecrement: undefined,
 
@@ -87,6 +90,7 @@ export const useFloatingButtonStore = create<FloatingButtonState>((set) => ({
     text = "Agregar",
     secondaryText,
     quantity,
+    quantityUnit,
     onIncrement,
     onDecrement,
     action,
@@ -97,6 +101,7 @@ export const useFloatingButtonStore = create<FloatingButtonState>((set) => ({
       text,
       secondaryText,
       quantity,
+      quantityUnit,
       onIncrement,
       onDecrement,
       action,

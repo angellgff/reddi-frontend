@@ -280,7 +280,11 @@ export default function MobileOrderDetail({
                         <div className="flex-1 space-y-1">
                           <div className="flex justify-between items-start">
                             <span className="font-medium text-gray-900">
-                              {item.quantity}x {item.products?.unit || "ud"}
+                              {item.quantity}x{" "}
+                              {item.products?.measurement_unit &&
+                              item.products.measurement_unit !== "unit"
+                                ? item.products.measurement_unit
+                                : item.products?.unit || "ud"}
                             </span>
                             <span className="font-semibold text-gray-900">
                               {currency(item.unit_price * item.quantity)}

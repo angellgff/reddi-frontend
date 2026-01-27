@@ -45,6 +45,17 @@ export default function ProductDetailsDrawer({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-[60] bg-black/50 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0" />
         <DialogPrimitive.Content
+          onPointerDownOutside={(e) => {
+            // Prevenir cierre si el click fue en el floating bar
+            // El floating bar tiene z-index 100, este drawer z-index 61
+            // Si el user hace click en el floating bar, Radix detecta click outside.
+            // Pero queremos que el floating bar interactue con el ProductDetailsClient dentro del Drawer.
+            // Asi que ignoramos el cierre si el target está dentro del floating bar.
+            const target = e.target as HTMLElement;
+            if (target.closest("footer")) {
+              e.preventDefault();
+            }
+          }}
           className={`fixed left-0 bottom-0 z-[61] w-full bg-white rounded-t-[20px] shadow-lg
             data-[state=open]:animate-in data-[state=closed]:animate-out 
             data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom

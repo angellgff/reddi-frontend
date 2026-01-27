@@ -28,6 +28,9 @@ export type ProductDetails = {
   previous_price: number | null;
   discount_percentage: number | null;
   unit: string;
+  measurement_unit: "unit" | "lb" | "kg" | "oz" | "g";
+  min_quantity: number;
+  quantity_step: number;
   estimated_time: string;
   tax_included: boolean;
   sections: ProductDetailsSection[];
@@ -64,7 +67,7 @@ export default async function getProductDetails(
   const { data, error } = await supabase
     .from("products")
     .select(
-      `id, partner_id, name, description, image_url, base_price, display_price, previous_price, discount_percentage, unit, estimated_time, tax_included,
+      `id, partner_id, name, description, image_url, base_price, display_price, previous_price, discount_percentage, unit, measurement_unit, min_quantity, quantity_step, estimated_time, tax_included,
       product_sections (id, name, is_required, display_order, product_section_options (id, extra_id, override_price, display_order, product_extras (id, name, default_price, image_url))),
       product_variant_groups (
         id, name, display_order, is_required,
@@ -97,6 +100,14 @@ export default async function getProductDetails(
     previous_price: data.previous_price,
     discount_percentage: data.discount_percentage,
     unit: data.unit,
+    measurement_unit: data.measurement_unit as
+      | "unit"
+      | "lb"
+      | "kg"
+      | "oz"
+      | "g", // Cast since string from DB
+    min_quantity: data.min_quantity || 1, // Default to 1 if null (though DB should handle defaults)
+    quantity_step: data.quantity_step || 1, // Default to 1 if null
     estimated_time: data.estimated_time,
     tax_included: data.tax_included,
     sections: (data.product_sections || [])

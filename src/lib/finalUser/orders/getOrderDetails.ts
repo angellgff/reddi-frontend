@@ -16,6 +16,7 @@ type OrderItem = {
     name?: string;
     image_url?: string | null;
     unit?: string;
+    measurement_unit?: string;
   } | null;
   variant?: {
     name?: string;
@@ -165,6 +166,10 @@ function normalizeOrder(data: unknown): NormalizedOrder {
               unit:
                 typeof p["unit"] === "string"
                   ? (p["unit"] as string)
+                  : undefined,
+              measurement_unit:
+                typeof p["measurement_unit"] === "string"
+                  ? (p["measurement_unit"] as string)
                   : undefined,
             }
           : undefined,

@@ -20,6 +20,7 @@ export default function FloatingBottomBar() {
     secondaryText,
     action,
     quantity,
+    quantityUnit,
     onIncrement,
     onDecrement,
     disabled,
@@ -61,8 +62,10 @@ export default function FloatingBottomBar() {
               className="flex items-center justify-between bg-white shadow-[0_2px_15px_rgba(0,0,0,0.08)] rounded-full px-4 py-2 h-[47px] w-[130px] flex-shrink-0 z-10"
             >
               <button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   onDecrement?.();
                 }}
                 className="text-[#04BD88] text-xl font-medium w-8 flex justify-center active:scale-90 transition-transform"
@@ -70,11 +73,14 @@ export default function FloatingBottomBar() {
                 -
               </button>
               <span className="text-black font-semibold text-sm">
-                {quantity || 1}
+                {quantity || 1}{" "}
+                {quantityUnit && quantityUnit !== "unit" ? quantityUnit : ""}
               </span>
               <button
+                type="button"
                 onClick={(e) => {
                   e.preventDefault();
+                  e.stopPropagation();
                   onIncrement?.();
                 }}
                 className="text-[#04BD88] text-xl font-medium w-8 flex justify-center active:scale-90 transition-transform"

@@ -14,6 +14,7 @@ interface InvoiceItem {
   name?: string;
   unitPrice: number;
   quantity: number;
+  measurementUnit?: string;
   note?: string | null;
   extras: Array<{
     extraId: string;
@@ -98,9 +99,9 @@ export function InvoiceDetailDialog({
   });
 
   const invoiceNumber = `INV-${today.getFullYear()}${String(
-    today.getMonth() + 1
+    today.getMonth() + 1,
   ).padStart(2, "0")}${String(today.getDate()).padStart(2, "0")}-${String(
-    today.getHours()
+    today.getHours(),
   ).padStart(2, "0")}${String(today.getMinutes()).padStart(2, "0")}`;
 
   return (
@@ -146,9 +147,7 @@ export function InvoiceDetailDialog({
                 Para
               </h3>
               <div className="text-sm text-gray-700">
-                {customerName && (
-                  <p className="font-medium">{customerName}</p>
-                )}
+                {customerName && <p className="font-medium">{customerName}</p>}
                 {customerPhone && (
                   <p className="text-gray-600">{customerPhone}</p>
                 )}
@@ -199,7 +198,7 @@ export function InvoiceDetailDialog({
                     const itemTotal = item.unitPrice * item.quantity;
                     const extrasTotal = item.extras.reduce(
                       (sum, extra) => sum + extra.price * extra.quantity,
-                      0
+                      0,
                     );
                     const lineTotal = itemTotal + extrasTotal;
 
@@ -232,6 +231,10 @@ export function InvoiceDetailDialog({
                         </td>
                         <td className="px-4 py-3 text-center text-gray-700">
                           {item.quantity}
+                          {item.measurementUnit &&
+                          item.measurementUnit !== "unit"
+                            ? ` ${item.measurementUnit}`
+                            : ""}
                         </td>
                         <td className="px-4 py-3 text-right text-gray-700">
                           {currency(item.unitPrice)}
@@ -353,8 +356,8 @@ export function InvoiceDetailDialog({
           {/* Footer */}
           <div className="pt-4 border-t border-gray-200">
             <p className="text-xs text-center text-gray-500">
-              Gracias por tu preferencia. Este documento es un comprobante de
-              tu pedido.
+              Gracias por tu preferencia. Este documento es un comprobante de tu
+              pedido.
             </p>
           </div>
         </div>

@@ -29,6 +29,7 @@ export interface CartItem {
   imageUrl?: string | null;
   unitPrice: number; // PRECIO FINAL (Base o Variante)
   quantity: number;
+  measurementUnit?: string;
   extras: SelectedExtra[];
   variants?: SelectedVariant[];
   note?: string | null;

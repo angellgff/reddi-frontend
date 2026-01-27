@@ -247,7 +247,12 @@ export default function CartItem({
               >
                 -
               </button>
-              <div className="min-w-6 text-center text-sm">{item.quantity}</div>
+              <div className="min-w-6 text-center text-sm">
+                {item.quantity}
+                {item.measurementUnit && item.measurementUnit !== "unit"
+                  ? ` ${item.measurementUnit}`
+                  : ""}
+              </div>
               <button
                 onClick={increase}
                 className="h-7 w-7 rounded-full border grid place-items-center"

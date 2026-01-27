@@ -246,7 +246,10 @@ export default function ProductDetailsClient({
   const dispatch = useAppDispatch();
   const currentPartnerId = useAppSelector(selectCartPartnerId);
   const router = useRouter();
-  const [quantity, setQuantity] = useState(1);
+  // Inicializar con min_quantity o 1
+  const minQty = details.min_quantity || 1;
+  const qtyStep = details.quantity_step || 1;
+  const [quantity, setQuantity] = useState(minQty);
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
   >({});
@@ -426,6 +429,10 @@ export default function ProductDetailsClient({
         // Use effectiveBasePrice here
         unitPrice: Number(effectiveBasePrice.toFixed(2)),
         quantity,
+        measurementUnit:
+          details.measurement_unit !== "unit"
+            ? details.measurement_unit
+            : undefined,
         extras,
         variants,
         mergeByProduct: true,
@@ -438,8 +445,17 @@ export default function ProductDetailsClient({
   useEffect(() => {
     showProductDetails({
       quantity,
-      onIncrement: () => setQuantity((q) => q + 1),
-      onDecrement: () => setQuantity((q) => Math.max(1, q - 1)),
+      quantityUnit: details.measurement_unit,
+      onIncrement: () =>
+        setQuantity((q) => {
+          const next = q + qtyStep;
+          return Math.round(next * 100) / 100;
+        }),
+      onDecrement: () =>
+        setQuantity((q) => {
+          const next = q - qtyStep;
+          return next < minQty ? minQty : Math.round(next * 100) / 100;
+        }),
       action: () => {
         if (requiredSatisfied) {
           addToCartHandler(true);
@@ -457,6 +473,9 @@ export default function ProductDetailsClient({
   }, [
     showProductDetails,
     quantity,
+    details.measurement_unit,
+    qtyStep,
+    minQty,
     subtotal,
     requiredSatisfied,
     addToCartHandler,
@@ -622,16 +641,32 @@ export default function ProductDetailsClient({
                   {/* Quantity Selector Figma Style */}
                   <div className="flex items-center justify-between bg-white shadow-[0_2px_15px_rgba(0,0,0,0.08)] rounded-full px-4 py-2 h-[44px] w-[130px] flex-shrink-0">
                     <button
-                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+                      onClick={() =>
+                        setQuantity((q) => {
+                          const next = q - qtyStep;
+                          return next < minQty
+                            ? minQty
+                            : Math.round(next * 100) / 100;
+                        })
+                      }
                       className="text-[#04BD88] text-xl font-medium w-8 flex justify-center"
                     >
                       -
                     </button>
                     <span className="text-black font-semibold text-sm">
-                      {quantity}
+                      {quantity}{" "}
+                      {details.measurement_unit &&
+                      details.measurement_unit !== "unit"
+                        ? details.measurement_unit
+                        : ""}
                     </span>
                     <button
-                      onClick={() => setQuantity((q) => q + 1)}
+                      onClick={() =>
+                        setQuantity((q) => {
+                          const next = q + qtyStep;
+                          return Math.round(next * 100) / 100;
+                        })
+                      }
                       className="text-[#04BD88] text-xl font-medium w-8 flex justify-center"
                     >
                       +

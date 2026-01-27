@@ -212,6 +212,7 @@ export default function CheckoutConfirmPage() {
               name: item.name,
               unitPrice: item.unitPrice,
               quantity: item.quantity,
+              measurementUnit: item.measurementUnit,
               note: item.note,
               extras: item.extras.map((extra) => ({
                 extraId: extra.extraId,
