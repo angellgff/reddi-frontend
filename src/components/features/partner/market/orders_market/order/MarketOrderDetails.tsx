@@ -53,12 +53,10 @@ export default function MarketOrderDetails({ order }: MarketOrderDetailsProps) {
                 <div>
                   <p className="font-medium ">
                     {item.name}
-                    {item.quantity > 1 && (
-                      <span className="text-gray-500 font-normal">
-                        {" "}
-                        x{item.quantity}
-                      </span>
-                    )}
+                    <span className="text-gray-500 font-normal">
+                      {" "}
+                      x{item.quantity} {item.measurementUnit}
+                    </span>
                   </p>
                   {item.variant?.name && (
                     <p className="text-sm font-roboto text-gray-500">
@@ -73,11 +71,14 @@ export default function MarketOrderDetails({ order }: MarketOrderDetailsProps) {
                   </p>
                 </div>
               </div>
-              <p>
-                <span className="font-semibold font-inter">
+              <div className="text-right">
+                <p className="font-semibold font-inter">
+                  {formatPrice(item.price * item.quantity)}
+                </p>
+                <p className="text-xs text-gray-400">
                   {formatPrice(item.price)}
-                </span>
-              </p>
+                </p>
+              </div>
             </div>
             {item.extras && item.extras.length > 0 && (
               <div className="ml-24 mt-2 space-y-1">

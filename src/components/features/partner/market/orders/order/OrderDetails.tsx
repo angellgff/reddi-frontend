@@ -61,12 +61,10 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
                 <div>
                   <p className="font-medium ">
                     {item.name}
-                    {item.quantity > 1 && (
-                      <span className="text-gray-500 font-normal">
-                        {" "}
-                        x{item.quantity}
-                      </span>
-                    )}
+                    <span className="text-gray-500 font-normal">
+                      {" "}
+                      x{item.quantity} {item.measurementUnit}
+                    </span>
                   </p>
                   {item.variant?.name && (
                     <p className="text-sm font-roboto text-gray-500">
@@ -81,11 +79,14 @@ export default function OrderDetailsCard({ order }: OrderDetailsCardProps) {
                   </p>
                 </div>
               </div>
-              <p>
-                <span className="font-semibold font-inter">
+              <div className="text-right">
+                <p className="font-semibold font-inter">
+                  {formatPrice(item.price * item.quantity)}
+                </p>
+                <p className="text-xs text-gray-400">
                   {formatPrice(item.price)}
-                </span>
-              </p>
+                </p>
+              </div>
             </div>
             {/* Extras (visual similar to final user view) */}
             {item.extras && item.extras.length > 0 && (

@@ -24,6 +24,7 @@ export type OrderDetails = {
     description: string;
     price: number;
     quantity: number;
+    measurementUnit?: string;
     imageUrl: string;
     extras?: {
       id: string;
@@ -63,7 +64,7 @@ export default async function getOrderDetailsData(
     .select(
       `id, status, subtotal, shipping_fee, total_amount, tip_amount, discount_amount, scheduled_at, user_address_id, partner_id, instructions,
        partners:partner_id(name, image_url),
-       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url), variant:product_variants!order_detail_variant_id_fkey(name, group:product_variant_groups(name)), order_detail_extras(id, product_extra_id, quantity, unit_price))`,
+       order_detail(id, quantity, unit_price, products:product_id(name, description, image_url, unit, measurement_unit), variant:product_variants!order_detail_variant_id_fkey(name, group:product_variant_groups(name)), order_detail_extras(id, product_extra_id, quantity, unit_price))`,
     )
     .eq("id", id)
     .maybeSingle();
@@ -96,6 +97,8 @@ export default async function getOrderDetailsData(
         name?: string | null;
         description?: string | null;
         image_url?: string | null;
+        unit?: string | null;
+        measurement_unit?: string | null;
       } | null;
       variant: {
         name: string;
@@ -121,6 +124,10 @@ export default async function getOrderDetailsData(
     description: it.products?.description ?? "",
     price: it.unit_price ?? 0,
     quantity: it.quantity ?? 0,
+    measurementUnit:
+      it.products?.measurement_unit && it.products?.measurement_unit !== "unit"
+        ? it.products.measurement_unit
+        : it.products?.unit || undefined,
     imageUrl: it.products?.image_url ?? "/images/store-logo.png",
     variant: it.variant
       ? {
