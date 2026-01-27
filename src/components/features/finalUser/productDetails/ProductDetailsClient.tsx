@@ -433,6 +433,8 @@ export default function ProductDetailsClient({
           details.measurement_unit !== "unit"
             ? details.measurement_unit
             : undefined,
+        quantityStep: qtyStep,
+        minQuantity: minQty,
         extras,
         variants,
         mergeByProduct: true,

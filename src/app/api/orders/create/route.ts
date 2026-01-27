@@ -112,13 +112,10 @@ export async function POST(request: Request) {
 
     // IMPORTANTE: Asegúrate que el nombre de la función coincida con tu SQL.
     // Usamos 'create_order' que es el nombre estándar del script SQL proporcionado.
-    const { data, error } = await supabase.rpc(
-      "create_order_with_variants_v2",
-      {
-        cart_items: cart_items,
-        checkout_data: checkout_data,
-      },
-    );
+    const { data, error } = await supabase.rpc("create_order_v3", {
+      cart_items: cart_items,
+      checkout_data: checkout_data,
+    });
 
     if (error) {
       console.error("❌ [API ERROR] Supabase RPC falló:", error);

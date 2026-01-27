@@ -30,6 +30,8 @@ export interface CartItem {
   unitPrice: number; // PRECIO FINAL (Base o Variante)
   quantity: number;
   measurementUnit?: string;
+  quantityStep?: number;
+  minQuantity?: number;
   extras: SelectedExtra[];
   variants?: SelectedVariant[];
   note?: string | null;
@@ -71,7 +73,12 @@ const cartSlice = createSlice({
     addItem: (
       state: CartState,
       action: PayloadAction<
-        Omit<CartItem, "id"> & { id?: string; mergeByProduct?: boolean }
+        Omit<CartItem, "id"> & {
+          id?: string;
+          mergeByProduct?: boolean;
+          quantityStep?: number;
+          minQuantity?: number;
+        }
       >,
     ) => {
       const {
@@ -91,6 +98,34 @@ const cartSlice = createSlice({
       // 1. Si el item tiene EXTRAS, forzamos líneas separadas (no merge).
       // Esto es porque los extras suelen ser personalizaciones únicas.
       if (extras && extras.length > 0) {
+        // En caso de unidades fraccionarias (ej 0.5 lb) no podemos iterar "0.5 veces".
+        // Asumimos que si se agrega con extras y es unidad fraccionaria, se agrega como UNA linea con esa cantidad.
+        if (action.payload.quantityStep && action.payload.quantityStep < 1) {
+            state.items.push({
+              id: nanoid(),
+              productId,
+              partnerId,
+              name,
+              imageUrl,
+              unitPrice,
+              quantity,
+              measurementUnit: action.payload.measurementUnit,
+              quantityStep: action.payload.quantityStep,
+              minQuantity: action.payload.minQuantity,
+              extras: (extras || []).map((e) => ({
+                id: nanoid(),
+                imageUrl: e.imageUrl ?? null,
+                extraId: e.extraId,
+                name: e.name,
+                price: e.price,
+                quantity: e.quantity,
+              })),
+              variants: variants || [], 
+              note: note ?? null,
+            });
+            return;
+        }
+
         const times = Math.max(1, quantity);
         for (let i = 0; i < times; i++) {
           state.items.push({
@@ -101,6 +136,9 @@ const cartSlice = createSlice({
             imageUrl,
             unitPrice,
             quantity: 1,
+            measurementUnit: action.payload.measurementUnit,
+            quantityStep: action.payload.quantityStep,
+            minQuantity: action.payload.minQuantity,
             extras: (extras || []).map((e) => ({
               id: nanoid(),
               imageUrl: e.imageUrl ?? null,
@@ -150,6 +188,9 @@ const cartSlice = createSlice({
         imageUrl,
         unitPrice,
         quantity,
+        measurementUnit: action.payload.measurementUnit,
+        quantityStep: action.payload.quantityStep,
+        minQuantity: action.payload.minQuantity,
         extras: [], // Ya validamos arriba que si tenía extras entraba en el paso 1
         variants: variants || [],
         note: note ?? null,
@@ -169,20 +210,28 @@ const cartSlice = createSlice({
       );
       if (itIdx === -1) return;
       const it = state.items[itIdx];
-      const nextQty = Math.max(1, action.payload.quantity);
+      // Usar minQuantity si existe, sino 1
+      const minQty = it.minQuantity ?? 1;
+      const nextQty = Math.max(minQty, action.payload.quantity);
 
       if (nextQty === it.quantity) return;
 
       // Si aumentamos cantidad y tiene extras, dividimos en nuevas líneas
       // para permitir personalización futura individual.
       // Si tiene variantes PERO NO extras, simplemente subimos la cantidad (ej: 2 Pizzas Grandes iguales).
-      if (nextQty > it.quantity && it.extras.length > 0) {
+      // EXCEPCION: Si es unidad de medida fraccionaria (quantityStep < 1 o measurementUnit != unit), NO dividimos.
+      const isFractional = (it.quantityStep && it.quantityStep < 1) || (it.measurementUnit && it.measurementUnit !== "unit");
+      
+      if (nextQty > it.quantity && it.extras.length > 0 && !isFractional) {
         const inc = nextQty - it.quantity;
         for (let k = 0; k < inc; k++) {
           state.items.push({
             ...JSON.parse(JSON.stringify(it)), // Deep copy rápido
             id: nanoid(),
             quantity: 1,
+            measurementUnit: it.measurementUnit,
+            quantityStep: it.quantityStep,
+            minQuantity: it.minQuantity,
           });
         }
         return;

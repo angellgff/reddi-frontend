@@ -37,20 +37,37 @@ export default function CartItem({
           name: item.name,
           imageUrl: item.imageUrl,
           unitPrice: item.unitPrice,
-          quantity: 1,
+          quantity: item.quantityStep || 1,
+          measurementUnit: item.measurementUnit,
+          quantityStep: item.quantityStep,
+          minQuantity: item.minQuantity,
           extras: [],
           mergeByProduct: true,
           note: item.note ?? null,
         }),
       );
     } else {
-      dispatch(setQuantity({ id: item.id, quantity: item.quantity + 1 }));
+      const step = item.quantityStep || 1;
+      const next = item.quantity + step;
+      dispatch(
+        setQuantity({
+          id: item.id,
+          quantity: Math.round(next * 100) / 100,
+        }),
+      );
     }
   };
-  const decrease = () =>
+  const decrease = () => {
+    const step = item.quantityStep || 1;
+    const min = item.minQuantity || 1;
+    const next = item.quantity - step;
     dispatch(
-      setQuantity({ id: item.id, quantity: Math.max(1, item.quantity - 1) }),
+      setQuantity({
+        id: item.id,
+        quantity: next < min ? min : Math.round(next * 100) / 100,
+      }),
     );
+  };
 
   // Cargar secciones y opciones (extras disponibles) del producto
   type ExtraOption = {
