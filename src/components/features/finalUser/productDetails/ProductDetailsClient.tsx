@@ -12,6 +12,81 @@ import { useFloatingButtonStore } from "@/src/lib/store/floating-button-store";
 
 // Componente para renderizar la sección de extras y la nota.
 // Lo creamos para no repetir el mismo bloque de código en móvil y escritorio.
+const VariantsSection = ({
+  groups,
+  selectedVariants,
+  onSelect,
+  getOptionPrice,
+}: {
+  groups: ProductDetails["variant_groups"];
+  selectedVariants: Record<string, string>;
+  onSelect: (groupId: string, variantId: string) => void;
+  getOptionPrice: (price: number) => number;
+}) => {
+  if (!groups || groups.length === 0) return null;
+  return (
+    <div className="space-y-6 mt-4 mb-6 border-b pb-6 border-gray-100">
+      {groups.map((g) => (
+        <div key={g.id} className="flex flex-col">
+          <div className="bg-[#EFF2F5] rounded-[10px] px-[10px] py-[10px] flex items-center justify-between mb-2">
+            <span className="font-bold text-sm text-black">{g.name}</span>
+            <div className="flex items-center gap-2">
+              {g.is_required && (
+                <span className="text-[13px] text-[#28B996] font-semibold">
+                  Requerido
+                </span>
+              )}
+            </div>
+          </div>
+          <div className="flex flex-col">
+            {g.variants.map((v) => {
+              const isSelected = selectedVariants[g.id] === v.id;
+              const price = getOptionPrice(
+                v.display_variant_price ?? v.base_price,
+              );
+              return (
+                <label
+                  key={v.id}
+                  className="flex items-center justify-between py-3 px-2 border-b border-gray-100 last:border-0 cursor-pointer hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
+                        isSelected ? "border-[#04BD88]" : "border-gray-300"
+                      }`}
+                    >
+                      {isSelected && (
+                        <div className="w-2.5 h-2.5 rounded-full bg-[#04BD88]" />
+                      )}
+                    </div>
+                    <span className="text-[16px] font-medium text-black">
+                      {v.name}
+                    </span>
+                  </div>
+                  {price !== 0 && (
+                    <span className="text-xs font-semibold text-[#6A6C71]">
+                      {price > 0 ? "+" : ""}
+                      RD$ {Math.abs(price).toFixed(2)}
+                    </span>
+                  )}
+                  <input
+                    type="radio"
+                    name={g.id}
+                    value={v.id}
+                    checked={isSelected}
+                    onChange={() => onSelect(g.id, v.id)}
+                    className="hidden"
+                  />
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 const ExtrasAndNoteSection = ({
   details,
   selected,
@@ -172,8 +247,16 @@ export default function ProductDetailsClient({
   const currentPartnerId = useAppSelector(selectCartPartnerId);
   const router = useRouter();
   const [quantity, setQuantity] = useState(1);
+  const [selectedVariants, setSelectedVariants] = useState<
+    Record<string, string>
+  >({});
   const [selected, setSelected] = useState<Record<string, number>>({});
   const [note, setNote] = useState<string>("");
+
+  useEffect(() => {
+    // Pre-select required variant groups (first option) to help user?
+    // Disabled for now to force user choice
+  }, []);
 
   useEffect(() => {
     const state = useFloatingButtonStore.getState();
@@ -219,6 +302,23 @@ export default function ProductDetailsClient({
     return discountDecimal > 0 ? price * (1 - discountDecimal) : price;
   };
 
+  const variantsTotalPerUnit = useMemo(() => {
+    if (!details.variant_groups) return 0;
+    let total = 0;
+    for (const g of details.variant_groups) {
+      const vId = selectedVariants[g.id];
+      if (vId) {
+        const v = g.variants.find((x) => x.id === vId);
+        if (v) {
+          total += getOptionPrice(
+            v.display_variant_price ?? v.base_price ?? 0,
+          );
+        }
+      }
+    }
+    return total;
+  }, [details.variant_groups, selectedVariants, discountDecimal]);
+
   const extrasPerUnitTotal = useMemo(() => {
     if (!isRestaurant) return 0;
     let total = 0;
@@ -231,18 +331,34 @@ export default function ProductDetailsClient({
     return total;
   }, [details.sections, selected, isRestaurant, discountDecimal]);
 
+  // Logic: If any variant is selected, the variants define the base price (substituting the original product price).
+  // If no variants are selected, we fallback to the product's unitPrice.
+  const effectiveBasePrice = useMemo(() => {
+    const hasVariantsSelected = Object.keys(selectedVariants).length > 0;
+    return hasVariantsSelected ? variantsTotalPerUnit : unitPrice;
+  }, [selectedVariants, variantsTotalPerUnit, unitPrice]);
+
   const subtotal = useMemo(
-    () => (unitPrice + extrasPerUnitTotal) * quantity,
-    [unitPrice, extrasPerUnitTotal, quantity],
+    () => (effectiveBasePrice + extrasPerUnitTotal) * quantity,
+    [effectiveBasePrice, extrasPerUnitTotal, quantity],
   );
 
   const requiredSatisfied = useMemo(() => {
-    if (!isRestaurant) return true;
-    return details.sections.every((s) => {
+    // Check variant groups
+    const variantsOk = (details.variant_groups || []).every((g) => {
+      if (!g.is_required) return true;
+      return !!selectedVariants[g.id];
+    });
+
+    if (!isRestaurant) return variantsOk;
+
+    const sectionsOk = details.sections.every((s) => {
       if (!s.isRequired) return true;
       return s.options.some((o) => (selected[o.extraId] || 0) > 0);
     });
-  }, [details.sections, selected, isRestaurant]);
+
+    return variantsOk && sectionsOk;
+  }, [details.sections, details.variant_groups, selected, selectedVariants, isRestaurant]);
 
   const incOption = (extraId: string) =>
     setSelected((m) => ({ ...m, [extraId]: (m[extraId] || 0) + 1 }));
@@ -266,6 +382,23 @@ export default function ProductDetailsClient({
       });
       return;
     }
+
+    const variants = (details.variant_groups || [])
+      .filter((g) => selectedVariants[g.id])
+      .map((g) => {
+        const v = g.variants.find((x) => x.id === selectedVariants[g.id]);
+        return v
+          ? {
+              variantId: v.id,
+              groupName: g.name,
+              name: v.name,
+              // We set price 0 because it's absorbed into unitPrice
+              price: 0,
+            }
+          : null;
+      })
+      .filter(Boolean) as any[];
+
     const extras = !isRestaurant
       ? []
       : details.sections.flatMap((s) =>
@@ -286,9 +419,11 @@ export default function ProductDetailsClient({
         partnerId: details.partnerId,
         name: details.name,
         imageUrl: details.image_url,
-        unitPrice: Number(unitPrice.toFixed(2)),
+        // Use effectiveBasePrice here
+        unitPrice: Number(effectiveBasePrice.toFixed(2)),
         quantity,
         extras,
+        variants,
         mergeByProduct: true,
         note: note.trim() ? note.trim() : null,
       }),
@@ -440,7 +575,7 @@ export default function ProductDetailsClient({
 
               <div className="flex items-center gap-3">
                 <span className="text-xl font-bold text-black">
-                  RD$ {(unitPrice + extrasPerUnitTotal).toFixed(2)}
+                  RD$ {(effectiveBasePrice + extrasPerUnitTotal).toFixed(2)}
                 </span>
                 {details.discount_percentage && (
                   <span className="bg-[#04BD88]/10 text-[#04BD88] text-xs font-bold px-2 py-1 rounded-full">
@@ -452,6 +587,14 @@ export default function ProductDetailsClient({
 
             {/* Extras Section */}
             <div className="flex-1">
+              <VariantsSection
+                groups={details.variant_groups}
+                selectedVariants={selectedVariants}
+                onSelect={(gId, vId) =>
+                  setSelectedVariants((prev) => ({ ...prev, [gId]: vId }))
+                }
+                getOptionPrice={getOptionPrice}
+              />
               {isRestaurant && (
                 <ExtrasAndNoteSection
                   details={details}

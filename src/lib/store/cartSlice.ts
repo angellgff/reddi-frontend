@@ -13,6 +13,14 @@ export interface SelectedExtra {
   quantity: number; // cantidad por extra
 }
 
+export interface SelectedVariant {
+  id: string; // client id
+  variantId: string; // FK to product_variants
+  groupName: string;
+  name: string;
+  price: number; // precio adicional (diferencia o absoluto sumado)
+}
+
 export interface CartItem {
   id: string; // client id
   productId: ProductId;
@@ -22,6 +30,7 @@ export interface CartItem {
   unitPrice: number; // base_price con descuento aplicado si existe
   quantity: number;
   extras: SelectedExtra[];
+  variants?: SelectedVariant[];
   // opcional: notas, variantes, etc.
   note?: string | null;
 }
@@ -40,7 +49,13 @@ const calcItemTotal = (item: CartItem) => {
     (s, e) => s + e.price * e.quantity,
     0
   );
-  return (item.unitPrice + extrasTotalPerUnit) * item.quantity;
+  const variantsTotalPerUnit = (item.variants || []).reduce(
+    (s, v) => s + v.price,
+    0
+  );
+  return (
+    (item.unitPrice + extrasTotalPerUnit + variantsTotalPerUnit) * item.quantity
+  );
 };
 
 // Slice
@@ -67,11 +82,15 @@ const cartSlice = createSlice({
         unitPrice,
         quantity,
         extras,
+        variants,
         note,
       } = action.payload;
 
-      // Si el item tiene extras, no hacemos merge y forzamos líneas unitarias
-      if (extras && extras.length > 0) {
+      // Si el item tiene extras o variantes, no hacemos merge y forzamos líneas unitarias
+      if (
+        (extras && extras.length > 0) ||
+        (variants && variants.length > 0)
+      ) {
         const times = Math.max(1, quantity);
         for (let i = 0; i < times; i++) {
           state.items.push({
@@ -82,13 +101,20 @@ const cartSlice = createSlice({
             imageUrl,
             unitPrice,
             quantity: 1,
-            extras: extras.map((e) => ({
+            extras: (extras || []).map((e) => ({
               id: nanoid(),
               imageUrl: e.imageUrl ?? null,
               extraId: e.extraId,
               name: e.name,
               price: e.price,
               quantity: e.quantity,
+            })),
+            variants: (variants || []).map((v) => ({
+              id: nanoid(),
+              variantId: v.variantId,
+              groupName: v.groupName,
+              name: v.name,
+              price: v.price,
             })),
             note: note ?? null,
           });
@@ -102,6 +128,7 @@ const cartSlice = createSlice({
             i.productId === productId &&
             i.partnerId === partnerId &&
             (i.extras?.length ?? 0) === 0 &&
+            (i.variants?.length ?? 0) === 0 &&
             // Merge solo si la nota coincide (tratando undefined y "" como iguales)
             (i.note ?? "") === (note ?? "")
         );
@@ -120,6 +147,7 @@ const cartSlice = createSlice({
         unitPrice,
         quantity,
         extras: [],
+        variants: [],
         note: note ?? null,
       });
     },

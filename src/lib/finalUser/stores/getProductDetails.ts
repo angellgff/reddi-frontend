@@ -31,6 +31,27 @@ export type ProductDetails = {
   estimated_time: string;
   tax_included: boolean;
   sections: ProductDetailsSection[];
+  variant_groups: {
+    id: string;
+    name: string;
+    is_required: boolean;
+    display_order: number;
+    description: string | null;
+    variants: Array<{
+      id: string;
+      name: string;
+      base_price: number;
+      is_available: boolean;
+      display_variant_price: number;
+    }>;
+  }[];
+  ungrouped_variants: Array<{
+    id: string;
+    name: string;
+    base_price: number;
+    is_available: boolean;
+    display_variant_price: number;
+  }>;
 };
 
 export default async function getProductDetails(
@@ -38,11 +59,23 @@ export default async function getProductDetails(
   productId: string,
 ): Promise<ProductDetails | null> {
   const supabase = await createClient();
+
+  // Updated query with variants
   const { data, error } = await supabase
     .from("products")
     .select(
       `id, partner_id, name, description, image_url, base_price, display_price, previous_price, discount_percentage, unit, estimated_time, tax_included,
-      product_sections (id, name, is_required, display_order, product_section_options (id, extra_id, override_price, display_order, product_extras (id, name, default_price, image_url)))`,
+      product_sections (id, name, is_required, display_order, product_section_options (id, extra_id, override_price, display_order, product_extras (id, name, default_price, image_url))),
+      product_variant_groups (
+        id, name, display_order, is_required,
+        product_variants (
+          id, name, base_price, is_available, display_variant_price
+        )
+      ),
+      product_variants (
+         id, name, base_price, is_available, group_id, display_variant_price
+       )
+      `,
     )
     .eq("id", productId)
     .eq("partner_id", partnerId)
@@ -154,6 +187,31 @@ export default async function getProductDetails(
         (a: ProductDetailsSection, b: ProductDetailsSection) =>
           a.displayOrder - b.displayOrder,
       ),
+    variant_groups: (data.product_variant_groups || [])
+      .map((g: any) => ({
+        id: g.id,
+        name: g.name,
+        is_required: g.is_required,
+        display_order: g.display_order,
+        description: null,
+        variants: (g.product_variants || []).map((v: any) => ({
+          id: v.id,
+          name: v.name,
+          base_price: v.base_price,
+          is_available: v.is_available,
+          display_variant_price: v.display_variant_price,
+        })),
+      }))
+      .sort((a: any, b: any) => a.display_order - b.display_order),
+    ungrouped_variants: (data.product_variants || [])
+      .filter((v: any) => v.group_id === null)
+      .map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        base_price: v.base_price,
+        is_available: v.is_available,
+        display_variant_price: v.display_variant_price,
+      })),
   };
 
   return details;
