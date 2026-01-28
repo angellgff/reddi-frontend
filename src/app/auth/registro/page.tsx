@@ -29,7 +29,7 @@ function RegistroContent() {
     if (!lastName.trim()) newErrors.lastName = "Ingresar Apellido";
     if (!email.trim()) newErrors.email = "Email es requerido";
     if (!phone.trim()) newErrors.phone = "El número de teléfono es requerido";
-    
+
     if (password !== confirmPassword) {
       newErrors.confirmPassword = "Las contraseñas no coinciden.";
     }
@@ -53,7 +53,7 @@ function RegistroContent() {
     if (!validate()) return;
 
     setIsLoading(true);
-    setErrors({}); 
+    setErrors({});
 
     try {
       const result = await signUpAction({
@@ -75,7 +75,9 @@ function RegistroContent() {
       console.error("Critical error in handleRegister:", error);
       setErrors((prev) => ({
         ...prev,
-        general: error.message || "Error al registrarse. Por favor intenta nuevamente.",
+        general:
+          error.message ||
+          "Error al registrarse. Por favor intenta nuevamente.",
       }));
       setIsLoading(false);
     }

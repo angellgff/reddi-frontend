@@ -3,7 +3,11 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import { checkEmailRegistered, checkPhoneRegistered, registerPhoneForUser } from "./auth-checks";
+import {
+  checkEmailRegistered,
+  checkPhoneRegistered,
+  registerPhoneForUser,
+} from "./auth-checks";
 
 export async function signUpAction(data: {
   email: string;
@@ -22,8 +26,10 @@ export async function signUpAction(data: {
   ]);
 
   const errors: Record<string, string> = {};
-  if (emailExists) errors.email = "Este email esta registrado con una cuenta existente";
-  if (phoneExists) errors.phone = "Este número está vinculado a una cuenta existente";
+  if (emailExists)
+    errors.email = "Este email esta registrado con una cuenta existente";
+  if (phoneExists)
+    errors.phone = "Este número está vinculado a una cuenta existente";
 
   if (Object.keys(errors).length > 0) {
     return { success: false, errors };
@@ -55,7 +61,9 @@ export async function signUpAction(data: {
     ) {
       return {
         success: false,
-        errors: { email: "Este email esta registrado con una cuenta existente" },
+        errors: {
+          email: "Este email esta registrado con una cuenta existente",
+        },
       };
     }
     return { success: false, errors: { general: error.message } };
@@ -65,14 +73,13 @@ export async function signUpAction(data: {
   if (signUpData.user?.id) {
     const phoneResult = await registerPhoneForUser(signUpData.user.id, phone);
     if (!phoneResult.success) {
-       console.error("Error registering phone:", phoneResult.error);
-       // No bloqueamos el registro si falla esto, pero lo logueamos
+      console.error("Error registering phone:", phoneResult.error);
+      // No bloqueamos el registro si falla esto, pero lo logueamos
     }
   }
 
   return { success: true };
 }
-
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get("email") as string;

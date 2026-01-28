@@ -5,7 +5,7 @@ import { type User } from "@supabase/supabase-js";
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
   console.log(
-    `\n\n--- [MW-DEBUG] INICIO Petición a: ${request.method} ${path} ---`
+    `\n\n--- [MW-DEBUG] INICIO Petición a: ${request.method} ${path} ---`,
   );
 
   // Helper: create a redirect response and propagate any cookies Supabase asked us to set
@@ -47,28 +47,28 @@ export async function updateSession(request: NextRequest) {
         getAll: () => request.cookies.getAll(),
         setAll: (cookiesToSet) => {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   // 3. Obtener la sesión del usuario
   const withTimeout = async <T>(
     p: Promise<T> | PromiseLike<T>,
-    ms: number
+    ms: number,
   ): Promise<T> => {
     return await Promise.race<T>([
       p,
       new Promise<T>((_, reject) =>
-        setTimeout(() => reject(new Error("auth-timeout")), ms)
+        setTimeout(() => reject(new Error("auth-timeout")), ms),
       ),
     ]);
   };
@@ -82,7 +82,7 @@ export async function updateSession(request: NextRequest) {
   } catch (e) {
     console.warn(
       "[MW-DEBUG] Error o timeout en getUser:",
-      (e as Error)?.message
+      (e as Error)?.message,
     );
   }
 
@@ -90,7 +90,7 @@ export async function updateSession(request: NextRequest) {
 
   // --- GLOBALS ---
   const isStaticAsset = path.match(
-    /\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|map)$/
+    /\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|map)$/,
   );
 
   // --- EMAIL VERIFICATION CHECK ---
@@ -105,9 +105,9 @@ export async function updateSession(request: NextRequest) {
       return redirectWithCookies(
         new URL(
           `/auth/verify-email?email=${encodeURIComponent(user?.email || "")}`,
-          request.url
+          request.url,
         ),
-        supabaseResponse
+        supabaseResponse,
       );
     }
   }
@@ -122,7 +122,9 @@ export async function updateSession(request: NextRequest) {
   //   /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
   // );
 
-  const onboardingCookieName = user ? `onboarding_seen_${user.id}` : "onboarding_seen";
+  const onboardingCookieName = user
+    ? `onboarding_seen_${user.id}`
+    : "onboarding_seen";
   const onboardingSeenCookie = request.cookies.get(onboardingCookieName);
   let hasCompletedOnboardingGlobal = !!onboardingSeenCookie;
 
@@ -150,7 +152,7 @@ export async function updateSession(request: NextRequest) {
     !isStaticAsset
   ) {
     console.log(
-      "[MW-DEBUG] Global Check: Usuario no ha visto onboarding. Redirigiendo a /onboarding"
+      "[MW-DEBUG] Global Check: Usuario no ha visto onboarding. Redirigiendo a /onboarding",
     );
     const nextUrl = new URL("/onboarding", request.url);
     nextUrl.searchParams.set("next", path + (request.nextUrl.search || ""));
@@ -163,7 +165,7 @@ export async function updateSession(request: NextRequest) {
     try {
       const result = await withTimeout(
         supabase.from("profiles").select("role").eq("id", user.id).single(),
-        1000
+        1000,
       );
       const profile = result.data;
       role = profile?.role ?? null;
@@ -178,13 +180,13 @@ export async function updateSession(request: NextRequest) {
         null;
       console.warn(
         "[MW-DEBUG] Fallo al buscar rol en 'profiles', usando metadata:",
-        (e as Error)?.message
+        (e as Error)?.message,
       );
     }
   }
 
   console.log(
-    `[MW-DEBUG] Estado de autenticación: isAuthed=${isAuthed}, role=${role}`
+    `[MW-DEBUG] Estado de autenticación: isAuthed=${isAuthed}, role=${role}`,
   );
 
   // 4. Definir rutas públicas y de autenticación
@@ -234,7 +236,7 @@ export async function updateSession(request: NextRequest) {
   const isAuthPath = authPaths.some((p) => path.startsWith(p));
 
   console.log(
-    `[MW-DEBUG] Análisis de ruta: isPublicPath=${isPublicPath}, isAuthPath=${isAuthPath}`
+    `[MW-DEBUG] Análisis de ruta: isPublicPath=${isPublicPath}, isAuthPath=${isAuthPath}`,
   );
 
   // --- LÓGICA DE REDIRECCIÓN ---
@@ -279,7 +281,7 @@ export async function updateSession(request: NextRequest) {
       !isStaticAsset // This refers to the top helper const now
     ) {
       console.log(
-        "[MW-DEBUG] Usuario no ha completado onboarding. Redirigiendo a /onboarding"
+        "[MW-DEBUG] Usuario no ha completado onboarding. Redirigiendo a /onboarding",
       );
       const nextUrl = new URL("/onboarding", request.url);
       if (path !== "/") {
@@ -323,7 +325,7 @@ export async function updateSession(request: NextRequest) {
     // SIEMPRE entramos si no hay cookie nueva.
     if (shouldCheckAddress && !hasAddressCookie && user) {
       console.log(
-        `[MW-DEBUG] Verificando dirección para Usuario ${user.id}...`
+        `[MW-DEBUG] Verificando dirección para Usuario ${user.id}...`,
       );
 
       try {
@@ -332,13 +334,13 @@ export async function updateSession(request: NextRequest) {
             .from("user_addresses")
             .select("*", { count: "exact", head: true })
             .eq("user_id", user.id),
-          2000
+          2000,
         );
 
         if (error) {
           console.error(
             "[MW-DEBUG] Error query user_addresses:",
-            error.message
+            error.message,
           );
         } else {
           console.log(`[MW-DEBUG] Conteo direcciones: ${count}`);
@@ -346,15 +348,15 @@ export async function updateSession(request: NextRequest) {
 
         if (count === 0) {
           console.log(
-            "[MW-DEBUG] 🚨 Usuario sin dirección (count=0). Redirigiendo a /user/create-address"
+            "[MW-DEBUG] 🚨 Usuario sin dirección (count=0). Redirigiendo a /user/create-address",
           );
           return redirectWithCookies(
             new URL("/user/create-address", request.url),
-            supabaseResponse
+            supabaseResponse,
           );
         } else if (count && count > 0) {
           console.log(
-            `[MW-DEBUG] ✅ Usuario tiene dirección. Seteando cookie '${addressCookieName}'.`
+            `[MW-DEBUG] ✅ Usuario tiene dirección. Seteando cookie '${addressCookieName}'.`,
           );
           supabaseResponse.cookies.set(addressCookieName, "true", {
             maxAge: 60 * 60 * 24 * 7,
@@ -371,11 +373,11 @@ export async function updateSession(request: NextRequest) {
     if (isAuthPath || path === "/") {
       const homeUrl = getHomeUrlForRole(role);
       console.log(
-        `[MW-DEBUG] Usuario autenticado en ruta pública/auth ('${path}'). Redirigiendo a su home: ${homeUrl}`
+        `[MW-DEBUG] Usuario autenticado en ruta pública/auth ('${path}'). Redirigiendo a su home: ${homeUrl}`,
       );
       return redirectWithCookies(
         new URL(homeUrl, request.url),
-        supabaseResponse
+        supabaseResponse,
       );
     }
 
@@ -384,11 +386,11 @@ export async function updateSession(request: NextRequest) {
     const denyAccessAndRedirect = (reason: string) => {
       const homeUrl = getHomeUrlForRole(role);
       console.log(
-        `[MW-DEBUG] ACCESO DENEGADO: ${reason}. Rol: '${role}', Path: '${path}'. Redirigiendo a: ${homeUrl}`
+        `[MW-DEBUG] ACCESO DENEGADO: ${reason}. Rol: '${role}', Path: '${path}'. Redirigiendo a: ${homeUrl}`,
       );
       return redirectWithCookies(
         new URL(homeUrl, request.url),
-        supabaseResponse
+        supabaseResponse,
       );
     };
 
@@ -397,24 +399,24 @@ export async function updateSession(request: NextRequest) {
     }
     if (path.startsWith("/partner/market") && role !== "market") {
       return denyAccessAndRedirect(
-        "Área de Partner Market requiere rol 'market'"
+        "Área de Partner Market requiere rol 'market'",
       );
     }
     if (path.startsWith("/partner/restaurant") && role !== "restaurant") {
       return denyAccessAndRedirect(
-        "Área de Partner Restaurant requiere rol 'restaurant'"
+        "Área de Partner Restaurant requiere rol 'restaurant'",
       );
     }
     if (path.startsWith("/repartidor") && role !== "delivery") {
       return denyAccessAndRedirect(
-        "Área de Repartidor requiere rol 'delivery'"
+        "Área de Repartidor requiere rol 'delivery'",
       );
     }
     if (role && path.startsWith("/user")) {
       const specialRoles = ["admin", "market", "restaurant", "delivery"];
       if (specialRoles.includes(role as string)) {
         return denyAccessAndRedirect(
-          "Roles especiales no pueden acceder al área de usuario general"
+          "Roles especiales no pueden acceder al área de usuario general",
         );
       }
     }
@@ -427,18 +429,18 @@ export async function updateSession(request: NextRequest) {
       const target = new URL(targetPath, request.url);
       target.search = request.nextUrl.search;
       console.log(
-        `[MW-DEBUG] Redirigiendo ruta legacy '/aliado' a -> ${target.pathname}`
+        `[MW-DEBUG] Redirigiendo ruta legacy '/aliado' a -> ${target.pathname}`,
       );
       return redirectWithCookies(target, supabaseResponse);
     }
     if (path === "/partner" || path === "/partner/") {
       const homeUrl = getHomeUrlForRole(role);
       console.log(
-        `[MW-DEBUG] Usuario partner en ruta genérica '/partner'. Redirigiendo a su home: ${homeUrl}`
+        `[MW-DEBUG] Usuario partner en ruta genérica '/partner'. Redirigiendo a su home: ${homeUrl}`,
       );
       return redirectWithCookies(
         new URL(homeUrl, request.url),
-        supabaseResponse
+        supabaseResponse,
       );
     }
   }
@@ -459,7 +461,7 @@ export async function updateSession(request: NextRequest) {
   if (!isAuthed && !isPublicPath) {
     // Si la ruta no es pública y no está autenticado, redirigir a Login
     console.log(
-      `[MW-DEBUG] ⛔ Acceso denegado a ruta protegida: ${path}. Redirigiendo a /login...`
+      `[MW-DEBUG] ⛔ Acceso denegado a ruta protegida: ${path}. Redirigiendo a /login...`,
     );
     const hiddenNext = new URL("/auth/login", request.url);
     // Opcional: pasar ?next=... si deseamos retorno
