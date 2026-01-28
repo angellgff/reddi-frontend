@@ -84,7 +84,7 @@ export async function registerUser(
 
   if (signUpData.session) {
     console.log(
-      `[AuthService] SignUp success. Session active. Updating user phone to: ${formattedPhone}`
+      `[AuthService] SignUp success. Session active. Updating user phone to: ${formattedPhone}`,
     );
     const { error: updateError, data: updateData } =
       await supabase.auth.updateUser({
@@ -99,7 +99,7 @@ export async function registerUser(
     } else {
       console.log(
         "[AuthService] Phone update triggered. OTP should be sent.",
-        updateData
+        updateData,
       );
       // Successful update triggers SMS (if configured in Supabase)
       return { success: true, data: signUpData, needOtp: true };

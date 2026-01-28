@@ -102,7 +102,7 @@ export async function resendOtpAction(phoneInput: string) {
       // This is more robust for "linking" scenarios as it forces a new verification challenge.
       console.log(
         "[Action] Triggering updateUser again to resend OTP to:",
-        phone
+        phone,
       );
       const res = await supabase.auth.updateUser({
         phone: phone,
