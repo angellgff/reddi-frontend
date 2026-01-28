@@ -20,7 +20,15 @@ export type StoreMenu = {
         | "previous_price"
         | "description"
         | "discount_percentage"
-      > & { display_price: number }
+      > & {
+        display_price: number;
+        tags: Array<{
+          id: string;
+          name: string;
+          color: string | null;
+          iconKey: string;
+        }>;
+      }
     >;
   }>;
 };
@@ -45,6 +53,31 @@ export default async function getStoreMenu(
     name: string;
     image_url?: string | null;
   }[] = [];
+
+  // Helper type for the raw query result since we are adding a join
+  type ProductWithTags = Pick<
+    ProductRow,
+    | "id"
+    | "name"
+    | "image_url"
+    | "base_price"
+    | "previous_price"
+    | "description"
+    | "discount_percentage"
+    | "sub_category_id"
+    | "category_id"
+  > & {
+    display_price: number;
+    product_tags: {
+      product_tag_definitions: {
+        id: string;
+        name: string;
+        color: string | null;
+        icon_key: string;
+      } | null;
+    }[];
+  };
+
   let products: Array<
     Pick<
       ProductRow,
@@ -57,7 +90,15 @@ export default async function getStoreMenu(
       | "discount_percentage"
       | "sub_category_id"
       | "category_id"
-    > & { display_price: number }
+    > & {
+      display_price: number;
+      tags: Array<{
+        id: string;
+        name: string;
+        color: string | null;
+        iconKey: string;
+      }>;
+    }
   > = [];
 
   // --- RESTAURANT LOGIC ---
@@ -79,7 +120,7 @@ export default async function getStoreMenu(
     let query = supabase
       .from("products")
       .select(
-        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id, category_id",
+        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id, category_id, product_tags(product_tag_definitions(id, name, color, icon_key))",
       )
       .eq("partner_id", partnerId)
       .eq("is_available", true);
@@ -95,7 +136,23 @@ export default async function getStoreMenu(
       ascending: true,
     });
     if (prodErr) console.error("getStoreMenu products error", prodErr);
-    products = (productsData || []) as typeof products;
+
+    // Map raw data to products with tags
+    products = ((productsData || []) as unknown as ProductWithTags[]).map(
+      (p) => ({
+        ...p,
+        tags:
+          p.product_tags
+            ?.map((pt) => pt.product_tag_definitions)
+            .filter((t): t is NonNullable<typeof t> => !!t)
+            .map((t) => ({
+              id: t.id,
+              name: t.name,
+              color: t.color,
+              iconKey: t.icon_key,
+            })) || [],
+      }),
+    );
   }
 
   // --- MARKET / OTHER LOGIC ---
@@ -104,7 +161,7 @@ export default async function getStoreMenu(
     let query = supabase
       .from("products")
       .select(
-        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id, category_id",
+        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id, category_id, product_tags(product_tag_definitions(id, name, color, icon_key))",
       )
       .eq("partner_id", partnerId)
       .eq("is_available", true);
@@ -120,7 +177,23 @@ export default async function getStoreMenu(
       ascending: true,
     });
     if (prodErr) console.error("getStoreMenu products (market) error", prodErr);
-    products = (productsData || []) as typeof products;
+
+    // Map raw data to products with tags
+    products = ((productsData || []) as unknown as ProductWithTags[]).map(
+      (p) => ({
+        ...p,
+        tags:
+          p.product_tags
+            ?.map((pt) => pt.product_tag_definitions)
+            .filter((t): t is NonNullable<typeof t> => !!t)
+            .map((t) => ({
+              id: t.id,
+              name: t.name,
+              color: t.color,
+              iconKey: t.icon_key,
+            })) || [],
+      }),
+    );
 
     // 2. Fetch categories that appear in these products
     const distinctCategoryIds = Array.from(

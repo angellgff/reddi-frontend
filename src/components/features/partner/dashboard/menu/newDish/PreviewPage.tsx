@@ -47,7 +47,7 @@ export default function PreviewPage({
           <strong>Descuento %:</strong> {formData.discountPercent || "-"}
         </p>
         <p>
-          <strong>Unidad:</strong> {formData.unit}
+          <strong>Unidad:</strong> {formData.measurementUnit}
         </p>
         <p>
           <strong>Tiempo estimado:</strong> {formData.estimatedTimeRange}

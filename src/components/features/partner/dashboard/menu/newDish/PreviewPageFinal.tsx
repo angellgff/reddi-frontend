@@ -86,7 +86,7 @@ export default function PreviewPageFinal({
 
           <div className="flex items-baseline gap-3 my-2">
             <p className="text-2xl font-semibold text-primary">
-              ${formData.basePrice} {formData.unit}
+              ${formData.basePrice} {formData.measurementUnit}
             </p>
             {formData.previousPrice && (
               <p className="text-sm text-[#6A6C71] line-through font-roboto">

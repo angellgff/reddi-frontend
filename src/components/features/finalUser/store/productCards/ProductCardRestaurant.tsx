@@ -12,6 +12,12 @@ export interface ProductCardBase {
   previous_price: number | null;
   description: string | null;
   discount_percentage: number | null;
+  tags?: {
+    id: string;
+    name: string;
+    color: string | null;
+    iconKey: string;
+  }[];
 }
 
 interface Props {
@@ -74,6 +80,28 @@ export default function ProductCardRestaurant({
           <span className="text-[8px] font-[600] font-['Open_Sans'] text-[#6A6C71] leading-[10px]">
             ${p.display_price} RD
           </span>
+        </div>
+
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1 w-full mt-1">
+          {p.tags?.map((tag) => (
+            <div
+              key={tag.id}
+              className="flex items-center justify-center px-[4px] py-[1px] rounded-[4px]"
+              style={{
+                backgroundColor: tag.color?.startsWith("#")
+                  ? `${tag.color}30`
+                  : "rgba(0,0,0,0.05)",
+              }}
+            >
+              <span
+                className="font-['Inter'] font-semibold text-[7px] whitespace-nowrap"
+                style={{ color: tag.color || "#666" }}
+              >
+                {tag.name}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

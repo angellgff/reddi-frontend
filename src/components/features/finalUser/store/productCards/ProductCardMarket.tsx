@@ -90,19 +90,24 @@ export default function ProductCardMarket({
 
         {/* Badges Container */}
         <div className="flex flex-wrap gap-1 mt-auto w-full">
-          {/* Badge 1: Many in Stock */}
-          <div className="flex items-center justify-center px-[4px] py-[2px] bg-[rgba(4,189,136,0.25)] rounded-[6px] h-[16px]">
-            <span className="text-[#04BD88] font-['Inter'] font-semibold text-[8px] whitespace-nowrap">
-              Many in Stock
-            </span>
-          </div>
-
-          {/* Badge 2: Cold Product */}
-          <div className="flex items-center justify-center px-[4px] py-[2px] bg-[rgba(18,219,252,0.19)] rounded-[6px] h-[16px]">
-            <span className="text-[rgba(0,148,174,0.7)] font-['Inter'] font-semibold text-[8px] whitespace-nowrap">
-              Cold Product
-            </span>
-          </div>
+          {p.tags?.map((tag) => (
+            <div
+              key={tag.id}
+              className="flex items-center justify-center px-[4px] py-[2px] rounded-[6px] h-[16px]"
+              style={{
+                backgroundColor: tag.color?.startsWith("#")
+                  ? `${tag.color}40`
+                  : "rgba(0,0,0,0.05)",
+              }}
+            >
+              <span
+                className="font-['Inter'] font-semibold text-[8px] whitespace-nowrap"
+                style={{ color: tag.color || "#666" }}
+              >
+                {tag.name}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

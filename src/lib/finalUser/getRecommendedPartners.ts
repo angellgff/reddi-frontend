@@ -35,11 +35,14 @@ export default async function getRecommendedPartners(
   if (!placementError && placements && placements.length > 0) {
     // Filter null partners (e.g. inactive ones filtered out by join) and specific types
     const validPlacements = placements
+      .map((p) => (Array.isArray(p.partner) ? p.partner[0] : p.partner))
       .filter(
-        (p) =>
-          p.partner && (!partnerType || p.partner.partner_type === partnerType),
-      )
-      .map((p) => p.partner);
+        (partner) =>
+          partner &&
+          (!partnerType || partner.partner_type === partnerType) &&
+          partner.is_approved &&
+          partner.is_active,
+      );
 
     if (validPlacements.length > 0) {
       return validPlacements.map((partner: any) => ({

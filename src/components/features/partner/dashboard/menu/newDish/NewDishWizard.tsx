@@ -279,7 +279,6 @@ export default function NewDishWizard({
             }}
             onSaveAndExit={handleSaveAndExit}
             isSubmitting={isSubmitting}
-            availableTags={availableTags}
           />
           <CreateExtraModal
             isOpen={showExtraModal}
