@@ -70,6 +70,12 @@ function RegistroContent() {
         return;
       }
 
+      if (result.success && result.needOtp) {
+        // Redirect to OTP verification with phone
+        router.push(`/auth/verify-otp?phone=${encodeURIComponent(phone)}`);
+        return;
+      }
+
       router.push("/auth/sign-up-success");
     } catch (error: any) {
       console.error("Critical error in handleRegister:", error);

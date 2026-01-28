@@ -93,7 +93,8 @@ export async function updateSession(request: NextRequest) {
     /\.(png|jpg|jpeg|svg|gif|webp|ico|css|js|woff|woff2|ttf|map)$/,
   );
 
-  // --- EMAIL VERIFICATION CHECK ---
+  // --- EMAIL VERIFICATION CHECK (DISABLED) ---
+  /*
   if (isAuthed && !user?.email_confirmed_at) {
     // Allows access to verify-email, auth endpoints, callback, sign-out, etc.
     // Blocks access to core app routes if email is not confirmed
@@ -109,6 +110,62 @@ export async function updateSession(request: NextRequest) {
         ),
         supabaseResponse,
       );
+    }
+  }
+  */
+
+  // --- PHONE VERIFICATION CHECK ---
+  // Bloquea el acceso si el usuario tiene teléfono registrado pero no confirmado.
+  const userPhone = user?.phone || (user?.user_metadata as any)?.phone_number;
+  // Check both standard field and metadata flag for verification status
+  const isPhoneVerified =
+    !!user?.phone_confirmed_at ||
+    (user?.user_metadata as any)?.phone_verified === true;
+
+  if (isAuthed) {
+    console.log(`[MW-DEBUG] Phone Check for user ${user?.id}:
+      - user.phone: '${user?.phone}'
+      - metadata.phone_number: '${(user?.user_metadata as any)?.phone_number}'
+      - phone_confirmed_at: ${user?.phone_confirmed_at}
+      - metadata.phone_verified: ${(user?.user_metadata as any)?.phone_verified}
+      - Resolved userPhone: '${userPhone}'
+      - Resolved isPhoneVerified: ${isPhoneVerified}
+    `);
+  }
+
+  if (isAuthed && userPhone && !isPhoneVerified) {
+    const isVerifyOtpPage = path === "/auth/verify-otp";
+    const isApiAuth = path.startsWith("/api/auth");
+
+    console.log(`[MW-DEBUG] Entering Phone Check Logic:
+      - isVerifyOtpPage: ${isVerifyOtpPage}
+      - isApiAuth: ${isApiAuth}
+      - isStaticAsset: ${!!isStaticAsset}
+    `);
+
+    // Permitir acceso a:
+    // 1. La propia página de verificación
+    // 2. Endpoints de API de auth (para poder hacer verifyOtp / resend)
+    // 3. Static assets
+    // 4. Logout (que suele ser un createClient().auth.signOut() client-side o ruta /auth/signout)
+    //    Si logout es una ruta de Next (no API), hay que permitirla.
+    //    En este proyecto parece ser client-side + redirect a login.
+
+    // Bloquear todo lo demás (incluido /user/home, /admin, etc, e incluso /auth/login para forzar verificación)
+    if (!isVerifyOtpPage && !isApiAuth && !isStaticAsset) {
+      console.log(
+        `[MW] Usuario con teléfono no verificado redirigido a /auth/verify-otp`,
+      );
+      const nextUrl = new URL("/auth/verify-otp", request.url);
+      nextUrl.searchParams.set("phone", userPhone);
+
+      // Solo preservar 'next' si no estamos en una ruta de auth (para no redirigir a login después)
+      const isAuthPage = path.startsWith("/auth/");
+      if (!isAuthPage && path !== "/") {
+        nextUrl.searchParams.set("next", path);
+      }
+
+      return redirectWithCookies(nextUrl, supabaseResponse);
     }
   }
 
@@ -148,6 +205,7 @@ export async function updateSession(request: NextRequest) {
     !hasCompletedOnboardingGlobal &&
     !path.startsWith("/api/") &&
     !path.startsWith("/_next/") &&
+    !path.startsWith("/auth/") && // FIX: Allow auth routes (verify-email, verify-otp, login, etc)
     path !== "/onboarding" &&
     !isStaticAsset
   ) {
@@ -277,6 +335,7 @@ export async function updateSession(request: NextRequest) {
       !hasCompletedOnboarding &&
       !path.startsWith("/api/") &&
       !path.startsWith("/_next/") &&
+      !path.startsWith("/auth/") && // FIX: Also exclude auth from authenticated-user onboarding check fallback
       path !== "/onboarding" &&
       !isStaticAsset // This refers to the top helper const now
     ) {
@@ -312,6 +371,7 @@ export async function updateSession(request: NextRequest) {
       !path.startsWith("/user/create-address") &&
       !path.startsWith("/api/") &&
       !path.startsWith("/_next/") &&
+      !path.startsWith("/auth/") && // FIX: Exclude auth routes from address check
       path !== "/onboarding" &&
       !isStaticAsset;
 

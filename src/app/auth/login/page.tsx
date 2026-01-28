@@ -36,15 +36,26 @@ function LoginContent() {
   /* Removed useEffect that showed alert */
 
   // Local state for field errors
-  const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [errors, setErrors] = useState<{ email?: string; password?: string }>(
+    {},
+  );
 
   const clearErrors = () => setErrors({});
 
   // Sync server state error to local errors
   useEffect(() => {
+    if (state?.needOtp && state?.phone) {
+      const next = searchParams.get("next");
+      const redirectUrl = `/auth/verify-otp?phone=${encodeURIComponent(state.phone)}${
+        next ? `&next=${encodeURIComponent(next)}` : ""
+      }`;
+      router.push(redirectUrl);
+      return;
+    }
+
     if (state?.error) {
       if (
-        state.error.toLowerCase().includes("email") || 
+        state.error.toLowerCase().includes("email") ||
         state.error.toLowerCase().includes("user")
       ) {
         setErrors({ email: state.error });
@@ -52,7 +63,7 @@ function LoginContent() {
         setErrors({ password: state.error });
       }
     }
-  }, [state]);
+  }, [state, router]);
 
   const handleGoogleLogin = useCallback(async () => {
     try {

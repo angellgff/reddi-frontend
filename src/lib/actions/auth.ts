@@ -3,11 +3,15 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
+import { checkEmailRegistered, checkPhoneRegistered } from "./auth-checks";
 import {
-  checkEmailRegistered,
-  checkPhoneRegistered,
-  registerPhoneForUser,
-} from "./auth-checks";
+  registerUser,
+  loginUser,
+  verifyUserPhone,
+} from "@/src/lib/services/authService";
+
+// TODO: REMOVE THIS HARDCODED PHONE AFTER TESTING
+const TEST_PHONE_HARDCODED = "+584141915337";
 
 export async function signUpAction(data: {
   email: string;
@@ -16,10 +20,13 @@ export async function signUpAction(data: {
   lastName: string;
   phone: string;
 }) {
-  const { email, password, firstName, lastName, phone } = data;
-  const origin = (await headers()).get("origin");
+  const { email, password, firstName, lastName } = data;
 
-  // 1. Validaciones previas (Reutilizando lógica existente)
+  // CONSTANT OVERRIDE
+  const phone = TEST_PHONE_HARDCODED;
+  console.log(`[Action] signUpAction using hardcoded phone: ${phone}`);
+
+  // // 1. Validaciones previas (Reutilizando lógica existente)
   const [emailExists, phoneExists] = await Promise.all([
     checkEmailRegistered(email),
     checkPhoneRegistered(phone),
@@ -35,29 +42,19 @@ export async function signUpAction(data: {
     return { success: false, errors };
   }
 
-  const supabase = await createClient();
-
-  // 2. Sign Up
-  const { data: signUpData, error } = await supabase.auth.signUp({
+  // 2. Use Service for Registration
+  const result = await registerUser({
     email,
     password,
-    options: {
-      emailRedirectTo: `${origin}/auth/callback`,
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-        phone_number: phone,
-        full_name: `${firstName} ${lastName}`.trim(),
-      },
-    },
+    firstName,
+    lastName,
+    phone,
   });
 
-  if (error) {
-    console.error("Supabase SignUp Error:", error);
+  if (!result.success) {
     if (
-      error.code === "user_already_exists" ||
-      error.message?.includes("already registered") ||
-      error.message?.includes("User already exists")
+      result.error?.includes("already registered") ||
+      result.error?.includes("User already exists")
     ) {
       return {
         success: false,
@@ -66,44 +63,94 @@ export async function signUpAction(data: {
         },
       };
     }
-    return { success: false, errors: { general: error.message } };
+    return {
+      success: false,
+      errors: { general: result.error || "Error desconocido" },
+    };
   }
 
-  // 3. Register Phone (Admin action)
-  if (signUpData.user?.id) {
-    const phoneResult = await registerPhoneForUser(signUpData.user.id, phone);
-    if (!phoneResult.success) {
-      console.error("Error registering phone:", phoneResult.error);
-      // No bloqueamos el registro si falla esto, pero lo logueamos
-    }
-  }
+  // 3. Return success and OTP requirement
+  return { success: true, needOtp: result.needOtp };
+}
 
+export async function verifyOtpAction(phoneInput: string, token: string) {
+  // Ensure we verify against the same hardcoded number if strict testing is active
+  const phone = TEST_PHONE_HARDCODED || phoneInput;
+  console.log(`[Action] verifyOtpAction processing for ${phone}`);
+
+  const result = await verifyUserPhone(phone, token);
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
   return { success: true };
 }
 
+export async function resendOtpAction(phoneInput: string) {
+  const phone = TEST_PHONE_HARDCODED || phoneInput;
+  const supabase = await createClient();
+
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  console.log(`[Action] resendOtpAction for ${phone}. Session: ${!!session}`);
+
+  let error;
+  try {
+    if (session) {
+      // Authenticated flow: resend phone_change OTP
+      // STRATEGY CHANGE: Instead of auth.resend(type: 'phone_change'), we call updateUser again.
+      // This is more robust for "linking" scenarios as it forces a new verification challenge.
+      console.log(
+        "[Action] Triggering updateUser again to resend OTP to:",
+        phone
+      );
+      const res = await supabase.auth.updateUser({
+        phone: phone,
+      });
+      console.log("[Action] updateUser (resend override) result:", res);
+      error = res.error;
+    } else {
+      // Unauthenticated flow: resend SMS OTP (login)
+      console.log("[Action] Resending 'sms' OTP (login) to:", phone);
+      const res = await supabase.auth.signInWithOtp({
+        phone: phone,
+      });
+      console.log("[Action] Resend 'sms' result:", res);
+      error = res.error;
+    }
+
+    if (error) {
+      console.error("[Action] Resend error:", error.message);
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}
+
 export async function loginAction(prevState: unknown, formData: FormData) {
-  const email = formData.get("email") as string;
+  const identifier = formData.get("email") as string;
   const password = formData.get("password") as string;
   const next = formData.get("next") as string;
 
-  const supabase = await createClient();
+  const result = await loginUser(identifier, password);
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
-
-  if (error) {
-    if (error.message.includes("Email not confirmed")) {
-      redirect(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+  if (!result.success) {
+    if (result.error?.includes("Email not confirmed")) {
+      redirect(`/auth/verify-email?email=${encodeURIComponent(identifier)}`);
     }
-    return { error: error.message };
+    return { error: result.error };
   }
 
-  if (data.user && !data.user.email_confirmed_at) {
-    await supabase.auth.signOut();
-    redirect(`/auth/verify-email?email=${encodeURIComponent(email)}`);
+  if (result.needOtp) {
+    // Return state to UI to switch to OTP input
+    // The UI must handle this state (prevState.needOtp)
+    return { needOtp: true, phone: identifier };
   }
+
+  // Session established. Now determine redirect based on Role.
+  const supabase = await createClient();
 
   // Resolve role
   const {
