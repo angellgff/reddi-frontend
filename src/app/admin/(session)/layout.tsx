@@ -50,6 +50,11 @@ export default async function AdminDashboardLayout({
       icon: "banner",
     },
     {
+      name: "Destacados",
+      href: `${actualURL}/placements`,
+      icon: "placements",
+    },
+    {
       name: "Reglas de Precio",
       href: `${actualURL}/pricing-rules`,
       icon: "adminFinances",

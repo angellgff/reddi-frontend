@@ -79,3 +79,15 @@ export function DialogDescription(
     />
   );
 }
+
+export function DialogFooter(props: React.HTMLAttributes<HTMLDivElement>) {
+  return (
+    <div
+      {...props}
+      className={
+        "flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2" +
+        (props.className ? ` ${props.className}` : "")
+      }
+    />
+  );
+}

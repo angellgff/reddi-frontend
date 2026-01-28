@@ -781,6 +781,38 @@ export type Database = {
           },
         ]
       }
+      partner_placements: {
+        Row: {
+          created_at: string | null
+          display_order: number
+          id: string
+          partner_id: string
+          section_key: Database["public"]["Enums"]["app_section_key"]
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          partner_id: string
+          section_key: Database["public"]["Enums"]["app_section_key"]
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          partner_id?: string
+          section_key?: Database["public"]["Enums"]["app_section_key"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_placements_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       partners: {
         Row: {
           address: string | null
@@ -1887,6 +1919,10 @@ export type Database = {
         Args: { cart_items: Json; checkout_data: Json }
         Returns: string
       }
+      create_order_v3: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
       create_order_with_variants: {
         Args: { cart_items: Json; checkout_data: Json }
         Returns: string
@@ -2737,6 +2773,12 @@ export type Database = {
         | "habitacion de hotel"
         | "muelle de yate"
       app_role: "user" | "admin" | "market" | "restaurant" | "delivery"
+      app_section_key:
+        | "home_recommended_carousel"
+        | "market_list"
+        | "restaurant_list"
+        | "pharmacy_list"
+        | "liquor_list"
       banner_placement: "home_top" | "home_middle" | "category_page"
       coupon_discount_type: "percentage" | "fixed_amount"
       coupon_status: "active" | "inactive" | "expired"
@@ -2931,6 +2973,13 @@ export const Constants = {
         "muelle de yate",
       ],
       app_role: ["user", "admin", "market", "restaurant", "delivery"],
+      app_section_key: [
+        "home_recommended_carousel",
+        "market_list",
+        "restaurant_list",
+        "pharmacy_list",
+        "liquor_list",
+      ],
       banner_placement: ["home_top", "home_middle", "category_page"],
       coupon_discount_type: ["percentage", "fixed_amount"],
       coupon_status: ["active", "inactive", "expired"],

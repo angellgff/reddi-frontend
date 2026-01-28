@@ -9,6 +9,7 @@ import ProductIcon from "@/src/components/icons/ProductIcon";
 import HistoryIcon from "@/src/components/icons/HistoryIcon";
 import SupportIcon from "@/src/components/icons/SupportIcon";
 import FinancesIcon from "@/src/components/icons/FinancesIcon";
+import StarIcon from "@/src/components/icons/StarIcon";
 import { ComponentType } from "react";
 
 export const iconMap: {
@@ -20,6 +21,7 @@ export const iconMap: {
   users: AdminUsersIcon,
   banner: AdminBannerIcon,
   adminFinances: AdminFinancesIcon,
+  placements: StarIcon,
 
   // Partner / Other icons
   order: OrderIcon,
