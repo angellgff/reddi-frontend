@@ -58,7 +58,7 @@ export default function RecommendedProductsSection({
           discountedPrice,
         } as ProductCardBase & { discountedPrice: number };
       }),
-    [products]
+    [products],
   );
 
   const onAdd = (product: ProductCardBase, e: React.MouseEvent) => {
@@ -87,7 +87,7 @@ export default function RecommendedProductsSection({
         quantity: 1,
         extras: [],
         mergeByProduct: true,
-      })
+      }),
     );
     setToast({
       open: true,
