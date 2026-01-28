@@ -121,7 +121,9 @@ export async function updateSession(request: NextRequest) {
   // const isStaticAsset = path.match(
   //   /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
   // );
-  const onboardingSeenCookie = request.cookies.get("onboarding_seen");
+
+  const onboardingCookieName = user ? `onboarding_seen_${user.id}` : "onboarding_seen";
+  const onboardingSeenCookie = request.cookies.get(onboardingCookieName);
   let hasCompletedOnboardingGlobal = !!onboardingSeenCookie;
 
   // Sync from DB if user is logged in but cookie is missing
@@ -131,7 +133,7 @@ export async function updateSession(request: NextRequest) {
     const dbOnboarding = um.onboarding_completed || am.onboarding_completed;
     if (dbOnboarding) {
       hasCompletedOnboardingGlobal = true;
-      supabaseResponse.cookies.set("onboarding_seen", "true", {
+      supabaseResponse.cookies.set(onboardingCookieName, "true", {
         maxAge: 60 * 60 * 24 * 365,
         path: "/",
         httpOnly: true,
@@ -238,14 +240,15 @@ export async function updateSession(request: NextRequest) {
   // --- LÓGICA DE REDIRECCIÓN ---
 
   // 5. Lógica para usuarios YA AUTENTICADOS
-  if (isAuthed) {
+  if (user) {
     console.log("[MW-DEBUG] Analizando lógica para usuario AUTENTICADO.");
 
     // --- Onboarding Check ---
     // const isStaticAsset = path.match(
     //   /\.(png|jpg|jpeg|gif|svg|ico|css|js|webp|json|woff|woff2|ttf)$/i
     // );
-    const onboardingSeenCookie = request.cookies.get("onboarding_seen");
+    const onboardingCookieName = `onboarding_seen_${user.id}`;
+    const onboardingSeenCookie = request.cookies.get(onboardingCookieName);
     let hasCompletedOnboarding = !!onboardingSeenCookie;
 
     if (!hasCompletedOnboarding && user) {
@@ -259,7 +262,7 @@ export async function updateSession(request: NextRequest) {
         // Sync cookie for future requests to avoid DB check overhead if possible,
         // though here we are already checking user for other reasons.
         // We can set the cookie on the response so next time it is faster/consistent.
-        supabaseResponse.cookies.set("onboarding_seen", "true", {
+        supabaseResponse.cookies.set(onboardingCookieName, "true", {
           maxAge: 60 * 60 * 24 * 365,
           path: "/",
           httpOnly: true,
@@ -296,8 +299,9 @@ export async function updateSession(request: NextRequest) {
     // --- CHECK ADDRESS FOR USERS ---
     // Agregamos proteccion para usuarios sin direccion (finalUser)
     // Se salta si ya estamos en create-address, api, o assets
-    // CAMBIO: Usamos 'has_address_v2' para invalidar cookies anteriores y forzar chequeo nuevo
-    const hasAddressCookie = request.cookies.get("has_address_v2");
+    // CAMBIO: Cookies por usuario
+    const addressCookieName = `has_address_${user.id}`;
+    const hasAddressCookie = request.cookies.get(addressCookieName);
 
     // Debug Log para Address Check
     const shouldCheckAddress =
@@ -350,9 +354,9 @@ export async function updateSession(request: NextRequest) {
           );
         } else if (count && count > 0) {
           console.log(
-            "[MW-DEBUG] ✅ Usuario tiene dirección. Seteando cookie 'has_address_v2'."
+            `[MW-DEBUG] ✅ Usuario tiene dirección. Seteando cookie '${addressCookieName}'.`
           );
-          supabaseResponse.cookies.set("has_address_v2", "true", {
+          supabaseResponse.cookies.set(addressCookieName, "true", {
             maxAge: 60 * 60 * 24 * 7,
             path: "/",
             httpOnly: true,

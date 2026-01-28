@@ -2,6 +2,77 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
+import { checkEmailRegistered, checkPhoneRegistered, registerPhoneForUser } from "./auth-checks";
+
+export async function signUpAction(data: {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone: string;
+}) {
+  const { email, password, firstName, lastName, phone } = data;
+  const origin = (await headers()).get("origin");
+
+  // 1. Validaciones previas (Reutilizando lógica existente)
+  const [emailExists, phoneExists] = await Promise.all([
+    checkEmailRegistered(email),
+    checkPhoneRegistered(phone),
+  ]);
+
+  const errors: Record<string, string> = {};
+  if (emailExists) errors.email = "Este email esta registrado con una cuenta existente";
+  if (phoneExists) errors.phone = "Este número está vinculado a una cuenta existente";
+
+  if (Object.keys(errors).length > 0) {
+    return { success: false, errors };
+  }
+
+  const supabase = await createClient();
+
+  // 2. Sign Up
+  const { data: signUpData, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: `${origin}/auth/callback`,
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phone,
+        full_name: `${firstName} ${lastName}`.trim(),
+      },
+    },
+  });
+
+  if (error) {
+    console.error("Supabase SignUp Error:", error);
+    if (
+      error.code === "user_already_exists" ||
+      error.message?.includes("already registered") ||
+      error.message?.includes("User already exists")
+    ) {
+      return {
+        success: false,
+        errors: { email: "Este email esta registrado con una cuenta existente" },
+      };
+    }
+    return { success: false, errors: { general: error.message } };
+  }
+
+  // 3. Register Phone (Admin action)
+  if (signUpData.user?.id) {
+    const phoneResult = await registerPhoneForUser(signUpData.user.id, phone);
+    if (!phoneResult.success) {
+       console.error("Error registering phone:", phoneResult.error);
+       // No bloqueamos el registro si falla esto, pero lo logueamos
+    }
+  }
+
+  return { success: true };
+}
+
 
 export async function loginAction(prevState: unknown, formData: FormData) {
   const email = formData.get("email") as string;

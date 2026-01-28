@@ -7,20 +7,13 @@ import facebookLogo from "@/src/assets/images/facebooklogo.svg";
 import googleLogo from "@/src/assets/images/googlelogo.svg";
 import AppleIcon from "@/src/components/icons/AppleIcon";
 import { useRouter, useSearchParams } from "next/navigation";
-import { createClient } from "@/src/lib/supabase/client";
 import Spinner from "@/src/components/basics/Spinner";
 import AuthInput from "@/src/components/basics/auth/AuthInput";
-
-import {
-  checkEmailRegistered,
-  checkPhoneRegistered,
-  registerPhoneForUser,
-} from "@/src/lib/actions/auth-checks";
+import { signUpAction } from "@/src/lib/actions/auth";
 
 function RegistroContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const supabase = createClient();
   const [isLoading, setIsLoading] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -60,81 +53,30 @@ function RegistroContent() {
     if (!validate()) return;
 
     setIsLoading(true);
-    setErrors({}); // Clear previous errors
+    setErrors({}); 
 
     try {
-      // 1. Check if email/phone exists using Server Action (bypassing public security mask)
-      console.log("Checking if email/phone already registered...");
-      console.log(email, phone);
-      const [emailExists, phoneExists] = await Promise.all([
-        checkEmailRegistered(email),
-        checkPhoneRegistered(phone),
-      ]);
+      const result = await signUpAction({
+        email,
+        password,
+        firstName,
+        lastName,
+        phone,
+      });
 
-      const backendErrors: Record<string, string> = {};
-      if (emailExists) {
-        backendErrors.email =
-          "Este email esta registrado con una cuenta existente";
-      }
-      if (phoneExists) {
-        backendErrors.phone =
-          "Este número está vinculado a una cuenta existente";
-      }
-
-      if (Object.keys(backendErrors).length > 0) {
-        setErrors((prev) => ({ ...prev, ...backendErrors }));
+      if (!result.success && result.errors) {
+        setErrors((prev) => ({ ...prev, ...result.errors }));
         setIsLoading(false);
         return;
       }
 
-      console.log("Proceeding with sign up...");
-      console.log(phone);
-
-      // 2. Proceed with sign up
-      const { data: signUpData, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            phone_number: phone,
-            full_name: `${firstName} ${lastName}`.trim(),
-          },
-        },
-      });
-
-      if (error) {
-        console.log("Supabase SignUp Error:", error);
-        if (
-          error.code === "user_already_exists" ||
-          error.message?.includes("already registered") ||
-          error.message?.includes("User already exists")
-        ) {
-          setErrors((prev) => ({
-            ...prev,
-            email: "Este email esta registrado con una cuenta existente",
-          }));
-          setIsLoading(false);
-          return;
-        }
-        throw error;
-      }
-
-      // 3. Register phone in Auth table explicitly
-      if (signUpData.user?.id) {
-        await registerPhoneForUser(signUpData.user.id, phone);
-      }
-
       router.push("/auth/sign-up-success");
     } catch (error: any) {
-      console.error("Error signing up:", error);
+      console.error("Critical error in handleRegister:", error);
       setErrors((prev) => ({
         ...prev,
         general: error.message || "Error al registrarse. Por favor intenta nuevamente.",
       }));
-    } finally {
       setIsLoading(false);
     }
   };
