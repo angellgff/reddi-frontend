@@ -319,6 +319,12 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     sub_category_id: formData.get("subCategoryId") as string,
     unit: formData.get("unit") as string,
     measurement_unit: formData.get("measurementUnit") as string,
+    min_quantity: parseFloat(
+      (formData.get("minQuantity") as string)?.replace(",", ".") || "0",
+    ),
+    quantity_step: parseFloat(
+      (formData.get("quantityStep") as string)?.replace(",", ".") || "0",
+    ),
     estimated_time: formData.get("estimatedTimeRange") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",

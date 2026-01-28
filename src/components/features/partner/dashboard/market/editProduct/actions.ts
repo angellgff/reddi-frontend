@@ -70,8 +70,12 @@ export async function updateMarketProductAction(
     description: formData.get("description") as string,
     unit: formData.get("unit") as string,
     measurement_unit: formData.get("measurementUnit") as string,
-    min_quantity: parseFloat(formData.get("minQuantity") as string),
-    quantity_step: parseFloat(formData.get("quantityStep") as string),
+    min_quantity: parseFloat(
+      (formData.get("minQuantity") as string)?.replace(",", ".") || "0",
+    ),
+    quantity_step: parseFloat(
+      (formData.get("quantityStep") as string)?.replace(",", ".") || "0",
+    ),
     estimated_time: formData.get("estimatedTimeRange") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",
@@ -88,6 +92,15 @@ export async function updateMarketProductAction(
       : null,
     sub_category_id: null,
   };
+
+  console.log("updateMarketProductAction Payload:", {
+    productId,
+    rawMinQuantity: formData.get("minQuantity"),
+    rawQuantityStep: formData.get("quantityStep"),
+    parsedMinQuantity: updatePayload.min_quantity,
+    parsedQuantityStep: updatePayload.quantity_step,
+    fullPayload: updatePayload,
+  });
 
   if (imageUrl) {
     updatePayload.image_url = imageUrl;
