@@ -433,6 +433,16 @@ export async function updateSession(request: NextRequest) {
     }
 
     if (isAuthPath || path === "/") {
+      const isVerifyOtpPage = path === "/auth/verify-otp";
+
+      if (isVerifyOtpPage && !isPhoneVerified) {
+        console.log(
+          "[MW-DEBUG] Usuario autenticado PERMITIDO en /auth/verify-otp (Phone not verified).",
+        );
+        // Allow them to stay here to verify phone
+        return supabaseResponse;
+      }
+
       const homeUrl = getHomeUrlForRole(role);
       console.log(
         `[MW-DEBUG] Usuario autenticado en ruta pública/auth ('${path}'). Redirigiendo a su home: ${homeUrl}`,
