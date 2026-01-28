@@ -1,19 +1,68 @@
 import { createClient } from "@/src/lib/supabase/server";
 import type { SliderCardProps } from "@/src/components/basics/itemsSlider/SliderItem";
-
 import { Database } from "@/src/lib/database.types";
 
 export default async function getRecommendedPartners(
-  partnerType?: Database["public"]["Enums"]["partner_type"]
+  partnerType?: Database["public"]["Enums"]["partner_type"],
+  sectionKey: Database["public"]["Enums"]["app_section_key"] = "home_recommended_carousel",
 ): Promise<SliderCardProps[]> {
   const supabase = await createClient();
 
+  // First check if we have explicit placements for this section
+  let placementQuery = supabase
+    .from("partner_placements")
+    .select(
+      `
+          display_order,
+          partner:partners(
+             id, name, image_url, partner_type, average_rating, total_ratings, is_approved, is_active
+          )
+       `,
+    )
+    .eq("section_key", sectionKey)
+    .eq("partner.is_approved", true)
+    .eq("partner.is_active", true)
+    .order("display_order", { ascending: true });
+
+  if (partnerType) {
+    // NOTE: Filtering in JOIN is tricky with Supabase syntax for deep filtering sometimes,
+    // but let's try standard approach or filter in memory if result set small
+    // For now, let's filter in-memory if partnerType is provided, assuming placements list isn't huge.
+  }
+
+  const { data: placements, error: placementError } = await placementQuery;
+
+  if (!placementError && placements && placements.length > 0) {
+    // Filter null partners (e.g. inactive ones filtered out by join) and specific types
+    const validPlacements = placements
+      .filter(
+        (p) =>
+          p.partner && (!partnerType || p.partner.partner_type === partnerType),
+      )
+      .map((p) => p.partner);
+
+    if (validPlacements.length > 0) {
+      return validPlacements.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        imageUrl: partner.image_url || "/placeholder.png",
+        rating: partner.average_rating || 5.0,
+        reviewCount: partner.total_ratings || 0,
+        deliveryTime: "20-30 min", // Placeholder or calculate
+        deliveryFee: "Gratis", // Placeholder
+        type: partner.partner_type,
+        href: `/user/stores/${partner.id}`,
+      }));
+    }
+  }
+
+  // Fallback to default logic if no placements found
   let query = supabase
     .from("partners")
     .select("id, name, image_url, partner_type, average_rating, total_ratings")
     .eq("is_approved", true)
     .eq("is_active", true)
-    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: false }) // Or average_rating
     .limit(10);
 
   if (partnerType) {
