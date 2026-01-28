@@ -93,21 +93,13 @@ export default function PartnerAccordionItem({
                     <button className="absolute bottom-2 right-2 w-6 h-6 bg-[#04BD88] rounded flex items-center justify-center text-white">
                       <Plus size={14} strokeWidth={3} />
                     </button>
-                    {/* Rating Badge Mock */}
-                    <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-bold flex items-center gap-0.5 shadow-sm">
-                      <Star
-                        size={8}
-                        className="fill-yellow-400 text-yellow-400"
-                      />
-                      <span>4.8</span>
-                    </div>
                   </div>
 
                   {/* Product Info */}
                   <div className="w-full text-left">
                     <span className="block font-bold text-[13px] text-black leading-tight mb-0.5 truncate w-full">
                       {formatCurrency(
-                        product.display_price ?? product.base_price
+                        product.display_price ?? product.base_price,
                       )}
                     </span>
                     <span className="block text-[11px] text-gray-500 leading-tight line-clamp-2 h-[28px]">

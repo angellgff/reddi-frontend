@@ -583,24 +583,6 @@ export default function ProductDetailsClient({
                 </h1>
               </div>
 
-              {/* Rating Row */}
-              <div className="flex items-center gap-2 mb-3">
-                <div className="flex items-center gap-1">
-                  <span className="text-xs font-semibold text-[#6A6C71]">
-                    4.8
-                  </span>
-                  <svg
-                    className="w-3 h-3 text-[#6A6C71] fill-current"
-                    viewBox="0 0 24 24"
-                  >
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                </div>
-                <span className="text-xs font-semibold text-[#606060]">
-                  (143)
-                </span>
-              </div>
-
               {/* Price & Description */}
               <p className="text-sm text-[#6A6C71] leading-relaxed mb-4">
                 {details.description || "Sin descripción disponible."}
