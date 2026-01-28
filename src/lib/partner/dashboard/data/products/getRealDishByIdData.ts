@@ -37,6 +37,9 @@ type ProductData = {
       override_price?: number;
     }>;
   }>;
+  product_tags?: Array<{
+    tag_id: string;
+  }>;
 };
 
 function mapProductToFormState(product: ProductData): CreateProductFormState {
@@ -55,6 +58,7 @@ function mapProductToFormState(product: ProductData): CreateProductFormState {
     subCategoryId: product.sub_category_id || null,
     isAvailable: product.is_available ?? true,
     taxIncluded: product.tax_included ?? false,
+    tags: (product.product_tags || []).map((t) => t.tag_id),
 
     // Mapeo corregido de secciones y opciones anidadas
     sections: (product.product_sections || []).map(
@@ -128,7 +132,8 @@ async function getDishByIdUncached({
           *,
           product_extras (*)
         )
-      )
+      ),
+      product_tags (tag_id)
     `,
     )
     .eq("id", id)

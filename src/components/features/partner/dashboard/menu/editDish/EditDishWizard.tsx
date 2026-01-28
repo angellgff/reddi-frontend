@@ -9,6 +9,7 @@ import {
   CreateProductFormState,
   ProductSubCategory,
   ProductExtra,
+  ProductTagDefinition,
 } from "@/src/lib/partner/productTypes";
 import { validateStep1, validateStep2 } from "@/src/lib/partner/productUtils";
 import { updateDishAction } from "../newDish/actions";
@@ -20,6 +21,7 @@ interface EditDishWizardProps {
   initialDishData: CreateProductFormState;
   initialSubCategories: ProductSubCategory[];
   extrasCatalog: ProductExtra[];
+  availableTags: ProductTagDefinition[];
 }
 
 export default function EditDishWizard({
@@ -27,6 +29,7 @@ export default function EditDishWizard({
   initialDishData,
   initialSubCategories,
   extrasCatalog: initialExtrasCatalog,
+  availableTags,
 }: EditDishWizardProps) {
   const basePath = `/aliado/menu/editar/${dishId}`;
   const router = useRouter();
@@ -162,6 +165,7 @@ export default function EditDishWizard({
         data.append("image", formData.image);
       }
       data.append("sections", JSON.stringify(formData.sections));
+      data.append("tags", JSON.stringify(formData.tags || []));
 
       // Loggear el contenido de FormData (no se puede loggear directamente)
       console.log("Contenido de FormData que se enviará:");
@@ -220,6 +224,7 @@ export default function EditDishWizard({
             openCreateCategoryModal={() => setShowCategoryModal(true)}
             onSaveAndExit={handleSubmitAll} // Reutilizamos la misma lógica
             isSubmitting={isSubmitting}
+            availableTags={availableTags}
           />
           <CreateCategoryModal
             isOpen={showCategoryModal}

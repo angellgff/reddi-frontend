@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import MarketEditProductForm from "@/src/components/features/partner/dashboard/market/editProduct/MarketEditProductForm";
 import { notFound } from "next/navigation";
 import ProductVariantsManager from "@/src/components/features/partner/dashboard/shared/ProductVariantsManager";
+import { ProductTagDefinition } from "@/src/lib/partner/productTypes";
 
 // 1. Se actualiza la interfaz para que 'params' sea una Promise
 interface EditPageProps {
@@ -70,6 +71,21 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     })),
   }));
 
+  // Fetch Tags Definitions
+  const { data: tagDefinitions } = await supabase
+    .from("product_tag_definitions")
+    .select("id, name, icon_key, color")
+    .eq("is_active", true)
+    .order("name");
+
+  // Fetch Current Tags
+  const { data: currentTags } = await supabase
+    .from("product_tags")
+    .select("tag_id")
+    .eq("product_id", id);
+
+  const selectedTagIds = (currentTags || []).map((t) => t.tag_id);
+
   // Subcategorías (Categorías globales) para el selector
   const { data: categoriesData } = await supabase
     .from("categories")
@@ -100,7 +116,17 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     isAvailable: productRow.is_available ?? true,
     taxIncluded: productRow.tax_included ?? false,
     sections: [], // Market sin extras/secciones
+    tags: selectedTagIds,
   };
+
+  const availableTags: ProductTagDefinition[] = (tagDefinitions || []).map(
+    (t) => ({
+      id: t.id,
+      name: t.name,
+      iconKey: t.icon_key,
+      color: t.color,
+    }),
+  );
 
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
@@ -110,6 +136,7 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
           productId={productRow.id}
           initialSubCategories={subCategories}
           initialFormData={initialFormData}
+          availableTags={availableTags}
         />
       </section>
       <section className="bg-white p-6 rounded-xl shadow-sm mt-6">

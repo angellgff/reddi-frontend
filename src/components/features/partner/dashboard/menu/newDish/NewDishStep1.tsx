@@ -7,9 +7,11 @@ import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import SelectInput from "@/src/components/basics/SelectInput";
 import TextArea from "@/src/components/features/partner/TextArea";
 import InputNotice from "@/src/components/basics/InputNotice";
+import TagSelector from "@/src/components/features/partner/dashboard/shared/TagSelector";
 import {
   CreateProductFormState,
   ProductSubCategory,
+  ProductTagDefinition,
 } from "@/src/lib/partner/productTypes";
 import { useState, useRef } from "react";
 
@@ -37,6 +39,7 @@ interface NewDishStep1Props {
   onSaveAndExit: () => void;
   isSubmitting?: boolean;
   allowCreateCategory?: boolean;
+  availableTags?: ProductTagDefinition[];
 }
 
 export default function NewDishStep1({
@@ -49,8 +52,9 @@ export default function NewDishStep1({
   errors: externalErrors,
   openCreateCategoryModal,
   onSaveAndExit,
-  isSubmitting,
+  isSubmitting = false,
   allowCreateCategory = true,
+  availableTags = [],
 }: NewDishStep1Props) {
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
   const formRef = useRef<HTMLFormElement>(null);
@@ -344,6 +348,20 @@ export default function NewDishStep1({
                 error={errors.description}
               />
             </div>
+
+            {availableTags && availableTags.length > 0 && (
+              <div>
+                <label className="block text-sm font-medium text-gray-900 mb-1">
+                  Etiquetas
+                </label>
+                <TagSelector
+                  availableTags={availableTags}
+                  selectedTags={formData.tags || []}
+                  onChange={(newTags) => updateFormData({ tags: newTags })}
+                />
+              </div>
+            )}
+
             <div>
               <div>
                 <SelectInput

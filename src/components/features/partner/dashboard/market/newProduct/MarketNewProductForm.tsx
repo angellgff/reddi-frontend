@@ -46,6 +46,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
     isAvailable: true,
     taxIncluded: false,
     sections: [], // market: no extras, keep empty
+    tags: [],
   });
 
   const updateFormData = (patch: Partial<CreateProductFormState>) => {

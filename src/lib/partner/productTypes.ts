@@ -15,6 +15,13 @@ export interface ProductSubCategory {
   categoryId: string | null; // FK a categories (puede ser null según schema)
 }
 
+export interface ProductTagDefinition {
+  id: string;
+  name: string;
+  iconKey: string;
+  color: string | null;
+}
+
 // Selección de un extra (no crea extra, lo referencia)
 export interface SectionExtraSelection {
   clientId: string; // id temporal para React
@@ -48,6 +55,7 @@ export interface CreateProductFormState {
   isAvailable: boolean;
   taxIncluded: boolean;
   sections: ProductSectionForm[];
+  tags: string[];
 }
 
 // Payload final para server action (sin File)

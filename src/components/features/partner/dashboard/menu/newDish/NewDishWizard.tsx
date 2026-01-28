@@ -55,6 +55,7 @@ export default function NewDishWizard({
     isAvailable: true,
     taxIncluded: false,
     sections: [],
+    tags: [],
   });
   const [errorsStep1, setErrorsStep1] = useState<Record<string, string>>({});
   const [errorsStep2, setErrorsStep2] = useState<Record<string, string>>({});

@@ -5,6 +5,7 @@ import NewDishStep1 from "@/src/components/features/partner/dashboard/menu/newDi
 import {
   CreateProductFormState,
   ProductSubCategory,
+  ProductTagDefinition,
 } from "@/src/lib/partner/productTypes";
 import { validateStep1 } from "@/src/lib/partner/productUtils";
 import { useRouter } from "next/navigation";
@@ -14,6 +15,7 @@ type Props = {
   productId: string;
   initialSubCategories: ProductSubCategory[];
   initialFormData: CreateProductFormState;
+  availableTags: ProductTagDefinition[];
 };
 
 /**
@@ -27,6 +29,7 @@ export default function MarketEditProductForm({
   productId,
   initialSubCategories,
   initialFormData,
+  availableTags,
 }: Props) {
   const router = useRouter();
   const [subCategories] = useState<ProductSubCategory[]>(initialSubCategories);
@@ -69,6 +72,7 @@ export default function MarketEditProductForm({
       if (formData.image instanceof File) data.append("image", formData.image);
       // market: no secciones
       data.append("sections", JSON.stringify([]));
+      data.append("tags", JSON.stringify(formData.tags || []));
 
       await updateMarketProductAction(productId, data);
       router.push(`/partner/market/productos?updated=${productId}`);
@@ -113,6 +117,7 @@ export default function MarketEditProductForm({
         openCreateCategoryModal={() => {}}
         onSaveAndExit={submitIfValid}
         isSubmitting={isSubmitting}
+        availableTags={availableTags}
       />
     </>
   );

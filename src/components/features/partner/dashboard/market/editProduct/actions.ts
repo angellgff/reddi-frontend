@@ -127,6 +127,32 @@ export async function updateMarketProductAction(
       .eq("product_id", productId);
   }
 
+  // Handle Tags
+  const tagsJson = formData.get("tags") as string;
+  if (tagsJson) {
+    let tagIds: string[] = [];
+    try {
+      tagIds = JSON.parse(tagsJson) as string[];
+    } catch {}
+
+    // Delete existing tags
+    await supabase.from("product_tags").delete().eq("product_id", productId);
+
+    // Insert new tags
+    if (tagIds.length > 0) {
+      const { error: tagsError } = await supabase.from("product_tags").insert(
+        tagIds.map((tagId) => ({
+          product_id: productId,
+          tag_id: tagId,
+        })),
+      );
+      if (tagsError) {
+        console.error("Error updating tags:", tagsError);
+        // Not throwing error to avoid blocking the main update if tags fail, but logging it.
+      }
+    }
+  }
+
   revalidatePath("/partner/market/productos");
   revalidatePath(`/partner/market/productos/editar/${productId}`);
 

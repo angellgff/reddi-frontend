@@ -1154,6 +1154,66 @@ export type Database = {
           },
         ]
       }
+      product_tag_definitions: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          icon_key: string
+          id: string
+          is_active: boolean | null
+          name: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          icon_key: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          icon_key?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+        }
+        Relationships: []
+      }
+      product_tags: {
+        Row: {
+          created_at: string | null
+          product_id: string
+          tag_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          product_id: string
+          tag_id: string
+        }
+        Update: {
+          created_at?: string | null
+          product_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_tags_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "product_tag_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_variant_groups: {
         Row: {
           created_at: string | null

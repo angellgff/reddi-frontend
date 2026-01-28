@@ -505,6 +505,35 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   }
   console.groupEnd();
 
+  // Handle Tags (Added)
+  console.group("Tags Update");
+  const tagsJson = formData.get("tags") as string;
+  if (tagsJson) {
+    let tagIds: string[] = [];
+    try {
+      tagIds = JSON.parse(tagsJson) as string[];
+    } catch {}
+
+    console.log("Updating tags:", tagIds);
+
+    // Delete existing tags
+    await supabase.from("product_tags").delete().eq("product_id", dishId);
+
+    // Insert new tags
+    if (tagIds.length > 0) {
+      const { error: tagsError } = await supabase.from("product_tags").insert(
+        tagIds.map((tagId) => ({
+          product_id: dishId,
+          tag_id: tagId,
+        })),
+      );
+      if (tagsError) {
+        console.error("Error updating tags:", tagsError);
+      }
+    }
+  }
+  console.groupEnd();
+
   // 6. FINALIZACIÓN Y REVALIDACIÓN
   console.group("6. Finalización");
   console.log(

@@ -6,6 +6,7 @@ import { Suspense } from "react";
 import EditDishSkeleton from "@/src/components/features/partner/dashboard/menu/editDish/EditDishSkeleton";
 import ProductVariantsManager from "@/src/components/features/partner/dashboard/shared/ProductVariantsManager";
 import { createClient } from "@/src/lib/supabase/server";
+import { ProductTagDefinition } from "@/src/lib/partner/productTypes";
 
 export default async function EditDishPage({
   params,
@@ -15,7 +16,7 @@ export default async function EditDishPage({
 }) {
   // Tu uso de 'await' ya era correcto
   const { id } = await params;
-  const supabase = createClient();
+  const supabase = await createClient();
 
   try {
     // 1. Obtener los datos del producto a editar y los datos generales del partner
@@ -25,9 +26,7 @@ export default async function EditDishPage({
     ]);
 
     // Fetch Variants and Groups
-    const { data: groupsData } = await (
-      await supabase
-    )
+    const { data: groupsData } = await supabase
       .from("product_variant_groups")
       .select(
         `
@@ -59,6 +58,22 @@ export default async function EditDishPage({
       })),
     }));
 
+    // Fetch Tags Definitions
+    const { data: tagDefinitions } = await supabase
+      .from("product_tag_definitions")
+      .select("id, name, icon_key, color")
+      .eq("is_active", true)
+      .order("name");
+
+    const availableTags: ProductTagDefinition[] = (tagDefinitions || []).map(
+      (t) => ({
+        id: t.id,
+        name: t.name,
+        iconKey: t.icon_key,
+        color: t.color,
+      }),
+    );
+
     if (!partnerData) {
       // Manejar el caso en que no se puedan obtener los datos del partner
       throw new Error("Could not retrieve partner data.");
@@ -77,6 +92,7 @@ export default async function EditDishPage({
               initialDishData={dishData}
               initialSubCategories={partnerData.subCategories}
               extrasCatalog={partnerData.extras}
+              availableTags={availableTags}
             />
           </Suspense>
         </section>
