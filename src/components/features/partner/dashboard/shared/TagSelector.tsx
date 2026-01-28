@@ -41,7 +41,7 @@ export default function TagSelector({
               "flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm font-medium transition-colors",
               isSelected
                 ? "bg-primary text-primary-foreground border-primary"
-                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50",
             )}
           >
             <TagIcon
