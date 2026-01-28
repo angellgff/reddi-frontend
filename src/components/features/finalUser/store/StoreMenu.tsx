@@ -190,23 +190,29 @@ export default function StoreMenu({
           No hay productos que coincidan con los filtros.
         </div>
       ) : (
-        groups.map((group) => (
-          <div key={group.id} className="space-y-4">
-            {/* Group Title: 'Elegidos por el chef' style */}
-            <div className="flex justify-between items-center px-1">
-              <h2 className="text-xl font-bold text-black">{group.name}</h2>
-            </div>
+        groups.map((group) => {
+          const isFiltering = !!selectedCategory;
+          const productsToShow = isFiltering
+            ? group.products
+            : group.products.slice(0, 4);
 
-            {/* El contenedor de la lista de productos ya no necesita los botones */}
-            <div className="relative">
-              {/* Horizontal scroll list */}
-              <div
-                ref={(el) => {
-                  scrollersRef.current[group.id] = el;
-                }}
-                className="flex gap-4 overflow-x-auto scrollbar-none pb-4 px-1"
-              >
-                {group.products.map((p) => {
+          return (
+            <div key={group.id} className="space-y-4">
+              {/* Group Title: 'Elegidos por el chef' style and See All button */}
+              <div className="flex justify-between items-center px-1">
+                <h2 className="text-xl font-bold text-black">{group.name}</h2>
+                {!isFiltering && (
+                  <button
+                    onClick={() => setSelectedCategory(group.id)}
+                    className="text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
+                  >
+                    Ver todos
+                  </button>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 px-1">
+                {productsToShow.map((p) => {
                   const price = Number(p.display_price) || 0;
                   const discount = Number(p.discount_percentage) || 0;
                   const discounted = discount
@@ -225,10 +231,7 @@ export default function StoreMenu({
                     openDetails(product as unknown as ProductCard);
 
                   return (
-                    <div
-                      key={p.id}
-                      className="flex-shrink-0 w-[calc(50%-0.5rem)] sm:w-auto flex justify-center"
-                    >
+                    <div key={p.id} className="w-full flex justify-center">
                       {isRestaurant ? (
                         <ProductCardRestaurant
                           product={p as unknown as ProductCardBase}
@@ -250,11 +253,9 @@ export default function StoreMenu({
                   );
                 })}
               </div>
-
-              {/* CAMBIO 3: Los botones de scroll ya no están aquí */}
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );
