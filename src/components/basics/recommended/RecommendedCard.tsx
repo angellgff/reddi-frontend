@@ -11,6 +11,7 @@ export default function RecommendedCard({
   deliveryTime,
   href,
   className,
+  isSponsored,
 }: SliderCardProps) {
   return (
     <Link
@@ -59,11 +60,13 @@ export default function RecommendedCard({
           </div>
 
           {/* Sponsored Label */}
-          <div className="absolute top-[40px] left-0">
-            <span className="text-[10px] font-normal leading-[16px] text-[#6A6C71] flex items-center">
-              Sponsored
-            </span>
-          </div>
+          {isSponsored && (
+            <div className="absolute top-[40px] left-0">
+              <span className="text-[10px] font-normal leading-[16px] text-[#6A6C71] flex items-center">
+                Patrocinado
+              </span>
+            </div>
+          )}
         </div>
       </div>
     </Link>

@@ -20,6 +20,8 @@ type SelectedPartnerColumns = Pick<
   | "bank_document_url"
   | "price_markup_percentage"
   | "platform_commission_percentage"
+  | "is_sponsored"
+  | "sponsor_label"
 >;
 
 const defaultHours: BusinessFormData["hours"] = {
@@ -124,6 +126,7 @@ function mapDbToForm(row: SelectedPartnerColumns): BusinessFormData {
     lng,
     price_markup_percentage: row.price_markup_percentage,
     platform_commission_percentage: row.platform_commission_percentage,
+    is_sponsored: !!row.is_sponsored,
   };
 }
 
@@ -132,7 +135,7 @@ export default async function getPartnerDataById(id: string) {
   const { data, error } = await supabase
     .from("partners")
     .select(
-      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, cover_image_url, is_approved, coordinates, bank_document_url, price_markup_percentage, platform_commission_percentage"
+      "id, name, is_physical, address, partner_type, phone, billing_email, business_hours, image_url, cover_image_url, is_approved, coordinates, bank_document_url, price_markup_percentage, platform_commission_percentage, is_sponsored, sponsor_label",
     )
     .eq("id", id)
     .single();
@@ -159,12 +162,14 @@ export default async function getPartnerDataById(id: string) {
       .getPublicUrl(data.bank_document_url);
     data.bank_document_url = publicUrl;
   }
-  
+
   // Also check cover_image_url just in case
   if (data.cover_image_url && !data.cover_image_url.startsWith("http")) {
     const {
       data: { publicUrl },
-    } = supabase.storage.from("business-images").getPublicUrl(data.cover_image_url);
+    } = supabase.storage
+      .from("business-images")
+      .getPublicUrl(data.cover_image_url);
     data.cover_image_url = publicUrl;
   }
 

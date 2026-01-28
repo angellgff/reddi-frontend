@@ -835,11 +835,13 @@ export type Database = {
           is_active: boolean
           is_approved: boolean
           is_physical: boolean | null
+          is_sponsored: boolean | null
           name: string
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string
           platform_commission_percentage: number | null
           price_markup_percentage: number | null
+          sponsor_label: string | null
           total_ratings: number | null
           user_id: string
           user_rnc: string
@@ -865,11 +867,13 @@ export type Database = {
           is_active?: boolean
           is_approved?: boolean
           is_physical?: boolean | null
+          is_sponsored?: boolean | null
           name: string
           partner_type: Database["public"]["Enums"]["partner_type"]
           phone: string
           platform_commission_percentage?: number | null
           price_markup_percentage?: number | null
+          sponsor_label?: string | null
           total_ratings?: number | null
           user_id: string
           user_rnc: string
@@ -895,11 +899,13 @@ export type Database = {
           is_active?: boolean
           is_approved?: boolean
           is_physical?: boolean | null
+          is_sponsored?: boolean | null
           name?: string
           partner_type?: Database["public"]["Enums"]["partner_type"]
           phone?: string
           platform_commission_percentage?: number | null
           price_markup_percentage?: number | null
+          sponsor_label?: string | null
           total_ratings?: number | null
           user_id?: string
           user_rnc?: string

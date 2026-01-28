@@ -21,10 +21,11 @@ export type UpdatePartnerPayload = {
   bank_document_url?: string | null;
   price_markup_percentage?: number | null;
   platform_commission_percentage?: number | null;
+  is_sponsored?: boolean;
 };
 
 function mapUiCategoryToDb(
-  partnerCategory?: UpdatePartnerPayload["category"]
+  partnerCategory?: UpdatePartnerPayload["category"],
 ): PartnerRow["partner_type"] | undefined {
   if (!partnerCategory) return undefined;
   return partnerCategory === "alcohol" ? "liquor_store" : partnerCategory;
@@ -88,7 +89,7 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
     // Convert to WKB hex string
     updates.coordinates = createWKBPoint(
       payload.lat,
-      payload.lng
+      payload.lng,
     ) as unknown as Json;
   }
   if (payload.image_url !== undefined) updates.image_url = payload.image_url;
@@ -99,6 +100,8 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
   if (payload.platform_commission_percentage !== undefined)
     updates.platform_commission_percentage =
       payload.platform_commission_percentage;
+  if (typeof payload.is_sponsored === "boolean")
+    updates.is_sponsored = payload.is_sponsored;
 
   // Approval consistency with check constraint
   if (typeof payload.profileState === "boolean") {
@@ -122,7 +125,7 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
       if (adminErr || !adminRow) {
         console.error(
           "updatePartnerProfile: admin not found for user",
-          adminErr
+          adminErr,
         );
         throw new Error("Administrador no válido");
       }
@@ -150,7 +153,7 @@ export async function updatePartnerProfile(payload: UpdatePartnerPayload) {
   if (error) {
     console.error("updatePartnerProfile error", error);
     throw new Error(
-      `No se pudo actualizar el aliado: ${error.message} (Code: ${error.code})`
+      `No se pudo actualizar el aliado: ${error.message} (Code: ${error.code})`,
     );
   }
 

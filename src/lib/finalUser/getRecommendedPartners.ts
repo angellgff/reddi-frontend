@@ -15,7 +15,7 @@ export default async function getRecommendedPartners(
       `
           display_order,
           partner:partners(
-             id, name, image_url, partner_type, average_rating, total_ratings, is_approved, is_active
+             id, name, image_url, partner_type, average_rating, total_ratings, is_approved, is_active, is_sponsored
           )
        `,
     )
@@ -55,6 +55,7 @@ export default async function getRecommendedPartners(
         deliveryFee: "Gratis", // Placeholder
         type: partner.partner_type,
         href: `/user/stores/${partner.id}`,
+        isSponsored: partner.is_sponsored || false,
       }));
     }
   }
@@ -62,7 +63,9 @@ export default async function getRecommendedPartners(
   // Fallback to default logic if no placements found
   let query = supabase
     .from("partners")
-    .select("id, name, image_url, partner_type, average_rating, total_ratings")
+    .select(
+      "id, name, image_url, partner_type, average_rating, total_ratings, is_sponsored",
+    )
     .eq("is_approved", true)
     .eq("is_active", true)
     .order("created_at", { ascending: false }) // Or average_rating
@@ -92,6 +95,7 @@ export default async function getRecommendedPartners(
       deliveryTime: "25-35 min",
       deliveryFee: "RD$0 tarifa de envío",
       href: `/user/stores/${p.id}`,
+      isSponsored: !!p.is_sponsored,
     };
   });
 

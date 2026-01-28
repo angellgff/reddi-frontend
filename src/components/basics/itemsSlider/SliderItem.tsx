@@ -15,6 +15,7 @@ export type SliderCardProps = {
   deliveryFee: string;
   href: string;
   className?: string;
+  isSponsored?: boolean;
 };
 
 const SliderCard: React.FC<SliderCardProps> = ({

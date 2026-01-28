@@ -31,7 +31,7 @@ export default function EditPartnerProfile({
         logoUrl = await uploadFile(
           formData.logo,
           "business-images",
-          `logos/${partnerId}`
+          `logos/${partnerId}`,
         );
       } else if (formData.logo === null) {
         logoUrl = null;
@@ -44,7 +44,7 @@ export default function EditPartnerProfile({
         documentUrl = await uploadFile(
           formData.document,
           "bank-documents",
-          `documents/${partnerId}`
+          `documents/${partnerId}`,
         );
       } else if (formData.document === null) {
         documentUrl = null;
@@ -71,6 +71,7 @@ export default function EditPartnerProfile({
         bank_document_url: documentUrl,
         price_markup_percentage: formData.price_markup_percentage,
         platform_commission_percentage: formData.platform_commission_percentage,
+        is_sponsored: formData.is_sponsored,
       });
       setModalTitle("Cambios guardados");
       setModalDesc("El perfil del aliado se actualizó correctamente.");
@@ -81,7 +82,7 @@ export default function EditPartnerProfile({
       setModalDesc(
         `No pudimos actualizar el perfil del aliado. ${
           err instanceof Error ? err.message : "Error desconocido"
-        }`
+        }`,
       );
       setModalOpen(true);
     } finally {

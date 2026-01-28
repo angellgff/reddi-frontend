@@ -42,6 +42,8 @@ export interface BusinessFormData {
   coverImage?: File | string | null;
   price_markup_percentage?: number | null;
   platform_commission_percentage?: number | null;
+  sponsor_label?: string | null;
+  is_sponsored?: boolean;
 }
 
 // Define las props del componente
@@ -61,7 +63,7 @@ export default function BusinessProfileForm({
   isSubmitting,
 }: BusinessProfileFormProps) {
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const name = e.target.name;
     const value = e.target.value;
@@ -81,7 +83,7 @@ export default function BusinessProfileForm({
   const handleHoursChange = (
     day: string,
     field: "active" | "opens" | "closes",
-    value: boolean | string
+    value: boolean | string,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -115,6 +117,36 @@ export default function BusinessProfileForm({
                 className="w-full border-gray-300 rounded-md"
                 placeholder="Ingresar la información"
               />
+              <div>
+                <label
+                  htmlFor="is_sponsored"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  ¿Está patrocinado?
+                </label>
+                <div className="flex items-center gap-4">
+                  <RadioInput
+                    id="yesSponsored"
+                    name="is_sponsored"
+                    value="yes"
+                    checked={formData.is_sponsored === true}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, is_sponsored: true }));
+                    }}
+                    label="Sí"
+                  />
+                  <RadioInput
+                    id="noSponsored"
+                    name="is_sponsored"
+                    value="no"
+                    checked={formData.is_sponsored === false}
+                    onChange={(e) => {
+                      setFormData((prev) => ({ ...prev, is_sponsored: false }));
+                    }}
+                    label="No"
+                  />
+                </div>
+              </div>
               <div>
                 <label
                   htmlFor="yesPhysical"
@@ -265,7 +297,7 @@ export default function BusinessProfileForm({
                       handleHoursChange(
                         value.toLowerCase(),
                         "active",
-                        e.target.checked
+                        e.target.checked,
                       )
                     }
                   />
@@ -283,7 +315,7 @@ export default function BusinessProfileForm({
                         handleHoursChange(
                           value.toLowerCase(),
                           "opens",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       disabled={!formData.hours[value.toLowerCase()]?.active}
@@ -302,7 +334,7 @@ export default function BusinessProfileForm({
                         handleHoursChange(
                           value.toLowerCase(),
                           "closes",
-                          e.target.value
+                          e.target.value,
                         )
                       }
                       disabled={!formData.hours[value.toLowerCase()]?.active}
