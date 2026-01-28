@@ -9,7 +9,7 @@ export const DialogPortal = DialogPrimitive.Portal;
 export const DialogClose = DialogPrimitive.Close;
 
 export function DialogOverlay(
-  props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
+  props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>,
 ) {
   return (
     <DialogPrimitive.Overlay
@@ -23,7 +23,7 @@ export function DialogOverlay(
 }
 
 export function DialogContent(
-  props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
+  props: React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>,
 ) {
   const { className, children, ...rest } = props;
   return (
@@ -67,7 +67,7 @@ export function DialogTitle(props: React.HTMLAttributes<HTMLHeadingElement>) {
 }
 
 export function DialogDescription(
-  props: React.HTMLAttributes<HTMLParagraphElement>
+  props: React.HTMLAttributes<HTMLParagraphElement>,
 ) {
   return (
     <p
