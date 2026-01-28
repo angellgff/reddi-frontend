@@ -1,5 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
-import { type Provider } from "@supabase/supabase-js";
+import { type Provider, type User } from "@supabase/supabase-js";
 
 // --- 1. Utilities ---
 
@@ -44,6 +44,7 @@ type AuthResponse = {
   data?: any;
   error?: string;
   needOtp?: boolean; // Signal to UI to show OTP input
+  user?: User;
 };
 
 // --- 2. Register Service ---

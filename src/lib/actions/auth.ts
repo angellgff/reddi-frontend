@@ -10,9 +10,6 @@ import {
   verifyUserPhone,
 } from "@/src/lib/services/authService";
 
-// TODO: REMOVE THIS HARDCODED PHONE AFTER TESTING
-const TEST_PHONE_HARDCODED = "+584141915337";
-
 export async function signUpAction(data: {
   email: string;
   password: string;
@@ -20,11 +17,9 @@ export async function signUpAction(data: {
   lastName: string;
   phone: string;
 }) {
-  const { email, password, firstName, lastName } = data;
+  const { email, password, firstName, lastName, phone } = data;
 
-  // CONSTANT OVERRIDE
-  const phone = TEST_PHONE_HARDCODED;
-  console.log(`[Action] signUpAction using hardcoded phone: ${phone}`);
+  console.log(`[Action] signUpAction phone: ${phone}`);
 
   // // 1. Validaciones previas (Reutilizando lógica existente)
   const [emailExists, phoneExists] = await Promise.all([
@@ -75,7 +70,7 @@ export async function signUpAction(data: {
 
 export async function verifyOtpAction(phoneInput: string, token: string) {
   // Ensure we verify against the same hardcoded number if strict testing is active
-  const phone = TEST_PHONE_HARDCODED || phoneInput;
+  const phone = phoneInput;
   console.log(`[Action] verifyOtpAction processing for ${phone}`);
 
   const result = await verifyUserPhone(phone, token);
@@ -86,7 +81,7 @@ export async function verifyOtpAction(phoneInput: string, token: string) {
 }
 
 export async function resendOtpAction(phoneInput: string) {
-  const phone = TEST_PHONE_HARDCODED || phoneInput;
+  const phone = phoneInput;
   const supabase = await createClient();
 
   const {
@@ -134,7 +129,10 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   const password = formData.get("password") as string;
   const next = formData.get("next") as string;
 
+  console.log("[Action] loginAction triggered", { identifier });
+
   const result = await loginUser(identifier, password);
+  console.log("[Action] loginUser result:", result);
 
   if (!result.success) {
     if (result.error?.includes("Email not confirmed")) {
@@ -144,6 +142,7 @@ export async function loginAction(prevState: unknown, formData: FormData) {
   }
 
   if (result.needOtp) {
+    console.log("[Action] Returning needOtp state to UI");
     // Return state to UI to switch to OTP input
     // The UI must handle this state (prevState.needOtp)
     return { needOtp: true, phone: identifier };

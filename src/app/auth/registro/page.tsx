@@ -19,6 +19,8 @@ function RegistroContent() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("+1");
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -56,12 +58,16 @@ function RegistroContent() {
     setErrors({});
 
     try {
+      // Clean phone input to remove any accidental non-digits
+      const cleanPhone = phone.replace(/\D/g, "");
+      const fullPhone = `${countryCode}${cleanPhone}`;
+
       const result = await signUpAction({
         email,
         password,
         firstName,
         lastName,
-        phone,
+        phone: fullPhone,
       });
 
       if (!result.success && result.errors) {
@@ -72,7 +78,7 @@ function RegistroContent() {
 
       if (result.success && result.needOtp) {
         // Redirect to OTP verification with phone
-        router.push(`/auth/verify-otp?phone=${encodeURIComponent(phone)}`);
+        router.push(`/auth/verify-otp?phone=${encodeURIComponent(fullPhone)}`);
         return;
       }
 
@@ -159,24 +165,58 @@ function RegistroContent() {
             error={errors.phone}
             containerClassName="px-2 gap-2"
             startIcon={
-              <div className="flex items-center gap-1 min-w-[50px] border-r border-[#D1D1D1] pr-2 h-[20px]">
-                <span className="text-lg leading-none">🇩🇴</span>
-                <span className="text-[13px] text-[#484848] font-normal leading-[18px]">
-                  +1
-                </span>
-                <svg
-                  className="w-2 h-2 text-[#484848]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                  className="flex items-center gap-1 min-w-[50px] border-r border-[#D1D1D1] pr-2 h-[20px] focus:outline-none"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                  <span className="text-lg leading-none">
+                    {countryCode === "+1" ? "🇩🇴" : "🇻🇪"}
+                  </span>
+                  <span className="text-[13px] text-[#484848] font-normal leading-[18px]">
+                    {countryCode}
+                  </span>
+                  <svg
+                    className={`w-2 h-2 text-[#484848] transition-transform ${
+                      showCountryDropdown ? "rotate-180" : ""
+                    }`}
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                </button>
+
+                {showCountryDropdown && (
+                  <div className="absolute top-8 left-[-10px] w-[90px] bg-white shadow-lg rounded-md border border-gray-100 z-50 py-1 flex flex-col">
+                    {[
+                      { code: "+1", flag: "🇩🇴" },
+                      { code: "+58", flag: "🇻🇪" },
+                    ].map((opt) => (
+                      <button
+                        key={opt.code}
+                        type="button"
+                        className="flex items-center gap-2 px-3 py-2 w-full hover:bg-gray-50 text-left transition-colors"
+                        onClick={() => {
+                          setCountryCode(opt.code);
+                          setShowCountryDropdown(false);
+                        }}
+                      >
+                        <span>{opt.flag}</span>
+                        <span className="text-sm text-[#484848]">
+                          {opt.code}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             }
           />

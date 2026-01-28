@@ -29,8 +29,11 @@ function LoginContent() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [isPhoneLogin, setIsPhoneLogin] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "", // Acts as identifier (email or phone)
+    password: "",
+  });
   const startRef = useRef(false);
 
   /* Removed useEffect that showed alert */
@@ -42,13 +45,22 @@ function LoginContent() {
 
   const clearErrors = () => setErrors({});
 
+  // Handle Input Changes
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    clearErrors();
+  };
+
   // Sync server state error to local errors
   useEffect(() => {
+    console.log("[LoginPage] Action State Update:", state);
     if (state?.needOtp && state?.phone) {
       const next = searchParams.get("next");
       const redirectUrl = `/auth/verify-otp?phone=${encodeURIComponent(state.phone)}${
         next ? `&next=${encodeURIComponent(next)}` : ""
       }`;
+      console.log("[LoginPage] Redirecting to OTP:", redirectUrl);
       router.push(redirectUrl);
       return;
     }
@@ -56,7 +68,8 @@ function LoginContent() {
     if (state?.error) {
       if (
         state.error.toLowerCase().includes("email") ||
-        state.error.toLowerCase().includes("user")
+        state.error.toLowerCase().includes("user") || 
+        state.error.toLowerCase().includes("phone")
       ) {
         setErrors({ email: state.error });
       } else {
@@ -140,44 +153,63 @@ function LoginContent() {
           value={searchParams.get("next") || "/user/home"}
         />
 
-        {/* Email Input */}
-        <AuthInput
-          name="email"
-          label="Email"
-          type="email"
-          placeholder="ejemplo@gmail.com"
-          value={email}
-          onChange={(e) => {
-            setEmail(e.target.value);
-            clearErrors();
-          }}
-          error={errors.email}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              if (!showPassword) {
-                e.preventDefault();
-                if (email) setShowPassword(true);
+        {/* Dynamic Input (Email / Phone) */}
+        {!isPhoneLogin ? (
+          <AuthInput
+            name="email"
+            label="Email"
+            type="email"
+            placeholder="ejemplo@gmail.com"
+            value={formData.email}
+            onChange={handleChange}
+            error={errors.email}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                if (!showPassword) {
+                  e.preventDefault();
+                  if (formData.email) setShowPassword(true);
+                }
               }
-            }
-          }}
-        />
+            }}
+          />
+        ) : (
+          <AuthInput
+            name="email" // Keeping name='email' so the server action receives it as 'identifier'
+            label="Número de teléfono"
+            type="tel"
+            placeholder="+58 412 1234567"
+            value={formData.email}
+            onChange={handleChange}
+            error={errors.email}
+          />
+        )}
 
-        {/* Password Input (Conditional) */}
-        {showPassword && (
+        {/* Toggle Helper Link */}
+        <div className="w-full flex justify-start -mt-3">
+          <button
+            type="button"
+            onClick={() => {
+              setIsPhoneLogin(!isPhoneLogin);
+              setFormData((prev) => ({ ...prev, email: "", password: "" }));
+              setShowPassword(false);
+              clearErrors();
+            }}
+            className="text-[#6A6C71] text-[13px] font-semibold underline hover:text-black transition-colors"
+          >
+            {isPhoneLogin ? "Utilizar Email" : "Utilizar número de teléfono"}
+          </button>
+        </div>
+
+        {/* Password Input (Conditional - Only for Email) */}
+        {!isPhoneLogin && showPassword && (
           <div className="w-full animate-in fade-in slide-in-from-top-2 duration-300">
             <AuthInput
               name="password"
               label="Contraseña"
               type="password"
               placeholder="********"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                clearErrors();
-              }}
-              onKeyDown={(e) => {
-                // Enter submits implicitly
-              }}
+              value={formData.password}
+              onChange={handleChange}
               error={errors.password}
             />
           </div>
@@ -252,19 +284,23 @@ function LoginContent() {
           <button
             type="submit"
             onClick={(e) => {
-              if (!showPassword) {
+              // If Email Login and password not shown, show password field first
+              if (!isPhoneLogin && !showPassword) {
                 e.preventDefault();
-                if (email) setShowPassword(true);
+                if (formData.email) setShowPassword(true);
               }
+              // If Phone Login, let it submit (triggers OTP flow)
             }}
-            className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center"
+            className="w-full h-[50px] bg-[#04BD88] rounded-[18px] text-white font-bold text-[20px] leading-[18px] hover:bg-[#03a072] transition-colors flex items-center justify-center disabled:opacity-50"
             disabled={isPending || isLoading}
           >
             {isPending || isLoading
               ? "Cargando..."
+              : isPhoneLogin
+              ? "Continuar"
               : showPassword
-                ? "Iniciar Sesión"
-                : "Continuar"}
+              ? "Iniciar Sesión"
+              : "Continuar"}
           </button>
         </div>
 

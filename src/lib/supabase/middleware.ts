@@ -274,6 +274,7 @@ export async function updateSession(request: NextRequest) {
     "/politicas-seguridad-transmision-datos-tarjetas",
     "/auth/callback",
     "/productos-y-servicios",
+    "/auth/verify-otp",
   ];
   const authPaths = [
     "/login",
@@ -288,6 +289,7 @@ export async function updateSession(request: NextRequest) {
     "/partner/registro",
     "/auth/callback",
     "/productos-y-servicios",
+    "/auth/verify-otp",
   ];
 
   const isPublicPath = publicPaths.includes(path);
