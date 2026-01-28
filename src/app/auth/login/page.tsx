@@ -68,7 +68,7 @@ function LoginContent() {
     if (state?.error) {
       if (
         state.error.toLowerCase().includes("email") ||
-        state.error.toLowerCase().includes("user") || 
+        state.error.toLowerCase().includes("user") ||
         state.error.toLowerCase().includes("phone")
       ) {
         setErrors({ email: state.error });
@@ -297,10 +297,10 @@ function LoginContent() {
             {isPending || isLoading
               ? "Cargando..."
               : isPhoneLogin
-              ? "Continuar"
-              : showPassword
-              ? "Iniciar Sesión"
-              : "Continuar"}
+                ? "Continuar"
+                : showPassword
+                  ? "Iniciar Sesión"
+                  : "Continuar"}
           </button>
         </div>
 
