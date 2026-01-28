@@ -9,6 +9,7 @@ import {
   CreateProductFormState,
   ProductSubCategory,
   ProductExtra,
+  ProductTagDefinition,
 } from "@/src/lib/partner/productTypes";
 import { validateStep1, validateStep2 } from "@/src/lib/partner/productUtils";
 import { createDishAction } from "./actions";
@@ -28,11 +29,13 @@ const basePath = "/aliado/menu/nuevo";
 interface NewDishWizardProps {
   initialSubCategories: ProductSubCategory[];
   extrasCatalog: ProductExtra[]; // catálogo inicial
+  availableTags: ProductTagDefinition[];
 }
 
 export default function NewDishWizard({
   initialSubCategories,
   extrasCatalog: initialExtrasCatalog,
+  availableTags,
 }: NewDishWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -165,6 +168,7 @@ export default function NewDishWizard({
 
       // Objetos/Arrays complejos se convierten a string JSON
       data.append("sections", JSON.stringify(formData.sections));
+      data.append("tags", JSON.stringify(formData.tags || [])); // Added tags
 
       // 3. Llamar a la server action con el FormData
       const { productId } = await createDishAction(data);
@@ -216,6 +220,7 @@ export default function NewDishWizard({
         data.append("image", formData.image);
       }
       data.append("sections", JSON.stringify(formData.sections));
+      data.append("tags", JSON.stringify(formData.tags || [])); // Added tags
       const { productId } = await createDishAction(data);
       router.push(`/aliado/menu?created=${productId}`);
     } catch (e: unknown) {
@@ -245,6 +250,7 @@ export default function NewDishWizard({
             openCreateCategoryModal={() => setShowCategoryModal(true)}
             onSaveAndExit={handleSaveAndExit}
             isSubmitting={isSubmitting}
+            availableTags={availableTags}
           />
           <CreateCategoryModal
             isOpen={showCategoryModal}
@@ -273,6 +279,7 @@ export default function NewDishWizard({
             }}
             onSaveAndExit={handleSaveAndExit}
             isSubmitting={isSubmitting}
+            availableTags={availableTags}
           />
           <CreateExtraModal
             isOpen={showExtraModal}

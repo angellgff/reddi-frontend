@@ -5,6 +5,7 @@ import NewDishStep1 from "@/src/components/features/partner/dashboard/menu/newDi
 import {
   CreateProductFormState,
   ProductSubCategory,
+  ProductTagDefinition,
 } from "@/src/lib/partner/productTypes";
 import { validateStep1 } from "@/src/lib/partner/productUtils";
 import { createMarketProductAction } from "./actions";
@@ -12,6 +13,7 @@ import { useRouter } from "next/navigation";
 
 type Props = {
   initialSubCategories: ProductSubCategory[];
+  availableTags: ProductTagDefinition[];
 };
 
 /**
@@ -24,7 +26,10 @@ type Props = {
  * - Market uses the same "products" and "sub_categories" schema as restaurant.
  * - No extras are offered for market products, so sections array is empty.
  */
-export default function MarketNewProductForm({ initialSubCategories }: Props) {
+export default function MarketNewProductForm({
+  initialSubCategories,
+  availableTags,
+}: Props) {
   const router = useRouter();
   const [subCategories, setSubCategories] =
     useState<ProductSubCategory[]>(initialSubCategories);
@@ -63,6 +68,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
     }
     try {
       setIsSubmitting(true);
+      console.log("Submitting Market Product. Tags:", formData.tags);
       const data = new FormData();
       data.append("name", formData.name);
       data.append("basePrice", formData.basePrice);
@@ -82,6 +88,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
       if (formData.image) data.append("image", formData.image);
       // market: force empty sections
       data.append("sections", JSON.stringify([]));
+      data.append("tags", JSON.stringify(formData.tags || []));
 
       const { productId } = await createMarketProductAction(data);
       router.push(`/partner/market/productos?created=${productId}`);
@@ -126,6 +133,7 @@ export default function MarketNewProductForm({ initialSubCategories }: Props) {
         onSaveAndExit={submitIfValid}
         isSubmitting={isSubmitting}
         allowCreateCategory={false}
+        availableTags={availableTags}
       />
     </>
   );

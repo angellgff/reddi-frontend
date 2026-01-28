@@ -1,6 +1,7 @@
 import NewDishWizard from "@/src/components/features/partner/dashboard/menu/newDish/NewDishWizard";
 import { createClient } from "@/src/lib/supabase/server";
 import { Suspense } from "react";
+import { ProductTagDefinition } from "@/src/lib/partner/productTypes";
 
 export default async function NewDishPage() {
   const supabase = await createClient();
@@ -51,6 +52,22 @@ export default async function NewDishPage() {
     extras = extrasRows || [];
   }
 
+  // Fetch Tags Definitions
+  const { data: tagDefinitions } = await supabase
+    .from("product_tag_definitions")
+    .select("id, name, icon_key, color")
+    .eq("is_active", true)
+    .order("name");
+
+  const availableTags: ProductTagDefinition[] = (tagDefinitions || []).map(
+    (t) => ({
+      id: t.id,
+      name: t.name,
+      iconKey: t.icon_key,
+      color: t.color,
+    }),
+  );
+
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
       <h1 className="font-semibold">Crear producto</h1>
@@ -69,6 +86,7 @@ export default async function NewDishPage() {
               imageUrl: e.image_url,
               partnerId: e.partner_id,
             }))}
+            availableTags={availableTags}
           />
         </Suspense>
       </section>

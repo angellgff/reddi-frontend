@@ -178,6 +178,27 @@ export async function createDishAction(
     }
   }
 
+  // Insert Tags
+  const tagsJson = formData.get("tags") as string;
+  if (tagsJson) {
+    let tagIds: string[] = [];
+    try {
+      tagIds = JSON.parse(tagsJson) as string[];
+    } catch {}
+
+    if (tagIds.length > 0) {
+      const { error: tagsError } = await supabase.from("product_tags").insert(
+        tagIds.map((tagId) => ({
+          product_id: productId,
+          tag_id: tagId,
+        })),
+      );
+      if (tagsError) {
+        console.error("Error creating tags:", tagsError);
+      }
+    }
+  }
+
   revalidatePath("/aliado/menu");
   return { productId };
 }

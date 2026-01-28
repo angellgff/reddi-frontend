@@ -79,6 +79,40 @@ export async function createMarketProductAction(
   if (prodErr || !productRow)
     throw new Error(prodErr?.message || "Error creando producto");
 
+  // Insert Tags
+  const tagsJson = formData.get("tags") as string;
+  console.log("Action Received Tags JSON:", tagsJson);
+
+  if (tagsJson) {
+    let tagIds: string[] = [];
+    try {
+      tagIds = JSON.parse(tagsJson) as string[];
+    } catch (e) {
+      console.error("Error parsing tags JSON:", e);
+    }
+
+    console.log("Parsed Tag IDs to insert:", tagIds);
+
+    if (tagIds.length > 0) {
+      const { error: tagsError } = await supabase.from("product_tags").insert(
+        tagIds.map((tagId) => ({
+          product_id: productRow.id,
+          tag_id: tagId,
+        })),
+      );
+      if (tagsError) {
+        console.error("Error creating tags:", tagsError);
+        throw new Error(`Error guardando etiquetas: ${tagsError.message}`);
+      } else {
+        console.log("Tags inserted successfully.");
+      }
+    } else {
+      console.log("No tags to insert (empty list).");
+    }
+  } else {
+    console.log("No tags field in formData.");
+  }
+
   // Revalidar vistas relevantes de Market
   revalidatePath("/partner/market/productos");
   revalidatePath("/partner/market/productos/nuevo");
