@@ -47,7 +47,7 @@ export default async function EditDishServer({ id }: { id: string }) {
     // Si getDishById lanza un error (ej. no encontrado), muestra una página 404
     console.error(
       `Failed to load data for dish ${id} in EditDishServer:`,
-      error
+      error,
     );
     notFound();
   }
