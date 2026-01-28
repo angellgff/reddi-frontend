@@ -441,7 +441,15 @@ export default function ProductDetailsClient({
         note: note.trim() ? note.trim() : null,
       }),
     );
-    if (openAfter) dispatch(openCart());
+    if (openAfter) {
+      dispatch(openCart());
+    } else {
+      setToast({
+        open: true,
+        message: "Producto agregado correctamente",
+        type: "success",
+      });
+    }
   };
 
   useEffect(() => {
@@ -460,7 +468,7 @@ export default function ProductDetailsClient({
         }),
       action: () => {
         if (requiredSatisfied) {
-          addToCartHandler(true);
+          addToCartHandler(false);
         } else {
           setToast({
             open: true,
@@ -679,7 +687,7 @@ export default function ProductDetailsClient({
                   <button
                     className="flex-1 bg-[#04BD88] text-white h-[44px] rounded-full font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-[#04BD88]/20 disabled:opacity-50 disabled:cursor-not-allowed"
                     disabled={!requiredSatisfied}
-                    onClick={() => addToCartHandler(true)}
+                    onClick={() => addToCartHandler(false)}
                   >
                     <span>Agregar</span>
                     <span className="font-normal opacity-90">

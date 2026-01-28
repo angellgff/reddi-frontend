@@ -112,7 +112,11 @@ export default function StoreMenu({
         mergeByProduct: true,
       }),
     );
-    dispatch(openCart());
+    setToast({
+      open: true,
+      msg: "Producto agregado correctamente",
+      type: "success",
+    });
   };
 
   const openDetails = (p: ProductCard) => {

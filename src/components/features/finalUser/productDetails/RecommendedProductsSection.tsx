@@ -89,7 +89,11 @@ export default function RecommendedProductsSection({
         mergeByProduct: true,
       })
     );
-    dispatch(openCart());
+    setToast({
+      open: true,
+      message: "Producto agregado correctamente",
+      type: "success",
+    });
   };
 
   const onOpen = (product: ProductCardBase) => {
