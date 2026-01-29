@@ -10,6 +10,7 @@ interface SearchOptions {
 }
 
 export interface SearchResultPartner extends SliderCardProps {
+  partnerType?: string;
   products: {
     id: string;
     name: string;
@@ -31,7 +32,7 @@ export async function searchPartners({
   let dbQuery = supabase
     .from("partners")
     .select(
-      "id, name, image_url, cover_image_url, partner_type, average_rating, total_ratings, products(id, name, image_url, base_price, display_price, description)"
+      "id, name, image_url, cover_image_url, partner_type, average_rating, total_ratings, products(id, name, image_url, base_price, display_price, description)",
     )
     .eq("is_approved", true);
 
@@ -77,6 +78,7 @@ export async function searchPartners({
       deliveryTime: "25-35 min",
       deliveryFee: "RD$0 ",
       href: `/user/stores/${p.id}`,
+      partnerType: p.partner_type,
       products: (p.products as any[])?.slice(0, 5) || [],
     };
   });

@@ -6,6 +6,12 @@ import { ChevronRight, ChevronDown, Plus, Star } from "lucide-react";
 import Link from "next/link";
 import { SearchResultPartner } from "@/src/lib/finalUser/search/searchPartners";
 import { formatCurrency } from "@/src/lib/utils";
+import { useAppDispatch } from "@/src/lib/store/hooks";
+import { useAppSelector } from "@/src/lib/store/hooks";
+import { addItem, selectCartPartnerId } from "@/src/lib/store/cartSlice";
+import { useRouter } from "next/navigation";
+import ProductDetailsDrawer from "../productDetails/ProductDetailsDrawer";
+import Toast from "@/src/components/basics/Toast";
 
 interface PartnerAccordionItemProps {
   partner: SearchResultPartner;
@@ -18,18 +24,78 @@ export default function PartnerAccordionItem({
   isOpen,
   onToggle,
 }: PartnerAccordionItemProps) {
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+  const currentPartnerId = useAppSelector(selectCartPartnerId);
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    null,
+  );
+  const [toast, setToast] = useState<{
+    open: boolean;
+    msg: string;
+    type: "success" | "error" | "info";
+  }>({
+    open: false,
+    msg: "",
+    type: "info",
+  });
+
   // Mock promotional badge logic based on ID to be deterministic
   const discount =
     partner.id.charCodeAt(0) % 3 === 0 ? "10% off en RD$3,500+" : null;
 
+  const handleAddToCart = (e: React.MouseEvent, product: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (currentPartnerId && currentPartnerId !== partner.id) {
+      setToast({
+        open: true,
+        msg: "Solo puedes agregar productos de una tienda a la vez. Vacía el carrito para cambiar de tienda.",
+        type: "error",
+      });
+      return;
+    }
+
+    // Ensure price is a number
+    const price = Number(product.display_price ?? product.base_price);
+    if (isNaN(price)) {
+      console.error("Invalid price for product:", product);
+      return;
+    }
+
+    dispatch(
+      addItem({
+        productId: product.id,
+        partnerId: partner.id,
+        name: product.name,
+        imageUrl: product.image_url,
+        unitPrice: price,
+        quantity: 1,
+        extras: [],
+      }),
+    );
+    setToast({
+      open: true,
+      msg: "Producto agregado al carrito",
+      type: "success",
+    });
+  };
+
   return (
-    <div className="border-b border-gray-100 last:border-0 py-4">
+    <div className="border-b border-gray-100 last:border-0 py-4 relative">
+      <Toast
+        open={toast.open}
+        message={toast.msg}
+        type={toast.type}
+        onClose={() => setToast((p) => ({ ...p, open: false }))}
+      />
       {/* Header Row */}
-      <div
-        className="flex items-center justify-between px-4 pb-2"
-        onClick={onToggle}
-      >
-        <div className="flex items-center gap-3 flex-1">
+      <div className="flex items-center justify-between px-4 pb-2">
+        <Link
+          href={`/user/stores/${partner.id}`}
+          className="flex items-center gap-3 flex-1"
+        >
           {/* Logo */}
           <div className="w-[50px] h-[50px] relative rounded-full overflow-hidden border border-gray-100 flex-shrink-0">
             <Image
@@ -59,10 +125,16 @@ export default function PartnerAccordionItem({
               </div>
             )}
           </div>
-        </div>
+        </Link>
 
         {/* Toggle / Arrow */}
-        <button className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0"
+        >
           {isOpen ? (
             <ChevronDown size={18} className="text-black" />
           ) : (
@@ -79,7 +151,8 @@ export default function PartnerAccordionItem({
               {partner.products.map((product) => (
                 <div
                   key={product.id}
-                  className="min-w-[140px] w-[140px] flex flex-col items-center"
+                  onClick={() => setSelectedProductId(product.id)}
+                  className="min-w-[140px] w-[140px] flex flex-col items-center group cursor-pointer"
                 >
                   {/* Product Card */}
                   <div className="relative w-full aspect-[4/3] bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-2">
@@ -90,7 +163,10 @@ export default function PartnerAccordionItem({
                       className="object-cover"
                     />
                     {/* Add Button */}
-                    <button className="absolute bottom-2 right-2 w-6 h-6 bg-[#04BD88] rounded flex items-center justify-center text-white">
+                    <button
+                      onClick={(e) => handleAddToCart(e, product)}
+                      className="absolute bottom-2 right-2 w-6 h-6 bg-[#04BD88] rounded flex items-center justify-center text-white active:scale-95 transition-transform z-10"
+                    >
                       <Plus size={14} strokeWidth={3} />
                     </button>
                   </div>
@@ -138,6 +214,15 @@ export default function PartnerAccordionItem({
           )}
         </div>
       )}
+
+      {/* Product Details Drawer */}
+      <ProductDetailsDrawer
+        open={!!selectedProductId}
+        onClose={() => setSelectedProductId(null)}
+        partnerId={partner.id}
+        productId={selectedProductId}
+        partnerType={partner.partnerType}
+      />
     </div>
   );
 }
