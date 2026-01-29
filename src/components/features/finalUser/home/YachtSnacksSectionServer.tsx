@@ -81,7 +81,9 @@ export default async function YachtSnacksSectionServer() {
             const partnerData = item.partners;
             if (!partnerData) return null;
 
-            const partner = Array.isArray(partnerData) ? partnerData[0] : partnerData;
+            const partner = Array.isArray(partnerData)
+              ? partnerData[0]
+              : partnerData;
             if (!partner) return null;
 
             return (
