@@ -44,6 +44,7 @@ export interface BusinessFormData {
   platform_commission_percentage?: number | null;
   sponsor_label?: string | null;
   is_sponsored?: boolean;
+  estimated_time?: string | null;
 }
 
 // Define las props del componente

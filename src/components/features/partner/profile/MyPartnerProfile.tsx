@@ -41,6 +41,7 @@ export interface BusinessFormData {
   lat?: number | null;
   lng?: number | null;
   coverImage?: File | string | null;
+  estimated_time?: string | null;
 }
 
 // Define las props del componente
@@ -228,6 +229,15 @@ export default function MyPartnerProfile({
                   placeholder="Ingresar la información"
                 />
               </div>
+              <BasicInput
+                id="estimated_time"
+                name="estimated_time"
+                label="Tiempo estimado de entrega"
+                value={formData.estimated_time || ""}
+                onChange={handleInputChange}
+                className="w-full border-gray-300 rounded-md"
+                placeholder="Ej. 30-45 min"
+              />
             </div>
           </div>
 

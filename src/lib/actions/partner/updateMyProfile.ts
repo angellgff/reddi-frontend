@@ -19,6 +19,7 @@ export type UpdateMyProfilePayload = {
   image_url?: string | null;
   cover_image_url?: string | null;
   bank_document_url?: string | null;
+  estimated_time?: string | null;
 };
 
 function mapUiCategoryToDb(
@@ -106,6 +107,8 @@ export async function updateMyProfile(payload: UpdateMyProfilePayload) {
     updates.cover_image_url = payload.cover_image_url;
   if (payload.bank_document_url !== undefined)
     updates.bank_document_url = payload.bank_document_url;
+  if (payload.estimated_time !== undefined)
+    updates.estimated_time = payload.estimated_time;
 
   if (Object.keys(updates).length === 0) return { ok: true };
 

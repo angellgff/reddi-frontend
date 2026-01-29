@@ -82,6 +82,7 @@ export default function ProfileClient({
         image_url: logoUrl,
         cover_image_url: coverUrl,
         bank_document_url: documentUrl,
+        estimated_time: formData.estimated_time,
       });
       setModalTitle("Cambios guardados");
       setModalDesc("Tu perfil se ha actualizado correctamente.");
