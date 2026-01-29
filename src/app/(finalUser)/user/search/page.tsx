@@ -9,7 +9,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import SliderSectionSkeleton from "@/src/components/basics/itemsSlider/SliderSectionSkeleton";
 import SearchRecommendedServer from "@/src/components/features/finalUser/search/SearchRecommendedServer";
-import SearchPromoSlider from "@/src/components/features/finalUser/search/SearchPromoSlider";
+import SearchPromoSliderServer from "@/src/components/features/finalUser/search/SearchPromoSliderServer";
 
 interface PageProps {
   searchParams: Promise<{
@@ -66,7 +66,9 @@ export default async function SearchPage({ searchParams }: PageProps) {
         <MobileSearchBar placeholder="Busca en El Nacional" />
 
         {/* Promo Slider Mobile */}
-        <SearchPromoSlider />
+        <Suspense fallback={<div className="h-[120px] w-full bg-gray-100 animate-pulse rounded-md mb-6" />}>
+          <SearchPromoSliderServer />
+        </Suspense>
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Sidebar Filters (Desktop) */}
