@@ -6,7 +6,10 @@ import Image from "next/image";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
-import { createBanner, CreateBannerState } from "@/src/lib/admin/actions/createBanner";
+import {
+  createBanner,
+  CreateBannerState,
+} from "@/src/lib/admin/actions/createBanner";
 import { uploadFile } from "@/src/lib/storage/uploadFile";
 import { ArrowLeft, Monitor } from "lucide-react";
 
@@ -15,7 +18,10 @@ interface CreateBannerFormProps {
   coupons: { id: string; code: string; title: string }[];
 }
 
-export default function CreateBannerForm({ categories, coupons }: CreateBannerFormProps) {
+export default function CreateBannerForm({
+  categories,
+  coupons,
+}: CreateBannerFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -50,7 +56,7 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
     if (!imageFile) newErrors.imageFile = "La imagen es obligatoria";
     // Check constraints: End date must be after Start date
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-        newErrors.endDate = "La fecha de fin debe ser posterior a la de inicio";
+      newErrors.endDate = "La fecha de fin debe ser posterior a la de inicio";
     }
 
     setErrors(newErrors);
@@ -60,17 +66,26 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
   const handleSubmit = async () => {
     setGlobalError(null);
     if (!validateForm()) {
-        setGlobalError("Por favor, corrige los errores antes de continuar.");
-        return;
+      setGlobalError("Por favor, corrige los errores antes de continuar.");
+      return;
     }
 
     startTransition(async () => {
       try {
-        console.log("Submitting with:", { title, categoryId, couponId, actionLink, placement, startDate, endDate, isActive });
-        
+        console.log("Submitting with:", {
+          title,
+          categoryId,
+          couponId,
+          actionLink,
+          placement,
+          startDate,
+          endDate,
+          isActive,
+        });
+
         // 1. Upload Image
         const imageUrl = await uploadFile(imageFile, "banners", "images");
-        
+
         if (!imageUrl) {
           setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
           return;
@@ -98,7 +113,9 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
         }
       } catch (error) {
         console.error("Submission error:", error);
-        setGlobalError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
+        setGlobalError(
+          "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
+        );
       }
     });
   };
@@ -106,15 +123,21 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
   return (
     <div className="flex flex-col gap-6">
       <div className="mb-2">
-         <h1 className="text-2xl font-semibold font-poppins text-[#171717]">Crear Banner</h1>
-         <p className="text-sm font-medium text-[#292929] font-roboto">Crea un nuevo banner promocional para la aplicación</p>
+        <h1 className="text-2xl font-semibold font-poppins text-[#171717]">
+          Crear Banner
+        </h1>
+        <p className="text-sm font-medium text-[#292929] font-roboto">
+          Crea un nuevo banner promocional para la aplicación
+        </p>
       </div>
 
       <div className="flex flex-col lg:flex-row gap-5">
         {/* Left Column: Information */}
         <div className="flex-1 bg-white p-5 rounded-[20px] border border-[#D9DCE3]">
-          <h2 className="text-xl font-semibold text-[#04BD88] mb-6 font-poppins">Información del Banner</h2>
-          
+          <h2 className="text-xl font-semibold text-[#04BD88] mb-6 font-poppins">
+            Información del Banner
+          </h2>
+
           <div className="flex flex-col gap-5">
             <BasicInput
               id="title"
@@ -164,7 +187,7 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
               disabled={isPending}
             />
 
-             <BasicInput
+            <BasicInput
               id="action-link"
               label="Link de Acción (Opcional)"
               placeholder="https://..."
@@ -199,7 +222,10 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
             </div>
 
             <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1 font-roboto">
+              <label
+                htmlFor="description"
+                className="block text-sm font-medium text-gray-700 mb-1 font-roboto"
+              >
                 Descripción
               </label>
               <textarea
@@ -216,35 +242,41 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
 
         {/* Right Column: Image and Status */}
         <div className="w-full lg:w-[518px] flex flex-col gap-5">
-            <div className="bg-white p-5 rounded-[16px] border border-[#D9DCE3]">
-                 <h2 className="text-xl font-semibold text-[#04BD88] mb-6 font-poppins">Imagen del Banner</h2>
-                 <p className="text-sm font-medium text-[#292929] mb-2 font-roboto">Logo del logo</p>
-                 
-                 <FileUploadZone
-                    onFileChange={(file) => setImageFile(file)}
-                    acceptedFileTypes="image"
-                    value={imageFile}
-                    disabled={isPending}
-                    label=""
-                 />
-                 {errors.imageFile && (
-                    <p className="text-sm text-red-500 mt-1">{errors.imageFile}</p>
-                 )}
-                 
-                 <div className="mt-6 flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#171717] font-poppins">Estado del banner</span>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input 
-                        type="checkbox" 
-                        className="sr-only peer"
-                        checked={isActive}
-                        onChange={(e) => setIsActive(e.target.checked)}
-                        disabled={isPending}
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#525252]"></div>
-                    </label>
-                 </div>
+          <div className="bg-white p-5 rounded-[16px] border border-[#D9DCE3]">
+            <h2 className="text-xl font-semibold text-[#04BD88] mb-6 font-poppins">
+              Imagen del Banner
+            </h2>
+            <p className="text-sm font-medium text-[#292929] mb-2 font-roboto">
+              Logo del logo
+            </p>
+
+            <FileUploadZone
+              onFileChange={(file) => setImageFile(file)}
+              acceptedFileTypes="image"
+              value={imageFile}
+              disabled={isPending}
+              label=""
+            />
+            {errors.imageFile && (
+              <p className="text-sm text-red-500 mt-1">{errors.imageFile}</p>
+            )}
+
+            <div className="mt-6 flex items-center justify-between">
+              <span className="text-sm font-medium text-[#171717] font-poppins">
+                Estado del banner
+              </span>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={isActive}
+                  onChange={(e) => setIsActive(e.target.checked)}
+                  disabled={isPending}
+                />
+                <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#525252]"></div>
+              </label>
             </div>
+          </div>
         </div>
       </div>
 
@@ -257,31 +289,31 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
       {/* Footer Buttons */}
       <div className="flex justify-between items-center mt-4">
         <button
-           onClick={() => router.back()}
-           disabled={isPending}
-           className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-[#292929] hover:text-gray-900"
+          onClick={() => router.back()}
+          disabled={isPending}
+          className="flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-[#292929] hover:text-gray-900"
         >
           <ArrowLeft className="w-5 h-5" />
           Volver
         </button>
 
         <div className="flex items-center gap-4">
-           {/* Vista previa might be non-functional, keeping it as UI element */}
-           <button
-             type="button"
-             disabled={isPending}
-             className="px-5 py-2.5 text-sm font-medium text-white bg-[#04BD88] rounded-xl hover:bg-green-600 opacity-50 cursor-not-allowed"
-           >
-             Vista previa
-           </button>
-           
-            <button
-             onClick={handleSubmit}
-             disabled={isPending}
-             className="px-5 py-2.5 text-sm font-medium text-[#202124] bg-white border border-[#202124] rounded-xl hover:bg-gray-50 flex items-center gap-2"
-           >
-             {isPending ? "Guardando..." : "Guardar y salir"}
-           </button>
+          {/* Vista previa might be non-functional, keeping it as UI element */}
+          <button
+            type="button"
+            disabled={isPending}
+            className="px-5 py-2.5 text-sm font-medium text-white bg-[#04BD88] rounded-xl hover:bg-green-600 opacity-50 cursor-not-allowed"
+          >
+            Vista previa
+          </button>
+
+          <button
+            onClick={handleSubmit}
+            disabled={isPending}
+            className="px-5 py-2.5 text-sm font-medium text-[#202124] bg-white border border-[#202124] rounded-xl hover:bg-gray-50 flex items-center gap-2"
+          >
+            {isPending ? "Guardando..." : "Guardar y salir"}
+          </button>
         </div>
       </div>
     </div>

@@ -11,7 +11,10 @@ export type CreateBannerState = {
   };
 };
 
-export async function createBanner(prevState: CreateBannerState, formData: FormData) {
+export async function createBanner(
+  prevState: CreateBannerState,
+  formData: FormData,
+) {
   console.log("--- Starting createBanner Action ---");
   const supabase = await createClient();
 
@@ -49,34 +52,40 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
   }
 
   // Validate placement if provided
-  if (placement && !['home_top', 'home_middle', 'category_page'].includes(placement)) {
-     console.error("Validation failed: Invalid placement");
-     return {
-        success: false,
-        message: "Ubicación del banner inválida",
-     };
+  if (
+    placement &&
+    !["home_top", "home_middle", "category_page"].includes(placement)
+  ) {
+    console.error("Validation failed: Invalid placement");
+    return {
+      success: false,
+      message: "Ubicación del banner inválida",
+    };
   }
 
   // Get current admin user
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   if (authError || !user) {
-      console.error("Auth Error or No User:", authError);
-      return { success: false, message: "No autorizado" };
+    console.error("Auth Error or No User:", authError);
+    return { success: false, message: "No autorizado" };
   }
 
   console.log("Authenticated User ID:", user.id);
 
   // Fetch admin profile
   const { data: adminData, error: adminError } = await supabase
-      .from("admins")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
-  
+    .from("admins")
+    .select("id")
+    .eq("user_id", user.id)
+    .single();
+
   if (adminError || !adminData) {
-       console.error("Admin Record Fetch Error:", adminError);
-       return { success: false, message: "No tienes permisos de administrador" };
+    console.error("Admin Record Fetch Error:", adminError);
+    return { success: false, message: "No tienes permisos de administrador" };
   }
 
   console.log("Admin ID found:", adminData.id);
@@ -91,8 +100,8 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
     is_active: isActive,
     created_by: adminData.id,
     action_link: actionLink || null, // Optional
-    coupon_id: couponId || null,     // Optional
-    placement: (placement as any) || null
+    coupon_id: couponId || null, // Optional
+    placement: (placement as any) || null,
   });
 
   if (error) {
@@ -106,7 +115,7 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
   console.log("Banner inserted successfully.");
 
   revalidatePath("/admin/banners");
-  
+
   return {
     success: true,
     message: "Banner creado correctamente",
