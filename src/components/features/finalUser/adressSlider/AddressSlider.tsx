@@ -10,6 +10,7 @@ import useBodyScrollLock from "@/src/lib/hooks/useScrollBodyLock";
 import { useEffect, useMemo, useState } from "react";
 import CreateAddressForm from "@/src/components/features/finalUser/createAddress/CreateAddressForm";
 import { Tables } from "@/src/lib/database.types";
+import { MapPin, Check, Pencil, Trash2, ChevronRight } from "lucide-react";
 type UserAddress = Tables<"user_addresses">;
 
 import { deleteUserAddress } from "@/src/lib/finalUser/addresses/actions";
@@ -69,14 +70,26 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
   };
 
   const mergedData = useMemo(() => {
-    return addresses.map((a) => ({
-      id: Number.NaN, // placeholder, AddressCard no usa id
-      address: `${(a.location_type as string)?.toUpperCase?.() || ""} ${
-        a.location_number
-      }`.trim(),
-      label: a.location_type as string,
-      _rawId: a.id as unknown as string,
-    })) as Array<{
+    return addresses.map((a) => {
+      let displayAddress = "Dirección";
+      // Prioritize alias if available (user defined name)
+      if (a.alias) {
+        displayAddress = a.alias;
+      } else if (a.location_type && a.location_number) {
+        // Formato: Villa #123 (Capitalized)
+        const type =
+          a.location_type.charAt(0).toUpperCase() +
+          a.location_type.slice(1).toLowerCase();
+        displayAddress = `${type} #${a.location_number}`;
+      }
+
+      return {
+        id: Number.NaN, // placeholder
+        address: displayAddress,
+        label: a.location_type as string,
+        _rawId: a.id as unknown as string,
+      };
+    }) as Array<{
       id: number;
       address: string;
       label: string;
@@ -126,8 +139,8 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
                 Direcciones
               </h2>
             </header>
-            <main className="flex-grow p-4 overflow-y-auto">
-              <h3 className="text-base font-bold mb-4">
+            <main className="flex-grow p-4 overflow-y-auto font-sans">
+              <h3 className="text-[20px] font-bold text-black font-open-sans leading-tight mb-6">
                 {isAddingAddress ? "Nueva dirección" : "Direcciones guardadas"}
               </h3>
               {status === "loading" ? (
@@ -135,76 +148,64 @@ export default function AddressSlider({ isOpen, onClose }: AddressSliderProps) {
               ) : error ? (
                 <p className="text-sm text-red-600">{error}</p>
               ) : (
-                <div className="space-y-4">
-                  {mergedData.map((item) => (
-                    <div
-                      key={item._rawId || item.id}
-                      className="flex items-center gap-2"
-                    >
-                      <AddressCard
-                        icon={
-                          item.label === "yate" ||
-                          item.label === "muelle de yate" ? (
-                            <BoatIcon />
-                          ) : (
-                            <VillageIcon />
-                          )
-                        }
-                        address={item.address}
-                        label={String(item.label).toUpperCase()}
-                        onEdit={() => {
-                          const fullAddr = addresses.find(
-                            (a) => a.id === item._rawId,
-                          );
-                          if (fullAddr) handleEditAddress(fullAddr);
-                        }}
-                      />
-                      <button
-                        className={`text-xs underline ${
-                          selectedAddressId === item._rawId
-                            ? "text-green-700"
-                            : "text-gray-700"
-                        }`}
+                <div className="flex flex-col gap-4 font-open-sans bg-[#F4F5F7] p-2 rounded-xl">
+                  {mergedData.map((item) => {
+                    const isSelected = selectedAddressId === item._rawId;
+                    return (
+                      <div
+                        key={item._rawId || item.id}
                         onClick={async () => {
                           if (!item._rawId) return;
                           await dispatch(updateSelectedAddress(item._rawId));
                         }}
+                        className={`w-full h-[64px] bg-white rounded-2xl flex items-center px-5 shadow-[0px_2px_8px_rgba(0,0,0,0.04)] border justify-between cursor-pointer transition-all ${
+                          isSelected
+                            ? "border-green-500 ring-1 ring-green-500"
+                            : "border-gray-50 hover:border-gray-200"
+                        }`}
                       >
-                        {selectedAddressId === item._rawId
-                          ? "Seleccionada"
-                          : "Seleccionar"}
-                      </button>
-                      <button
-                        className="text-xs text-red-600 underline"
-                        onClick={async () => {
-                          if (!item._rawId) return;
-                          const ok = window.confirm("¿Eliminar dirección?");
-                          if (!ok) return;
-                          await deleteUserAddress(item._rawId);
-                          // Opcional: recargar direcciones del store
-                          dispatch(fetchUserAddresses());
-                        }}
-                      >
-                        Eliminar
-                      </button>
+                        <div className="flex items-center gap-4 overflow-hidden">
+                          <MapPin className="w-5 h-5 text-black shrink-0" />
+                          <span className="text-[16px] font-semibold text-black truncate">
+                            {item.address}
+                          </span>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const fullAddr = addresses.find(
+                              (a) => a.id === item._rawId,
+                            );
+                            if (fullAddr) handleEditAddress(fullAddr);
+                          }}
+                          className="w-6 h-6 rounded-full border border-black flex items-center justify-center shrink-0 hover:bg-gray-100"
+                        >
+                          <ChevronRight className="w-3 h-3 text-black" />
+                        </button>
+                      </div>
+                    );
+                  })}
+
+                  {/* New Address Card */}
+                  <div
+                    onClick={handleNewAddress}
+                    className="w-full h-[64px] bg-white rounded-2xl flex items-center px-5 shadow-[0px_2px_8px_rgba(0,0,0,0.04)] border border-gray-50 justify-between cursor-pointer hover:border-gray-200 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <Pencil className="w-5 h-5 text-black shrink-0" />
+                      <span className="text-[16px] font-semibold text-black">
+                        Nueva dirección
+                      </span>
                     </div>
-                  ))}
+                    <span className="w-6 h-6 rounded-full border border-black flex items-center justify-center shrink-0">
+                      <ChevronRight className="w-3 h-3 text-black" />
+                    </span>
+                  </div>
                 </div>
               )}
             </main>
 
-            <footer className="p-4 flex-shrink-0">
-              <button
-                className="
-              w-full bg-primary text-white font-medium py-3
-              rounded-2xl text-center
-              hover:bg-[#15803d] transition-colors
-            "
-                onClick={handleNewAddress}
-              >
-                Agregar nueva dirección
-              </button>
-            </footer>
+            {/* Removed footer button as it is now in the list */}
           </>
         )}
       </div>

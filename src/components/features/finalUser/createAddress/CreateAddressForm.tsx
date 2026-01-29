@@ -185,9 +185,17 @@ export default function CreateAddressForm({
   return (
     <div className="w-full h-full flex flex-col bg-white overflow-y-auto px-4 pt-6 pb-Safe">
       {/* Header Title */}
-      <h1 className="text-2xl font-bold text-black mb-6 mt-4">
-        Ingresa tu direccion
-      </h1>
+      <div className="flex items-center justify-between mb-6 mt-4">
+        <h1 className="text-2xl font-bold text-black">Ingresa tu direccion</h1>
+        {onCancel && (
+          <button
+            onClick={onCancel}
+            className="w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          >
+            <X size={20} className="text-black" />
+          </button>
+        )}
+      </div>
 
       {/* Row 1: Type & Number */}
       <div className="flex gap-4 mb-3">
@@ -316,37 +324,37 @@ export default function CreateAddressForm({
             className={`flex-1 h-10 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors ${
               deliveryPreference === "door"
                 ? "bg-[#DADADA] text-black" // The design shows active as Gray for "Dejar en puerta"? Or maybe my interpretation.
-                // Re-reading design: "Dejar en la puerta" is Gray bg, Black text. "Entrégamelo a mí" is Green bg, White text.
-                // Assuming "Entregamelo a mi" is selected in the screenshot.
-                // Let's implement toggle logic where selected = Green, unselected = Gray.
-                // The screenshot shows one Gray and one Green.
-                : "bg-[#F4F5F7] text-gray-500"
+                : // Re-reading design: "Dejar en la puerta" is Gray bg, Black text. "Entrégamelo a mí" is Green bg, White text.
+                  // Assuming "Entregamelo a mi" is selected in the screenshot.
+                  // Let's implement toggle logic where selected = Green, unselected = Gray.
+                  // The screenshot shows one Gray and one Green.
+                  "bg-[#F4F5F7] text-gray-500"
             }`}
-             // Actually, looking at the image:
-             // "Dejar en la puerta" has bg #DADADA (gray) and text Black.
-             // "Entregamelo a mi" has bg #04BD88 (green) and text White.
-             // This suggests "Entregamelo a mi" is the ACTIVE one.
+            // Actually, looking at the image:
+            // "Dejar en la puerta" has bg #DADADA (gray) and text Black.
+            // "Entregamelo a mi" has bg #04BD88 (green) and text White.
+            // This suggests "Entregamelo a mi" is the ACTIVE one.
           >
             <div
-               onClick={(e) => {
-                  e.stopPropagation();
-                  setDeliveryPreference("door");
-               }}
-               className={`w-full h-full flex items-center justify-center rounded-full ${deliveryPreference === "door" ? "bg-[#04BD88] text-white" : "bg-[#DADADA] text-black"}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setDeliveryPreference("door");
+              }}
+              className={`w-full h-full flex items-center justify-center rounded-full ${deliveryPreference === "door" ? "bg-[#04BD88] text-white" : "bg-[#DADADA] text-black"}`}
             >
-               Dejar en la puerta
+              Dejar en la puerta
             </div>
           </button>
-          
+
           <button
-             onClick={() => setDeliveryPreference("hand")}
-             className={`flex-1 h-10 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors`}
+            onClick={() => setDeliveryPreference("hand")}
+            className={`flex-1 h-10 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors`}
           >
-             <div
-               className={`w-full h-full flex items-center justify-center rounded-full ${deliveryPreference === "hand" ? "bg-[#04BD88] text-white" : "bg-[#DADADA] text-black"}`}
-             >
-               Entrégamelo a mí
-             </div>
+            <div
+              className={`w-full h-full flex items-center justify-center rounded-full ${deliveryPreference === "hand" ? "bg-[#04BD88] text-white" : "bg-[#DADADA] text-black"}`}
+            >
+              Entrégamelo a mí
+            </div>
           </button>
         </div>
 
@@ -377,10 +385,10 @@ export default function CreateAddressForm({
           />
           {addressName && (
             <button
-               onClick={() => setAlias("")}
-               className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#595959] rounded-full flex items-center justify-center"
+              onClick={() => setAlias("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#595959] rounded-full flex items-center justify-center"
             >
-               <X size={12} className="text-white" />
+              <X size={12} className="text-white" />
             </button>
           )}
         </div>
@@ -388,9 +396,10 @@ export default function CreateAddressForm({
 
       {/* Bottom Info Banner */}
       <div className="bg-[#FFF9E9] rounded-lg p-3 mb-8">
-         <p className="text-[10px] font-semibold text-black leading-tight">
-            Este nombre te ayuda a identificar y personalizar tus direcciones en Reddi. Solo tú puedes verlo y puedes modificarlo cuando quieras.
-         </p>
+        <p className="text-[10px] font-semibold text-black leading-tight">
+          Este nombre te ayuda a identificar y personalizar tus direcciones en
+          Reddi. Solo tú puedes verlo y puedes modificarlo cuando quieras.
+        </p>
       </div>
 
       {/* Footer Button */}
