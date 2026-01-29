@@ -13,6 +13,7 @@ import {
 import ReduxProvider from "@/src/lib/store/ReduxProvider";
 import { NotificationsProvider } from "@/src/lib/notifications/NotificationsContext";
 import { Metadata } from "next";
+import { Toaster } from "sonner";
 
 // Weights: 400 = normal, 500 = medium, 700 = bold, 900 = black
 const poppins = Poppins({
@@ -81,7 +82,10 @@ export default function RootLayout({
     >
       <body className="flex flex-col min-h-screen font-poppins">
         <ReduxProvider>
-          <NotificationsProvider>{children}</NotificationsProvider>
+          <NotificationsProvider>
+            {children}
+            <Toaster richColors position="top-center" closeButton />
+          </NotificationsProvider>
         </ReduxProvider>
       </body>
     </html>

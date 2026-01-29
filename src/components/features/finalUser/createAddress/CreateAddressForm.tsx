@@ -91,6 +91,13 @@ export default function CreateAddressForm({
   const [lat, setLat] = useState<number | null>(null);
   const [lng, setLng] = useState<number | null>(null);
 
+  const [errors, setErrors] = useState<{
+    locationNumber?: boolean;
+    sector?: boolean;
+    alias?: boolean;
+    map?: boolean;
+  }>({});
+
   const [isTypeDropdownOpen, setIsTypeDropdownOpen] = useState(false);
 
   useEffect(() => {
@@ -125,22 +132,33 @@ export default function CreateAddressForm({
   }, [hideButton, showSearch, shouldRestoreFloatingButton]);
 
   const handleSave = () => {
+    // Validaciones
+    const newErrors: typeof errors = {};
+    let hasError = false;
+
     if (!locationNumber.trim()) {
-      toast.error(
-        "Por favor ingresa el número de " + locationType.toLowerCase(),
-      );
-      return;
+      newErrors.locationNumber = true;
+      hasError = true;
     }
     if (!sector.trim()) {
-      toast.error("Por favor ingresa el sector");
-      return;
+      newErrors.sector = true;
+      hasError = true;
     }
     if (!addressName.trim()) {
-      toast.error("Por favor dale un nombre a tu dirección");
-      return;
+      newErrors.alias = true;
+      hasError = true;
     }
     if (lat === null || lng === null) {
-      toast.error("Por favor selecciona una ubicación en el mapa");
+      newErrors.map = true;
+      hasError = true;
+    }
+
+    setErrors(newErrors);
+
+    if (hasError) {
+      toast.error(
+        "Por favor completa los campos requeridos y selecciona una ubicación en el mapa",
+      );
       return;
     }
 
@@ -251,11 +269,18 @@ export default function CreateAddressForm({
           <input
             type="text"
             value={locationNumber}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setLocationNumber(e.target.value)
-            }
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setLocationNumber(e.target.value);
+              if (errors.locationNumber) {
+                setErrors((prev) => ({ ...prev, locationNumber: undefined }));
+              }
+            }}
             placeholder={`Ej: ${locationType} #123`}
-            className="w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+            className={`w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 transition-all ${
+              errors.locationNumber
+                ? "ring-2 ring-red-500 bg-red-50"
+                : "focus:ring-primary"
+            }`}
           />
         </div>
       </div>
@@ -274,11 +299,16 @@ export default function CreateAddressForm({
         <input
           type="text"
           value={sector}
-          onChange={(e: ChangeEvent<HTMLInputElement>) =>
-            setSector(e.target.value)
-          }
+          onChange={(e: ChangeEvent<HTMLInputElement>) => {
+            setSector(e.target.value);
+            if (errors.sector) {
+              setErrors((prev) => ({ ...prev, sector: undefined }));
+            }
+          }}
           placeholder="Ej: Vivero 2"
-          className="w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+          className={`w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 transition-all ${
+            errors.sector ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary"
+          }`}
         />
       </div>
 
@@ -287,13 +317,22 @@ export default function CreateAddressForm({
         <label className="text-[13px] font-bold text-black ml-1">
           Verifica tu dirección
         </label>
-        <div className="relative w-full h-[150px] rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
+        <div
+          className={`relative w-full h-[150px] rounded-xl overflow-hidden bg-gray-100 border transition-all ${
+            errors.map
+              ? "border-red-500 ring-2 ring-red-500"
+              : "border-gray-100"
+          }`}
+        >
           <LocationPickerMap
             lat={lat}
             lng={lng}
             onLocationSelect={(newLat, newLng) => {
               setLat(newLat);
               setLng(newLng);
+              if (errors.map) {
+                setErrors((prev) => ({ ...prev, map: undefined }));
+              }
             }}
             className="w-full h-full"
           />
@@ -377,11 +416,18 @@ export default function CreateAddressForm({
           <input
             type="text"
             value={addressName}
-            onChange={(e: ChangeEvent<HTMLInputElement>) =>
-              setAlias(e.target.value)
-            }
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
+              setAlias(e.target.value);
+              if (errors.alias) {
+                setErrors((prev) => ({ ...prev, alias: undefined }));
+              }
+            }}
             placeholder="Casa Romana"
-            className="w-full h-10 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all pr-10"
+            className={`w-full h-10 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 transition-all pr-10 ${
+              errors.alias
+                ? "ring-2 ring-red-500 bg-red-50"
+                : "focus:ring-primary"
+            }`}
           />
           {addressName && (
             <button
