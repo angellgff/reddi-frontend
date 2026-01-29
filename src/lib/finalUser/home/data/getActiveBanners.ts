@@ -3,7 +3,9 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { Database } from "@/src/lib/database.types";
 
-export default async function getActiveBanners(placement?: Database["public"]["Enums"]["banner_placement"]) {
+export default async function getActiveBanners(
+  placement?: Database["public"]["Enums"]["banner_placement"],
+) {
   const supabase = await createClient();
   const now = new Date().toISOString();
 

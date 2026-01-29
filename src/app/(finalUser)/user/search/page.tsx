@@ -24,7 +24,8 @@ function getTitleData(type?: string) {
   if (!type) return { title: "Comercios", icon: null };
   if (type.includes("restaurant"))
     return { title: "Restaurantes", icon: "/Restaurants.svg" };
-  if (type.includes("market")) return { title: "Mercado", icon: "/market-logo.png" };
+  if (type.includes("market"))
+    return { title: "Mercado", icon: "/market-logo.png" };
   if (type.includes("tobacco")) return { title: "Tabaco", icon: "/tabaco.png" };
   if (type.includes("liquor"))
     return { title: "Alcohol", icon: "/alcohol.png" };
@@ -53,7 +54,7 @@ export default async function SearchPage({ searchParams }: PageProps) {
   });
 
   const { title, icon } = getTitleData(
-    resolvedSearchParams.type || (types ? types[0] : undefined)
+    resolvedSearchParams.type || (types ? types[0] : undefined),
   );
 
   return (
@@ -66,7 +67,11 @@ export default async function SearchPage({ searchParams }: PageProps) {
         <MobileSearchBar placeholder="Busca en El Nacional" />
 
         {/* Promo Slider Mobile */}
-        <Suspense fallback={<div className="h-[120px] w-full bg-gray-100 animate-pulse rounded-md mb-6" />}>
+        <Suspense
+          fallback={
+            <div className="h-[120px] w-full bg-gray-100 animate-pulse rounded-md mb-6" />
+          }
+        >
           <SearchPromoSliderServer />
         </Suspense>
 

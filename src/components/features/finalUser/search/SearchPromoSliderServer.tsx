@@ -10,7 +10,7 @@ export default async function SearchPromoSliderServer() {
   }
 
   // Normalize data for the client component if needed, or pass directly
-  // SearchPromoSlider expects specific data structure. 
+  // SearchPromoSlider expects specific data structure.
   // Let's pass the necessary fields.
   const promotions = banners.map((banner) => ({
     id: banner.id,
