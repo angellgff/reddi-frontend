@@ -15,7 +15,7 @@ export default async function getRecommendedPartners(
       `
           display_order,
           partner:partners(
-             id, name, image_url, partner_type, average_rating, total_ratings, is_approved, is_active, is_sponsored, estimated_time
+             id, name, image_url, cover_image_url, partner_type, average_rating, total_ratings, is_approved, is_active, is_sponsored, estimated_time
           )
        `,
     )
@@ -48,7 +48,7 @@ export default async function getRecommendedPartners(
       return validPlacements.map((partner: any) => ({
         id: partner.id,
         name: partner.name,
-        imageUrl: partner.image_url || "/placeholder.png",
+        imageUrl: partner.cover_image_url || partner.image_url || "/placeholder.png",
         rating: partner.average_rating || 5.0,
         reviewCount: partner.total_ratings || 0,
         deliveryTime: partner.estimated_time || "20-30 min",
@@ -64,7 +64,7 @@ export default async function getRecommendedPartners(
   let query = supabase
     .from("partners")
     .select(
-      "id, name, image_url, partner_type, average_rating, total_ratings, is_sponsored, estimated_time",
+      "id, name, image_url, cover_image_url, partner_type, average_rating, total_ratings, is_sponsored, estimated_time",
     )
     .eq("is_approved", true)
     .eq("is_active", true)
@@ -89,7 +89,7 @@ export default async function getRecommendedPartners(
     return {
       id: p.id,
       name: p.name,
-      imageUrl: p.image_url || "/ellipse.svg",
+      imageUrl: p.cover_image_url || p.image_url || "/ellipse.svg",
       rating: Number(avg.toFixed(1)),
       reviewCount: total,
       deliveryTime: p.estimated_time || "25-35 min",

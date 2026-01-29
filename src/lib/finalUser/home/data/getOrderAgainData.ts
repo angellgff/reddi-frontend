@@ -42,7 +42,7 @@ export default async function getOrderAgainData(): Promise<SliderCardProps[]> {
   // 3) Cargar info de partners para construir las tarjetas
   const { data: partners, error: partnersError } = await supabase
     .from("partners")
-    .select("id, name, image_url, average_rating, total_ratings, estimated_time")
+    .select("id, name, image_url, cover_image_url, average_rating, total_ratings, estimated_time")
     .in("id", partnerIds);
 
   if (partnersError || !partners) {
@@ -67,7 +67,7 @@ export default async function getOrderAgainData(): Promise<SliderCardProps[]> {
     return {
       id: p.id,
       name: p.name,
-      imageUrl: p.image_url || "/ellipse.svg",
+      imageUrl: (p as any).cover_image_url || p.image_url || "/ellipse.svg",
       rating: Number(Number(avg).toFixed(1)),
       reviewCount: Number(total) || 0,
       deliveryTime: (p as any).estimated_time || "25-35 min",
