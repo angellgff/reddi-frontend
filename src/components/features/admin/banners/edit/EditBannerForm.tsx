@@ -99,12 +99,13 @@ export default function EditBannerForm({
 
         // 1. Upload new Image if selected
         if (imageFile) {
-          imageUrl = await uploadFile(imageFile, "banners", "images");
+          const uploadedUrl = await uploadFile(imageFile, "banners", "images");
 
-          if (!imageUrl) {
+          if (!uploadedUrl) {
             setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
             return;
           }
+          imageUrl = uploadedUrl;
         }
 
         // 2. Update Banner
