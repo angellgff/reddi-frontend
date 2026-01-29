@@ -3,7 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
-export type CreateBannerState = {
+export type UpdateBannerState = {
   success?: boolean;
   message?: string;
   errors?: {
@@ -11,23 +11,26 @@ export type CreateBannerState = {
   };
 };
 
-export async function createBanner(
-  prevState: CreateBannerState,
+export async function updateBanner(
+  prevState: UpdateBannerState,
   formData: FormData,
 ) {
-  console.log("--- Starting createBanner Action ---");
+  console.log("--- Starting updateBanner Action ---");
   const supabase = await createClient();
 
+  const id = formData.get("id") as string;
   const title = formData.get("title") as string;
   const description = formData.get("description") as string;
   const categoryId = formData.get("categoryId") as string;
   const startDate = formData.get("startDate") as string;
   const endDate = formData.get("endDate") as string;
+  // imageUrl might be null if not updated, but we handle that logic in the form or here
   const imageUrl = formData.get("imageUrl") as string;
   const isActive = formData.get("isActive") === "true";
   const placement = formData.get("placement") as string;
 
-  console.log("FormData received:", {
+  console.log("FormData received for update:", {
+    id,
     title,
     description,
     categoryId,
@@ -43,7 +46,7 @@ export async function createBanner(
   const couponId = formData.get("couponId") as string;
 
   /* Basic validation */
-  if (!title || !startDate || !endDate || !imageUrl) {
+  if (!id || !title || !startDate || !endDate) {
     console.error("Validation failed: Missing required fields");
     return {
       success: false,
@@ -74,50 +77,43 @@ export async function createBanner(
     return { success: false, message: "No autorizado" };
   }
 
-  console.log("Authenticated User ID:", user.id);
-
-  // Fetch admin profile
-  const { data: adminData, error: adminError } = await supabase
-    .from("admins")
-    .select("id")
-    .eq("user_id", user.id)
-    .single();
-
-  if (adminError || !adminData) {
-    console.error("Admin Record Fetch Error:", adminError);
-    return { success: false, message: "No tienes permisos de administrador" };
-  }
-
-  console.log("Admin ID found:", adminData.id);
-
-  const { error } = await supabase.from("banners").insert({
+  // Build update object
+  const updateData: any = {
     title,
     description,
     category_id: categoryId || null,
     start_date: startDate,
     end_date: endDate,
-    image_url: imageUrl,
     is_active: isActive,
-    created_by: adminData.id,
-    action_link: actionLink || null, // Optional
-    coupon_id: couponId || null, // Optional
+    action_link: actionLink || null,
+    coupon_id: couponId || null,
     placement: (placement as any) || null,
-  });
+  };
+
+  // Only update image_url if provided
+  if (imageUrl) {
+    updateData.image_url = imageUrl;
+  }
+
+  const { error } = await supabase
+    .from("banners")
+    .update(updateData)
+    .eq("id", id);
 
   if (error) {
-    console.error("Error creating banner in DB:", error);
+    console.error("Error updating banner in DB:", error);
     return {
       success: false,
-      message: "Error al crear el banner en la base de datos.",
+      message: "Error al actualizar el banner en la base de datos.",
     };
   }
 
-  console.log("Banner inserted successfully.");
+  console.log("Banner updated successfully.");
 
   revalidatePath("/admin/banners");
 
   return {
     success: true,
-    message: "Banner creado correctamente",
+    message: "Banner actualizado correctamente",
   };
 }

@@ -2848,7 +2848,7 @@ export type Database = {
         | "restaurant_list"
         | "pharmacy_list"
         | "liquor_list"
-      banner_placement: "home_top" | "home_middle" | "category_page"
+      banner_placement: "home_top" | "search_page" | "test_page"
       coupon_discount_type: "percentage" | "fixed_amount"
       coupon_status: "active" | "inactive" | "expired"
       driver_status:
@@ -3049,7 +3049,7 @@ export const Constants = {
         "pharmacy_list",
         "liquor_list",
       ],
-      banner_placement: ["home_top", "home_middle", "category_page"],
+      banner_placement: ["home_top", "search_page", "test_page"],
       coupon_discount_type: ["percentage", "fixed_amount"],
       coupon_status: ["active", "inactive", "expired"],
       driver_status: [

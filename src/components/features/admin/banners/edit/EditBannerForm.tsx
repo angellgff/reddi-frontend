@@ -1,42 +1,50 @@
 "use client";
 
-import React, { useState, useTransition } from "react";
+import React, { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import {
-  createBanner,
-  CreateBannerState,
-} from "@/src/lib/admin/actions/createBanner";
+  updateBanner,
+  UpdateBannerState,
+} from "@/src/lib/admin/actions/updateBanner";
 import { uploadFile } from "@/src/lib/storage/uploadFile";
 import { ArrowLeft, Monitor } from "lucide-react";
+import { Database } from "@/src/lib/database.types";
 
-interface CreateBannerFormProps {
+type BannerData = Database["public"]["Tables"]["banners"]["Row"];
+
+interface EditBannerFormProps {
   categories: { id: string; name: string }[];
   coupons: { id: string; code: string; title: string }[];
+  initialData: BannerData;
 }
 
-export default function CreateBannerForm({
+export default function EditBannerForm({
   categories,
   coupons,
-}: CreateBannerFormProps) {
+  initialData,
+}: EditBannerFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  console.log("CreateBannerForm mounted. Categories:", categories);
+  console.log("EditBannerForm mounted. Initial Data:", initialData);
 
-  const [title, setTitle] = useState("");
-  const [categoryId, setCategoryId] = useState("");
-  const [couponId, setCouponId] = useState("");
-  const [actionLink, setActionLink] = useState("");
-  const [placement, setPlacement] = useState(""); // New
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
-  const [description, setDescription] = useState("");
-  const [isActive, setIsActive] = useState(true);
+  const [title, setTitle] = useState(initialData.title || "");
+  const [categoryId, setCategoryId] = useState(initialData.category_id || "");
+  const [couponId, setCouponId] = useState(initialData.coupon_id || "");
+  const [actionLink, setActionLink] = useState(initialData.action_link || "");
+  const [placement, setPlacement] = useState(initialData.placement || "");
+  const [startDate, setStartDate] = useState(initialData.start_date || "");
+  const [endDate, setEndDate] = useState(initialData.end_date || "");
+  const [description, setDescription] = useState(initialData.description || "");
+  const [isActive, setIsActive] = useState(initialData.is_active);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [currentImageUrl, setCurrentImageUrl] = useState(
+    initialData.image_url || "",
+  );
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [globalError, setGlobalError] = useState<string | null>(null);
@@ -53,7 +61,10 @@ export default function CreateBannerForm({
     if (!title.trim()) newErrors.title = "El título es obligatorio";
     if (!startDate) newErrors.startDate = "La fecha de inicio es obligatoria";
     if (!endDate) newErrors.endDate = "La fecha de fin es obligatoria";
-    if (!imageFile) newErrors.imageFile = "La imagen es obligatoria";
+    // For edit, image is required only if no current image exists (which shouldn't happen for valid banners)
+    if (!imageFile && !currentImageUrl)
+      newErrors.imageFile = "La imagen es obligatoria";
+
     // Check constraints: End date must be after Start date
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       newErrors.endDate = "La fecha de fin debe ser posterior a la de inicio";
@@ -72,7 +83,8 @@ export default function CreateBannerForm({
 
     startTransition(async () => {
       try {
-        console.log("Submitting with:", {
+        console.log("Submitting update with:", {
+          id: initialData.id,
           title,
           categoryId,
           couponId,
@@ -83,33 +95,40 @@ export default function CreateBannerForm({
           isActive,
         });
 
-        // 1. Upload Image
-        const imageUrl = await uploadFile(imageFile, "banners", "images");
+        let imageUrl = "";
 
-        if (!imageUrl) {
-          setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
-          return;
+        // 1. Upload new Image if selected
+        if (imageFile) {
+          imageUrl = await uploadFile(imageFile, "banners", "images");
+
+          if (!imageUrl) {
+            setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
+            return;
+          }
         }
 
-        // 2. Create Banner
+        // 2. Update Banner
         const formData = new FormData();
+        formData.append("id", initialData.id);
         formData.append("title", title);
         formData.append("description", description);
         formData.append("categoryId", categoryId);
         formData.append("couponId", couponId);
         formData.append("actionLink", actionLink);
-        formData.append("placement", placement); // New
+        formData.append("placement", placement);
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
-        formData.append("imageUrl", imageUrl);
+        if (imageUrl) {
+          formData.append("imageUrl", imageUrl);
+        }
         formData.append("isActive", String(isActive));
 
-        const result = await createBanner({}, formData);
+        const result = await updateBanner({}, formData);
 
         if (result.success) {
           router.push("/admin/banners");
         } else {
-          setGlobalError(result.message || "Error al crear el banner.");
+          setGlobalError(result.message || "Error al actualizar el banner.");
         }
       } catch (error) {
         console.error("Submission error:", error);
@@ -124,10 +143,10 @@ export default function CreateBannerForm({
     <div className="flex flex-col gap-6">
       <div className="mb-2">
         <h1 className="text-2xl font-semibold font-poppins text-[#171717]">
-          Crear Banner
+          Editar Banner
         </h1>
         <p className="text-sm font-medium text-[#292929] font-roboto">
-          Crea un nuevo banner promocional para la aplicación
+          Actualiza la información del banner promocional
         </p>
       </div>
 
@@ -250,12 +269,27 @@ export default function CreateBannerForm({
               Logo del logo
             </p>
 
+            {currentImageUrl && !imageFile && (
+              <div className="mb-4 relative w-full h-[200px] rounded-lg overflow-hidden border border-gray-200">
+                <Image
+                  src={currentImageUrl}
+                  alt="Banner actual"
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+
             <FileUploadZone
               onFileChange={(file) => setImageFile(file)}
               acceptedFileTypes="image"
               value={imageFile}
               disabled={isPending}
-              label=""
+              label={
+                currentImageUrl
+                  ? "Seleccionar nueva imagen (reemplazar)"
+                  : "Seleccionar imagen"
+              }
             />
             {errors.imageFile && (
               <p className="text-sm text-red-500 mt-1">{errors.imageFile}</p>
@@ -298,7 +332,6 @@ export default function CreateBannerForm({
         </button>
 
         <div className="flex items-center gap-4">
-          {/* Vista previa might be non-functional, keeping it as UI element */}
           <button
             type="button"
             disabled={isPending}
