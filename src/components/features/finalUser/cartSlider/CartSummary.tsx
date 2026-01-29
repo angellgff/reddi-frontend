@@ -11,7 +11,7 @@ import { useMemo } from "react";
 export default function CartSummary() {
   const items = useAppSelector(selectCartItems);
   const subtotal = useAppSelector(selectCartSubtotal);
-  const shipping = useAppSelector(selectShippingFee);
+  const shipping = 0; // Se calcula en el checkout
   const serviceFee = useAppSelector(selectServiceFee);
   // Tip percent from global context (Redux checkout slice)
   const tipPercent = useAppSelector((s) => s.checkout.tipPercent);
@@ -20,6 +20,8 @@ export default function CartSummary() {
     if (tipAmountManual && tipAmountManual > 0) return tipAmountManual;
     return (subtotal * (tipPercent || 0)) / 100;
   }, [subtotal, tipPercent, tipAmountManual]);
+  
+  // En el carrito solo mostramos subtotal + servicios (si aplica), envío es 0
   const total = subtotal + shipping + serviceFee + tip;
 
   const formatCurrency = (amount: number) => {

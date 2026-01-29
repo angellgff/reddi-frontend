@@ -89,7 +89,7 @@ export default async function YachtSnacksSectionServer() {
             return (
               <Link
                 key={partner.id || i}
-                href={`/partner/${partner.id}`}
+                href={`/user/stores/${partner.id}`}
                 className="flex-none flex flex-col items-center w-[79px] group"
               >
                 <div className="w-[57px] h-[57px] relative bg-white rounded-[14px] border border-white/20 overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-200">

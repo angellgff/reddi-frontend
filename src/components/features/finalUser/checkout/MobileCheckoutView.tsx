@@ -125,6 +125,9 @@ export default function MobileCheckoutView({
   // Fallback for display if no address selected but we have list
   const displayAddress = selectedAddress || addresses[0];
 
+  const currentTip =
+    manualTipAmount > 0 ? manualTipAmount : (subtotal * tipPercent) / 100;
+
   return (
     <div className="min-h-screen bg-white pb-32 relative">
       {isTipSliderOpen && (
@@ -487,6 +490,15 @@ export default function MobileCheckoutView({
             </div>
             <span className="text-base font-semibold text-black">
               {formatCurrency(serviceFee)}
+            </span>
+          </div>
+
+          <div className="flex justify-between items-center">
+            <span className="text-base font-semibold text-[#6B6B6B]">
+              Propina del conductor
+            </span>
+            <span className="text-base font-semibold text-black">
+              {formatCurrency(currentTip)}
             </span>
           </div>
 
