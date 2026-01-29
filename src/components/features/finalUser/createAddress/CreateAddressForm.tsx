@@ -307,7 +307,9 @@ export default function CreateAddressForm({
           }}
           placeholder="Ej: Vivero 2"
           className={`w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 transition-all ${
-            errors.sector ? "ring-2 ring-red-500 bg-red-50" : "focus:ring-primary"
+            errors.sector
+              ? "ring-2 ring-red-500 bg-red-50"
+              : "focus:ring-primary"
           }`}
         />
       </div>

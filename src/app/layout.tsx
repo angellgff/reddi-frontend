@@ -58,7 +58,6 @@ const openSans = Open_Sans({
   variable: "--font-open-sans",
 });
 
-
 export const viewport = {
   themeColor: "#ffffff",
 };
@@ -67,7 +66,7 @@ export const metadata: Metadata = {
   title: "Reddi",
   description: "App de entregas",
   // Agrega esta línea:
-  manifest: "/manifest.json", 
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
