@@ -458,7 +458,7 @@ export default function ProductDetailsClient({
         // Problema: El toast está dentro de ProductDetailsClient.
         // Solución: El usuario quiere cerrar el slider. Si el toast desaparece es una consecuencia aceptable o debo mover el toast fuera.
         // Por ahora, cerraré inmediatamente como se pide.
-        onClose(); 
+        onClose();
       }
     }
   };
