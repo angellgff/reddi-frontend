@@ -6,17 +6,17 @@ import Link from "next/link";
 const categories = [
   {
     name: "Restaurantes",
-    image: "/Restaurants.svg",
+    image: "/burguer-logo.png",
     href: "/user/search?type=restaurant",
   },
   {
     name: "Mercado",
-    image: "/market-logo.png",
+    image: "/new-market-logo.png",
     href: "/user/search?type=market",
   },
   {
     name: "Tabaco",
-    image: "/tabaco.png",
+    image: "/tabaco-logo.png",
     href: "/user/search?type=tobacco",
   },
   {
@@ -26,7 +26,7 @@ const categories = [
   },
   {
     name: "Farmacia",
-    image: "/farmacia-tiny.png",
+    image: "/pharma-logo.jpeg",
     href: "/user/search?type=pharmacy",
   },
 ];

@@ -12,7 +12,7 @@ export default function OrderAgainSection({
   const safeId = `slider-${title.toLowerCase().replace(/\s+/g, "-")}`;
 
   return (
-    <div className="w-full font-openSans pb-4 border-b-[1px] border-[rgba(183,183,183,0.37)]">
+    <div className="w-full font-openSans px-4 pb-4 border-b-[1px] border-[rgba(183,183,183,0.37)]">
       {/* Encabezado de la sección */}
       <div className="mb-4 flex items-center justify-between gap-4">
         <h2

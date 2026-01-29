@@ -44,8 +44,8 @@ const CategoryCard: React.FC<CategoryCardProps> = ({
         <Image
           src={imageUrl}
           alt={`Icono de ${name}`}
-          width={imageUrl === "/farmacia-tiny.png" ? 48 : imageSize}
-          height={imageUrl === "/farmacia-tiny.png" ? 48 : imageSize}
+          width={imageUrl === "/pharma-logo.jpeg" ? 48 : imageSize}
+          height={imageUrl === "/pharma-logo.jpeg" ? 48 : imageSize}
           className="object-contain"
           priority={false}
         />

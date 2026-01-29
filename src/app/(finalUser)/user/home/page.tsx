@@ -59,7 +59,7 @@ export default async function Home() {
       </div>
 
       {/* 5. Recomendados para ti */}
-      <div className="px-4 mt-8 space-y-8">
+      <div className="mt-8 space-y-8">
         <Suspense fallback={<SliderSectionSkeleton />}>
           <RecommendedSectionServer
             partnerType="restaurant"
@@ -69,7 +69,7 @@ export default async function Home() {
       </div>
 
       {/* 6. Directo a tu yate Banner */}
-      <div className="px-4 mt-8 space-y-8">
+      <div className="px-4 mt-8 pb-4 space-y-8  border-b-[1px] border-[rgba(183,183,183,0.37)]">
         <Suspense
           fallback={
             <div className="h-[190px] w-full bg-gray-50 animate-pulse mt-8" />
@@ -80,7 +80,7 @@ export default async function Home() {
       </div>
 
       {/* 7. Pedidos anteriores */}
-      <div className="px-4 mt-8 mb-8">
+      <div className="mt-8 mb-8">
         <Suspense fallback={<SliderSectionSkeleton />}>
           <OrderAgainServer />
         </Suspense>

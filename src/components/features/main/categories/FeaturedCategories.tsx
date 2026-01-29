@@ -19,7 +19,7 @@ const categories = [
   },
   {
     name: "Farmacia",
-    imageUrl: "/farmacia-tiny.png",
+    imageUrl: "/pharma-logo.jpeg",
     href: "/user/search?type=pharmacy",
   },
   {

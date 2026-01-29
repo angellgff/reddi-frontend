@@ -14,7 +14,7 @@ type CategoryCard = {
 // Lista fija de categorías a mostrar con sus imágenes
 const CATEGORY_PRESETS: Omit<CategoryCard, "percent">[] = [
   { name: "Mercado", imageUrl: "/Market.svg" },
-  { name: "Restaurantes", imageUrl: "/Restaurants.svg" },
+  { name: "Restaurantes", imageUrl: "/burguer-logo.png" },
   { name: "Mandao’", imageUrl: "/mandao.svg" },
   { name: "Alcohol", imageUrl: "/alcohol.svg" },
   { name: "Farmacia", imageUrl: "/farmacia.png" },
@@ -40,7 +40,7 @@ export default async function AdminFinancesPage({
   let ordersQ = supabase
     .from("orders")
     .select(
-      "id,total_amount,shipping_fee,status,created_at,partner:partners(partner_type)"
+      "id,total_amount,shipping_fee,status,created_at,partner:partners(partner_type)",
     );
 
   // 3. Usamos la variable resuelta 'searchParams'
@@ -101,8 +101,6 @@ export default async function AdminFinancesPage({
       });
     }
   }
-
-
 
   return (
     <div className="w-full max-w-[1217px] mx-auto px-8 py-6 min-h-screen">

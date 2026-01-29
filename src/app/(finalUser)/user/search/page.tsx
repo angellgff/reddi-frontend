@@ -23,14 +23,15 @@ interface PageProps {
 function getTitleData(type?: string) {
   if (!type) return { title: "Comercios", icon: null };
   if (type.includes("restaurant"))
-    return { title: "Restaurantes", icon: "/Restaurants.svg" };
+    return { title: "Restaurantes", icon: "/burguer-logo.png" };
   if (type.includes("market"))
-    return { title: "Mercado", icon: "/market-logo.png" };
-  if (type.includes("tobacco")) return { title: "Tabaco", icon: "/tabaco.png" };
+    return { title: "Mercado", icon: "/new-market-logo.png" };
+  if (type.includes("tobacco"))
+    return { title: "Tabaco", icon: "/tabaco-logo.png" };
   if (type.includes("liquor"))
     return { title: "Alcohol", icon: "/alcohol.png" };
   if (type.includes("pharmacy"))
-    return { title: "Farmacia", icon: "/farmacia-tiny.png" };
+    return { title: "Farmacia", icon: "/pharma-logo.jpeg" };
   return { title: "Comercios", icon: null };
 }
 
