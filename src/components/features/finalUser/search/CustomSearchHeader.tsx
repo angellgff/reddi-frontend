@@ -1,11 +1,13 @@
 "use client";
 
 import { useAppSelector, useAppDispatch } from "@/src/lib/store/hooks";
-import { toggleAddressSlider } from "@/src/lib/store/uiSlice";
-import { ChevronDown, Bell, User, ShoppingCart } from "lucide-react";
+import { toggleAddressSlider, toggleCart } from "@/src/lib/store/uiSlice";
+import { ChevronDown, Home } from "lucide-react";
 import { useMemo, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import Badge from "@/src/components/basics/header/Badge";
+import { selectCartCount } from "@/src/lib/store/cartSlice";
 
 interface CustomSearchHeaderProps {
   title?: string;
@@ -18,6 +20,7 @@ export default function CustomSearchHeader({
 }: CustomSearchHeaderProps) {
   const dispatch = useAppDispatch();
   const { addresses, selectedAddressId } = useAppSelector((s) => s.addresses);
+  const cartCount = useAppSelector(selectCartCount);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
@@ -73,26 +76,49 @@ export default function CustomSearchHeader({
             </h1>
           </div>
 
-          {/* Right: Actions (User, Bell, Cart) */}
+          {/* Right: Actions (User, Home, Cart) */}
           <div className="flex items-center gap-3">
             {/* Profile */}
             <Link href="/user/profile">
-              <div className="w-[36px] h-[36px] flex items-center justify-center bg-gray-50 rounded-full">
-                <User size={20} className="text-black" />
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <Image
+                  src="/new-design/nd-user.png"
+                  width={18}
+                  height={18}
+                  alt="Perfil"
+                />
               </div>
             </Link>
 
-            {/* Bell */}
-            <div className="relative w-[36px] h-[36px] flex items-center justify-center bg-gray-50 rounded-full">
-              <Bell size={20} className="text-black" />
-            </div>
-
-            {/* Cart */}
-            <Link href="/user/cart">
-              <div className="w-[36px] h-[36px] flex items-center justify-center bg-gray-50 rounded-full">
-                <ShoppingCart size={20} className="text-black" />
+            {/* Home */}
+            <Link href="/user/home">
+              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                <Home className="w-5 h-5 text-black" />
               </div>
             </Link>
+
+            {/* Cart Button */}
+            <button
+              className="relative w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center"
+              onClick={() => dispatch(toggleCart())}
+              aria-label="Abrir carrito"
+            >
+              <div className="relative">
+                <Image
+                  src="/new-design/nd-cart.png"
+                  width={24}
+                  height={24}
+                  alt="Carrito"
+                />
+                <div className="absolute -top-2 -right-2">
+                  <Badge
+                    count={cartCount}
+                    color="bg-red-500"
+                    className="rounded-full shadow-sm ring-2 ring-white"
+                  />
+                </div>
+              </div>
+            </button>
           </div>
         </div>
       </div>
