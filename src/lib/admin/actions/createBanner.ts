@@ -2,6 +2,7 @@
 
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { uuid } from "@/src/lib/utils";
 
 export type CreateBannerState = {
   success?: boolean;
@@ -23,9 +24,33 @@ export async function createBanner(
   const categoryId = formData.get("categoryId") as string;
   const startDate = formData.get("startDate") as string;
   const endDate = formData.get("endDate") as string;
-  const imageUrl = formData.get("imageUrl") as string;
   const isActive = formData.get("isActive") === "true";
   const placement = formData.get("placement") as string;
+
+  /* Handle Image Upload */
+  const imageFile = formData.get("imageFile") as File;
+  let imageUrl = formData.get("imageUrl") as string;
+
+  if (imageFile && imageFile.size > 0) {
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `${uuid()}.${fileExt}`;
+      const filePath = `images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("banners")
+        .upload(filePath, imageFile);
+
+      if (uploadError) {
+        console.error("Error uploading file:", uploadError);
+        return {
+          success: false,
+          message: "Error al subir la imagen al servidor.",
+        };
+      }
+
+      const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(filePath);
+      imageUrl = publicUrl;
+  }
 
   console.log("FormData received:", {
     title,
@@ -33,7 +58,7 @@ export async function createBanner(
     categoryId,
     startDate,
     endDate,
-    imageUrl,
+    imageUrl: imageUrl ? "Present" : "Missing",
     isActive,
     placement,
   });

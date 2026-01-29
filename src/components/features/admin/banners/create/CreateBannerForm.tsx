@@ -3,20 +3,51 @@
 import React, { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { z } from "zod";
+import { toast } from "sonner";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import {
   createBanner,
-  CreateBannerState,
+//  CreateBannerState,
 } from "@/src/lib/admin/actions/createBanner";
 import { uploadFile } from "@/src/lib/storage/uploadFile";
-import { ArrowLeft, Monitor } from "lucide-react";
+import { ArrowLeft, Monitor, CalendarIcon, ImageIcon, LinkIcon, TagIcon } from "lucide-react";
 
 interface CreateBannerFormProps {
   categories: { id: string; name: string }[];
   coupons: { id: string; code: string; title: string }[];
 }
+
+const bannerSchema = z.object({
+  title: z
+    .string()
+    .min(3, "El título debe tener al menos 3 caracteres")
+    .max(100, "El título no puede exceder los 100 caracteres"),
+  categoryId: z.string().optional(),
+  couponId: z.string().optional(),
+  actionLink: z
+    .string()
+    .optional()
+    .refine((val) => !val || val.startsWith("http") || val.startsWith("/"), {
+      message: "El link debe ser una URL válida (http/https) o una ruta relativa (/)",
+    }),
+  placement: z.string().min(1, "Debes seleccionar una ubicación"),
+  startDate: z.string().min(1, "La fecha de inicio es requerida"),
+  endDate: z.string().min(1, "La fecha de fin es requerida"),
+  description: z.string().max(500, "La descripción es muy larga").optional(),
+}).refine((data) => {
+  if (data.startDate && data.endDate) {
+    const start = new Date(data.startDate);
+    const end = new Date(data.endDate);
+    return end > start;
+  }
+  return true;
+}, {
+  message: "La fecha de fin debe ser posterior a la de inicio",
+  path: ["endDate"],
+});
 
 export default function CreateBannerForm({
   categories,
@@ -25,13 +56,11 @@ export default function CreateBannerForm({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  console.log("CreateBannerForm mounted. Categories:", categories);
-
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [couponId, setCouponId] = useState("");
   const [actionLink, setActionLink] = useState("");
-  const [placement, setPlacement] = useState(""); // New
+  const [placement, setPlacement] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
@@ -48,78 +77,100 @@ export default function CreateBannerForm({
   ];
 
   const validateForm = () => {
-    const newErrors: { [key: string]: string } = {};
+    try {
+      bannerSchema.parse({
+        title,
+        categoryId,
+        couponId,
+        actionLink,
+        placement,
+        startDate,
+        endDate,
+        description,
+      });
+      
+      const newErrors: { [key: string]: string } = {};
+      if (!imageFile) {
+         newErrors.imageFile = "La imagen es obligatoria";
+      }
 
-    if (!title.trim()) newErrors.title = "El título es obligatorio";
-    if (!startDate) newErrors.startDate = "La fecha de inicio es obligatoria";
-    if (!endDate) newErrors.endDate = "La fecha de fin es obligatoria";
-    if (!imageFile) newErrors.imageFile = "La imagen es obligatoria";
-    // Check constraints: End date must be after Start date
-    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-      newErrors.endDate = "La fecha de fin debe ser posterior a la de inicio";
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: { [key: string]: string } = {};
+        
+        // Defensive check for errors property
+        const issues = error.errors || (error as any).issues || [];
+        
+        if (Array.isArray(issues)) {
+          issues.forEach((err) => {
+            if (err.path[0]) {
+              fieldErrors[err.path[0] as string] = err.message;
+            }
+          });
+        }
+        
+        if (!imageFile) {
+            fieldErrors.imageFile = "La imagen es obligatoria";
+        }
+        
+        setErrors(fieldErrors);
+      }
+      return false;
     }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
     setGlobalError(null);
     if (!validateForm()) {
-      setGlobalError("Por favor, corrige los errores antes de continuar.");
+      toast.error("Por favor, corrige los errores en el formulario.");
       return;
     }
 
     startTransition(async () => {
       try {
-        console.log("Submitting with:", {
-          title,
-          categoryId,
-          couponId,
-          actionLink,
-          placement,
-          startDate,
-          endDate,
-          isActive,
-        });
+        console.log("Iniciando proceso de creación de banner...");
 
-        // 1. Upload Image
-        if (!imageFile) {
-          setGlobalError("La imagen es obligatoria.");
-          return;
-        }
-        const imageUrl = await uploadFile(imageFile, "banners", "images");
-
-        if (!imageUrl) {
-          setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
-          return;
-        }
-
-        // 2. Create Banner
+        // 2. Create Banner (Upload handled in Server Action)
         const formData = new FormData();
         formData.append("title", title);
         formData.append("description", description);
         formData.append("categoryId", categoryId);
         formData.append("couponId", couponId);
         formData.append("actionLink", actionLink);
-        formData.append("placement", placement); // New
+        formData.append("placement", placement);
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
-        formData.append("imageUrl", imageUrl);
         formData.append("isActive", String(isActive));
+        
+        if (imageFile) {
+            console.log("Adjuntando archivo de imagen:", imageFile.name);
+            formData.append("imageFile", imageFile);
+        } else {
+             // Should be caught by validateForm, but safety check
+            setErrors(prev => ({ ...prev, imageFile: "La imagen es obligatoria" }));
+            return;
+        }
 
+        console.log("Enviando datos al servidor...");
+        // Call the server action directly
         const result = await createBanner({}, formData);
+        console.log("Respuesta del servidor:", result);
 
         if (result.success) {
+          toast.success("Banner creado exitosamente");
+          // Add a small delay/check before pushing to ensure user sees success
           router.push("/admin/banners");
         } else {
+          console.error("Error en server action:", result.message);
+          toast.error(result.message || "Error al crear el banner.");
           setGlobalError(result.message || "Error al crear el banner.");
         }
       } catch (error) {
-        console.error("Submission error:", error);
-        setGlobalError(
-          "Ocurrió un error inesperado. Por favor, intenta de nuevo.",
-        );
+        console.error("Submission error catch:", error);
+        toast.error("Ocurrió un error inesperado.");
+        setGlobalError("Ocurrió un error inesperado al procesar la solicitud.");
       }
     });
   };
@@ -240,6 +291,9 @@ export default function CreateBannerForm({
                 placeholder="Ingresa la información"
                 className="block w-full rounded-xl border border-[#D9DCE3] p-3 text-sm font-roboto focus:border-primary focus:ring-1 focus:ring-primary h-[120px] resize-none"
               />
+              {errors.description && (
+                <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+              )}
             </div>
           </div>
         </div>
@@ -251,7 +305,7 @@ export default function CreateBannerForm({
               Imagen del Banner
             </h2>
             <p className="text-sm font-medium text-[#292929] mb-2 font-roboto">
-              Logo del logo
+              Imagen promocional
             </p>
 
             <FileUploadZone
