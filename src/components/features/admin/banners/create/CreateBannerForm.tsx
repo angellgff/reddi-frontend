@@ -10,44 +10,57 @@ import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import {
   createBanner,
-//  CreateBannerState,
+  //  CreateBannerState,
 } from "@/src/lib/admin/actions/createBanner";
 import { uploadFile } from "@/src/lib/storage/uploadFile";
-import { ArrowLeft, Monitor, CalendarIcon, ImageIcon, LinkIcon, TagIcon } from "lucide-react";
+import {
+  ArrowLeft,
+  Monitor,
+  CalendarIcon,
+  ImageIcon,
+  LinkIcon,
+  TagIcon,
+} from "lucide-react";
 
 interface CreateBannerFormProps {
   categories: { id: string; name: string }[];
   coupons: { id: string; code: string; title: string }[];
 }
 
-const bannerSchema = z.object({
-  title: z
-    .string()
-    .min(3, "El título debe tener al menos 3 caracteres")
-    .max(100, "El título no puede exceder los 100 caracteres"),
-  categoryId: z.string().optional(),
-  couponId: z.string().optional(),
-  actionLink: z
-    .string()
-    .optional()
-    .refine((val) => !val || val.startsWith("http") || val.startsWith("/"), {
-      message: "El link debe ser una URL válida (http/https) o una ruta relativa (/)",
-    }),
-  placement: z.string().min(1, "Debes seleccionar una ubicación"),
-  startDate: z.string().min(1, "La fecha de inicio es requerida"),
-  endDate: z.string().min(1, "La fecha de fin es requerida"),
-  description: z.string().max(500, "La descripción es muy larga").optional(),
-}).refine((data) => {
-  if (data.startDate && data.endDate) {
-    const start = new Date(data.startDate);
-    const end = new Date(data.endDate);
-    return end > start;
-  }
-  return true;
-}, {
-  message: "La fecha de fin debe ser posterior a la de inicio",
-  path: ["endDate"],
-});
+const bannerSchema = z
+  .object({
+    title: z
+      .string()
+      .min(3, "El título debe tener al menos 3 caracteres")
+      .max(100, "El título no puede exceder los 100 caracteres"),
+    categoryId: z.string().optional(),
+    couponId: z.string().optional(),
+    actionLink: z
+      .string()
+      .optional()
+      .refine((val) => !val || val.startsWith("http") || val.startsWith("/"), {
+        message:
+          "El link debe ser una URL válida (http/https) o una ruta relativa (/)",
+      }),
+    placement: z.string().min(1, "Debes seleccionar una ubicación"),
+    startDate: z.string().min(1, "La fecha de inicio es requerida"),
+    endDate: z.string().min(1, "La fecha de fin es requerida"),
+    description: z.string().max(500, "La descripción es muy larga").optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.startDate && data.endDate) {
+        const start = new Date(data.startDate);
+        const end = new Date(data.endDate);
+        return end > start;
+      }
+      return true;
+    },
+    {
+      message: "La fecha de fin debe ser posterior a la de inicio",
+      path: ["endDate"],
+    },
+  );
 
 export default function CreateBannerForm({
   categories,
@@ -88,10 +101,10 @@ export default function CreateBannerForm({
         endDate,
         description,
       });
-      
+
       const newErrors: { [key: string]: string } = {};
       if (!imageFile) {
-         newErrors.imageFile = "La imagen es obligatoria";
+        newErrors.imageFile = "La imagen es obligatoria";
       }
 
       setErrors(newErrors);
@@ -99,10 +112,10 @@ export default function CreateBannerForm({
     } catch (error) {
       if (error instanceof z.ZodError) {
         const fieldErrors: { [key: string]: string } = {};
-        
+
         // Defensive check for errors property
         const issues = error.errors || (error as any).issues || [];
-        
+
         if (Array.isArray(issues)) {
           issues.forEach((err) => {
             if (err.path[0]) {
@@ -110,11 +123,11 @@ export default function CreateBannerForm({
             }
           });
         }
-        
+
         if (!imageFile) {
-            fieldErrors.imageFile = "La imagen es obligatoria";
+          fieldErrors.imageFile = "La imagen es obligatoria";
         }
-        
+
         setErrors(fieldErrors);
       }
       return false;
@@ -143,14 +156,17 @@ export default function CreateBannerForm({
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
         formData.append("isActive", String(isActive));
-        
+
         if (imageFile) {
-            console.log("Adjuntando archivo de imagen:", imageFile.name);
-            formData.append("imageFile", imageFile);
+          console.log("Adjuntando archivo de imagen:", imageFile.name);
+          formData.append("imageFile", imageFile);
         } else {
-             // Should be caught by validateForm, but safety check
-            setErrors(prev => ({ ...prev, imageFile: "La imagen es obligatoria" }));
-            return;
+          // Should be caught by validateForm, but safety check
+          setErrors((prev) => ({
+            ...prev,
+            imageFile: "La imagen es obligatoria",
+          }));
+          return;
         }
 
         console.log("Enviando datos al servidor...");
@@ -292,7 +308,9 @@ export default function CreateBannerForm({
                 className="block w-full rounded-xl border border-[#D9DCE3] p-3 text-sm font-roboto focus:border-primary focus:ring-1 focus:ring-primary h-[120px] resize-none"
               />
               {errors.description && (
-                <p className="text-sm text-red-500 mt-1">{errors.description}</p>
+                <p className="text-sm text-red-500 mt-1">
+                  {errors.description}
+                </p>
               )}
             </div>
           </div>

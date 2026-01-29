@@ -32,24 +32,26 @@ export async function createBanner(
   let imageUrl = formData.get("imageUrl") as string;
 
   if (imageFile && imageFile.size > 0) {
-      const fileExt = imageFile.name.split(".").pop();
-      const fileName = `${uuid()}.${fileExt}`;
-      const filePath = `images/${fileName}`;
+    const fileExt = imageFile.name.split(".").pop();
+    const fileName = `${uuid()}.${fileExt}`;
+    const filePath = `images/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("banners")
-        .upload(filePath, imageFile);
+    const { error: uploadError } = await supabase.storage
+      .from("banners")
+      .upload(filePath, imageFile);
 
-      if (uploadError) {
-        console.error("Error uploading file:", uploadError);
-        return {
-          success: false,
-          message: "Error al subir la imagen al servidor.",
-        };
-      }
+    if (uploadError) {
+      console.error("Error uploading file:", uploadError);
+      return {
+        success: false,
+        message: "Error al subir la imagen al servidor.",
+      };
+    }
 
-      const { data: { publicUrl } } = supabase.storage.from("banners").getPublicUrl(filePath);
-      imageUrl = publicUrl;
+    const {
+      data: { publicUrl },
+    } = supabase.storage.from("banners").getPublicUrl(filePath);
+    imageUrl = publicUrl;
   }
 
   console.log("FormData received:", {
