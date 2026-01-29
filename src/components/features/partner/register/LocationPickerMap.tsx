@@ -8,6 +8,7 @@ interface LocationPickerMapProps {
   lng: number | null;
   onLocationSelect: (lat: number, lng: number) => void;
   className?: string;
+  hideSearch?: boolean;
 }
 
 export default function LocationPickerMap({
@@ -15,6 +16,7 @@ export default function LocationPickerMap({
   lng,
   onLocationSelect,
   className = "h-64 w-full rounded-2xl overflow-hidden",
+  hideSearch = false,
 }: LocationPickerMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -161,13 +163,15 @@ export default function LocationPickerMap({
   return (
     <div className={`relative ${className}`}>
       <div ref={containerRef} className="w-full h-full" />
-      <input
-        ref={searchInputRef}
-        type="text"
-        placeholder="Buscar dirección..."
-        className="absolute top-4 left-1/2 -translate-x-1/2 w-[65%] max-w-xs h-10 bg-white rounded-full px-4 shadow-xl text-sm font-medium text-gray-700 outline-none border-0 placeholder:text-gray-400 z-0 focus:ring-2 focus:ring-primary/20 transition-all"
-        style={{ zIndex: 5 }}
-      />
+      {!hideSearch && (
+        <input
+          ref={searchInputRef}
+          type="text"
+          placeholder="Buscar dirección..."
+          className="absolute top-4 left-1/2 -translate-x-1/2 w-[65%] max-w-xs h-10 bg-white rounded-full px-4 shadow-xl text-sm font-medium text-gray-700 outline-none border-0 placeholder:text-gray-400 z-0 focus:ring-2 focus:ring-primary/20 transition-all"
+          style={{ zIndex: 5 }}
+        />
+      )}
     </div>
   );
 }

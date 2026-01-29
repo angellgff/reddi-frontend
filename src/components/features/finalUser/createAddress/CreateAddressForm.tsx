@@ -183,54 +183,41 @@ export default function CreateAddressForm({
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-white overflow-y-auto">
-      {/* Map Section - 35% height */}
-      <div className="relative h-[35vh] w-full bg-gray-100 shrink-0">
-        <LocationPickerMap
-          lat={lat}
-          lng={lng}
-          onLocationSelect={(newLat, newLng) => {
-            setLat(newLat);
-            setLng(newLng);
-          }}
-          className="w-full h-full"
-        />
+    <div className="w-full h-full flex flex-col bg-white overflow-y-auto px-4 pt-6 pb-Safe">
+      {/* Header Title */}
+      <h1 className="text-2xl font-bold text-black mb-6 mt-4">
+        Ingresa tu direccion
+      </h1>
 
-        {/* Back Button Overlay */}
-        <button
-          onClick={() => (onCancel ? onCancel() : router.back())}
-          className="absolute top-4 left-4 z-10 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg"
-        >
-          <X size={24} className="text-black" />
-        </button>
-      </div>
-
-      {/* Form Section - Radius Top */}
-      <div className="flex-1 bg-white -mt-6 rounded-t-3xl relative z-20 px-6 pt-8 pb-Safe flex flex-col gap-6 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 font-medium ml-1">
-            TIPO DE UBICACIÓN
+      {/* Row 1: Type & Number */}
+      <div className="flex gap-4 mb-3">
+        {/* Type Dropdown */}
+        <div className="flex-1 flex flex-col gap-1">
+          <label className="text-[13px] font-bold text-black ml-1">
+            Tipo de lugar
           </label>
           <div className="relative">
             <button
               onClick={() => setIsTypeDropdownOpen(!isTypeDropdownOpen)}
-              className="w-full h-12 bg-white border border-gray-200 rounded-2xl px-4 flex items-center justify-between text-left active:scale-[0.99] transition-transform"
+              className="w-full h-12 bg-[#F4F5F7] rounded-lg px-4 flex items-center justify-between text-left active:scale-[0.99] transition-transform"
             >
-              <span className="text-gray-900 font-medium">{locationType}</span>
+              <span className="text-black font-semibold text-[13px]">
+                {locationType}
+              </span>
               <ChevronDown
-                className={`text-gray-400 transition-transform ${
+                className={`text-black transition-transform ${
                   isTypeDropdownOpen ? "rotate-180" : ""
                 }`}
-                size={20}
+                size={16}
               />
             </button>
 
             {isTypeDropdownOpen && (
-              <div className="absolute top-full mt-2 left-0 w-full bg-white border border-gray-100 rounded-2xl shadow-xl z-30 p-1 flex flex-col gap-1">
+              <div className="absolute top-full mt-2 left-0 w-full bg-white border border-gray-100 rounded-xl shadow-xl z-30 p-1 flex flex-col gap-1">
                 {LOCATION_TYPES.map((type) => (
                   <button
                     key={type}
-                    className={`w-full text-left px-4 py-3 rounded-xl text-sm font-medium transition-colors ${
+                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
                       locationType === type
                         ? "bg-primary/10 text-primary"
                         : "text-gray-600 hover:bg-gray-50"
@@ -248,164 +235,177 @@ export default function CreateAddressForm({
           </div>
         </div>
 
-        <div className="flex gap-4">
-          <div className="flex-1 flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium ml-1">
-              NÚMERO
-            </label>
-            <input
-              type="text"
-              value={locationNumber}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setLocationNumber(e.target.value)
-              }
-              placeholder="Ej: 12"
-              className="w-full h-12 bg-white border border-gray-200 rounded-2xl px-4 text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-          <div className="flex-[1.5] flex flex-col gap-1">
-            <label className="text-xs text-gray-500 font-medium ml-1">
-              SECTOR
-            </label>
-            <input
-              type="text"
-              value={sector}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setSector(e.target.value)
-              }
-              placeholder="Ej: Altos..."
-              className="w-full h-12 bg-white border border-gray-200 rounded-2xl px-4 text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-gray-500 font-medium ml-1">
-            NOMBRE DE LA DIRECCIÓN
+        {/* Number Input */}
+        <div className="flex-[1.2] flex flex-col gap-1">
+          <label className="text-[13px] font-bold text-black ml-1">
+            Número
           </label>
-          <div className="relative">
-            <MapPin
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
-            />
-            <input
-              type="text"
-              value={addressName}
-              onChange={(e: ChangeEvent<HTMLInputElement>) =>
-                setAlias(e.target.value)
-              }
-              placeholder="Ej: Casa principal, Oficina..."
-              className="w-full h-12 bg-white border border-gray-200 rounded-2xl pl-11 pr-4 text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:border-primary transition-colors"
-            />
-          </div>
-        </div>
-
-        {/* Delivery Preferences */}
-        <div className="flex flex-col gap-3 mt-2">
-          <label className="text-xs text-gray-500 font-medium ml-1">
-            PREFERENCIA DE ENTREGA
-          </label>
-
-          <button
-            onClick={() => setDeliveryPreference("door")}
-            className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-              deliveryPreference === "door"
-                ? "border-primary bg-primary/5 shadow-sm"
-                : "border-gray-100 bg-white"
-            }`}
-          >
-            <div
-              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                deliveryPreference === "door"
-                  ? "border-primary"
-                  : "border-gray-300"
-              }`}
-            >
-              {deliveryPreference === "door" && (
-                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-              )}
-            </div>
-            <div className="flex flex-col items-start gap-0.5">
-              <span
-                className={`text-sm font-semibold ${
-                  deliveryPreference === "door"
-                    ? "text-primary"
-                    : "text-gray-900"
-                }`}
-              >
-                Dejar en puerta
-              </span>
-              <span className="text-xs text-gray-500">
-                El repartidor dejará el pedido en tu entrada
-              </span>
-            </div>
-          </button>
-
-          <button
-            onClick={() => setDeliveryPreference("hand")}
-            className={`w-full flex items-center gap-4 p-4 rounded-2xl border transition-all ${
-              deliveryPreference === "hand"
-                ? "border-primary bg-primary/5 shadow-sm"
-                : "border-gray-100 bg-white"
-            }`}
-          >
-            <div
-              className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-                deliveryPreference === "hand"
-                  ? "border-primary"
-                  : "border-gray-300"
-              }`}
-            >
-              {deliveryPreference === "hand" && (
-                <div className="w-2.5 h-2.5 rounded-full bg-primary" />
-              )}
-            </div>
-            <div className="flex flex-col items-start gap-0.5">
-              <span
-                className={`text-sm font-semibold ${
-                  deliveryPreference === "hand"
-                    ? "text-primary"
-                    : "text-gray-900"
-                }`}
-              >
-                Entregar en mano
-              </span>
-              <span className="text-xs text-gray-500">
-                Recibe el pedido directamente del repartidor
-              </span>
-            </div>
-          </button>
-        </div>
-
-        <div className="flex flex-col gap-1 mt-2">
-          <label className="text-xs text-gray-500 font-medium ml-1">
-            INSTRUCCIONES DE ENTREGA (OPCIONAL)
-          </label>
-          <textarea
-            value={deliveryInstructions}
-            onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
-              setDeliveryInstructions(e.target.value)
+          <input
+            type="text"
+            value={locationNumber}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setLocationNumber(e.target.value)
             }
-            placeholder="Ej: Tocar timbre, dejar en recepción..."
-            className="w-full h-24 bg-white border border-gray-200 rounded-2xl p-4 text-gray-900 placeholder:text-gray-400 font-medium focus:outline-none focus:border-primary transition-colors resize-none"
+            placeholder={`Ej: ${locationType} #123`}
+            className="w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all"
           />
         </div>
+      </div>
 
-        <div className="mt-auto pt-6">
+      {/* Info Banner 1 */}
+      <div className="flex items-center gap-2 bg-[#FFF9E9] rounded-lg px-4 py-2 mb-4">
+        <div className="w-2.5 h-2.5 rounded-full border border-black bg-[#FFD263] flex-shrink-0" />
+        <span className="text-[10px] font-semibold text-black leading-tight">
+          Selecciona tu villa, yate, habitación o piscina
+        </span>
+      </div>
+
+      {/* Sector Input */}
+      <div className="flex flex-col gap-1 mb-6">
+        <label className="text-[13px] font-bold text-black ml-1">Sector</label>
+        <input
+          type="text"
+          value={sector}
+          onChange={(e: ChangeEvent<HTMLInputElement>) =>
+            setSector(e.target.value)
+          }
+          placeholder="Ej: Vivero 2"
+          className="w-full h-12 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all"
+        />
+      </div>
+
+      {/* Map Section */}
+      <div className="flex flex-col gap-1 mb-6">
+        <label className="text-[13px] font-bold text-black ml-1">
+          Verifica tu dirección
+        </label>
+        <div className="relative w-full h-[150px] rounded-xl overflow-hidden bg-gray-100 border border-gray-100">
+          <LocationPickerMap
+            lat={lat}
+            lng={lng}
+            onLocationSelect={(newLat, newLng) => {
+              setLat(newLat);
+              setLng(newLng);
+            }}
+            className="w-full h-full"
+          />
+          {/* Ajusta el pin Button Overlay */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+            <button
+              onClick={() => {
+                // Logic to expand map or show modal could go here
+                // For now, it just focuses the map area visually
+              }}
+              className="bg-white px-4 py-1.5 rounded-full shadow-md text-[10px] font-bold text-black flex items-center gap-1 active:scale-95 transition-transform"
+            >
+              Ajusta el pin
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Delivery Preferences / Instructions */}
+      <div className="flex flex-col gap-3 mb-6">
+        <label className="text-[13px] font-bold text-black ml-1">
+          Instrucciones para el repartidor
+        </label>
+
+        <div className="flex gap-3">
           <button
-            onClick={handleSave}
-            disabled={isPending}
-            className="w-full bg-primary h-14 rounded-full text-white font-bold shadow-lg shadow-primary/25 active:scale-[0.98] transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2"
+            onClick={() => setDeliveryPreference("door")}
+            className={`flex-1 h-10 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors ${
+              deliveryPreference === "door"
+                ? "bg-[#DADADA] text-black" // The design shows active as Gray for "Dejar en puerta"? Or maybe my interpretation.
+                // Re-reading design: "Dejar en la puerta" is Gray bg, Black text. "Entrégamelo a mí" is Green bg, White text.
+                // Assuming "Entregamelo a mi" is selected in the screenshot.
+                // Let's implement toggle logic where selected = Green, unselected = Gray.
+                // The screenshot shows one Gray and one Green.
+                : "bg-[#F4F5F7] text-gray-500"
+            }`}
+             // Actually, looking at the image:
+             // "Dejar en la puerta" has bg #DADADA (gray) and text Black.
+             // "Entregamelo a mi" has bg #04BD88 (green) and text White.
+             // This suggests "Entregamelo a mi" is the ACTIVE one.
           >
-            {isPending ? (
-              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : initialData ? (
-              "Actualizar dirección"
-            ) : (
-              "Guardar dirección"
-            )}
+            <div
+               onClick={(e) => {
+                  e.stopPropagation();
+                  setDeliveryPreference("door");
+               }}
+               className={`w-full h-full flex items-center justify-center rounded-full ${deliveryPreference === "door" ? "bg-[#04BD88] text-white" : "bg-[#DADADA] text-black"}`}
+            >
+               Dejar en la puerta
+            </div>
+          </button>
+          
+          <button
+             onClick={() => setDeliveryPreference("hand")}
+             className={`flex-1 h-10 rounded-full flex items-center justify-center text-[13px] font-bold transition-colors`}
+          >
+             <div
+               className={`w-full h-full flex items-center justify-center rounded-full ${deliveryPreference === "hand" ? "bg-[#04BD88] text-white" : "bg-[#DADADA] text-black"}`}
+             >
+               Entrégamelo a mí
+             </div>
           </button>
         </div>
+
+        <textarea
+          value={deliveryInstructions}
+          onChange={(e: ChangeEvent<HTMLTextAreaElement>) =>
+            setDeliveryInstructions(e.target.value)
+          }
+          placeholder="e.j. toca la puerta o el timbre y esperame ahi con el verifone..."
+          className="w-full h-20 bg-[#F4F5F7] rounded-lg p-4 text-black placeholder:text-gray-400 text-[11px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all resize-none leading-relaxed"
+        />
+      </div>
+
+      {/* Address Name */}
+      <div className="flex flex-col gap-1 mb-2">
+        <label className="text-[13px] font-bold text-black ml-1">
+          Nombre de la dirección
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            value={addressName}
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setAlias(e.target.value)
+            }
+            placeholder="Casa Romana"
+            className="w-full h-10 bg-[#F4F5F7] rounded-lg px-4 text-black placeholder:text-gray-400 text-[13px] font-semibold focus:outline-none focus:ring-1 focus:ring-primary transition-all pr-10"
+          />
+          {addressName && (
+            <button
+               onClick={() => setAlias("")}
+               className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 bg-[#595959] rounded-full flex items-center justify-center"
+            >
+               <X size={12} className="text-white" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Bottom Info Banner */}
+      <div className="bg-[#FFF9E9] rounded-lg p-3 mb-8">
+         <p className="text-[10px] font-semibold text-black leading-tight">
+            Este nombre te ayuda a identificar y personalizar tus direcciones en Reddi. Solo tú puedes verlo y puedes modificarlo cuando quieras.
+         </p>
+      </div>
+
+      {/* Footer Button */}
+      <div className="mt-auto">
+        <button
+          onClick={handleSave}
+          disabled={isPending}
+          className="w-full bg-[#04BD88] h-[50px] rounded-2xl text-white text-xl font-bold active:scale-[0.98] transition-all disabled:opacity-70 disabled:scale-100 flex items-center justify-center gap-2"
+        >
+          {isPending ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            "Guardar y continuar" // Text from design
+          )}
+        </button>
       </div>
     </div>
   );
