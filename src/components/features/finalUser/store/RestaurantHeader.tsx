@@ -10,6 +10,8 @@ import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
 import { toggleCart } from "@/src/lib/store/uiSlice";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Badge from "@/src/components/basics/header/Badge";
+import NdProfileIcon from "@/src/components/icons/NdProfileIcon";
+import NdCartIcon from "@/src/components/icons/NdCartIcon";
 
 // Reuse the type definition or similar
 type ExtendedStoreDetails = BaseStoreDetails & {
@@ -75,13 +77,7 @@ export default function RestaurantHeader({
         <div className="flex items-center gap-[15px] pointer-events-auto">
           {/* Profile */}
           <button className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden">
-            <Image
-              src="/new-design/nd-user.png"
-              alt="Profile"
-              width={18}
-              height={18}
-              className="object-contain"
-            />
+            <NdProfileIcon className="w-[18px] h-[24px]" />
           </button>
 
           {/* Notifications replaced by Home */}
@@ -89,7 +85,7 @@ export default function RestaurantHeader({
             href="/user/home"
             className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden"
           >
-            <Home className="w-5 h-5 text-black" />
+            <Home className="w-6 h-6 text-black" />
           </Link>
 
           {/* Cart */}
@@ -97,13 +93,7 @@ export default function RestaurantHeader({
             onClick={() => dispatch(toggleCart())}
             className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden relative"
           >
-            <Image
-              src="/new-design/nd-cart.png"
-              alt="Cart"
-              width={24}
-              height={24}
-              className="object-contain"
-            />
+            <NdCartIcon className="w-5 h-5" />
             <div className="absolute top-[-2px] right-[-2px]">
               <Badge
                 count={cartCount}

@@ -24,6 +24,8 @@ import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
 import Link from "next/link";
 import Image from "next/image";
+import NdCartIcon from "@/src/components/icons/NdCartIcon";
+import NdProfileIcon from "@/src/components/icons/NdProfileIcon";
 
 const badgeColor = "bg-red-500";
 
@@ -198,7 +200,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm relative"
               >
                 <div className="relative">
-                  <Home className="w-5 h-5 text-black" />
+                  <Home className="w-6 h-6 text-black" />
                 </div>
               </Link>
 
@@ -207,13 +209,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 onClick={onToggleCart}
                 aria-label="Abrir carrito"
               >
-                <div className="w-6 h-6 relative">
-                  <Image
-                    src="/new-design/nd-cart.png"
-                    fill
-                    alt="Carrito"
-                    className="object-contain"
-                  />
+                <div className="relative">
+                  <NdCartIcon className="w-6 h-6" />
                   <div className="absolute -top-2 -right-2">
                     <Badge
                       count={cartCount || userData.carCount}
@@ -262,18 +259,13 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
             <div className="flex items-center gap-3">
               <Link href="/user/profile">
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Image
-                    src="/new-design/nd-user.png"
-                    width={18}
-                    height={18}
-                    alt="Perfil"
-                  />
+                  <NdProfileIcon className="w-[18px] h-[24px]" />
                 </div>
               </Link>
 
               <Link href="/user/home" className="relative">
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Home className="w-5 h-5 text-black" />
+                  <Home className="w-6 h-6 text-black" />
                 </div>
               </Link>
 
@@ -284,12 +276,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 aria-label="Abrir carrito"
               >
                 <div className="relative">
-                  <Image
-                    src="/new-design/nd-cart.png"
-                    width={24}
-                    height={24}
-                    alt="Carrito"
-                  />
+                  <NdCartIcon className="w-6 h-6" />
                   <div className="absolute -top-2 -right-2">
                     <Badge
                       count={cartCount || userData.carCount}
@@ -372,12 +359,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
               aria-label="Abrir carrito"
             >
               <div className="flex items-center gap-2">
-                <Image
-                  src="/nd-cart.png"
-                  width={20}
-                  height={20}
-                  alt="Carrito"
-                />
+                <NdCartIcon className="w-5 h-5" />
                 <span
                   className="whitespace-nowrap text-sm lg:text-base"
                   suppressHydrationWarning

@@ -18,7 +18,7 @@ export async function getPartnersList() {
   return data.map((p) => ({
     id: p.id,
     name: p.name,
-    image: p.cover_image_url || p.image_url || "/images/store-placeholder.png",
+    image: p.image_url || p.cover_image_url || "/images/store-placeholder.png",
     href: `/user/stores/${p.id}`,
   }));
 }

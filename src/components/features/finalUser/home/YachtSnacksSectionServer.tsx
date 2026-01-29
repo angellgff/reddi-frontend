@@ -93,9 +93,9 @@ export default async function YachtSnacksSectionServer() {
                 className="flex-none flex flex-col items-center w-[79px] group"
               >
                 <div className="w-[57px] h-[57px] relative bg-white rounded-[14px] border border-white/20 overflow-hidden shadow-md group-hover:scale-105 transition-transform duration-200">
-                  {partner.cover_image_url || partner.image_url ? (
+                  {partner.image_url || partner.cover_image_url ? (
                     <Image
-                      src={partner.cover_image_url || partner.image_url!}
+                      src={partner.image_url || partner.cover_image_url!}
                       alt={partner.name}
                       fill
                       className="object-cover"
