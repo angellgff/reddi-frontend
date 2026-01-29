@@ -2,7 +2,7 @@
 
 "use client";
 
-import { ChevronDown, ChevronLeft, Menu, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, Menu, X, Home } from "lucide-react";
 
 import Badge from "@/src/components/basics/header/Badge";
 import AddressSlider from "@/src/components/features/finalUser/adressSlider/AddressSlider";
@@ -194,16 +194,11 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
 
             <div className="flex gap-3">
               <Link
-                href="/user/notifications"
+                href="/user/home"
                 className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm relative"
               >
-                <div className="w-5 h-5 relative">
-                  <Image
-                    src="/new-design/nd-bell.png"
-                    fill
-                    alt="Notificaciones"
-                    className="object-contain"
-                  />
+                <div className="relative">
+                  <Home className="w-5 h-5 text-black" />
                 </div>
               </Link>
 
@@ -276,14 +271,9 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
                 </div>
               </Link>
 
-              <Link href="/user/notifications" className="relative">
+              <Link href="/user/home" className="relative">
                 <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                  <Image
-                    src="/new-design/nd-bell.png"
-                    width={20}
-                    height={20}
-                    alt="Notificaciones"
-                  />
+                  <Home className="w-5 h-5 text-black" />
                 </div>
               </Link>
 

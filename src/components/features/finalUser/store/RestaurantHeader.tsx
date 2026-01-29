@@ -2,9 +2,14 @@
 
 import type { StoreDetails as BaseStoreDetails } from "@/src/lib/finalUser/stores/getStoreDetails";
 import StarIcon from "@/src/components/icons/StarIcon";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Home } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
+import { toggleCart } from "@/src/lib/store/uiSlice";
+import { selectCartCount } from "@/src/lib/store/cartSlice";
+import Badge from "@/src/components/basics/header/Badge";
 
 // Reuse the type definition or similar
 type ExtendedStoreDetails = BaseStoreDetails & {
@@ -19,6 +24,8 @@ export default function RestaurantHeader({
   store: ExtendedStoreDetails & { cover_image_url?: string | null };
 }) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
+  const cartCount = useAppSelector(selectCartCount);
 
   const banner =
     store.banner_url || store.cover_image_url || store.image_url || "";
@@ -77,19 +84,19 @@ export default function RestaurantHeader({
             />
           </button>
 
-          {/* Notifications */}
-          <button className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden">
-            <Image
-              src="/new-design/nd-bell.png"
-              alt="Notifications"
-              width={20}
-              height={20}
-              className="object-contain"
-            />
-          </button>
+          {/* Notifications replaced by Home */}
+          <Link
+            href="/user/home"
+            className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden"
+          >
+            <Home className="w-5 h-5 text-black" />
+          </Link>
 
           {/* Cart */}
-          <button className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden">
+          <button
+            onClick={() => dispatch(toggleCart())}
+            className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center overflow-hidden relative"
+          >
             <Image
               src="/new-design/nd-cart.png"
               alt="Cart"
@@ -97,6 +104,13 @@ export default function RestaurantHeader({
               height={24}
               className="object-contain"
             />
+            <div className="absolute top-[-2px] right-[-2px]">
+              <Badge
+                count={cartCount}
+                color="bg-red-500"
+                className="rounded-full shadow-sm ring-1 ring-white"
+              />
+            </div>
           </button>
         </div>
       </div>
