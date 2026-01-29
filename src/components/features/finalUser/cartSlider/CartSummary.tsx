@@ -20,7 +20,7 @@ export default function CartSummary() {
     if (tipAmountManual && tipAmountManual > 0) return tipAmountManual;
     return (subtotal * (tipPercent || 0)) / 100;
   }, [subtotal, tipPercent, tipAmountManual]);
-  
+
   // En el carrito solo mostramos subtotal + servicios (si aplica), envío es 0
   const total = subtotal + shipping + serviceFee + tip;
 
