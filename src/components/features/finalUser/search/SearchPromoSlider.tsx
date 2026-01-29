@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -21,6 +21,25 @@ export default function SearchPromoSlider({
 }: SearchPromoSliderProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused || promotions.length <= 1) return;
+
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const itemWidth = 352;
+        const nextIndex = (activeIndex + 1) % promotions.length;
+
+        scrollRef.current.scrollTo({
+          left: nextIndex * itemWidth,
+          behavior: "smooth",
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [activeIndex, isPaused, promotions.length]);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -33,7 +52,13 @@ export default function SearchPromoSlider({
   };
 
   return (
-    <div className="w-full flex flex-col items-center gap-[15px] mb-6 md:hidden">
+    <div
+      className="w-full flex flex-col items-center gap-[15px] mb-6 md:hidden"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
       {/* Slider Container - Left aligned initially but centered scroll */}
       <div
         ref={scrollRef}

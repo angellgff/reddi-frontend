@@ -1,6 +1,8 @@
 // components/SpecialPromosSection.tsx
 
-import React from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import PromoCard from "./PromoCard";
 
 // Datos de ejemplo para las tarjetas promocionales
@@ -35,10 +37,38 @@ const promos = [
 ];
 
 const SpecialPromosSection: React.FC = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const itemWidth = 336; // w-80 (320px) + gap-4 (16px)
+        const currentScroll = scrollRef.current.scrollLeft;
+        const currentIndex = Math.round(currentScroll / itemWidth);
+        const nextIndex = (currentIndex + 1) % promos.length;
+
+        scrollRef.current.scrollTo({
+          left: nextIndex * itemWidth,
+          behavior: "smooth",
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
   return (
     <section className="w-full py-6" aria-label="Promociones especiales">
       {/* Contenedor del carrusel */}
       <div
+        ref={scrollRef}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
         className="
           flex w-full items-center gap-4 
           overflow-x-auto pb-4 

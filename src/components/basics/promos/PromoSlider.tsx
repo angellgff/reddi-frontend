@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
 import PromoCard from "./PromoCard";
 import { PromoCardProps } from "./PromoCard";
 
@@ -9,6 +12,29 @@ export default function PromoSlider({
   className?: string;
 }) {
   const safeId = "promo-slider";
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [isPaused, setIsPaused] = useState(false);
+
+  useEffect(() => {
+    if (isPaused || promotions.length <= 1) return;
+
+    const interval = setInterval(() => {
+      if (scrollRef.current) {
+        const itemWidth = 366; // 350px width + 16px gap
+        const currentScroll = scrollRef.current.scrollLeft;
+        const currentIndex = Math.round(currentScroll / itemWidth);
+        const nextIndex = (currentIndex + 1) % promotions.length;
+
+        scrollRef.current.scrollTo({
+          left: nextIndex * itemWidth,
+          behavior: "smooth",
+        });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [isPaused, promotions.length]);
+
   return (
     <section className={className}>
       {/* Header (desktop only) */}
@@ -21,7 +47,12 @@ export default function PromoSlider({
       {/* Mobile slider (unchanged) */}
       <div
         id={safeId}
+        ref={scrollRef}
         className="flex space-x-4 px-2 overflow-x-auto scrollbar-hide md:hidden"
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onTouchStart={() => setIsPaused(true)}
+        onTouchEnd={() => setIsPaused(false)}
       >
         {promotions.map((promo) => (
           <div key={promo.title} className="flex-none">
