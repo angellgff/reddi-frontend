@@ -12,6 +12,7 @@ import {
   Banknote,
   CreditCard,
   Ticket,
+  AlertCircle,
 } from "lucide-react";
 import { formatCurrency } from "@/src/lib/utils";
 import TipSliderModal from "./TipSliderModal";
@@ -108,17 +109,63 @@ export default function MobileCheckoutView({
   const [isAddressListOpen, setIsAddressListOpen] = useState(false);
   const [isPaymentListOpen, setIsPaymentListOpen] = useState(false);
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
+  const [validationError, setValidationError] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
+
+  const handlePlaceOrderClick = () => {
+    // 1. Validar Dirección
+    if (!selectedAddressId) {
+      setValidationError({
+        title: "Falta la dirección de entrega",
+        message:
+          "Por favor selecciona una dirección para saber dónde llevarte el pedido.",
+      });
+      return;
+    }
+
+    // 2. Validar Método de Pago
+    if (!selectedPaymentMethod) {
+      setValidationError({
+        title: "Método de pago requerido",
+        message:
+          "Selecciona cómo deseas pagar (Efectivo o Datáfono) para continuar.",
+      });
+      return;
+    }
+
+    // 3. Validaciones adicionales (canProceed)
+    if (!canProceed) {
+      setValidationError({
+        title: "No es posible completar la orden",
+        message:
+          "Revisa los detalles de tu pedido para asegurarte de que todo esté correcto.",
+      });
+      return;
+    }
+
+    onPlaceOrder();
+  };
 
   const { showCheckout, hideButton } = useFloatingButtonStore();
   React.useEffect(() => {
     showCheckout(
       "Proceder a pagar",
       formatCurrency(total),
-      onPlaceOrder,
-      !canProceed,
+      handlePlaceOrderClick, // Interceptamos el click
+      false, // Siempre habilitado para mostrar errores
     );
     return () => hideButton();
-  }, [total, canProceed, onPlaceOrder, showCheckout, hideButton]);
+  }, [
+    total,
+    canProceed,
+    onPlaceOrder,
+    showCheckout,
+    hideButton,
+    selectedAddressId,
+    selectedPaymentMethod,
+  ]);
 
   // Address logic
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId);
@@ -169,6 +216,35 @@ export default function MobileCheckoutView({
           couponMsg={couponMsg}
           storedCouponCode={couponCode}
         />
+      )}
+
+      {/* Validation Error Modal */}
+      {validationError && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 px-6 animate-in fade-in duration-200">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-xl transform scale-100 animate-in zoom-in-95 duration-200">
+            <div className="flex flex-col items-center text-center gap-4">
+              <div className="w-14 h-14 rounded-full bg-red-100 flex items-center justify-center mb-1">
+                <AlertCircle className="w-7 h-7 text-red-600" />
+              </div>
+
+              <div className="space-y-2">
+                <h3 className="text-lg font-bold text-gray-900 leading-tight">
+                  {validationError.title}
+                </h3>
+                <p className="text-[13px] text-gray-500 leading-relaxed max-w-[260px]">
+                  {validationError.message}
+                </p>
+              </div>
+
+              <button
+                onClick={() => setValidationError(null)}
+                className="w-full bg-[#FAFAFA] text-black border border-gray-200 font-bold text-sm py-3.5 rounded-xl mt-3 active:scale-[0.98] transition-all hover:bg-gray-50"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Header */}
