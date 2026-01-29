@@ -5,7 +5,7 @@ export async function getPartnersList() {
 
   const { data, error } = await supabase
     .from("partners")
-    .select("id, name, image_url, partner_type")
+    .select("id, name, image_url, cover_image_url, partner_type")
     .eq("is_active", true)
     //    .eq("is_approved", true)
     .order("name");
@@ -18,7 +18,7 @@ export async function getPartnersList() {
   return data.map((p) => ({
     id: p.id,
     name: p.name,
-    image: p.image_url || "/images/store-placeholder.png",
+    image: p.cover_image_url || p.image_url || "/images/store-placeholder.png",
     href: `/user/stores/${p.id}`,
   }));
 }

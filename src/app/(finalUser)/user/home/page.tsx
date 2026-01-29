@@ -4,7 +4,7 @@ import SliderSectionSkeleton from "@/src/components/basics/itemsSlider/SliderSec
 import OrderAgainServer from "@/src/components/features/finalUser/orderAgain/OrderAgainServer";
 import HomeCategories from "@/src/components/features/finalUser/home/HomeCategories";
 import HomePartnersList from "@/src/components/features/finalUser/home/HomePartnersList";
-import HomeYachtBanner from "@/src/components/features/finalUser/home/HomeYachtBanner";
+import YachtSnacksSectionServer from "@/src/components/features/finalUser/home/YachtSnacksSectionServer";
 import HomeFloatingButtonSetter from "@/src/components/features/finalUser/home/HomeFloatingButtonSetter";
 import PromoSliderServer from "@/src/components/basics/promos/PromoSliderServer";
 import PromoSliderSkeleton from "@/src/components/basics/promos/PromoSliderSkeleton";
@@ -47,8 +47,14 @@ export default function Home() {
       </div>
 
       {/* 6. Directo a tu yate Banner */}
-      <div className="px-4 mt-8">
-        <HomeYachtBanner />
+      <div className="px-4 mt-8 space-y-8">
+        <Suspense
+          fallback={
+            <div className="h-[190px] w-full bg-gray-50 animate-pulse mt-8" />
+          }
+        >
+          <YachtSnacksSectionServer />
+        </Suspense>
       </div>
 
       {/* 7. Pedidos anteriores */}
