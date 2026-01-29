@@ -22,6 +22,7 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
   const endDate = formData.get("endDate") as string;
   const imageUrl = formData.get("imageUrl") as string;
   const isActive = formData.get("isActive") === "true";
+  const placement = formData.get("placement") as string;
 
   console.log("FormData received:", {
     title,
@@ -31,6 +32,7 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
     endDate,
     imageUrl,
     isActive,
+    placement,
   });
 
   /* Extract Action fields */
@@ -38,13 +40,21 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
   const couponId = formData.get("couponId") as string;
 
   /* Basic validation */
-  /* NOTE: categoryId is checked here. If it's optional, remove this check. */
-  if (!title || !categoryId || !startDate || !endDate || !imageUrl) {
+  if (!title || !startDate || !endDate || !imageUrl) {
     console.error("Validation failed: Missing required fields");
     return {
       success: false,
-       message: "Faltan campos obligatorios",
+      message: "Faltan campos obligatorios",
     };
+  }
+
+  // Validate placement if provided
+  if (placement && !['home_top', 'home_middle', 'category_page'].includes(placement)) {
+     console.error("Validation failed: Invalid placement");
+     return {
+        success: false,
+        message: "Ubicación del banner inválida",
+     };
   }
 
   // Get current admin user
@@ -74,7 +84,7 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
   const { error } = await supabase.from("banners").insert({
     title,
     description,
-    category_id: categoryId,
+    category_id: categoryId || null,
     start_date: startDate,
     end_date: endDate,
     image_url: imageUrl,
@@ -82,6 +92,7 @@ export async function createBanner(prevState: CreateBannerState, formData: FormD
     created_by: adminData.id,
     action_link: actionLink || null, // Optional
     coupon_id: couponId || null,     // Optional
+    placement: (placement as any) || null
   });
 
   if (error) {

@@ -23,31 +23,56 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
 
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [couponId, setCouponId] = useState(""); // New
-  const [actionLink, setActionLink] = useState(""); // New
+  const [couponId, setCouponId] = useState("");
+  const [actionLink, setActionLink] = useState("");
+  const [placement, setPlacement] = useState(""); // New
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
   const [imageFile, setImageFile] = useState<File | null>(null);
 
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [globalError, setGlobalError] = useState<string | null>(null);
+
+  const PLACEMENT_OPTIONS = [
+    { id: "home_top", name: "Inicio - Arriba" },
+    { id: "home_middle", name: "Inicio - Medio" },
+    { id: "category_page", name: "Página de Categoría" },
+  ];
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!title.trim()) newErrors.title = "El título es obligatorio";
+    if (!startDate) newErrors.startDate = "La fecha de inicio es obligatoria";
+    if (!endDate) newErrors.endDate = "La fecha de fin es obligatoria";
+    if (!imageFile) newErrors.imageFile = "La imagen es obligatoria";
+    // Check constraints: End date must be after Start date
+    if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+        newErrors.endDate = "La fecha de fin debe ser posterior a la de inicio";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async () => {
-    if (!title || !startDate || !endDate || !description || !imageFile) {
-      setErrorMsg("Por favor, completa todos los campos.");
-      return;
+    setGlobalError(null);
+    if (!validateForm()) {
+        setGlobalError("Por favor, corrige los errores antes de continuar.");
+        return;
     }
 
     startTransition(async () => {
       try {
-        console.log("Submitting with:", { title, categoryId, couponId, actionLink, startDate, endDate, isActive });
+        console.log("Submitting with:", { title, categoryId, couponId, actionLink, placement, startDate, endDate, isActive });
         
         // 1. Upload Image
         const imageUrl = await uploadFile(imageFile, "banners", "images");
         
         if (!imageUrl) {
-          setErrorMsg("Error al subir la imagen. Inténtalo de nuevo.");
+          setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
           return;
         }
 
@@ -56,8 +81,9 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
         formData.append("title", title);
         formData.append("description", description);
         formData.append("categoryId", categoryId);
-        formData.append("couponId", couponId); // New
-        formData.append("actionLink", actionLink); // New
+        formData.append("couponId", couponId);
+        formData.append("actionLink", actionLink);
+        formData.append("placement", placement); // New
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
         formData.append("imageUrl", imageUrl);
@@ -68,11 +94,11 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
         if (result.success) {
           router.push("/admin/banners");
         } else {
-          setErrorMsg(result.message || "Error al crear el banner.");
+          setGlobalError(result.message || "Error al crear el banner.");
         }
       } catch (error) {
         console.error("Submission error:", error);
-        setErrorMsg("Ocurrió un error inesperado.");
+        setGlobalError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
       }
     });
   };
@@ -97,6 +123,7 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               disabled={isPending}
+              error={errors.title}
             />
 
             <SelectInput
@@ -109,6 +136,20 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
               onChange={(e) => setCategoryId(e.target.value)}
               placeholder="Seleccione"
               disabled={isPending}
+              error={errors.categoryId}
+            />
+
+            <SelectInput
+              id="placement"
+              label="Ubicación (Placement)"
+              options={PLACEMENT_OPTIONS}
+              value={placement}
+              getOptionLabel={(opt) => opt.name}
+              getOptionValue={(opt) => opt.id}
+              onChange={(e) => setPlacement(e.target.value)}
+              placeholder="Seleccione una ubicación"
+              disabled={isPending}
+              error={errors.placement}
             />
 
             <SelectInput
@@ -142,6 +183,7 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
                 disabled={isPending}
                 className="flex-1"
                 placeholder=""
+                error={errors.startDate}
               />
               <BasicInput
                 id="end-date"
@@ -152,6 +194,7 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
                 disabled={isPending}
                 className="flex-1"
                 placeholder=""
+                error={errors.endDate}
               />
             </div>
 
@@ -184,6 +227,9 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
                     disabled={isPending}
                     label=""
                  />
+                 {errors.imageFile && (
+                    <p className="text-sm text-red-500 mt-1">{errors.imageFile}</p>
+                 )}
                  
                  <div className="mt-6 flex items-center justify-between">
                     <span className="text-sm font-medium text-[#171717] font-poppins">Estado del banner</span>
@@ -202,9 +248,9 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
         </div>
       </div>
 
-      {errorMsg && (
+      {globalError && (
         <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm">
-          {errorMsg}
+          {globalError}
         </div>
       )}
 
@@ -220,27 +266,21 @@ export default function CreateBannerForm({ categories, coupons }: CreateBannerFo
         </button>
 
         <div className="flex items-center gap-4">
+           {/* Vista previa might be non-functional, keeping it as UI element */}
            <button
              type="button"
              disabled={isPending}
-             className="px-5 py-2.5 text-sm font-medium text-white bg-[#04BD88] rounded-xl hover:bg-green-600"
+             className="px-5 py-2.5 text-sm font-medium text-white bg-[#04BD88] rounded-xl hover:bg-green-600 opacity-50 cursor-not-allowed"
            >
              Vista previa
            </button>
-           <button
-             type="button"
-              disabled={isPending}
-             className="px-5 py-2.5 text-sm font-medium text-[#202124] bg-white border border-[#202124] rounded-xl hover:bg-gray-50"
-           >
-             Guardar y salir
-           </button>
+           
             <button
              onClick={handleSubmit}
              disabled={isPending}
-             className="px-5 py-2.5 text-sm font-medium text-white bg-[#04BD88] rounded-xl hover:bg-green-600 flex items-center gap-2"
+             className="px-5 py-2.5 text-sm font-medium text-[#202124] bg-white border border-[#202124] rounded-xl hover:bg-gray-50 flex items-center gap-2"
            >
-             {isPending ? "Guardando..." : "Siguiente"} 
-             {/* Arrow right icon if needed */}
+             {isPending ? "Guardando..." : "Guardar y salir"}
            </button>
         </div>
       </div>
