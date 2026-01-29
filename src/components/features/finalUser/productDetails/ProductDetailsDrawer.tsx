@@ -59,7 +59,7 @@ export default function ProductDetailsDrawer({
           className={`fixed left-0 bottom-0 z-[61] w-full bg-white rounded-t-[20px] shadow-lg
             data-[state=open]:animate-in data-[state=closed]:animate-out 
             data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom
-            duration-300 flex flex-col max-h-[90vh]`}
+            duration-300 flex flex-col max-h-[90vh] overflow-hidden`}
         >
           {/* Header handle for visual cue */}
           <div className="w-full h-1 bg-transparent flex justify-center pt-2 pb-1 absolute top-0 left-0 z-10 pointer-events-none">
@@ -86,6 +86,7 @@ export default function ProductDetailsDrawer({
                 <ProductDetailsClient
                   details={details}
                   partnerType={partnerType}
+                  onClose={() => onClose(false)}
                 />
               </div>
             ) : (

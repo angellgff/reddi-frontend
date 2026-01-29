@@ -235,9 +235,11 @@ const ExtrasAndNoteSection = ({
 export default function ProductDetailsClient({
   details,
   partnerType,
+  onClose,
 }: {
   details: ProductDetails;
   partnerType?: string;
+  onClose?: () => void;
 }) {
   const showProductDetails = useFloatingButtonStore(
     (state) => state.showProductDetails,
@@ -449,6 +451,15 @@ export default function ProductDetailsClient({
         message: "Producto agregado correctamente",
         type: "success",
       });
+      if (onClose) {
+        // Pequeño delay para que se vea el toast antes de cerrar, aunque el toast suele ser global o montado fuera
+        // Pero si el toast es local (montado en este componente), se desmontará al cerrar el drawer.
+        // As este Toast es local (linea 498), si cierro el drawer, el toast DESAPARECE.
+        // Problema: El toast está dentro de ProductDetailsClient.
+        // Solución: El usuario quiere cerrar el slider. Si el toast desaparece es una consecuencia aceptable o debo mover el toast fuera.
+        // Por ahora, cerraré inmediatamente como se pide.
+        onClose(); 
+      }
     }
   };
 
