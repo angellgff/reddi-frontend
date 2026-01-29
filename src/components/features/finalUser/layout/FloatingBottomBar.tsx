@@ -12,6 +12,51 @@ import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Badge from "@/src/components/basics/header/Badge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState } from "react";
+import { getFeaturedPartnerNames } from "@/src/lib/actions/finalUser/floating-actions";
+
+function AnimatedPlaceholder({ visible }: { visible: boolean }) {
+  const [index, setIndex] = useState(0);
+  const [names, setNames] = useState<string[]>([
+    "Restaurantes",
+    "Farmacias",
+    "Supermercados",
+    "Licores",
+  ]);
+
+  useEffect(() => {
+    getFeaturedPartnerNames().then((fetched) => {
+      if (fetched && fetched.length > 0) {
+        setNames(fetched);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prev) => (prev + 1) % names.length);
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [names.length]);
+
+  if (!visible) return null;
+
+  return (
+    <div className="pointer-events-none absolute inset-0 flex items-center justify-center pl-[56px] pr-4 overflow-hidden">
+      <AnimatePresence mode="popLayout">
+        <motion.span
+          key={names[index % names.length]}
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: 20, opacity: 0 }}
+          transition={{ duration: 0.5, ease: "easeInOut" }}
+          className="text-white/90 font-semibold text-[14px] whitespace-nowrap"
+        >
+          &#8216;{names[index % names.length]}&#8217;
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function FloatingBottomBar() {
   const {
@@ -30,10 +75,15 @@ export default function FloatingBottomBar() {
   const dispatch = useAppDispatch();
   const cartCount = useAppSelector(selectCartCount);
   const [mounted, setMounted] = useState(false);
+  const [hasValue, setHasValue] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setHasValue(!!searchParams?.get("q"));
+  }, [searchParams]);
 
   if (
     pathname === "/user/profile" ||
@@ -129,12 +179,14 @@ export default function FloatingBottomBar() {
                           fill="#04BD88"
                         />
                       </div>
+                      <AnimatedPlaceholder visible={!hasValue} />
                       <input
                         name="q"
                         type="search"
                         defaultValue={searchParams?.get("q") || ""}
-                        placeholder="&#8216;SBG&#8217;"
-                        className="w-full h-full rounded-[25px] border-none bg-transparent pl-[56px] pr-4 text-white placeholder:text-white/90 placeholder:font-semibold text-center font-semibold text-[14px] focus:outline-none focus:bg-[#05a87a]/20 transition-colors"
+                        onChange={(e) => setHasValue(!!e.target.value)}
+                        placeholder=""
+                        className="w-full h-full rounded-[25px] border-none bg-transparent pl-[56px] pr-4 text-white placeholder:text-transparent text-center font-semibold text-[14px] focus:outline-none focus:bg-[#05a87a]/20 transition-colors relative z-10"
                       />
                     </div>
                   </form>
