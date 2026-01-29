@@ -21,9 +21,7 @@ export type Section = {
   options: ExtraOption[];
 };
 
-export async function getCartItemExtras(
-  productId: string,
-): Promise<Section[]> {
+export async function getCartItemExtras(productId: string): Promise<Section[]> {
   const supabase = await createClient();
 
   const { data, error } = await supabase

@@ -18,7 +18,11 @@ import {
 import { useEffect, useMemo, useState } from "react";
 // import { createClient } from "@/src/lib/supabase/client"; // ELIMINADO
 // import type { Tables } from "@/src/lib/database.types"; // ELIMINADO
-import { getCartItemExtras, Section, ExtraOption } from "@/src/lib/actions/finalUser/cart/cart-item-actions";
+import {
+  getCartItemExtras,
+  Section,
+  ExtraOption,
+} from "@/src/lib/actions/finalUser/cart/cart-item-actions";
 
 export default function CartItem({
   item,
@@ -92,7 +96,7 @@ export default function CartItem({
         setLoadingExtras(true);
         // Usar Server Action en lugar de createClient del lado del cliente
         const mapped = await getCartItemExtras(item.productId);
-        
+
         if (cancelled) return;
         setSections(mapped);
       } catch (err) {
@@ -108,7 +112,6 @@ export default function CartItem({
   }, [item.productId, enableExtras]);
 
   // Aplanar opciones para mostrarlas (si se desea)
-
 
   const unitWithExtras = useMemo(() => {
     if (!enableExtras) return item.unitPrice;

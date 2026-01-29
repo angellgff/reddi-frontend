@@ -134,7 +134,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
               address={partnerAddress}
               itemsCount={items.reduce(
                 (s: number, i: CartItemType) => s + i.quantity,
-                0
+                0,
               )}
               logoUrl={partnerLogo}
             />
