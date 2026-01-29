@@ -114,7 +114,8 @@ export default function CreateBannerForm({
         const fieldErrors: { [key: string]: string } = {};
 
         // Defensive check for errors property
-        const issues = error.errors || (error as any).issues || [];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const issues = error.issues || (error as any).errors || [];
 
         if (Array.isArray(issues)) {
           issues.forEach((err) => {
