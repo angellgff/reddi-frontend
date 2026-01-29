@@ -3,7 +3,7 @@ import { NavLink } from "@/src/components/basics/dashboard/types";
 import PartnerHeader from "@/src/components/basics/dashboard/DashboardHeader";
 import { getAuthenticatedPartnerProfile } from "@/src/lib/partner/header/data/getData";
 import { createClient } from "@/src/lib/supabase/server";
-import { LogoutButton } from "@/src/components/logout-button";
+import { PartnerLogoutButton } from "@/src/components/partner-logout-button";
 
 // Base de rutas correcta para la sección Restaurant
 const actualURL = "/partner/market";
@@ -81,7 +81,7 @@ export default async function PartnerDashboardLayout({
               Mientras tanto, no podrás usar el panel de aliado.
             </p>
             <div className="flex items-center justify-center">
-              <LogoutButton />
+              <PartnerLogoutButton />
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export default async function PartnerDashboardLayout({
               esto es un error, contacta con soporte.
             </p>
             <div className="flex items-center justify-center">
-              <LogoutButton />
+              <PartnerLogoutButton />
             </div>
           </div>
         </div>

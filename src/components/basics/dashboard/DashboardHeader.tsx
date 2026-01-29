@@ -10,6 +10,7 @@ import ReddiLogo from "@/src/components/icons/ReddiLogo";
 import { useRouter } from "next/navigation";
 // Importamos la interfaz que definimos antes para tipar las props
 import { PartnerProfile } from "@/src/lib/partner/header/data/getData";
+import { partnerLogoutAction } from "@/src/lib/actions/auth";
 import { useNotifications } from "@/src/lib/notifications/NotificationsContext";
 
 // Definimos las props que recibirá el componente
@@ -22,24 +23,11 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   const { unreadCount } = useNotifications();
 
   const handleLogout = async () => {
-    console.log("Iniciando cierre de sesión a través de la API route...");
+    console.log("Iniciando cierre de sesión a través del server action...");
     try {
-      const response = await fetch("/api/auth/logout", { method: "POST" });
-
-      if (!response.ok) {
-        // Si la respuesta del servidor no fue exitosa (ej. status 500)
-        const data = await response.json();
-        throw new Error(data.error || "La respuesta del servidor no fue OK");
-      }
-
-      console.log("Logout request exitoso. Refrescando y redirigiendo...");
-
-      // router.refresh() podría ser suficiente, pero una recarga completa es más segura
-      // para garantizar que todo el estado del cliente (incluido Redux) se limpie.
-      window.location.href = "/login";
+      await partnerLogoutAction();
     } catch (e) {
       console.error("Error al llamar a la API de logout:", e);
-      // Opcional: Mostrar una notificación al usuario de que el logout falló.
     }
   };
 

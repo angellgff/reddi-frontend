@@ -221,3 +221,9 @@ export async function logoutAction() {
   await supabase.auth.signOut();
   redirect("/auth/login");
 }
+
+export async function partnerLogoutAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/partner/login");
+}
