@@ -3,7 +3,7 @@ import CategoryCard from "@/src/components/features/main/categories/CategoryCard
 const largeCategories = [
   {
     name: "Mercado",
-    imageUrl: "/market.png",
+    imageUrl: "/market-logo.png",
     href: "/user/search?type=market",
   },
   {

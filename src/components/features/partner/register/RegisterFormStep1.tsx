@@ -19,7 +19,7 @@ const businessTypes: {
 }[] = [
   {
     name: "Mercado",
-    imageUrl: "/market.png",
+    imageUrl: "/market-logo.png",
     value: "market",
   },
   {

@@ -11,7 +11,7 @@ const categories = [
   },
   {
     name: "Mercado",
-    image: "/Market.png",
+    image: "/market-logo.png",
     href: "/user/search?type=market",
   },
   {

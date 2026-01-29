@@ -14,7 +14,7 @@ type Category = {
 const categories: Category[] = [
   {
     name: "Mercado",
-    imageUrl: "/market.png",
+    imageUrl: "/market-logo.png",
     href: "/user/search?type=market",
     imageW: 111,
     imageH: 79,

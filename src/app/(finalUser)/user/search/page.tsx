@@ -24,7 +24,7 @@ function getTitleData(type?: string) {
   if (!type) return { title: "Comercios", icon: null };
   if (type.includes("restaurant"))
     return { title: "Restaurantes", icon: "/Restaurants.svg" };
-  if (type.includes("market")) return { title: "Mercado", icon: "/Market.png" };
+  if (type.includes("market")) return { title: "Mercado", icon: "/market-logo.png" };
   if (type.includes("tobacco")) return { title: "Tabaco", icon: "/tabaco.png" };
   if (type.includes("liquor"))
     return { title: "Alcohol", icon: "/alcohol.png" };
