@@ -145,7 +145,7 @@ export default function CartSlider({ isOpen, onClose }: CartSliderProps) {
               </div>
             ) : (
               <div className="space-y-3">
-                {items.map((it: CartItemType) => (
+                {[...items].reverse().map((it: CartItemType) => (
                   <CartItem key={it.id} item={it} enableExtras={isRestaurant} />
                 ))}
               </div>

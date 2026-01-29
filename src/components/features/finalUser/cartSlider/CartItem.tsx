@@ -16,8 +16,9 @@ import {
   decrementExtraQuantity,
 } from "@/src/lib/store/cartSlice";
 import { useEffect, useMemo, useState } from "react";
-import { createClient } from "@/src/lib/supabase/client";
-import type { Tables } from "@/src/lib/database.types";
+// import { createClient } from "@/src/lib/supabase/client"; // ELIMINADO
+// import type { Tables } from "@/src/lib/database.types"; // ELIMINADO
+import { getCartItemExtras, Section, ExtraOption } from "@/src/lib/actions/finalUser/cart/cart-item-actions";
 
 export default function CartItem({
   item,
@@ -28,6 +29,10 @@ export default function CartItem({
 }) {
   const dispatch = useAppDispatch();
   const increase = () => {
+    // Aseguramos que quantityStep sea numérico. Si es 0 o indefinido, usamos 1.
+    const rawStep = Number(item.quantityStep);
+    const step = rawStep > 0 ? rawStep : 1;
+
     if (enableExtras && item.extras.length > 0) {
       // Nueva regla: si el item tiene extras, agregar una nueva línea base en lugar de sumar cantidad.
       dispatch(
@@ -37,9 +42,9 @@ export default function CartItem({
           name: item.name,
           imageUrl: item.imageUrl,
           unitPrice: item.unitPrice,
-          quantity: item.quantityStep || 1,
+          quantity: step,
           measurementUnit: item.measurementUnit,
-          quantityStep: item.quantityStep,
+          quantityStep: step,
           minQuantity: item.minQuantity,
           extras: [],
           mergeByProduct: true,
@@ -47,7 +52,6 @@ export default function CartItem({
         }),
       );
     } else {
-      const step = item.quantityStep || 1;
       const next = item.quantity + step;
       dispatch(
         setQuantity({
@@ -58,8 +62,11 @@ export default function CartItem({
     }
   };
   const decrease = () => {
-    const step = item.quantityStep || 1;
-    const min = item.minQuantity || 1;
+    // Aseguramos que quantityStep sea numérico.
+    const rawStep = Number(item.quantityStep);
+    const step = rawStep > 0 ? rawStep : 1;
+    // Si no hay minQuantity, el mínimo es el step.
+    const min = item.minQuantity || step;
     const next = item.quantity - step;
     dispatch(
       setQuantity({
@@ -69,22 +76,6 @@ export default function CartItem({
     );
   };
 
-  // Cargar secciones y opciones (extras disponibles) del producto
-  type ExtraOption = {
-    optionId: string; // product_section_options.id
-    extraId: string; // product_extras.id
-    name: string;
-    imageUrl: string | null;
-    price: number; // override_price ?? default_price
-    displayOrder: number;
-  };
-  type Section = {
-    id: string;
-    name: string;
-    isRequired: boolean;
-    displayOrder: number;
-    options: ExtraOption[];
-  };
   const [sections, setSections] = useState<Section[]>([]);
   const [loadingExtras, setLoadingExtras] = useState(false);
 
@@ -99,59 +90,13 @@ export default function CartItem({
     const fetchSections = async () => {
       try {
         setLoadingExtras(true);
-        const supabase = createClient();
-        const { data, error } = await supabase
-          .from("product_sections")
-          .select(
-            `id,name,is_required,display_order,
-             product_section_options (
-               id,override_price,display_order,
-               product_extras ( id,name,image_url,default_price )
-             )`,
-          )
-          .eq("product_id", item.productId)
-          .order("display_order", { ascending: true });
-        if (error) throw error;
+        // Usar Server Action en lugar de createClient del lado del cliente
+        const mapped = await getCartItemExtras(item.productId);
+        
         if (cancelled) return;
-        type SectionRow = Tables<"product_sections"> & {
-          product_section_options: Array<{
-            id: string;
-            override_price: number | null;
-            display_order: number;
-            product_extras: Tables<"product_extras"> | null;
-          }>;
-        };
-        const rows = (data as unknown as SectionRow[] | null) ?? [];
-        const mapped: Section[] = rows.map((s) => ({
-          id: s.id,
-          name: s.name,
-          isRequired: !!s.is_required,
-          displayOrder: s.display_order ?? 0,
-          options: (s.product_section_options || [])
-            .filter((o) => Boolean(o.product_extras))
-            .map((o) => {
-              const extra = o.product_extras!;
-              const price =
-                typeof o.override_price === "number" && !isNaN(o.override_price)
-                  ? Number(o.override_price)
-                  : Number(extra.default_price ?? 0);
-              return {
-                optionId: o.id,
-                extraId: extra.id,
-                name: extra.name,
-                imageUrl: extra.image_url ?? null,
-                price,
-                displayOrder: o.display_order ?? 0,
-              } as ExtraOption;
-            })
-            .sort(
-              (a: ExtraOption, b: ExtraOption) =>
-                a.displayOrder - b.displayOrder,
-            ),
-        }));
         setSections(mapped);
-      } catch {
-        // noop: en UI ignoramos para no romper carrito
+      } catch (err) {
+        console.error("Error loading extras for cart item", err);
       } finally {
         if (!cancelled) setLoadingExtras(false);
       }
@@ -160,8 +105,10 @@ export default function CartItem({
     return () => {
       cancelled = true;
     };
-    // item.productId es la dependencia; si cambia, volvemos a cargar
   }, [item.productId, enableExtras]);
+
+  // Aplanar opciones para mostrarlas (si se desea)
+
 
   const unitWithExtras = useMemo(() => {
     if (!enableExtras) return item.unitPrice;

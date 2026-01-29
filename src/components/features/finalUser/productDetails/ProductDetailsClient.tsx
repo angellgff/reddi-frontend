@@ -248,9 +248,9 @@ export default function ProductDetailsClient({
   const dispatch = useAppDispatch();
   const currentPartnerId = useAppSelector(selectCartPartnerId);
   const router = useRouter();
-  // Inicializar con min_quantity o 1
-  const minQty = details.min_quantity || 1;
+  // Inicializar con min_quantity o quantity_step (si no hay min definido)
   const qtyStep = details.quantity_step || 1;
+  const minQty = details.min_quantity || qtyStep;
   const [quantity, setQuantity] = useState(minQty);
   const [selectedVariants, setSelectedVariants] = useState<
     Record<string, string>
