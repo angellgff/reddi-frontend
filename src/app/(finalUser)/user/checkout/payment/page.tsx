@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/src/lib/store/hooks";
@@ -427,6 +427,21 @@ export default function CheckoutPaymentPage() {
     return `${mins}-${mins + 15} min`;
   }, [shippingEstimate]);
 
+  const handleSelectPaymentMethod = useCallback(
+    (method: string) => {
+      const paymentObj = {
+        method,
+        brand: method === "cash" ? "Efectivo" : "Datáfono",
+        last4: null,
+        cardholder_name: null,
+        provider: "manual",
+      };
+      // Cast to any to avoid strict type checking issues if Redux type is slightly different
+      dispatch(setPaymentGlobal(paymentObj as any));
+    },
+    [dispatch],
+  );
+
   if (!isMounted) {
     return <div className="min-h-screen bg-white" />;
   }
@@ -457,17 +472,7 @@ export default function CheckoutPaymentPage() {
             }
           }}
           selectedPaymentMethod={(effectiveMethod?.method as any) || null}
-          onSelectPaymentMethod={(method) => {
-            const paymentObj = {
-              method,
-              brand: method === "cash" ? "Efectivo" : "Datáfono",
-              last4: null,
-              cardholder_name: null,
-              provider: "manual",
-            };
-            // Cast to any to avoid strict type checking issues if Redux type is slightly different
-            dispatch(setPaymentGlobal(paymentObj as any));
-          }}
+          onSelectPaymentMethod={handleSelectPaymentMethod}
           couponCode={storedCoupon?.code}
           couponDiscount={discount}
           couponInput={couponInput}

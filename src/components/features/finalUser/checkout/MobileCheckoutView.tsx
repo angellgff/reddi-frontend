@@ -148,7 +148,9 @@ export default function MobileCheckoutView({
     onPlaceOrder();
   };
 
-  const { showCheckout, hideButton } = useFloatingButtonStore();
+  const showCheckout = useFloatingButtonStore((s) => s.showCheckout);
+  const hideButton = useFloatingButtonStore((s) => s.hideButton);
+
   React.useEffect(() => {
     showCheckout(
       "Proceder a pagar",
