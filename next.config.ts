@@ -30,6 +30,7 @@ if (!remotePatterns.some((p) => p.hostname === fallbackHost)) {
 }
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   images: {
     remotePatterns: [
       ...remotePatterns,
