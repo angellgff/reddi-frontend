@@ -29,7 +29,8 @@ export default async function Home() {
   if (hour >= 12 && hour < 19) greeting = "Buenas tardes";
   if (hour >= 19) greeting = "Buenas noches";
 
-  const firstName = user?.user_metadata?.first_name || user?.user_metadata?.name || "Francisco";
+  const firstName =
+    user?.user_metadata?.first_name || user?.user_metadata?.name || "Francisco";
 
   return (
     <div className="mx-auto max-w-md bg-white min-h-screen relative">
