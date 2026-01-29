@@ -12,6 +12,7 @@ import {
 } from "next/font/google";
 import ReduxProvider from "@/src/lib/store/ReduxProvider";
 import { NotificationsProvider } from "@/src/lib/notifications/NotificationsContext";
+import { Metadata } from "next";
 
 // Weights: 400 = normal, 500 = medium, 700 = bold, 900 = black
 const poppins = Poppins({
@@ -55,6 +56,18 @@ const openSans = Open_Sans({
   weight: ["400", "500", "600", "700", "800"],
   variable: "--font-open-sans",
 });
+
+
+export const viewport = {
+  themeColor: "#ffffff",
+};
+
+export const metadata: Metadata = {
+  title: "Reddi",
+  description: "App de entregas",
+  // Agrega esta línea:
+  manifest: "/manifest.json", 
+};
 
 export default function RootLayout({
   children,
