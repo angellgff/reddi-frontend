@@ -85,8 +85,8 @@ export default function CreateBannerForm({
 
         // 1. Upload Image
         if (!imageFile) {
-           setGlobalError("La imagen es obligatoria.");
-           return;
+          setGlobalError("La imagen es obligatoria.");
+          return;
         }
         const imageUrl = await uploadFile(imageFile, "banners", "images");
 
