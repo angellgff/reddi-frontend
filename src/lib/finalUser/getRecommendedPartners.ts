@@ -15,7 +15,7 @@ export default async function getRecommendedPartners(
       `
           display_order,
           partner:partners(
-             id, name, image_url, partner_type, average_rating, total_ratings, is_approved, is_active, is_sponsored
+             id, name, image_url, partner_type, average_rating, total_ratings, is_approved, is_active, is_sponsored, estimated_time
           )
        `,
     )
@@ -51,7 +51,7 @@ export default async function getRecommendedPartners(
         imageUrl: partner.image_url || "/placeholder.png",
         rating: partner.average_rating || 5.0,
         reviewCount: partner.total_ratings || 0,
-        deliveryTime: "20-30 min", // Placeholder or calculate
+        deliveryTime: partner.estimated_time || "20-30 min",
         deliveryFee: "Gratis", // Placeholder
         type: partner.partner_type,
         href: `/user/stores/${partner.id}`,
@@ -64,7 +64,7 @@ export default async function getRecommendedPartners(
   let query = supabase
     .from("partners")
     .select(
-      "id, name, image_url, partner_type, average_rating, total_ratings, is_sponsored",
+      "id, name, image_url, partner_type, average_rating, total_ratings, is_sponsored, estimated_time",
     )
     .eq("is_approved", true)
     .eq("is_active", true)
@@ -92,7 +92,7 @@ export default async function getRecommendedPartners(
       imageUrl: p.image_url || "/ellipse.svg",
       rating: Number(avg.toFixed(1)),
       reviewCount: total,
-      deliveryTime: "25-35 min",
+      deliveryTime: p.estimated_time || "25-35 min",
       deliveryFee: "RD$0 tarifa de envío",
       href: `/user/stores/${p.id}`,
       isSponsored: !!p.is_sponsored,

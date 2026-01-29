@@ -830,6 +830,7 @@ export type Database = {
           coordinates: unknown
           cover_image_url: string | null
           created_at: string
+          estimated_time: string | null
           id: string
           image_url: string | null
           is_active: boolean
@@ -862,6 +863,7 @@ export type Database = {
           coordinates?: unknown
           cover_image_url?: string | null
           created_at?: string
+          estimated_time?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
@@ -894,6 +896,7 @@ export type Database = {
           coordinates?: unknown
           cover_image_url?: string | null
           created_at?: string
+          estimated_time?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
