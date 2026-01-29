@@ -78,12 +78,15 @@ export default async function YachtSnacksSectionServer() {
       >
         <div className="flex gap-[16px] overflow-x-auto pl-[16x] pr-[15px] pb-4 no-scrollbar scroll-smooth items-start">
           {items.map((item, i) => {
-            const partner = item.partners;
+            const partnerData = item.partners;
+            if (!partnerData) return null;
+
+            const partner = Array.isArray(partnerData) ? partnerData[0] : partnerData;
             if (!partner) return null;
 
             return (
               <Link
-                key={item.partners?.id || i}
+                key={partner.id || i}
                 href={`/partner/${partner.id}`}
                 className="flex-none flex flex-col items-center w-[79px] group"
               >
