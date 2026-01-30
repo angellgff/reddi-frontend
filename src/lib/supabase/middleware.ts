@@ -250,6 +250,8 @@ export async function updateSession(request: NextRequest) {
   // 4. Definir rutas públicas y de autenticación
   const publicPaths = [
     "/",
+    "/monitoring",
+    "/sentry-example-page",
     "/onboarding",
     "/login",
     "/auth/login",
