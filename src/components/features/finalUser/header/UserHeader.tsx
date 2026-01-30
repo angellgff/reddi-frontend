@@ -19,6 +19,7 @@ import {
   toggleAddressSlider,
   closeAddressSlider,
 } from "@/src/lib/store/uiSlice";
+import * as Sentry from "@sentry/nextjs";
 import { useSearchParams } from "next/navigation";
 import { selectCartCount } from "@/src/lib/store/cartSlice";
 import Logo from "@/src/components/basics/Logo";
@@ -66,6 +67,7 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
       // para garantizar que todo el estado del cliente (incluido Redux) se limpie.
       window.location.href = "/login";
     } catch (e) {
+      Sentry.captureException(e);
       console.error("Error al llamar a la API de logout:", e);
       // Opcional: Mostrar una notificación al usuario de que el logout falló.
     }

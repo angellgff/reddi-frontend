@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { getStoresByIds, type StoreDetails } from "./actions";
+import * as Sentry from "@sentry/nextjs";
 
 export function useStoreDetailsClient(partnerIds: string[]) {
   // Memoize uniqueIds based on the content string to allow stable array references
@@ -59,6 +60,7 @@ export function useStoreDetailsClient(partnerIds: string[]) {
             }
             collected.push(...res.data);
           } catch (e: unknown) {
+            Sentry.captureException(e);
             // Surface first failure; UI will show banner
             console.error("useStoreDetailsClient: chunk failed", e);
             throw e;
@@ -78,6 +80,7 @@ export function useStoreDetailsClient(partnerIds: string[]) {
         });
         setData(map);
       } catch (e: unknown) {
+        Sentry.captureException(e);
         console.error("useStoreDetailsClient: error", e);
         if (!cancelled)
           setError((e as Error)?.message || "Error al cargar tienda");

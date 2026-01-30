@@ -5,12 +5,7 @@ import RegisterFooterButtons from "./RegisterFooterButtons";
 import BasicInput from "@/src/components/basics/BasicInput";
 import { PartnerRegisterForm } from "./PartnerRegisterWizard";
 import UploadImageButton from "./UploadImageButton";
-import { useState } from "react";
 import LocationPickerMap from "./LocationPickerMap";
-
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const RNC_REGEX = /^1\d{8}$/;
-const PHONE_REGEX = /^(809|829|849)\d{7}$/;
 
 import StepperHeader from "./StepperHeader";
 
@@ -21,6 +16,7 @@ interface RegisterFormStep2Props {
   onLocationChange: (lat: number, lng: number) => void;
   onGoBack: () => void;
   onNextStep: () => void;
+  errors?: Record<string, string>;
 }
 
 export default function RegisterFormStep2({
@@ -30,101 +26,12 @@ export default function RegisterFormStep2({
   onFileChange,
   onGoBack,
   onNextStep,
+  errors = {},
 }: RegisterFormStep2Props) {
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof PartnerRegisterForm["bussinessData"], string>>
-  >({});
-
-  // Función para verificar errores en los campos del formulario
-  const verifyErrors = (
-    newErrors: Partial<
-      Record<keyof PartnerRegisterForm["bussinessData"], string>
-    >
-  ) => {
-    const requiredFields: (keyof PartnerRegisterForm["bussinessData"])[] = [
-      "name",
-      "phone",
-      "address",
-      "userRnc",
-      "billingMail",
-    ];
-
-    // Verificar campos obligatorios
-    requiredFields.forEach((field) => {
-      if (!formData.bussinessData[field]?.toString().trim()) {
-        newErrors[field] = "Este campo es obligatorio";
-      }
-    });
-
-    // Verificar imagen
-    if (!formData.bussinessData.image) {
-      newErrors.image = "La imagen es obligatoria";
-    }
-
-    // Verificar ubicación
-    if (!formData.bussinessData.lat || !formData.bussinessData.lng) {
-      // Usamos un campo "dummy" o mostramos un error general, pero como el estado de errores es tipado...
-      // Podemos agregarlo al estado de errores si extendemos el tipo, o simplemente usar un alert/toast,
-      // pero lo ideal es mostrarlo cerca del mapa.
-      // Como 'lat' y 'lng' son parte de bussinessData, podemos usarlos si el tipo lo permite.
-      // Pero PartnerRegisterForm['bussinessData'] ahora tiene lat/lng.
-      // El estado 'errors' es Partial<Record<keyof PartnerRegisterForm["bussinessData"], string>>.
-      // Así que podemos usar 'lat' o 'lng' para guardar el error.
-      newErrors.lat = "Debes seleccionar una ubicación en el mapa";
-    }
-
-    // Verificar formato de correo electrónico
-    if (
-      formData.bussinessData.billingMail.trim() &&
-      !EMAIL_REGEX.test(formData.bussinessData.billingMail.trim())
-    ) {
-      newErrors.billingMail = "Formato de correo inválido";
-    }
-
-    // Verificar forma de RNC
-    if (
-      formData.bussinessData.userRnc.trim() &&
-      !RNC_REGEX.test(formData.bussinessData.userRnc.trim())
-    ) {
-      newErrors.userRnc = "El RNC debe comenzar con '1' y tener 9 dígitos";
-    }
-
-    if (
-      formData.bussinessData.phone.trim() &&
-      !PHONE_REGEX.test(formData.bussinessData.phone.trim())
-    ) {
-      newErrors.phone =
-        "El teléfono debe comenzar con 809, 829 o 849 y tener 10 dígitos";
-    }
-
-    // Si no hay errores, retorna el objeto vacío inicial
-    return newErrors;
-  };
-
-  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Limpia el error del campo que se está modificando
-    if (errors[e.target.name as keyof PartnerRegisterForm["bussinessData"]]) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [e.target.name as keyof PartnerRegisterForm["bussinessData"]]:
-          undefined,
-      }));
-    }
-    onChange(e);
-  };
+  // Removed local validation logic
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let newErrors: Partial<
-      Record<keyof PartnerRegisterForm["bussinessData"], string>
-    > = {};
-    newErrors = verifyErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
     onNextStep();
   };
 
@@ -165,7 +72,7 @@ tu establecimiento para comenzar el registro"
             <BasicInput
               name="name"
               value={formData.bussinessData.name}
-              onChange={onChangeHandler}
+              onChange={onChange}
               label="Razón social o nombre"
               id="name"
               placeholder="Ingresa la información"
@@ -175,7 +82,7 @@ tu establecimiento para comenzar el registro"
             <BasicInput
               name="phone"
               value={formData.bussinessData.phone}
-              onChange={onChangeHandler}
+              onChange={onChange}
               label="Teléfono del local"
               id="phone"
               placeholder="Ingresar la información"
@@ -192,7 +99,7 @@ tu establecimiento para comenzar el registro"
                   name="isPhysical"
                   value="yes"
                   checked={formData.bussinessData.isPhysical === true}
-                  onChange={onChangeHandler}
+                  onChange={onChange}
                   label="Sí"
                 />
 
@@ -201,7 +108,7 @@ tu establecimiento para comenzar el registro"
                   name="isPhysical"
                   value="no"
                   checked={formData.bussinessData.isPhysical === false}
-                  onChange={onChangeHandler}
+                  onChange={onChange}
                   label="No"
                 />
               </div>
@@ -210,7 +117,7 @@ tu establecimiento para comenzar el registro"
             <BasicInput
               name="address"
               value={formData.bussinessData.address}
-              onChange={onChangeHandler}
+              onChange={onChange}
               label="Dirección de facturación"
               id="address"
               placeholder="Ingresar la información"
@@ -221,7 +128,7 @@ tu establecimiento para comenzar el registro"
             <BasicInput
               name="userRnc"
               value={formData.bussinessData.userRnc}
-              onChange={onChangeHandler}
+              onChange={onChange}
               label="RNC o boleta registrada en la DGII"
               id="userRnc"
               type="tel"
@@ -232,7 +139,7 @@ tu establecimiento para comenzar el registro"
             <BasicInput
               name="billingMail"
               value={formData.bussinessData.billingMail}
-              onChange={onChangeHandler}
+              onChange={onChange}
               label="Email de facturación"
               id="billingMail"
               placeholder="Ingresar la información"
@@ -246,13 +153,7 @@ tu establecimiento para comenzar el registro"
               <LocationPickerMap
                 lat={formData.bussinessData.lat}
                 lng={formData.bussinessData.lng}
-                onLocationSelect={(lat, lng) => {
-                  onLocationChange(lat, lng);
-                  // Limpiar error de ubicación si existe
-                  if (errors.lat) {
-                    setErrors((prev) => ({ ...prev, lat: undefined }));
-                  }
-                }}
+                onLocationSelect={onLocationChange}
               />
               {errors.lat && (
                 <p className="text-red-500 text-xs mt-1">{errors.lat}</p>

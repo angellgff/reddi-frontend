@@ -8,6 +8,7 @@ import { Database } from "../database.types";
 // If not available, we fall back to createClient.
 // Given the context `src/lib/supabase/client.ts` is likely the place.
 import { createClient as createBrowserClient } from "@/src/lib/supabase/client";
+import * as Sentry from "@sentry/nextjs";
 
 type LocationData = {
   latitude: number;
@@ -145,6 +146,7 @@ export function useDriverLocation({
         console.log("✅ [useDriverLocation] DB Updated Successfully");
       }
     } catch (err) {
+      Sentry.captureException(err);
       console.error("Failed to update location:", err);
     }
   };

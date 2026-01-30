@@ -1,5 +1,6 @@
 import { updateSession } from "@/src/lib/supabase/middleware";
 import { NextResponse, type NextRequest } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 
 export async function proxy(request: NextRequest) {
   console.log("[root-mw] ->", request.method, request.nextUrl.pathname);
@@ -25,6 +26,7 @@ export async function proxy(request: NextRequest) {
     });
     return res;
   } catch (e) {
+    Sentry.captureException(e);
     const err = e as Error;
     console.error("[root-mw] error", request.nextUrl.pathname, err?.message);
     return NextResponse.next();

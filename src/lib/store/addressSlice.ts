@@ -7,6 +7,7 @@ import type { Tables } from "@/src/lib/database.types";
 import { setSelectedAddress as setSelectedAddressAction } from "@/src/lib/finalUser/addresses/actions";
 import { withTimeout } from "@/src/lib/utils";
 import type { RootState } from ".";
+import * as Sentry from "@sentry/nextjs";
 
 export type UserAddress = Tables<"user_addresses">;
 
@@ -47,7 +48,7 @@ export const fetchUserAddresses = createAsyncThunk(
       if (fetchInFlight) {
         if (DEBUG)
           console.log(
-            "[addresses] ⏭️ Ya hay una petición en curso. Saltando duplicado."
+            "[addresses] ⏭️ Ya hay una petición en curso. Saltando duplicado.",
           );
         // Evita pisar el estado con una respuesta vacía
         throw new Error("__skip__");
@@ -60,7 +61,7 @@ export const fetchUserAddresses = createAsyncThunk(
       const sessionRace = (await Promise.race([
         supabase.auth.getSession(),
         new Promise((resolve) =>
-          setTimeout(() => resolve({ data: { session: null } }), 4000)
+          setTimeout(() => resolve({ data: { session: null } }), 4000),
         ),
       ])) as { data: { session: Session | null } };
       const tSess1 = now();
@@ -69,7 +70,7 @@ export const fetchUserAddresses = createAsyncThunk(
         console.log(
           "[addresses] ⏱️ getSession(ms)=",
           Math.round(tSess1 - tSess0),
-          user ? "(con sesión)" : "(sin sesión)"
+          user ? "(con sesión)" : "(sin sesión)",
         );
 
       // Fallback adicional: a veces getSession es null en el primer render aunque exista cookie.
@@ -80,7 +81,7 @@ export const fetchUserAddresses = createAsyncThunk(
           const userRace = (await Promise.race([
             supabase.auth.getUser(),
             new Promise((resolve) =>
-              setTimeout(() => resolve({ data: { user: null } }), 3500)
+              setTimeout(() => resolve({ data: { user: null } }), 3500),
             ),
           ])) as { data: { user: User | null } };
           user = userRace?.data?.user || null;
@@ -88,9 +89,10 @@ export const fetchUserAddresses = createAsyncThunk(
             console.log(
               "[addresses] ⏱️ getUser Fallback(ms)=",
               Math.round(now() - tUser0),
-              user ? "(usuario encontrado)" : "(sin usuario)"
+              user ? "(usuario encontrado)" : "(sin usuario)",
             );
         } catch (e) {
+          Sentry.captureException(e);
           if (DEBUG)
             console.log("[addresses] getUser fallback error silenciado", e);
         }
@@ -98,7 +100,7 @@ export const fetchUserAddresses = createAsyncThunk(
       if (!user) {
         if (DEBUG)
           console.log(
-            "[addresses] ⚠️ Usuario no autenticado. No se consultan direcciones."
+            "[addresses] ⚠️ Usuario no autenticado. No se consultan direcciones.",
           );
         return {
           addresses: [] as UserAddress[],
@@ -113,13 +115,13 @@ export const fetchUserAddresses = createAsyncThunk(
           await supabase
             .from("user_addresses")
             .select(
-              "id, location_type, location_number, created_at, user_id, coordinates"
+              "id, location_type, location_number, created_at, user_id, coordinates",
             )
             .eq("user_id", user.id)
             .is("deleted_at", null)
             .order("created_at", { ascending: false }))(),
         3000,
-        "addr-timeout"
+        "addr-timeout",
       );
       const tProf0 = now();
       const profilePromise = withTimeout(
@@ -130,7 +132,7 @@ export const fetchUserAddresses = createAsyncThunk(
             .eq("id", user.id)
             .single())(),
         3000,
-        "profile-timeout"
+        "profile-timeout",
       );
 
       const [addrRes, profileRes] = await Promise.allSettled([
@@ -143,12 +145,12 @@ export const fetchUserAddresses = createAsyncThunk(
         console.log(
           "[addresses] ⏱️ user_addresses(ms)=",
           Math.round(tAddr1 - tAddr0),
-          addrRes
+          addrRes,
         );
         console.log(
           "[addresses] ⏱️ profile.selected_address(ms)=",
           Math.round(tProf1 - tProf0),
-          profileRes
+          profileRes,
         );
       }
 
@@ -184,11 +186,11 @@ export const fetchUserAddresses = createAsyncThunk(
           ).value.data as UserAddress[]) || []
         : [];
       let selectedAddressId: string | null = profileOk
-        ? (
+        ? ((
             profileRes as unknown as PromiseFulfilledResult<{
               data: { selected_address: string | null };
             }>
-          ).value.data?.selected_address ?? null
+          ).value.data?.selected_address ?? null)
         : null;
 
       if (!selectedAddressId && addresses.length > 0) {
@@ -200,7 +202,7 @@ export const fetchUserAddresses = createAsyncThunk(
           "[addresses] ✓ result ->",
           { count: addresses.length, selectedAddressId },
           "total(ms)=",
-          Math.round(now() - tStart)
+          Math.round(now() - tStart),
         );
 
       return { addresses, selectedAddressId } as {
@@ -208,6 +210,7 @@ export const fetchUserAddresses = createAsyncThunk(
         selectedAddressId: string | null;
       };
     } catch (e: unknown) {
+      Sentry.captureException(e);
       const msg = e instanceof Error ? e.message : String(e);
       if (msg === "__skip__") {
         if (DEBUG) console.log("[addresses] ⏹️ skip (in-flight)");
@@ -223,8 +226,8 @@ export const fetchUserAddresses = createAsyncThunk(
           Math.round(
             (typeof performance !== "undefined" && performance.now
               ? performance.now()
-              : Date.now()) - tStart
-          )
+              : Date.now()) - tStart,
+          ),
         );
     }
   },
@@ -237,7 +240,7 @@ export const fetchUserAddresses = createAsyncThunk(
       if (s.lastFetched && Date.now() - s.lastFetched < 30000) return false;
       return true;
     },
-  }
+  },
 );
 
 // Update selected address via server action, then optimistically update local state
@@ -253,11 +256,12 @@ export const updateSelectedAddress = createAsyncThunk(
       dispatch(setSelectedAddressLocal(addressId));
       return addressId;
     } catch (e: unknown) {
+      Sentry.captureException(e);
       const message =
         e instanceof Error ? e.message : "No se pudo seleccionar.";
       return rejectWithValue(message);
     }
-  }
+  },
 );
 
 const addressSlice = createSlice({
@@ -272,7 +276,7 @@ const addressSlice = createSlice({
       action: PayloadAction<{
         addresses: UserAddress[];
         selectedAddressId: string | null;
-      }>
+      }>,
     ) {
       state.addresses = action.payload.addresses || [];
       state.selectedAddressId = action.payload.selectedAddressId || null;

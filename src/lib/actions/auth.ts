@@ -9,6 +9,7 @@ import {
   loginUser,
   verifyUserPhone,
 } from "@/src/lib/services/authService";
+import * as Sentry from "@sentry/nextjs";
 
 export async function signUpAction(data: {
   email: string;
@@ -120,6 +121,7 @@ export async function resendOtpAction(phoneInput: string) {
     }
     return { success: true };
   } catch (err: any) {
+    Sentry.captureException(err);
     return { success: false, error: err.message };
   }
 }

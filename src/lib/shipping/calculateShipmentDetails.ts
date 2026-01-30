@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "../database.types";
+import * as Sentry from "@sentry/nextjs";
 
 export interface ShipmentDetails {
   distanceMeters: number;
@@ -22,29 +23,29 @@ type GeoJsonPoint =
  */
 function toLngLat(
   point: GeoJsonPoint,
-  label: string // A label to identify which coordinate is being processed
+  label: string, // A label to identify which coordinate is being processed
 ): { longitude: number; latitude: number } | null {
   console.log(
     `[DEBUG toLngLat] Processing '${label}' with input:`,
-    JSON.stringify(point)
+    JSON.stringify(point),
   );
 
   if (!point) {
     console.warn(
-      `[DEBUG toLngLat] Failed for '${label}': Input object is null or undefined.`
+      `[DEBUG toLngLat] Failed for '${label}': Input object is null or undefined.`,
     );
     return null;
   }
   if (point.type !== "Point") {
     console.warn(
-      `[DEBUG toLngLat] Failed for '${label}': Expected type 'Point' but got '${point.type}'.`
+      `[DEBUG toLngLat] Failed for '${label}': Expected type 'Point' but got '${point.type}'.`,
     );
     return null;
   }
   if (!Array.isArray(point.coordinates) || point.coordinates.length !== 2) {
     console.warn(
       `[DEBUG toLngLat] Failed for '${label}': 'coordinates' property is not an array with two elements.`,
-      { coordinates: point.coordinates }
+      { coordinates: point.coordinates },
     );
     return null;
   }
@@ -57,7 +58,7 @@ function toLngLat(
       {
         longitude: { value: longitude, type: typeof longitude },
         latitude: { value: latitude, type: typeof latitude },
-      }
+      },
     );
     return null;
   }
@@ -69,14 +70,14 @@ function toLngLat(
 
 function point(
   lng: number,
-  lat: number
+  lat: number,
 ): { type: "Point"; coordinates: [number, number] } {
   return { type: "Point", coordinates: [lng, lat] };
 }
 
 async function geocodeWithGoogle(
   query: string,
-  key: string
+  key: string,
 ): Promise<{ longitude: number; latitude: number } | null> {
   try {
     const url = new URL("https://maps.googleapis.com/maps/api/geocode/json");
@@ -150,7 +151,7 @@ function decodePolyline(encoded: string): [number, number][] {
 export async function calculateShipmentDetails(
   supabase: SupabaseClient<Database>,
   partnerId: string,
-  userAddressId: string
+  userAddressId: string,
 ): Promise<ShipmentDetails> {
   console.log("[shipping] calculateShipmentDetails start", {
     partnerId,
@@ -173,11 +174,11 @@ export async function calculateShipmentDetails(
   // --- LOGS DE DEPURACIÓN (ahora deberían mostrar GeoJSON) ---
   console.log(
     "[DEBUG] Raw Supabase partner response data (from RPC):",
-    JSON.stringify(partnerRes.data, null, 2)
+    JSON.stringify(partnerRes.data, null, 2),
   );
   console.log(
     "[DEBUG] Raw Supabase address response data (from RPC):",
-    JSON.stringify(addressRes.data, null, 2)
+    JSON.stringify(addressRes.data, null, 2),
   );
   // --- FIN DE LOGS ---
 
@@ -197,7 +198,7 @@ export async function calculateShipmentDetails(
   let origin = toLngLat(partnerCoordsRaw as GeoJsonPoint, "Origin (Partner)");
   let destination = toLngLat(
     addressCoordsRaw as GeoJsonPoint,
-    "Destination (User)"
+    "Destination (User)",
   );
 
   console.log("[DEBUG] Status after parsing from DB:", {
@@ -209,7 +210,7 @@ export async function calculateShipmentDetails(
   // 1.a) Fallback geocoding if coordinates are missing
   if (!origin) {
     console.log(
-      "[shipping] Origin coordinates missing or invalid, attempting fallback geocoding."
+      "[shipping] Origin coordinates missing or invalid, attempting fallback geocoding.",
     );
     const partnerAddress = partnerRes.data?.address;
     if (partnerAddress && typeof partnerAddress === "string") {
@@ -233,7 +234,7 @@ export async function calculateShipmentDetails(
 
   if (!destination) {
     console.log(
-      "[shipping] Destination coordinates missing or invalid, attempting fallback geocoding."
+      "[shipping] Destination coordinates missing or invalid, attempting fallback geocoding.",
     );
     const lt = addressRes.data?.location_type;
     const ln = addressRes.data?.location_number;
@@ -257,7 +258,7 @@ export async function calculateShipmentDetails(
   if (!origin || !destination) {
     // Mensaje de error más específico para saber si falló después de todos los intentos
     throw new Error(
-      "Origin or destination address not found after all attempts."
+      "Origin or destination address not found after all attempts.",
     );
   }
 
@@ -291,10 +292,11 @@ export async function calculateShipmentDetails(
     if (routeJson?.error_message) {
       console.error(
         "[shipping] directions API error message:",
-        routeJson.error_message
+        routeJson.error_message,
       );
     }
   } catch (e: unknown) {
+    Sentry.captureException(e);
     const message = e instanceof Error ? e.message : "Unknown error";
     console.error("[shipping] directions failed", message);
     throw new Error("Failed to calculate the route.");
@@ -309,7 +311,7 @@ export async function calculateShipmentDetails(
     if (routeJson?.status === "ZERO_RESULTS") {
       console.warn("[shipping] directions API responded with ZERO_RESULTS");
       throw new Error(
-        "A driving route could not be found between the origin and destination."
+        "A driving route could not be found between the origin and destination.",
       );
     }
     throw new Error("Failed to calculate the route.");

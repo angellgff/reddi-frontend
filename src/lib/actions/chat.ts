@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/src/lib/supabase/server";
+import * as Sentry from "@sentry/nextjs";
 
 export async function getChatMessages(orderId: string) {
   const supabase = await createClient();
@@ -19,6 +20,7 @@ export async function getChatMessages(orderId: string) {
 
     return { success: true, data };
   } catch (error) {
+    Sentry.captureException(error);
     console.error("[ServerAction] Exception fetching chat messages:", error);
     return { success: false, error: "Unknown error" };
   }
@@ -70,6 +72,7 @@ export async function sendMessage(
 
     return { success: true, data };
   } catch (error: any) {
+    Sentry.captureException(error);
     console.error("[ServerAction] Exception sending message:", error);
     return { success: false, error: error.message || "Unknown error" };
   }
@@ -117,6 +120,7 @@ export async function uploadChatImage(formData: FormData) {
 
     return { success: true, publicUrl };
   } catch (error: any) {
+    Sentry.captureException(error);
     console.error("[ServerAction] Exception uploading image:", error);
     return { success: false, error: error.message };
   }

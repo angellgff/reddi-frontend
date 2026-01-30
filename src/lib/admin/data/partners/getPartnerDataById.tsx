@@ -85,7 +85,7 @@ function mapDbToForm(row: SelectedPartnerColumns): BusinessFormData {
     defaultHours;
   const category =
     row.partner_type === "liquor_store"
-      ? ("alcohol" as const)
+      ? ("liquor_store" as const)
       : (row.partner_type as "restaurant" | "market");
 
   let lat: number | null = null;

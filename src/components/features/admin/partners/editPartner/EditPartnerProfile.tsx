@@ -58,9 +58,9 @@ export default function EditPartnerProfile({
         isPhysical: formData.isPhysical,
         address: formData.address,
         category:
-          formData.category === "alcohol"
-            ? "alcohol"
-            : (formData.category as "market" | "restaurant" | "alcohol"),
+          formData.category === "liquor_store"
+            ? "liquor_store"
+            : (formData.category as "market" | "restaurant" | "liquor_store"),
         phone: formData.phone,
         email: formData.email,
         hours: formData.hours,

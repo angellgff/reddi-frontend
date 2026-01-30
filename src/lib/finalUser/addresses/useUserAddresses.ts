@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import type { Tables } from "@/src/lib/database.types";
+import * as Sentry from "@sentry/nextjs";
 
 export type UserAddress = Tables<"user_addresses">; // Row shape
 
@@ -17,7 +18,7 @@ export function useUserAddresses() {
     // Para identificar cada ejecución del hook en la consola
     const hookInstanceId = Date.now();
     console.groupCollapsed(
-      `[useUserAddresses #${hookInstanceId}] Hook effect triggered`
+      `[useUserAddresses #${hookInstanceId}] Hook effect triggered`,
     );
 
     let cancelled = false;
@@ -25,14 +26,14 @@ export function useUserAddresses() {
     const load = async () => {
       try {
         console.log(
-          `[useUserAddresses #${hookInstanceId}] 1. Starting address load...`
+          `[useUserAddresses #${hookInstanceId}] 1. Starting address load...`,
         );
         setLoading(true);
         setError(null);
 
         const supabase = createClient();
         console.log(
-          `[useUserAddresses #${hookInstanceId}] 2. Checking user authentication...`
+          `[useUserAddresses #${hookInstanceId}] 2. Checking user authentication...`,
         );
         const { data: auth, error: authError } = await supabase.auth.getUser();
 
@@ -40,13 +41,13 @@ export function useUserAddresses() {
         if (authError) {
           console.error(
             `[useUserAddresses #${hookInstanceId}] Auth Error:`,
-            authError
+            authError,
           );
         }
 
         if (!auth.user) {
           console.warn(
-            `[useUserAddresses #${hookInstanceId}] 3. No authenticated user found. Clearing addresses.`
+            `[useUserAddresses #${hookInstanceId}] 3. No authenticated user found. Clearing addresses.`,
           );
           setAddresses([]);
           // No es necesario continuar si no hay usuario
@@ -54,10 +55,10 @@ export function useUserAddresses() {
         }
 
         console.log(
-          `[useUserAddresses #${hookInstanceId}] 3. User found. ID: ${auth.user.id}`
+          `[useUserAddresses #${hookInstanceId}] 3. User found. ID: ${auth.user.id}`,
         );
         console.log(
-          `[useUserAddresses #${hookInstanceId}] 4. Fetching addresses from Supabase for this user...`
+          `[useUserAddresses #${hookInstanceId}] 4. Fetching addresses from Supabase for this user...`,
         );
 
         const { data, error: queryError } = await supabase
@@ -70,7 +71,7 @@ export function useUserAddresses() {
         // Loguear siempre el resultado de la consulta para ver qué devuelve Supabase
         console.log(
           `[useUserAddresses #${hookInstanceId}] 5. Supabase response:`,
-          { data, queryError }
+          { data, queryError },
         );
 
         if (queryError) {
@@ -82,35 +83,36 @@ export function useUserAddresses() {
           console.log(
             `[useUserAddresses #${hookInstanceId}] 6. Success! Setting ${
               data?.length || 0
-            } addresses to state.`
+            } addresses to state.`,
           );
           setAddresses((data as UserAddress[]) || []);
         } else {
           console.log(
-            `[useUserAddresses #${hookInstanceId}] 6. Component unmounted before setting state. Aborting.`
+            `[useUserAddresses #${hookInstanceId}] 6. Component unmounted before setting state. Aborting.`,
           );
         }
       } catch (e: unknown) {
+        Sentry.captureException(e);
         console.error(
           `[useUserAddresses #${hookInstanceId}] 💥 An error occurred:`,
-          e
+          e,
         );
         if (!cancelled) {
           setError((e as Error)?.message || "Error al cargar direcciones");
         } else {
           console.warn(
-            `[useUserAddresses #${hookInstanceId}] 💥 Error occurred, but component was unmounted. Not setting error state.`
+            `[useUserAddresses #${hookInstanceId}] 💥 Error occurred, but component was unmounted. Not setting error state.`,
           );
         }
       } finally {
         if (!cancelled) {
           console.log(
-            `[useUserAddresses #${hookInstanceId}] 7. Finished. Setting loading to false.`
+            `[useUserAddresses #${hookInstanceId}] 7. Finished. Setting loading to false.`,
           );
           setLoading(false);
         } else {
           console.log(
-            `[useUserAddresses #${hookInstanceId}] 7. Finished, but component was unmounted. Not setting loading state.`
+            `[useUserAddresses #${hookInstanceId}] 7. Finished, but component was unmounted. Not setting loading state.`,
           );
         }
         console.groupEnd(); // Cierra el grupo de logs para esta ejecución
@@ -121,7 +123,7 @@ export function useUserAddresses() {
 
     return () => {
       console.log(
-        `[useUserAddresses #${hookInstanceId}] 🧹 Cleanup: Component is unmounting. Setting cancelled = true.`
+        `[useUserAddresses #${hookInstanceId}] 🧹 Cleanup: Component is unmounting. Setting cancelled = true.`,
       );
       cancelled = true;
       console.groupEnd(); // Asegurarse de cerrar el grupo si se desmonta antes de finalizar

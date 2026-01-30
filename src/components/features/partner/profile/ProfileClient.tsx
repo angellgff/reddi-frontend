@@ -31,7 +31,7 @@ export default function ProfileClient({
         logoUrl = await uploadFile(
           formData.logo,
           "business-images",
-          `logos/${partnerId}`
+          `logos/${partnerId}`,
         );
       } else if (formData.logo === null) {
         logoUrl = null;
@@ -44,7 +44,7 @@ export default function ProfileClient({
         coverUrl = await uploadFile(
           formData.coverImage,
           "business-images",
-          `covers/${partnerId}`
+          `covers/${partnerId}`,
         );
       } else if (formData.coverImage === null) {
         coverUrl = null;
@@ -57,7 +57,7 @@ export default function ProfileClient({
         documentUrl = await uploadFile(
           formData.document,
           "bank-documents",
-          `documents/${partnerId}`
+          `documents/${partnerId}`,
         );
       } else if (formData.document === null) {
         documentUrl = null;
@@ -71,9 +71,9 @@ export default function ProfileClient({
         isPhysical: formData.isPhysical,
         address: formData.address,
         category:
-          formData.category === "alcohol"
-            ? "alcohol"
-            : (formData.category as "market" | "restaurant" | "alcohol"),
+          formData.category === "liquor_store"
+            ? "liquor_store"
+            : (formData.category as "market" | "restaurant" | "liquor_store"),
         phone: formData.phone,
         email: formData.email,
         hours: formData.hours,

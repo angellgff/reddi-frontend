@@ -1,5 +1,6 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { type Provider, type User } from "@supabase/supabase-js";
+import * as Sentry from "@sentry/nextjs";
 
 // --- 1. Utilities ---
 
@@ -185,6 +186,7 @@ export async function verifyUserPhone(
     const user = verifyData.user;
     return { success: true, user: user || undefined };
   } catch (error: any) {
+    Sentry.captureException(error);
     console.error("[AuthService] Verify error:", error.message);
     return { success: false, error: error.message };
   }

@@ -10,8 +10,6 @@ import { valueCategories } from "@/src/lib/type";
 import Step1Card from "./Step1Card";
 import StepperHeader from "./StepperHeader";
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 const businessTypes: {
   name: string;
   imageUrl: string;
@@ -30,7 +28,7 @@ const businessTypes: {
   {
     name: "Alcohol",
     imageUrl: "/alcohol.png",
-    value: "alcohol",
+    value: "liquor_store",
   },
   {
     name: "Farmacia",
@@ -49,6 +47,7 @@ interface RegisterFormStep1Props {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onGoBack: () => void;
   onNextStep: () => void;
+  errors?: Record<string, string>;
 }
 
 export default function RegisterFormStep1({
@@ -56,75 +55,13 @@ export default function RegisterFormStep1({
   onChange,
   onGoBack,
   onNextStep,
+  errors = {},
 }: RegisterFormStep1Props) {
-  //const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof PartnerRegisterForm["session"], string>>
-  >({});
-
-  // Función para verificar errores en los campos del formulario
-  const verifyErrors = (
-    newErrors: Partial<Record<keyof PartnerRegisterForm["session"], string>>,
-  ) => {
-    const requiredFields: (keyof PartnerRegisterForm["session"])[] = [
-      "email",
-      "password",
-      "confirmPassword",
-    ];
-
-    // Campos que no pueden estar vacíos
-    requiredFields.forEach((field) => {
-      if (!formData.session[field].trim()) {
-        newErrors[field] = "Este campo es obligatorio";
-      }
-    });
-
-    // Verificar formato de correo electrónico
-    if (
-      formData.session.email.trim() &&
-      !EMAIL_REGEX.test(formData.session.email.trim())
-    ) {
-      newErrors.email = "Formato de correo inválido";
-    }
-
-    // Verificar que las contraseñas coincidan
-    if (
-      formData.session.password.trim() &&
-      formData.session.confirmPassword.trim() &&
-      formData.session.password !== formData.session.confirmPassword
-    ) {
-      newErrors.confirmPassword = "Las contraseñas no coinciden";
-    }
-
-    // Si no hay errores, retorna el objeto vacío inicial
-    return newErrors;
-  };
-
-  const onChangeHandler = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Limpia el error del campo que se está modificando
-    if (errors[e.target.name as keyof PartnerRegisterForm["session"]]) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [e.target.name as keyof PartnerRegisterForm["session"]]: undefined,
-      }));
-    }
-    onChange(e);
-  };
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let newErrors: Partial<
-      Record<keyof PartnerRegisterForm["session"], string>
-    > = {};
-    newErrors = verifyErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
     onNextStep();
   };
 
@@ -152,7 +89,7 @@ export default function RegisterFormStep1({
             name="category"
             value={type.value}
             actualValue={formData.session.category}
-            onChange={onChangeHandler}
+            onChange={onChange}
             key={type.value}
             id={`category-${type.value}`}
             label={type.name}
@@ -167,7 +104,7 @@ export default function RegisterFormStep1({
           <BasicInput
             name="email"
             value={formData.session.email}
-            onChange={onChangeHandler}
+            onChange={onChange}
             label="Correo electrónico"
             id="email"
             type="email"
@@ -179,7 +116,7 @@ export default function RegisterFormStep1({
             id="password"
             name="password"
             value={formData.session.password}
-            onChange={onChangeHandler}
+            onChange={onChange}
             displayPassword={setPasswordVisible}
             label="Contraseña"
             placeholder="Ingresa tu contraseña"
@@ -190,7 +127,7 @@ export default function RegisterFormStep1({
             id="confirmPassword"
             name="confirmPassword"
             value={formData.session.confirmPassword}
-            onChange={onChangeHandler}
+            onChange={onChange}
             displayPassword={setConfirmPasswordVisible}
             label="Confirmar contraseña"
             placeholder="Confirma tu contraseña"

@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { type User } from "@supabase/supabase-js";
+import * as Sentry from "@sentry/nextjs";
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
@@ -80,6 +81,7 @@ export async function updateSession(request: NextRequest) {
     } = await withTimeout(supabase.auth.getUser(), 1200);
     user = u || null;
   } catch (e) {
+    Sentry.captureException(e);
     console.warn(
       "[MW-DEBUG] Error o timeout en getUser:",
       (e as Error)?.message,
@@ -228,6 +230,7 @@ export async function updateSession(request: NextRequest) {
       const profile = result.data;
       role = profile?.role ?? null;
     } catch (e) {
+      Sentry.captureException(e);
       const am = (user?.app_metadata as Record<string, unknown>) || {};
       const um = (user?.user_metadata as Record<string, unknown>) || {};
       role =
@@ -430,6 +433,7 @@ export async function updateSession(request: NextRequest) {
           });
         }
       } catch (err) {
+        Sentry.captureException(err);
         console.warn("[MW-DEBUG] ⚠️ Excepción DB:", err);
       }
     }

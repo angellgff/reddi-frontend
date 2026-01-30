@@ -4,6 +4,7 @@
 
 // 2. IMPORTS NECESARIOS
 import { revalidatePath } from "next/cache";
+import * as Sentry from "@sentry/nextjs";
 // import { AddressData } from '@/src/lib/finalUser/type'; // Tipo de datos utilizado en la validación
 // import { db } from '@/src/lib/db'; // Tu conexión a la base de datos
 
@@ -47,6 +48,7 @@ export async function createAddress(formData: unknown) {
     // Devuelve una respuesta clara de que todo salió bien.
     return { success: true, message: "La dirección ha sido creada con éxito." };
   } catch (error) {
+    Sentry.captureException(error);
     console.error("Error en la acción createAddress:", error);
     return {
       success: false,

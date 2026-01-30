@@ -1,11 +1,12 @@
 import { Resend } from "resend";
+import * as Sentry from "@sentry/nextjs";
 
 // Ensure the API key is loaded from environment
 const apiKey = process.env.RESEND_API_KEY;
 if (!apiKey) {
   // We don't throw to avoid crashing SSR; log once.
   console.warn(
-    "[email] RESEND_API_KEY no definido. Los correos no se enviarán."
+    "[email] RESEND_API_KEY no definido. Los correos no se enviarán.",
   );
 }
 
@@ -52,7 +53,7 @@ export async function sendOrderCreatedEmail(data: OrderCreatedEmailData) {
       }</strong> fue creado correctamente.</p>
 <p>Total: <strong>${data.totalFormatted}</strong></p>
 ${data.itemsSummary ? `<p>Resumen: ${data.itemsSummary}</p>` : ""}
-<p>Te avisaremos del progreso.</p>`
+<p>Te avisaremos del progreso.</p>`,
     );
     const resp = await resend.emails.send({
       from: "onboarding@resend.dev",
@@ -67,6 +68,7 @@ ${data.itemsSummary ? `<p>Resumen: ${data.itemsSummary}</p>` : ""}
     });
     return { ok: true, id: resp.data?.id };
   } catch (e) {
+    Sentry.captureException(e);
     console.error("[email] Error enviando correo de pedido creado", e);
     return { ok: false, error: (e as Error).message };
   }
@@ -74,7 +76,7 @@ ${data.itemsSummary ? `<p>Resumen: ${data.itemsSummary}</p>` : ""}
 
 // Send when status changed
 export async function sendOrderStatusChangedEmail(
-  data: OrderStatusChangedEmailData
+  data: OrderStatusChangedEmailData,
 ) {
   if (!resend) return { skipped: true, reason: "missing_api_key" };
   try {
@@ -87,7 +89,7 @@ export async function sendOrderStatusChangedEmail(
     const html = wrapHtml(
       "Estado de tu pedido actualizado",
       `<p>El estado de tu pedido <strong>#${data.orderId}</strong> cambió de <strong>${data.oldStatus}</strong> a <strong>${data.newStatus}</strong>.</p>
-<p>Gracias por usar Reddi.</p>`
+<p>Gracias por usar Reddi.</p>`,
     );
     const resp = await resend.emails.send({
       from: "onboarding@resend.dev",
@@ -101,6 +103,7 @@ export async function sendOrderStatusChangedEmail(
     });
     return { ok: true, id: resp.data?.id };
   } catch (e) {
+    Sentry.captureException(e);
     console.error("[email] Error enviando correo de cambio de estado", e);
     return { ok: false, error: (e as Error).message };
   }
@@ -131,6 +134,7 @@ export async function sendGenericEmail({
     });
     return { ok: true, id: resp.data?.id };
   } catch (e) {
+    Sentry.captureException(e);
     console.error("[email] Error enviando correo genérico", e);
     return { ok: false, error: (e as Error).message };
   }

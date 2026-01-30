@@ -112,8 +112,8 @@ export default async function getPartnersData({
   const restaurants: Restaurant[] = (data || []).map((row: any) => {
     const uiType: valueCategories =
       (row.type as string) === "liquor_store"
-        ? "alcohol"
-        : ((row.type as string) as valueCategories);
+        ? "liquor_store"
+        : (row.type as string as valueCategories);
     const extras = partnerExtras[String(row.id)] || {
       markup: null,
       commission: null,
@@ -127,7 +127,7 @@ export default async function getPartnersData({
       address: row.address,
       type: uiType,
       totalOrders: formatter.format(
-        Number(row.totalOrders ?? row.totalorders ?? 0)
+        Number(row.totalOrders ?? row.totalorders ?? 0),
       ),
       state: row.state,
       isActive: row.isActive ?? row.isactive ?? false,

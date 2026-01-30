@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import type { Tables } from "@/src/lib/database.types";
+import * as Sentry from "@sentry/nextjs";
 
 // Types based on DB schema
 export type NotificationRow = Tables<"notifications">;
@@ -27,14 +28,14 @@ export type NotificationsContextValue = {
 };
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(
-  null
+  null,
 );
 
 export const useNotifications = (): NotificationsContextValue => {
   const ctx = useContext(NotificationsContext);
   if (!ctx)
     throw new Error(
-      "useNotifications must be used within NotificationsProvider"
+      "useNotifications must be used within NotificationsProvider",
     );
   return ctx;
 };
@@ -58,7 +59,7 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
 
   const unreadCount = useMemo(
     () => notifications.filter((n) => !n.is_read).length,
-    [notifications]
+    [notifications],
   );
 
   // CAMBIO CLAVE 1: La función de carga ahora es más simple.
@@ -93,6 +94,7 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
 
         setNotifications((data ?? []) as NotificationRow[]);
       } catch (e: unknown) {
+        Sentry.captureException(e);
         setError((e as Error)?.message ?? "Error al cargar notificaciones");
         setNotifications([]); // Limpiar en caso de error
       } finally {
@@ -100,7 +102,7 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
         setLoading(false);
       }
     },
-    [initialLimit, supabase, notifications.length]
+    [initialLimit, supabase, notifications.length],
   );
 
   const setupRealtime = useCallback(
@@ -129,16 +131,16 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
             }
             if (payload.eventType === "UPDATE") {
               setNotifications((prev) =>
-                prev.map((n) => (n.id === payload.new.id ? payload.new : n))
+                prev.map((n) => (n.id === payload.new.id ? payload.new : n)),
               );
             }
-          }
+          },
         )
         .subscribe();
 
       channelRef.current = channel;
     },
-    [supabase]
+    [supabase],
   );
 
   // CAMBIO CLAVE 2: useEffect simplificado. Usamos SÓLO onAuthStateChange.
@@ -149,7 +151,7 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
         const userId = session?.user?.id ?? null;
         await fetchData(userId);
         setupRealtime(userId);
-      }
+      },
     );
 
     return () => {
@@ -168,7 +170,7 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
       // ... tu código existente
     },
     //
-    []
+    [],
   );
 
   const markAllAsRead = useCallback(async () => {
@@ -199,7 +201,7 @@ export function NotificationsProvider({ children, initialLimit = 50 }: Props) {
       markAsRead,
       markAllAsRead,
       addLocal,
-    ]
+    ],
   );
 
   return (

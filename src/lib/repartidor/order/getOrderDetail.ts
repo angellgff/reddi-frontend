@@ -1,4 +1,5 @@
 import { createClient } from "@/src/lib/supabase/server";
+import * as Sentry from "@sentry/nextjs";
 
 export interface OrderDetailData {
   id: string;
@@ -36,7 +37,7 @@ function mapDbStatusToDeliveryLabel(status?: string | null): string {
 
 function formatEta(
   createdAt?: string | null,
-  scheduledAt?: string | null
+  scheduledAt?: string | null,
 ): string {
   try {
     if (scheduledAt) {
@@ -49,7 +50,7 @@ function formatEta(
     if (createdAt) {
       const ETA_MIN = 25;
       const diffMin = Math.floor(
-        (Date.now() - new Date(createdAt).getTime()) / 60000
+        (Date.now() - new Date(createdAt).getTime()) / 60000,
       );
       const remaining = Math.max(5, ETA_MIN - diffMin);
       return `${remaining} min`;
@@ -62,7 +63,7 @@ function formatAddress(
   addr?: {
     location_type?: string | null;
     location_number?: string | null;
-  } | null
+  } | null,
 ): string {
   const t = addr?.location_type ?? "";
   const n = addr?.location_number ?? "";
@@ -85,7 +86,7 @@ function extractPoint(geo: unknown): [number, number] | null {
 }
 
 export default async function getOrderDetail(
-  id: string
+  id: string,
 ): Promise<OrderDetailData> {
   try {
     const supabase = await createClient();
@@ -109,7 +110,7 @@ export default async function getOrderDetail(
     if (driverError) {
       console.error(
         "Error al buscar el perfil de repartidor:",
-        driverError.message
+        driverError.message,
       );
       throw new Error("No se pudo verificar el perfil de repartidor.");
     }
@@ -127,7 +128,7 @@ export default async function getOrderDetail(
         profiles(first_name, last_name, phone_number), 
         user_addresses(location_type,location_number,coordinates), 
         shipments!shipment_id(id, driver_id, status, origin_coordinates, destination_coordinates)
-        `
+        `,
       )
       .eq("id", id)
       .single();
@@ -136,7 +137,7 @@ export default async function getOrderDetail(
       if (error) {
         console.error(
           `Error de Supabase al buscar pedido ${id}:`,
-          error.message
+          error.message,
         );
       }
       throw new Error("Pedido no encontrado");
@@ -195,16 +196,16 @@ export default async function getOrderDetail(
 
     // Logs opcionales para verificar (puedes quitarlos después)
     console.log(
-      `--- VERIFICACIÓN [canMarkDelivered] para Pedido ID: ${id} ---`
+      `--- VERIFICACIÓN [canMarkDelivered] para Pedido ID: ${id} ---`,
     );
     console.log(
-      `- ID del driver en el envío (shipmentDriverId): '${shipmentDriverId}'`
+      `- ID del driver en el envío (shipmentDriverId): '${shipmentDriverId}'`,
     );
     console.log(
-      `- ID de repartidor del usuario actual (currentUserDriverId): '${currentUserDriverId}'`
+      `- ID de repartidor del usuario actual (currentUserDriverId): '${currentUserDriverId}'`,
     );
     console.log(
-      `- El pedido está asignado a este usuario (assignedToCurrent): ${assignedToCurrent}`
+      `- El pedido está asignado a este usuario (assignedToCurrent): ${assignedToCurrent}`,
     );
     console.log(`- El pedido está cancelado (isCancelled): ${isCancelled}`);
     console.log(`- RESULTADO FINAL: canMarkDelivered es: ${canMarkDelivered}`);
@@ -234,6 +235,7 @@ export default async function getOrderDetail(
       paymentMethod: (data.payment_method as "cash" | "physical_pos") ?? "cash",
     };
   } catch (error: unknown) {
+    Sentry.captureException(error);
     const message =
       error instanceof Error ? error.message : "Error desconocido";
     console.error(`Fallo al obtener detalle del pedido ${id}:`, message);

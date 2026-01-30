@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import InputNotice from "@/src/components/basics/InputNotice";
 import RadioInput from "@/src/components/basics/RadioInput";
 import RegisterFooterButtons from "./RegisterFooterButtons";
@@ -11,17 +10,15 @@ import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import { accountTypeOptions } from "@/src/lib/type";
 
-const BANK_REGEX = /^\d{7,20}$/;
-const RNC_REGEX = /^1\d{8}$/;
-
 interface RegisterFormStep2Props {
   formData: PartnerRegisterForm;
   onChange: (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
   onFileChange: (file: File | null) => void;
   onGoBack: () => void;
   onNextStep: () => void;
+  errors?: Record<string, string>;
 }
 
 export default function RegisterFormStep3({
@@ -30,86 +27,12 @@ export default function RegisterFormStep3({
   onFileChange,
   onGoBack,
   onNextStep,
+  errors = {},
 }: RegisterFormStep2Props) {
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof PartnerRegisterForm["bankData"], string>>
-  >({});
-
-  // Función para verificar errores en los campos del formulario
-  const verifyErrors = (
-    newErrors: Partial<Record<keyof PartnerRegisterForm["bankData"], string>>
-  ) => {
-    const requiredFields: (keyof PartnerRegisterForm["bankData"])[] = [
-      "holderName",
-      "accountType",
-      "accountNumber",
-      "bankRnc",
-    ];
-
-    // Verificar campos obligatorios
-    requiredFields.forEach((field) => {
-      if (!formData.bankData[field]?.toString().trim()) {
-        newErrors[field] = "Este campo es obligatorio";
-      }
-    });
-
-    // Verificar aceptación de términos
-    if (formData.bankData.conditionsAccepted !== true) {
-      newErrors.conditionsAccepted =
-        "Debe aceptar los términos y condiciones para continuar";
-    }
-
-    // Verificar formato del número de cuenta bancaria
-    if (
-      formData.bankData.accountNumber.trim() &&
-      !BANK_REGEX.test(formData.bankData.accountNumber.trim())
-    ) {
-      newErrors.accountNumber =
-        "El número de cuenta debe contener entre 7 y 20 dígitos, solo se admiten números";
-    }
-
-    // Verificar forma de RNC
-    if (
-      formData.bankData.bankRnc.trim() &&
-      !RNC_REGEX.test(formData.bankData.bankRnc.trim())
-    ) {
-      newErrors.bankRnc = "El RNC debe comenzar con '1' y tener 9 dígitos";
-    }
-
-    // Verificar documento
-    if (!formData.bankData.document) {
-      newErrors.document = "El documento es obligatorio";
-    }
-
-    // Si no hay errores, retorna el objeto vacío inicial
-    return newErrors;
-  };
-
-  const onChangeHandler = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    // Limpia el error del campo que se está modificando
-    if (errors[e.target.name as keyof PartnerRegisterForm["bankData"]]) {
-      setErrors((prevErrors) => ({
-        ...prevErrors,
-        [e.target.name as keyof PartnerRegisterForm["bankData"]]: undefined,
-      }));
-    }
-    onChange(e);
-  };
+  // Removed local validation
 
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let newErrors: Partial<
-      Record<keyof PartnerRegisterForm["bankData"], string>
-    > = {};
-    newErrors = verifyErrors(newErrors);
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    setErrors({});
     onNextStep();
   };
 
@@ -139,7 +62,7 @@ tu establecimiento para comenzar el registro"
                 id="holderName"
                 name="holderName"
                 value={formData.bankData.holderName}
-                onChange={onChangeHandler}
+                onChange={onChange}
                 label="Titular de la cuenta bancaria"
                 placeholder="Ingresa la información"
                 error={errors.holderName}
@@ -151,7 +74,7 @@ tu establecimiento para comenzar el registro"
                 options={accountTypeOptions}
                 getOptionValue={(option) => option.value}
                 getOptionLabel={(option) => option.label}
-                onChange={onChangeHandler}
+                onChange={onChange}
                 label="Tipo de cuenta bancaria"
                 placeholder="Ingresa la información"
                 error={errors.accountType}
@@ -162,7 +85,7 @@ tu establecimiento para comenzar el registro"
                 id="accountNumber"
                 name="accountNumber"
                 value={formData.bankData.accountNumber}
-                onChange={onChangeHandler}
+                onChange={onChange}
                 label="Número de cuenta bancaria"
                 placeholder="Ingresa la información"
                 error={errors.accountNumber}
@@ -171,7 +94,7 @@ tu establecimiento para comenzar el registro"
                 id="bankRnc"
                 name="bankRnc"
                 value={formData.bankData.bankRnc}
-                onChange={onChangeHandler}
+                onChange={onChange}
                 label="RNC o boleta registrada en la DGII"
                 placeholder="Ingresa la información"
                 error={errors.bankRnc}
@@ -200,7 +123,7 @@ tu establecimiento para comenzar el registro"
                   id="yesConditions"
                   value="yes"
                   checked={formData.bankData.conditionsAccepted === true}
-                  onChange={onChangeHandler}
+                  onChange={onChange}
                   label="Sí"
                 />
 
@@ -209,7 +132,7 @@ tu establecimiento para comenzar el registro"
                   id="noConditions"
                   value="no"
                   checked={formData.bankData.conditionsAccepted === false}
-                  onChange={onChangeHandler}
+                  onChange={onChange}
                   label="No"
                 />
               </div>
@@ -219,7 +142,6 @@ tu establecimiento para comenzar el registro"
             </div>
           </div>
         </form>
-
         <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onSubmit} />
       </div>
     </>

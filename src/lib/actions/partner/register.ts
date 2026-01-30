@@ -1,9 +1,9 @@
 "use server";
 
 import { createClient } from "@/src/lib/supabase/server";
-// Importamos el cliente 'vanilla' de supabase para crear la instancia admin
 import { createClient as createAdminClient } from "@supabase/supabase-js";
 import { redirect } from "next/navigation";
+import * as Sentry from "@sentry/nextjs";
 
 // Definimos el tipo para el estado del formulario
 type FormState = {
@@ -61,6 +61,14 @@ export async function registerPartner(
   // Hours
   const businessHoursStr = formData.get("businessHours") as string;
   const businessHours = businessHoursStr ? JSON.parse(businessHoursStr) : {};
+
+  // --- VALIDACIÓN BÁSICA DEL SERVIDOR ---
+  if (!email || !password || !name) {
+    return { error: "Faltan campos obligatorios (email, password, nombre)." };
+  }
+  if (!conditionsAccepted) {
+    return { error: "Debes aceptar los términos y condiciones." };
+  }
 
   let createdUserId: string | null = null;
   let uploadedImagePath: string | null = null;
@@ -265,6 +273,7 @@ export async function registerPartner(
       if (updateError) throw updateError;
     }
   } catch (err: unknown) {
+    Sentry.captureException(err);
     // Casteamos el error para acceder a sus propiedades de forma segura
     const error = err as { message?: string; code?: string };
     console.error("Registration error:", error);

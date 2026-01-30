@@ -32,12 +32,13 @@ interface RegisterFormStep4Props {
   onChange: (
     day: keyof PartnerRegisterForm["businessHours"],
     field: keyof PartnerRegisterForm["businessHours"]["monday"], // 'active', 'opens', o 'closes'
-    value: string | boolean
+    value: string | boolean,
   ) => void;
   onGoBack: () => void;
   onNextStep: () => void;
   isSubmitting: boolean;
   error: string | null;
+  errors?: Record<string, string>;
 }
 
 export default function RegisterFormStep4({
@@ -47,33 +48,20 @@ export default function RegisterFormStep4({
   onNextStep,
   isSubmitting,
   error,
+  errors = {},
 }: RegisterFormStep4Props) {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isAnyDayActiveError, setIsAnyDayActiveError] = useState(false);
 
-  const isAnyDayActive = Object.values(formData.businessHours).some(
-    (day) => day.active
-  );
-
-  const handleValidationAndOpenModal = (e: React.FormEvent) => {
+  const handleOpenModal = (e: React.FormEvent) => {
     e.preventDefault();
-    // Resetea cualquier error previo antes de validar de nuevo
-    setIsAnyDayActiveError(false);
-
-    // Se verifica que al menos 1 día esté activo
-    if (!isAnyDayActive) {
-      setIsAnyDayActiveError(true);
-      return;
-    }
-    // Si todo está bien, se abre el modal de confirmación
     setIsModalOpen(true);
   };
 
   useEffect(() => {
-    if (error) {
+    if (error || Object.keys(errors).length > 0) {
       setIsModalOpen(false);
     }
-  }, [error]);
+  }, [error, errors]);
 
   return (
     <>
@@ -93,7 +81,7 @@ tu establecimiento para comenzar el registro"
           </p>
         </div>
         {/* --- Sección del Formulario --- */}
-        <form onSubmit={handleValidationAndOpenModal}>
+        <form onSubmit={handleOpenModal}>
           <div className="grid grid-cols-3 gap-6">
             {days.map(({ value, label }) => (
               <React.Fragment key={value}>
@@ -143,11 +131,8 @@ tu establecimiento para comenzar el registro"
               </React.Fragment>
             ))}
           </div>
-          {isAnyDayActiveError && (
-            <InputNotice
-              msg="Debe activar al menos un día de la semana"
-              variant="error"
-            />
+          {errors.businessHours && (
+            <InputNotice msg={errors.businessHours} variant="error" />
           )}
 
           {error && <InputNotice msg={error} variant="error" />}
@@ -164,13 +149,13 @@ tu establecimiento para comenzar el registro"
 
         <RegisterFooterButtons
           onGoBack={onGoBack}
-          onSubmit={onNextStep}
+          onSubmit={handleOpenModal}
           nextText="Finalizar"
         />
         <Modal
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
-          onConfirm={() => {}}
+          onConfirm={onNextStep}
         />
       </div>
 

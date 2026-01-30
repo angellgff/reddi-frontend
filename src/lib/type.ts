@@ -21,7 +21,7 @@ export const accountTypeOptions: Array<{
 export type valueCategories =
   | "market"
   | "restaurant"
-  | "alcohol"
+  | "liquor_store"
   | "pharmacy"
   | "tobacco";
 export type valueDishesTags = "tag1" | "tag2" | "tag3" | "tag4";
@@ -32,7 +32,7 @@ export const partnersCategories: Array<{
 }> = [
   { value: "market", label: "Mercado" },
   { value: "restaurant", label: "Restaurante" },
-  { value: "alcohol", label: "Alcohol" },
+  { value: "liquor_store", label: "Alcohol" },
   { value: "pharmacy", label: "Farmacia" },
   { value: "tobacco", label: "Tabaco" },
 ];

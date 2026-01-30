@@ -15,6 +15,7 @@ import { Label } from "@/src/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import * as Sentry from "@sentry/nextjs";
 
 export function SignUpForm({
   className,
@@ -50,6 +51,7 @@ export function SignUpForm({
       if (error) throw error;
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
+      Sentry.captureException(error);
       setError(error instanceof Error ? error.message : "An error occurred");
     } finally {
       setIsLoading(false);

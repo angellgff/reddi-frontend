@@ -9,6 +9,7 @@ import RegisterFormStep2 from "./RegisterFormStep2";
 import RegisterFormStep3 from "./RegisterFormStep3";
 import RegisterFormStep4 from "./RegisterFormStep4";
 import { registerPartner } from "@/src/lib/actions/partner/register";
+import * as Sentry from "@sentry/nextjs";
 
 const actualUrl = "/partner/registro";
 
@@ -48,6 +49,9 @@ export default function PartnerRegisterWizard() {
   const currentStep = searchParams.get("step") || "1";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Agregamos un estado de errores por campo para validación granular
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<PartnerRegisterForm>({
     session: {
@@ -97,6 +101,13 @@ export default function PartnerRegisterWizard() {
   // --- HANDLER PARA EL PASO 1: DATOS DE SESIÓN ---
   const handleSessionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
     setFormData((prev) => ({
       ...prev,
       session: {
@@ -122,9 +133,17 @@ export default function PartnerRegisterWizard() {
   const handleBusinessDataChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >
+    >,
   ) => {
     const { name, value } = e.target;
+    // Limpiamos el error del campo cuando el usuario escribe
+    if (fieldErrors[name]) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
 
     if (name === "isPhysical") {
       if (value === "yes") {
@@ -164,6 +183,13 @@ export default function PartnerRegisterWizard() {
 
   // Manejador para el FileUploadButton del paso 3
   const handleFileChange3 = (file: File | null) => {
+    if (fieldErrors.document) {
+      setFieldErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors.document;
+        return newErrors;
+      });
+    }
     setFormData((prev) => ({
       ...prev,
       bankData: {
@@ -176,7 +202,7 @@ export default function PartnerRegisterWizard() {
   // --- HANDLER PARA EL PASO 3: DATOS BANCARIOS ---
   // Este es más flexible para manejar inputs de archivo y checkboxes
   const handleBankDataChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -210,7 +236,7 @@ export default function PartnerRegisterWizard() {
   const handleBusinessHoursChange = (
     day: keyof PartnerRegisterForm["businessHours"],
     field: keyof PartnerRegisterForm["businessHours"]["monday"], // 'active', 'opens', o 'closes'
-    value: string | boolean
+    value: string | boolean,
   ) => {
     setFormData((prev) => ({
       ...prev,
@@ -243,24 +269,90 @@ export default function PartnerRegisterWizard() {
       router.replace(`${actualUrl}?step=1`);
       return;
     }
-    if (
-      currentStep === "3" &&
-      requiredFieldsStep2.some(
-        (field) =>
-          !formData.bussinessData[field as keyof typeof formData.bussinessData]
-      )
-    ) {
-      router.replace(`${actualUrl}?step=1`);
-      return;
+    // Nota: Eliminamos validaciones estrictas en useEffect que causan rebotes,
+    // dejamos check de pasos válidos y dejamos la validación real al intentar avanzar
+  }, [currentStep, router]); // Quitamos formData para evitar redirect loops mientras escribe
+
+  const validateStep1 = () => {
+    const errors: Record<string, string> = {};
+    const { email, password, confirmPassword } = formData.session;
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRegex.test(email)) errors.email = "Email inválido";
+    if (!password || password.length < 6)
+      errors.password = "La contraseña debe tener al menos 6 caracteres";
+    if (password !== confirmPassword)
+      errors.confirmPassword = "Las contraseñas no coinciden";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const errors: Record<string, string> = {};
+    const { name, userRnc, phone, billingMail, address } =
+      formData.bussinessData;
+
+    if (!name) errors.name = "El nombre es requerido";
+    // Validación RNC básica (9 u 11 dígitos para RD, ajustado para ser flexible pero numérico)
+    if (!userRnc || !/^\d{9,11}$/.test(userRnc))
+      errors.userRnc = "RNC inválido (9 u 11 dígitos)";
+    if (!phone || !/^\d{10,12}$/.test(phone.replace(/\D/g, "")))
+      errors.phone = "Teléfono inválido";
+    if (!billingMail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(billingMail))
+      errors.billingMail = "Email de facturación inválido";
+    if (!address) errors.address = "La dirección es requerida";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep3 = () => {
+    const errors: Record<string, string> = {};
+    const {
+      holderName,
+      accountNumber,
+      accountType,
+      bankRnc,
+      conditionsAccepted,
+    } = formData.bankData;
+
+    if (!holderName) errors.holderName = "Nombre del titular requerido";
+    if (!accountNumber) errors.accountNumber = "Número de cuenta requerido";
+    if (!accountType) errors.accountType = "Tipo de cuenta requerido";
+    if (!bankRnc) errors.bankRnc = "RNC del banco requerido";
+    if (!conditionsAccepted)
+      errors.conditionsAccepted = "Debes aceptar los términos y condiciones";
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const validateStep4 = () => {
+    const errors: Record<string, string> = {};
+    const isAnyDayActive = Object.values(formData.businessHours).some(
+      (day) => day.active,
+    );
+
+    if (!isAnyDayActive) {
+      errors.businessHours = "Debe activar al menos un día de la semana";
     }
-    if (
-      currentStep === "4" &&
-      Object.values(formData.bankData).some((v) => !v)
-    ) {
-      router.replace(`${actualUrl}?step=1`);
-      return;
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleNextStep = (nextTarget: string) => {
+    let isValid = false;
+    if (currentStep === "1") isValid = validateStep1();
+    if (currentStep === "2") isValid = validateStep2();
+    if (currentStep === "3") isValid = validateStep3();
+
+    if (isValid) {
+      setFieldErrors({}); // Limpiar errores al avanzar
+      router.push(nextTarget);
     }
-  }, [currentStep, router, formData]);
+  };
 
   // Guardias para renderizar el paso correcto o nada
   if (!["1", "2", "3", "4"].includes(currentStep || "")) {
@@ -272,6 +364,18 @@ export default function PartnerRegisterWizard() {
     setError(null);
 
     try {
+      // Re-validar todo antes de enviar
+      if (
+        !validateStep1() ||
+        !validateStep2() ||
+        !validateStep3() ||
+        !validateStep4()
+      ) {
+        setError("Por favor corrige los errores en los pasos anteriores.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const formDataToSend = new FormData();
       // Session
       formDataToSend.append("email", formData.session.email);
@@ -285,7 +389,7 @@ export default function PartnerRegisterWizard() {
       formDataToSend.append("billingMail", formData.bussinessData.billingMail);
       formDataToSend.append(
         "isPhysical",
-        String(formData.bussinessData.isPhysical)
+        String(formData.bussinessData.isPhysical),
       );
       formDataToSend.append("address", formData.bussinessData.address);
       if (formData.bussinessData.lat)
@@ -302,7 +406,7 @@ export default function PartnerRegisterWizard() {
       formDataToSend.append("bankRnc", formData.bankData.bankRnc);
       formDataToSend.append(
         "conditionsAccepted",
-        String(formData.bankData.conditionsAccepted)
+        String(formData.bankData.conditionsAccepted),
       );
       if (formData.bankData.document)
         formDataToSend.append("document", formData.bankData.document);
@@ -310,7 +414,7 @@ export default function PartnerRegisterWizard() {
       // Hours
       formDataToSend.append(
         "businessHours",
-        JSON.stringify(formData.businessHours)
+        JSON.stringify(formData.businessHours),
       );
 
       const result = await registerPartner(null, formDataToSend);
@@ -319,6 +423,7 @@ export default function PartnerRegisterWizard() {
         setError(result.error);
       }
     } catch (error) {
+      Sentry.captureException(error);
       console.error("Error submitting form:", error);
       setError("Ocurrió un error inesperado. Por favor, intenta de nuevo.");
     } finally {
@@ -333,7 +438,8 @@ export default function PartnerRegisterWizard() {
           formData={formData}
           onChange={handleSessionChange}
           onGoBack={() => router.push(`/`)}
-          onNextStep={() => router.push(`${actualUrl}?step=2`)}
+          onNextStep={() => handleNextStep(`${actualUrl}?step=2`)}
+          errors={fieldErrors}
         />
       );
     case "2":
@@ -344,7 +450,8 @@ export default function PartnerRegisterWizard() {
           onLocationChange={handleLocationChange}
           onFileChange={handleFileChange2}
           onGoBack={() => router.push(`${actualUrl}?step=1`)}
-          onNextStep={() => router.push(`${actualUrl}?step=3`)}
+          onNextStep={() => handleNextStep(`${actualUrl}?step=3`)}
+          errors={fieldErrors}
         />
       );
     case "3":
@@ -354,7 +461,8 @@ export default function PartnerRegisterWizard() {
           onChange={handleBankDataChange}
           onFileChange={handleFileChange3}
           onGoBack={() => router.push(`${actualUrl}?step=2`)}
-          onNextStep={() => router.push(`${actualUrl}?step=4`)}
+          onNextStep={() => handleNextStep(`${actualUrl}?step=4`)}
+          errors={fieldErrors}
         />
       );
     case "4":
@@ -366,6 +474,7 @@ export default function PartnerRegisterWizard() {
           onNextStep={handleSubmit} // ¡Aquí conectamos la función de envío!
           isSubmitting={isSubmitting} // Pasamos el estado de carga
           error={error} // Pasamos el mensaje de error para mostrarlo en la UI
+          errors={fieldErrors}
         />
       );
     default:

@@ -10,7 +10,7 @@ export type UpdatePartnerPayload = {
   name?: string;
   isPhysical?: boolean;
   address?: string;
-  category?: "market" | "restaurant" | "alcohol";
+  category?: "market" | "restaurant" | "liquor_store";
   phone?: string;
   email?: string;
   hours?: Record<string, { active: boolean; opens: string; closes: string }>;
@@ -28,7 +28,7 @@ function mapUiCategoryToDb(
   partnerCategory?: UpdatePartnerPayload["category"],
 ): PartnerRow["partner_type"] | undefined {
   if (!partnerCategory) return undefined;
-  return partnerCategory === "alcohol" ? "liquor_store" : partnerCategory;
+  return partnerCategory === "liquor_store" ? "liquor_store" : partnerCategory;
 }
 
 function createWKBPoint(lat: number, lng: number): string {

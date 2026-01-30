@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/src/lib/supabase/server";
-
+import * as Sentry from "@sentry/nextjs";
 
 interface AzulParams {
   orderId: string;
@@ -18,7 +18,7 @@ interface AzulParams {
 
 export async function updateOrderAfterPayment(
   orderId: string,
-  azulParams: AzulParams
+  azulParams: AzulParams,
 ) {
   try {
     const supabase = await createClient();
@@ -72,6 +72,7 @@ export async function updateOrderAfterPayment(
 
     return { success: true };
   } catch (err: unknown) {
+    Sentry.captureException(err);
     console.error("Unexpected error in updateOrderAfterPayment:", err);
     let errorMessage = "Unknown error";
     if (err instanceof Error) {

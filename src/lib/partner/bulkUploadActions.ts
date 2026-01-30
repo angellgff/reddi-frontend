@@ -3,6 +3,7 @@
 import { createClient } from "@/src/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import ExcelJS from "exceljs";
+import * as Sentry from "@sentry/nextjs";
 
 type ImportResult = {
   success: boolean;
@@ -12,7 +13,7 @@ type ImportResult = {
 
 export async function importProductsFromExcelAction(
   prevState: any,
-  formData: FormData
+  formData: FormData,
 ): Promise<ImportResult> {
   const file = formData.get("file") as File;
   if (!file) {
@@ -73,42 +74,48 @@ export async function importProductsFromExcelAction(
       // Cells: 1=Name, 2=Description, 3=Price, 4=Unit, 5=Category, 6=TimeRange(opt), 7=PreviousPrice(opt), 8=Image
       const name = row.getCell(1).text?.trim();
       const description = row.getCell(2).text?.trim();
-      
+
       // --- MANEJO DE PRECIO ---
       // Obtenemos el valor, lo convertimos a string y cambiamos coma por punto
-      const rawPriceVal = row.getCell(3).value; 
+      const rawPriceVal = row.getCell(3).value;
       // Si Excel lo ve como número, value es number. Si es texto "152,50", es string.
       // String(rawPriceVal) lo convierte a texto seguro.
-      const priceString = rawPriceVal ? String(rawPriceVal).replace(',', '.') : "";
+      const priceString = rawPriceVal
+        ? String(rawPriceVal).replace(",", ".")
+        : "";
 
       // --- MANEJO DE UNIDAD ---
       // Si está vacía, usamos "Unidad" por defecto
       let unit = row.getCell(4).text?.trim();
       if (!unit || unit === "") {
-        unit = "Unidad"; 
+        unit = "Unidad";
       }
 
       const categoryName = row.getCell(5).text?.trim();
       const timeRange = row.getCell(6).text?.trim();
-      
+
       // --- MANEJO PRECIO ANTERIOR ---
       const rawPrevPrice = row.getCell(7).value;
-      const prevPriceString = rawPrevPrice ? String(rawPrevPrice).replace(',', '.') : null;
+      const prevPriceString = rawPrevPrice
+        ? String(rawPrevPrice).replace(",", ".")
+        : null;
 
       const imageUrl = row.getCell(8).text?.trim();
 
       // VALIDACIÓN: Ya no exigimos 'unit' en el if porque le pusimos un valor por defecto arriba
       if (!name || !priceString || !categoryName) {
-         // Skip empty rows completely
-         if(!name && !priceString && !categoryName) return; 
-         
-         const missing = [];
-         if (!name) missing.push("Name");
-         if (!priceString) missing.push("Price");
-         if (!categoryName) missing.push("Category");
-         
-         errors.push(`Row ${rowNumber}: Missing required fields (${missing.join(", ")})`);
-         return;
+        // Skip empty rows completely
+        if (!name && !priceString && !categoryName) return;
+
+        const missing = [];
+        if (!name) missing.push("Name");
+        if (!priceString) missing.push("Price");
+        if (!categoryName) missing.push("Category");
+
+        errors.push(
+          `Row ${rowNumber}: Missing required fields (${missing.join(", ")})`,
+        );
+        return;
       }
 
       const price = parseFloat(priceString);
@@ -119,8 +126,10 @@ export async function importProductsFromExcelAction(
 
       let subCategoryId = subCategoryMap.get(categoryName.toLowerCase());
       if (!subCategoryId) {
-         errors.push(`Row ${rowNumber}: Category "${categoryName}" not found. Please create it first in your dashboard.`);
-         return;
+        errors.push(
+          `Row ${rowNumber}: Category "${categoryName}" not found. Please create it first in your dashboard.`,
+        );
+        return;
       }
 
       productsToInsert.push({
@@ -133,7 +142,7 @@ export async function importProductsFromExcelAction(
         sub_category_id: subCategoryId,
         partner_id: partner.id,
         is_available: true, // Default
-        image_url: imageUrl || null
+        image_url: imageUrl || null,
       });
     });
 
@@ -144,7 +153,11 @@ export async function importProductsFromExcelAction(
 
       if (insertError) {
         console.error("Bulk insert error", insertError);
-        return { success: false, count: 0, errors: [...errors, `Database Error: ${insertError.message}`] };
+        return {
+          success: false,
+          count: 0,
+          errors: [...errors, `Database Error: ${insertError.message}`],
+        };
       }
     }
 
@@ -152,16 +165,20 @@ export async function importProductsFromExcelAction(
     return {
       success: true,
       count: productsToInsert.length,
-      errors
+      errors,
     };
-
   } catch (err: any) {
+    Sentry.captureException(err);
     console.error("Excel processing error", err);
     return { success: false, count: 0, errors: [err.message] };
   }
 }
 
-export async function getImportTemplateAction(): Promise<{ success: boolean; base64?: string; error?: string }> {
+export async function getImportTemplateAction(): Promise<{
+  success: boolean;
+  base64?: string;
+  error?: string;
+}> {
   try {
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet("Plantilla Productos");
@@ -187,17 +204,18 @@ export async function getImportTemplateAction(): Promise<{ success: boolean; bas
       category: "Comidas Rápidas",
       timeRange: "20-30 min",
       previousPrice: 1800,
-      imageUrl: "https://example.com/burger.jpg"
+      imageUrl: "https://example.com/burger.jpg",
     });
 
     // Formatting
     worksheet.getRow(1).font = { bold: true };
-    
+
     const buffer = await workbook.xlsx.writeBuffer();
     const base64 = Buffer.from(buffer).toString("base64");
 
     return { success: true, base64 };
   } catch (error: any) {
+    Sentry.captureException(error);
     console.error("Error generating template", error);
     return { success: false, error: error.message };
   }
