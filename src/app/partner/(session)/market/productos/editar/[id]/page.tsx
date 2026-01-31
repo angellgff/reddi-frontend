@@ -99,6 +99,16 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     categoryId: null as string | null,
   }));
 
+  // Determinar el ID de categoría original del producto
+  const rawCategoryId =
+    productRow.sub_category_id || (productRow as any).category_id || null;
+
+  // Verificar si la categoría existe en la lista de activos
+  const categoryExists = subCategories.some((c) => c.id === rawCategoryId);
+
+  // Si existe se usa, si no, se deja null para evitar error en formulario (caso legacy)
+  const validCategoryId = categoryExists ? rawCategoryId : null;
+
   const initialFormData = {
     image: productRow.image_url || null,
     name: productRow.name || "",
@@ -110,9 +120,7 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     quantityStep: String(productRow.quantity_step || "1"),
     estimatedTimeRange: productRow.estimated_time || "",
     description: productRow.description || "",
-    subCategoryId:
-      // Si el producto tiene sub_category_id, usarlo; sino, intentar traer la categoría global si existiera una columna category_id (según esquema actual products.category_id existe)
-      productRow.sub_category_id || (productRow as any).category_id || null,
+    subCategoryId: validCategoryId,
     isAvailable: productRow.is_available ?? true,
     taxIncluded: productRow.tax_included ?? false,
     sections: [], // Market sin extras/secciones
