@@ -34,12 +34,12 @@ export default function AdminMap({
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["maps", "marker"],
+      libraries: ["maps", "marker", "places", "routes"],
     });
 
     loader.load().then(async () => {
       const { Map } = (await google.maps.importLibrary(
-        "maps"
+        "maps",
       )) as google.maps.MapsLibrary;
 
       const map = new Map(containerRef.current!, {

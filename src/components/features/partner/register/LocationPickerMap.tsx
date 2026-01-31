@@ -39,7 +39,7 @@ export default function LocationPickerMap({
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["maps", "marker", "places"],
+      libraries: ["maps", "marker", "places", "routes"],
     });
 
     loader
