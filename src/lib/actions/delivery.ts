@@ -5,7 +5,7 @@ import { createClient } from "@/src/lib/supabase/server";
 export async function completeDeliveryAction(
   orderId: string,
   driverId: string,
-  method: "cash" | "physical_pos"
+  method: "cash" | "physical_pos",
 ) {
   const supabase = await createClient();
 
@@ -24,15 +24,19 @@ export async function completeDeliveryAction(
     return { success: true, data };
   } catch (err: any) {
     console.error("Server Action Exception:", err);
-    return { success: false, error: err.message || "Error desconocido en el servidor" };
+    return {
+      success: false,
+      error: err.message || "Error desconocido en el servidor",
+    };
   }
 }
 
 export async function updateShipmentStatusAction(
   shipmentId: string | null,
-  newStatus: string
+  newStatus: string,
 ) {
-  if (!shipmentId) return { success: false, error: "No hay shipmentId asignado" };
+  if (!shipmentId)
+    return { success: false, error: "No hay shipmentId asignado" };
 
   const supabase = await createClient();
 

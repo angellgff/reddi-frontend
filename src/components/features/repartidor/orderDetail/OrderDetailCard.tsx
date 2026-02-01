@@ -23,7 +23,9 @@ export default function OrderDetailCard({ data }: Props) {
     "see_route" | "proceed_pay" | "slide_complete" | null
   >(null);
   const [statusLoading, setStatusLoading] = useState(false);
-  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>(
+    {},
+  );
 
   const toggleItem = (itemId: string) => {
     setExpandedItems((prev) => ({
@@ -72,10 +74,10 @@ export default function OrderDetailCard({ data }: Props) {
         mode = "slide_complete";
       }
     } else {
-       // Fallback: si no cuadra el status, pero el pedido está asignado y activo, 
-       // intentar mostrar Slide si ya pasó la etapa de pickup.
-       // O mostrar See Route por defecto.
-       mode = "see_route";
+      // Fallback: si no cuadra el status, pero el pedido está asignado y activo,
+      // intentar mostrar Slide si ya pasó la etapa de pickup.
+      // O mostrar See Route por defecto.
+      mode = "see_route";
     }
     setFloatingMode(mode);
   }, [data]);
@@ -88,7 +90,7 @@ export default function OrderDetailCard({ data }: Props) {
 
   // Visual logic
   const sStatus = data.shipmentStatus;
-  
+
   const isRecogiendoActive =
     sStatus === "driver_assigned" ||
     sStatus === "en_route_to_pickup" ||
@@ -205,7 +207,7 @@ export default function OrderDetailCard({ data }: Props) {
                 "w-full h-full flex items-center justify-center rounded-full font-bold text-[15px] transition-colors",
                 isRecogiendoActive
                   ? "bg-[#47BB7E] text-white"
-                  : "bg-[#D1D1D6] text-white hover:bg-gray-400"
+                  : "bg-[#D1D1D6] text-white hover:bg-gray-400",
               )}
             >
               Recogiendo
@@ -217,12 +219,12 @@ export default function OrderDetailCard({ data }: Props) {
             className="flex-1 h-[40px]"
             disabled={statusLoading || isEnCaminoActive} // Disable if already active
           >
-             <div
+            <div
               className={cn(
                 "w-full h-full flex items-center justify-center rounded-full font-bold text-[15px] transition-colors",
                 isEnCaminoActive
                   ? "bg-[#47BB7E] text-white"
-                  : "bg-[#D1D1D6] text-white hover:bg-gray-400"
+                  : "bg-[#D1D1D6] text-white hover:bg-gray-400",
               )}
             >
               En Camino
@@ -329,7 +331,7 @@ export default function OrderDetailCard({ data }: Props) {
                           size={14}
                           className={cn(
                             "transition-transform",
-                            isExpanded ? "rotate-180" : ""
+                            isExpanded ? "rotate-180" : "",
                           )}
                         />
                       </button>
@@ -416,7 +418,9 @@ export default function OrderDetailCard({ data }: Props) {
         <div className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center backdrop-blur-sm">
           <div className="bg-white px-6 py-4 rounded-xl shadow-2xl flex flex-col items-center gap-3">
             <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-[#47BB7E]" />
-            <span className="text-gray-800 font-bold text-sm">Actualizando estado...</span>
+            <span className="text-gray-800 font-bold text-sm">
+              Actualizando estado...
+            </span>
           </div>
         </div>
       )}
