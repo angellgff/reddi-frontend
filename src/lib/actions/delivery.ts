@@ -27,3 +27,27 @@ export async function completeDeliveryAction(
     return { success: false, error: err.message || "Error desconocido en el servidor" };
   }
 }
+
+export async function updateShipmentStatusAction(
+  shipmentId: string | null,
+  newStatus: string
+) {
+  if (!shipmentId) return { success: false, error: "No hay shipmentId asignado" };
+
+  const supabase = await createClient();
+
+  try {
+    const { error } = await supabase
+      .from("shipments")
+      .update({ status: newStatus })
+      .eq("id", shipmentId);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message };
+  }
+}

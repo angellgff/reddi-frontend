@@ -104,7 +104,7 @@ export default function OrderCard({
   return (
     <div
       onClick={handleCardClick}
-      className="bg-white rounded-[24px] p-5 w-full shadow-sm mb-4 relative font-openSans cursor-pointer block"
+      className={cn("bg-white rounded-[24px] p-5 w-full shadow-sm mb-4 relative font-openSans cursor-pointer block")}
     >
       {/* Top Section: Avatar + Info */}
       <div className="flex gap-4">

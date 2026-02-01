@@ -34,6 +34,8 @@ export interface OrderDetailData {
   canMarkDelivered: boolean;
   totalAmount: number;
   paymentMethod: "cash" | "physical_pos" | null;
+  shipmentStatus: string | null;
+  paymentStatus: string | null;
   items: OrderDetailItem[];
 }
 
@@ -186,6 +188,7 @@ export default async function getOrderDetail(
         `
         id, created_at, scheduled_at, status, shipment_id, partner_id, user_address_id,
         total_amount, payment_method, instructions,
+        payments(status),
         partners(name,image_url,address,coordinates), 
         profiles(first_name, last_name, phone_number), 
         user_addresses(location_type,location_number,coordinates,sector,delivery_instructions), 
@@ -332,6 +335,10 @@ export default async function getOrderDetail(
       canMarkDelivered,
       totalAmount: data.total_amount ?? 0,
       paymentMethod: (data.payment_method as "cash" | "physical_pos") ?? "cash",
+      shipmentStatus: shipment?.status ?? null,
+      paymentStatus: Array.isArray(data.payments) && data.payments.length > 0 
+        ? (data.payments.find((p: any) => p.status === 'completed')?.status ?? data.payments[0].status)
+        : null,
     };
   } catch (error: unknown) {
     Sentry.captureException(error);
