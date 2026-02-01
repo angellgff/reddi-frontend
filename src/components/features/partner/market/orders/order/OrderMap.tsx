@@ -24,7 +24,9 @@ export default function OrderMap({
   const mapRef = useRef<google.maps.Map | null>(null);
   const originMarkerRef = useRef<google.maps.Marker | null>(null);
   const destMarkerRef = useRef<google.maps.Marker | null>(null);
-  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(
+    null,
+  );
 
   const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
   const hasRoute = !!origin && !!destination;
@@ -36,15 +38,15 @@ export default function OrderMap({
     const loader = new Loader({
       apiKey,
       version: "weekly",
-      libraries: ["maps", "marker", "routes"],
+      libraries: ["maps", "marker", "places", "routes"],
     });
 
     loader.load().then(async () => {
       const { Map } = (await google.maps.importLibrary(
-        "maps"
+        "maps",
       )) as google.maps.MapsLibrary;
       const { DirectionsRenderer } = (await google.maps.importLibrary(
-        "routes"
+        "routes",
       )) as google.maps.RoutesLibrary;
 
       const map = new Map(containerRef.current!, {
@@ -97,7 +99,7 @@ export default function OrderMap({
           } else {
             console.error("Directions request failed due to " + status);
           }
-        }
+        },
       );
     } else {
       // No route
@@ -114,7 +116,7 @@ export default function OrderMap({
     markerRef: React.MutableRefObject<google.maps.Marker | null>,
     pos: LatLng,
     color: string,
-    map: google.maps.Map
+    map: google.maps.Map,
   ) => {
     if (!markerRef.current) {
       markerRef.current = new google.maps.Marker({
@@ -137,7 +139,9 @@ export default function OrderMap({
 
   if (!apiKey) {
     return (
-      <div className={`bg-gray-100 flex items-center justify-center text-sm p-4 ${className}`}>
+      <div
+        className={`bg-gray-100 flex items-center justify-center text-sm p-4 ${className}`}
+      >
         Mapa no disponible
       </div>
     );
