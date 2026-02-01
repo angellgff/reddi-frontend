@@ -16,7 +16,9 @@ export default function DeliveryLayoutClient({
   const pathname = usePathname();
 
   // Ocultar header/footer en /repartidor/orders/xyz
-  const isOrderDetail = pathname?.startsWith("/repartidor/orders/");
+  const isOrderDetail =
+    pathname?.startsWith("/repartidor/orders/") ||
+    pathname?.startsWith("/repartidor/profile");
 
   return (
     <>
