@@ -240,12 +240,12 @@ export default function UserChatPageClient({
               {/* Optional: Show Name if desired */}
             </div>
           </div>
-          
-          <button 
-             onClick={handleCall}
-             className="w-[36px] h-[36px] flex items-center justify-center rounded-full bg-[#F4F5F7] text-black hover:bg-gray-200 transition-colors"
+
+          <button
+            onClick={handleCall}
+            className="w-[36px] h-[36px] flex items-center justify-center rounded-full bg-[#F4F5F7] text-black hover:bg-gray-200 transition-colors"
           >
-             <Phone size={18} fill="currentColor" className="text-black" />
+            <Phone size={18} fill="currentColor" className="text-black" />
           </button>
         </div>
       </div>
@@ -297,17 +297,17 @@ export default function UserChatPageClient({
                   )}
                 </div>
               </div>
-               {/* Time & Status - Outside Bubble */}
-              <div 
+              {/* Time & Status - Outside Bubble */}
+              <div
                 className={`flex items-center gap-1 mt-1 text-[12px] text-[#5C616F] font-inter ${isMe ? "justify-end" : "justify-start pl-1"}`}
               >
                 <span>
                   {format(new Date(msg.created_at), "h:mm a", { locale: es })}
                 </span>
                 {isMe && (
-                   <span className="text-[#5C616F]">
-                      {msg.is_read ? "Seen" : ""}
-                   </span>
+                  <span className="text-[#5C616F]">
+                    {msg.is_read ? "Seen" : ""}
+                  </span>
                 )}
               </div>
             </div>
@@ -334,7 +334,7 @@ export default function UserChatPageClient({
             placeholder="Escribe..."
             className="flex-1 bg-transparent border-none outline-none text-[#484848] placeholder-[#A7AAB2] text-[15px] font-medium font-inter"
           />
-           <button
+          <button
             onClick={() => fileInputRef.current?.click()}
             className="ml-2 w-8 h-8 rounded-full bg-[#E8EBEE] flex items-center justify-center text-[#040C22] hover:opacity-80 transition-opacity"
             disabled={isUploading}
@@ -343,18 +343,15 @@ export default function UserChatPageClient({
               <Loader2 className="animate-spin" size={16} />
             ) : (
               <div className="transform rotate-45">
-                 <Paperclip size={16} />
+                <Paperclip size={16} />
               </div>
             )}
           </button>
-           {newMessage.trim() && (
-             <button
-               onClick={handleSendMessage}
-               className="ml-2 text-[#04BD88]"
-             >
-               <Send size={20} />
-             </button>
-           )}
+          {newMessage.trim() && (
+            <button onClick={handleSendMessage} className="ml-2 text-[#04BD88]">
+              <Send size={20} />
+            </button>
+          )}
         </div>
       </div>
 
