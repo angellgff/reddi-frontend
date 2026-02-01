@@ -28,7 +28,7 @@ export default function OrderDetailRouteMap({
   const originObj = { longitude: origin[0], latitude: origin[1] };
   const destObj = { longitude: destination[0], latitude: destination[1] };
 
-  // TODO: Handle driverLocation marker if RouteMap supports it, 
+  // TODO: Handle driverLocation marker if RouteMap supports it,
   // or extend RouteMap later. For now we just show A -> B.
 
   return (

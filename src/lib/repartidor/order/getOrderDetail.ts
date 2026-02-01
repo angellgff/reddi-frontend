@@ -104,7 +104,7 @@ function extractPoint(geo: unknown): [number, number] | null {
         if (type & 0x20000000) {
           offset += 4;
         }
-        
+
         // Z mask 0x80000000 -> Si hay Z, hay que leerlo (o solo saber coords 2D)
         // M mask 0x40000000 -> Si hay M...
         // Asumiendo Point standard 2D o PointZ simple
@@ -142,7 +142,7 @@ function extractPoint(geo: unknown): [number, number] | null {
     const [lng, lat] = (geo as { coordinates: [number, number] }).coordinates;
     if (typeof lng === "number" && typeof lat === "number") return [lng, lat];
   }
-  
+
   return null;
 }
 
@@ -240,10 +240,10 @@ export default async function getOrderDetail(
     const shipment = Array.isArray(shipData) ? shipData[0] : shipData;
 
     console.log("DEBUG GEO:", {
-       shipmentOrigin: shipment?.origin_coordinates,
-       partnerCoords: partner?.coordinates,
-       shipmentDest: shipment?.destination_coordinates,
-       userCoords: userAddress?.coordinates
+      shipmentOrigin: shipment?.origin_coordinates,
+      partnerCoords: partner?.coordinates,
+      shipmentDest: shipment?.destination_coordinates,
+      userCoords: userAddress?.coordinates,
     });
 
     const originCoords =
