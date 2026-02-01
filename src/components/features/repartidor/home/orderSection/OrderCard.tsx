@@ -2,26 +2,48 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import ClockIcon from "@/src/components/icons/OrderClockIcon";
-import HomeIcon from "@/src/components/icons/OrderHomeIcon";
+import OrderHomeIcon from "@/src/components/icons/OrderHomeIcon";
+import { cn } from "@/src/lib/utils";
+import CheckIcon from "@/src/components/icons/CheckIcon";
+import { useRouter } from "next/navigation";
 
-export type StatusType = "Preparando" | "Nueva" | "En camino";
+// Adjusted to match the design requirements
+export type StatusType = "Preparando" | "Nueva" | "En camino" | "Completado";
 
-const statusStyles: Record<
-  StatusType,
-  { badgeClasses: string; dotClasses: string }
-> = {
+interface StatusConfig {
+  badgeText: string;
+  badgeClasses: string;
+  dotColor?: string; // If we keep dots
+  buttonText: string;
+  buttonClasses: string;
+  isCompleted?: boolean;
+}
+
+const statusConfig: Record<StatusType, StatusConfig> = {
   Nueva: {
-    badgeClasses: "bg-[#FF30081F] text-[#FF3008]",
-    dotClasses: "bg-[#FF3008]",
+    badgeText: "NUEVO",
+    badgeClasses: "bg-[#CF4518] text-white",
+    buttonText: "Aceptar pedido",
+    buttonClasses: "bg-[#CF4518] text-white hover:bg-[#b03a12]",
   },
   Preparando: {
-    badgeClasses: "bg-[#E6EBF2] text-[#2196F3]",
-    dotClasses: "bg-[#2196F3]",
+    badgeText: "En Curso",
+    badgeClasses: "bg-[#595959] text-white",
+    buttonText: "En Curso",
+    buttonClasses: "bg-[#595959] text-white cursor-default",
   },
   "En camino": {
-    badgeClasses: "bg-[#E9FFEF] text-[#409261]",
-    dotClasses: "bg-[#409261]",
+    badgeText: "En Curso",
+    badgeClasses: "bg-[#595959] text-white",
+    buttonText: "En Curso",
+    buttonClasses: "bg-[#595959] text-white cursor-default",
+  },
+  Completado: {
+    badgeText: "", // Special case, maybe no badge or text
+    badgeClasses: "hidden",
+    buttonText: "Completado",
+    buttonClasses: "bg-[#F2F2F2] text-[#595959] cursor-default",
+    isCompleted: true,
   },
 };
 
@@ -46,66 +68,125 @@ export default function OrderCard({
   isAssigned,
   onAccept,
 }: OrderCardProps) {
-  const currentStatusStyles = statusStyles[status];
+  const router = useRouter();
+
+  // Determine the display configuration based on status and assignment
+  // Default to "Nueva" config
+  let configKey: StatusType = "Nueva";
+
+  if (status === "Completado") {
+    configKey = "Completado";
+  } else if (isAssigned) {
+    // If assigned and active (not completed), show as "En Curso" (which maps to Preparando config)
+    configKey = "Preparando";
+  } else {
+    // If not assigned and not completed, show as "Nueva" (Acceptable)
+    configKey = "Nueva";
+  }
+
+  const config = statusConfig[configKey] || statusConfig["Nueva"];
+  const isCompleted = config.isCompleted;
+
+  // Logical check for enabling the button
+  const canAccept = configKey === "Nueva";
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (canAccept) {
+      onAccept(orderId);
+    }
+  };
+
+  const handleCardClick = () => {
+    router.push(`/repartidor/orders/${orderId}`);
+  };
+
   return (
-    <div className="bg-white rounded-2xl p-5 w-full max-w-sm border border-gray-200 shadow-sm mx-auto">
-      {/* Header */}
-      <div className="flex justify-between items-start mb-3">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
-            <Image
-              src={logoUrl}
-              alt={`Logo de ${restaurantName}`}
-              width={40}
-              height={40}
-              className="w-10 h-10"
-            />
-          </div>
-          <div>
-            <Link
-              href={`/repartidor/orders/${orderId}`}
-              className="text-lg font-bold text-gray-800 hover:underline"
-            >
-              <span className="text-emerald-500">Pedido</span> #
-              {orderId.split("-")[0]}
-            </Link>
-            <p className="text-sm text-gray-500 font-roboto">
+    <div
+      onClick={handleCardClick}
+      className="bg-white rounded-[24px] p-5 w-full shadow-sm mb-4 relative font-openSans cursor-pointer block"
+    >
+      {/* Top Section: Avatar + Info */}
+      <div className="flex gap-4">
+        {/* Avatar */}
+        <div className="relative w-[46px] h-[46px] flex-shrink-0">
+          <Image
+            src={logoUrl || "/placeholder-restaurant.png"} // Fallback image needed
+            alt={restaurantName}
+            fill
+            className="rounded-full object-cover"
+          />
+        </div>
+
+        {/* Info Column */}
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-start">
+            <h3 className="text-[16px] font-bold text-black leading-tight truncate pr-2">
               {restaurantName}
-            </p>
+            </h3>
+
+            {/* Status Badge (Top Right) */}
+            {!isCompleted && (
+              <div
+                className={cn(
+                  "rounded-full px-2 py-[2px] flex items-center gap-1",
+                  config.badgeClasses,
+                )}
+              >
+                <div className="w-[5px] h-[5px] rounded-full bg-white" />
+                <span className="text-[7px] font-bold uppercase tracking-wide">
+                  {config.badgeText}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Address Line */}
+          <div className="flex items-center gap-1 mt-1">
+            <OrderHomeIcon className="w-[14px] h-[14px]" fill="#595959" />
+            <span className="text-[12px] font-semibold text-[#595959] leading-tight truncate">
+              {address}
+            </span>
+          </div>
+
+          {/* Time / Completed Line */}
+          <div className="flex items-center gap-1 mt-1">
+            {isCompleted ? (
+              // Completed State: Checkmark + Text
+              <div className="flex items-center gap-1">
+                <div className="border border-[#595959] rounded-sm p-[1px]">
+                  <CheckIcon className="w-2 h-2 text-[#595959]" />
+                </div>
+                <span className="text-[12px] font-semibold text-[#595959]">
+                  Completado
+                </span>
+              </div>
+            ) : (
+              // Active State: Box + Time
+              <>
+                <div className="w-[10px] h-[10px] border border-[#595959] rounded-[1px]" />
+                <span className="text-[12px] font-semibold text-[#595959]">
+                  {deliveryTime}
+                </span>
+              </>
+            )}
           </div>
         </div>
-        {/*STATUS */}
-        <span
-          className={`inline-flex items-center gap-1 ${currentStatusStyles.badgeClasses} text-xs font-medium px-3 py-1 rounded-full`}
-        >
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${currentStatusStyles.dotClasses}`}
-          ></span>
-          <span className="font-inter">{status}</span>
-        </span>
       </div>
 
-      {/* Body */}
-      <div className="flex flex-col gap-3 mb-5 text-[#525252]">
-        <div className="flex items-center gap-3 ">
-          <HomeIcon className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-          <span className="text-sm font-roboto">{address}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <ClockIcon className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-          <span className="text-sm">{deliveryTime}</span>
-        </div>
-      </div>
-
-      {/* Footer */}
-      {(status === "Nueva" || status === "Preparando") && !isAssigned && (
+      {/* Button Section */}
+      <div className="mt-4">
         <button
-          onClick={() => onAccept(orderId)}
-          className="w-full bg-white border border-black text-gray-800 font-semibold py-2 rounded-xl hover:bg-gray-800 hover:text-white transition-colors duration-200"
+          onClick={handleClick}
+          disabled={!canAccept}
+          className={cn(
+            "w-full h-[33px] rounded-full flex items-center justify-center text-[16px] font-bold transition-colors",
+            config.buttonClasses,
+          )}
         >
-          Aceptar pedido
+          {config.buttonText}
         </button>
-      )}
+      </div>
     </div>
   );
 }

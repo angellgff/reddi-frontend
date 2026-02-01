@@ -1,6 +1,14 @@
 import { createClient } from "@/src/lib/supabase/server";
 import * as Sentry from "@sentry/nextjs";
 
+export interface OrderDetailItem {
+  id: string;
+  name: string;
+  quantity: number;
+  price: number;
+  variantName?: string;
+}
+
 export interface OrderDetailData {
   id: string;
   statusLabel: string;
@@ -11,6 +19,9 @@ export interface OrderDetailData {
   restaurantName: string;
   restaurantAddress: string;
   deliveryAddress: string;
+  deliverySector: string;
+  deliveryInstructions: string;
+  customerNote: string;
   eta: string;
   restaurantLogo: string;
   originCoords: [number, number] | null; // [lng, lat]
@@ -23,6 +34,7 @@ export interface OrderDetailData {
   canMarkDelivered: boolean;
   totalAmount: number;
   paymentMethod: "cash" | "physical_pos" | null;
+  items: OrderDetailItem[];
 }
 
 // Reutilizamos la misma lógica de mapeo simplificada usada en home
@@ -71,9 +83,57 @@ function formatAddress(
 }
 
 function extractPoint(geo: unknown): [number, number] | null {
-  // Accept GeoJSON { type: 'Point', coordinates: [lng, lat] } or PostGIS text not handled
+  if (!geo) return null;
+
+  if (typeof geo === "string") {
+    // 1. Caso Hexadecimal string (PostGIS encodings como WKB/EWKB)
+    // Ej: "0101000020E6100000..."
+    if (/^[0-9a-fA-F]+$/.test(geo) && geo.length >= 42) {
+      try {
+        const bytes = new Uint8Array(
+          geo.match(/.{1,2}/g)!.map((byte) => parseInt(byte, 16)),
+        );
+        const view = new DataView(bytes.buffer);
+        // Byte 0: Endianness (1 = Little Endian)
+        const isLittle = view.getUint8(0) === 1;
+        // Bytes 1-4: Type
+        const type = view.getUint32(1, isLittle);
+
+        // SRID mask 0x20000000 -> Si está presente, saltar 4 bytes extra
+        let offset = 5;
+        if (type & 0x20000000) {
+          offset += 4;
+        }
+        
+        // Z mask 0x80000000 -> Si hay Z, hay que leerlo (o solo saber coords 2D)
+        // M mask 0x40000000 -> Si hay M...
+        // Asumiendo Point standard 2D o PointZ simple
+
+        const lng = view.getFloat64(offset, isLittle);
+        const lat = view.getFloat64(offset + 8, isLittle);
+        return [lng, lat];
+      } catch (e) {
+        // Fallback or ignore
+      }
+    }
+
+    // 2. Caso WKT string: "POINT(-69.9312 18.4812)"
+    const match = geo.match(/POINT\s*\(([^)]+)\)/i);
+    if (match && match[1]) {
+      const parts = match[1].trim().split(/\s+/);
+      if (parts.length >= 2) {
+        const lng = parseFloat(parts[0]);
+        const lat = parseFloat(parts[1]);
+        if (!isNaN(lng) && !isNaN(lat)) {
+          return [lng, lat];
+        }
+      }
+    }
+    return null;
+  }
+
+  // 3. Caso GeoJSON Object: { type: 'Point', coordinates: [lng, lat] }
   if (
-    geo &&
     typeof geo === "object" &&
     "coordinates" in geo &&
     Array.isArray((geo as { coordinates: unknown }).coordinates) &&
@@ -82,6 +142,7 @@ function extractPoint(geo: unknown): [number, number] | null {
     const [lng, lat] = (geo as { coordinates: [number, number] }).coordinates;
     if (typeof lng === "number" && typeof lat === "number") return [lng, lat];
   }
+  
   return null;
 }
 
@@ -123,11 +184,16 @@ export default async function getOrderDetail(
       .select(
         `
         id, created_at, scheduled_at, status, shipment_id, partner_id, user_address_id,
-        total_amount, payment_method,
+        total_amount, payment_method, instructions,
         partners(name,image_url,address,coordinates), 
         profiles(first_name, last_name, phone_number), 
-        user_addresses(location_type,location_number,coordinates), 
-        shipments!shipment_id(id, driver_id, status, origin_coordinates, destination_coordinates)
+        user_addresses(location_type,location_number,coordinates,sector,delivery_instructions), 
+        shipments!shipment_id(id, driver_id, status, origin_coordinates, destination_coordinates),
+        order_detail(
+          id, quantity, unit_price,
+          products(name),
+          product_variants(name, product_variant_groups(name))
+        )
         `,
       )
       .eq("id", id)
@@ -165,9 +231,20 @@ export default async function getOrderDetail(
     const userAddress = Array.isArray(uaData) ? uaData[0] : uaData;
 
     const deliveryAddress = formatAddress(userAddress);
+    const deliverySector = (userAddress as any)?.sector ?? "";
+    const deliveryInstructions =
+      (userAddress as any)?.delivery_instructions ?? "";
+    const customerNote = data.instructions ?? ""; // Nota en la orden
 
     const shipData = data.shipments;
     const shipment = Array.isArray(shipData) ? shipData[0] : shipData;
+
+    console.log("DEBUG GEO:", {
+       shipmentOrigin: shipment?.origin_coordinates,
+       partnerCoords: partner?.coordinates,
+       shipmentDest: shipment?.destination_coordinates,
+       userCoords: userAddress?.coordinates
+    });
 
     const originCoords =
       extractPoint(shipment?.origin_coordinates) ||
@@ -179,6 +256,23 @@ export default async function getOrderDetail(
 
     const shipmentId: string | null = shipment?.id ?? null;
     const shipmentDriverId: string | null = shipment?.driver_id ?? null;
+
+    const items: OrderDetailItem[] = (data.order_detail || []).map(
+      (item: any) => {
+        const pName = item.products?.name || "Producto sin nombre";
+        const vName = item.product_variants?.name
+          ? `${item.product_variants.name}`
+          : undefined;
+
+        return {
+          id: String(item.id),
+          name: pName,
+          variantName: vName,
+          quantity: typeof item.quantity === "number" ? item.quantity : 1,
+          price: typeof item.unit_price === "number" ? item.unit_price : 0,
+        };
+      },
+    );
 
     // --- LÓGICA DE PERMISOS CORREGIDA ---
     const isCancelled =
@@ -218,6 +312,10 @@ export default async function getOrderDetail(
       customerPhone,
       partnerId: data.partner_id ?? null,
       userAddressId: data.user_address_id ?? null,
+      items,
+      deliverySector,
+      deliveryInstructions,
+      customerNote,
       restaurantName,
       restaurantAddress,
       deliveryAddress,

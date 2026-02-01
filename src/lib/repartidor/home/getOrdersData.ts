@@ -9,13 +9,14 @@ function mapDbStatusToDeliveryLabel(status?: string | null): StatusType {
   if (s === "pending" || s === "confirmed") return "Nueva";
   if (s === "preparing") return "Preparando";
   if (s === "out_for_delivery") return "En camino";
+  if (s === "delivered") return "Completado";
   // delivered / cancelled no deberían mostrarse aquí (se filtran), fallback seguro
   return "Nueva";
 }
 
 function formatDeliveryTime(
   createdAt?: string | null,
-  scheduledAt?: string | null
+  scheduledAt?: string | null,
 ): string {
   try {
     if (scheduledAt) {
@@ -28,7 +29,7 @@ function formatDeliveryTime(
     if (createdAt) {
       const ETA_MIN = 25;
       const diffMin = Math.floor(
-        (Date.now() - new Date(createdAt).getTime()) / 60000
+        (Date.now() - new Date(createdAt).getTime()) / 60000,
       );
       const remaining = Math.max(5, ETA_MIN - diffMin);
       return `${remaining} min`;
@@ -41,7 +42,7 @@ function formatAddress(
   addr?: {
     location_type?: string | null;
     location_number?: string | null;
-  } | null
+  } | null,
 ): string {
   const t = addr?.location_type ?? "";
   const n = addr?.location_number ?? "";
@@ -58,7 +59,6 @@ export default async function getOrdersData(): Promise<OrderData[]> {
   } = await supabase.auth.getUser();
   if (!user) return [];
 
-
   // Obtener el ID de conductor asociado al usuario
   const { data: driverData } = await supabase
     .from("drivers")
@@ -73,10 +73,10 @@ export default async function getOrdersData(): Promise<OrderData[]> {
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, created_at, scheduled_at, status, partners(name,image_url), user_addresses(location_type,location_number), shipments!shipments_order_id_fkey!inner(driver_id)"
+      "id, created_at, scheduled_at, status, partners(name,image_url), user_addresses(location_type,location_number), shipments!shipments_order_id_fkey!inner(driver_id)",
     )
     // Filtrar estados activos permitidos para el driver
-    .in("status", ["preparing", "out_for_delivery"])
+    .in("status", ["preparing", "out_for_delivery", "delivered"])
     .or(`driver_id.is.null,driver_id.eq.${driverId}`, {
       foreignTable: "shipments",
     })
@@ -99,7 +99,9 @@ export default async function getOrdersData(): Promise<OrderData[]> {
     const address: string = formatAddress(addressData ?? undefined);
     const deliveryTime = formatDeliveryTime(o.created_at, o.scheduled_at);
     const shipments = Array.isArray(o.shipments) ? o.shipments : [o.shipments];
-    const isAssigned = shipments.some((s: any) => s && s.driver_id === driverId);
+    const isAssigned = shipments.some(
+      (s: any) => s && s.driver_id === driverId,
+    );
 
     return {
       orderId: String(o.id),

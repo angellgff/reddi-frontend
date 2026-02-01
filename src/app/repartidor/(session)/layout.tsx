@@ -3,6 +3,7 @@ import DriverLocationTracker from "@/src/components/features/delivery/DriverLoca
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 import RepartidorFooter from "@/src/components/features/repartidor/RepartidorFooter";
+import DeliveryLayoutClient from "@/src/components/features/repartidor/layout/DeliveryLayoutClient";
 
 export default async function DeliveryLayout({
   children,
@@ -62,11 +63,12 @@ export default async function DeliveryLayout({
   return (
     <>
       <DriverLocationTracker />
-      <DeliveryHeader />
-      <main className="bg-[#ECEFF0] min-h-screen pb-20 md:pb-0">
+      <DeliveryLayoutClient
+        header={<DeliveryHeader />}
+        footer={<RepartidorFooter />}
+      >
         {children}
-      </main>
-      <RepartidorFooter />
+      </DeliveryLayoutClient>
     </>
   );
 }

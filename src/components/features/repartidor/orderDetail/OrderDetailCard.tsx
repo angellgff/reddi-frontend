@@ -1,295 +1,254 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
+import { Phone, MessageSquare, ChevronDown, Check } from "lucide-react";
 import OrderDetailRouteMap from "./OrderDetailRouteMap";
-import { useState, useEffect } from "react";
-import ConfirmModal from "@/src/components/basics/ConfirmModal";
-import Toast from "@/src/components/basics/Toast";
 import DeliveryCollectionModal from "@/src/components/features/repartidor/delivery/DeliveryCollectionModal";
-import { Banknote, MessageSquare, Phone } from "lucide-react";
-import { createClient } from "@/src/lib/supabase/client";
-import Link from "next/link";
+import { OrderDetailData } from "@/src/lib/repartidor/order/getOrderDetail";
+import { cn } from "@/src/lib/utils";
 
 interface Props {
-  data: {
-    id: string;
-    statusLabel: string;
-    customerName: string;
-    partnerId: string | null;
-    userAddressId: string | null;
-    restaurantName: string;
-    restaurantAddress: string;
-    deliveryAddress: string;
-    eta: string;
-    restaurantLogo: string;
-    customerPhone: string | null;
-    canAccept: boolean;
-    canContact: boolean;
-
-    canMarkDelivered: boolean;
-    totalAmount: number;
-    paymentMethod: "cash" | "physical_pos" | null;
-    orderStatus: string | null;
-    shipmentDriverId: string | null;
-  } | null;
+  data: OrderDetailData;
 }
 
 export default function OrderDetailCard({ data }: Props) {
-  const [delivered, setDelivered] = useState(false);
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-
-  const [successOpen, setSuccessOpen] = useState(false);
   const [collectionOpen, setCollectionOpen] = useState(false);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setCurrentUserId(user.id);
-    });
-  }, []);
-
-  if (!data) {
+  // Fallback if data is null (should normally be handled by parent suspense)
+  if (!data)
     return (
-      <div className="text-center text-sm text-gray-500">
-        Pedido no encontrado.
-      </div>
+      <div className="p-4 text-center">Cargando información del pedido...</div>
     );
-  }
+
+  // Visual logic: "Entregando" counts as Step 2 (En Camino), otherwise Step 1 (Recogiendo)
+  const isPickUp = data.statusLabel === "Recogiendo";
+  const isOnWay =
+    data.statusLabel === "Entregando" || data.statusLabel === "En camino";
+  const statusStep = isOnWay ? 2 : 1;
+
+  const handleContact = (type: "phone" | "message") => {
+    if (type === "phone" && data.customerPhone) {
+      window.location.href = `tel:${data.customerPhone}`;
+    }
+    // Message logic would go here
+  };
 
   return (
-    <div className="flex flex-col p-[18px] gap-3 w-[352px] bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_4px_6px_rgba(0,0,0,0.1)] rounded-xl">
-      {/* Header */}
-      <div className="flex flex-col w-full">
-        <h3 className="text-[18px] leading-[27px] font-semibold text-slate-900 mb-2">
-          Cliente: {data.customerName}
-        </h3>
-        <div className="inline-flex items-center bg-blue-100 text-blue-900 rounded-full px-3 py-1 text-sm font-medium w-fit">
-          Recoger pedido
-        </div>
-      </div>
+    <div className="w-full max-w-[390px] mx-auto bg-white min-h-screen relative font-openSans pb-24 top-0 left-0 right-0 absolute">
+      {/* 1. MAP HEADER AREA */}
+      <div className="relative w-full h-[250px] bg-gray-200">
+        <OrderDetailRouteMap
+          origin={data.originCoords}
+          destination={data.destinationCoords}
+          driverLocation={null} // TODO: Plug in real driver location if available
+        />
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40 pointer-events-none" />
 
-      {/* Restaurante */}
-      <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-3">
-          <div className="w-[30px] h-[30px] rounded-full border-2 border-emerald-500 overflow-hidden flex items-center justify-center">
-            <Image
-              src={data.restaurantLogo}
-              alt={data.restaurantName}
-              width={30}
-              height={30}
-              className="object-cover"
-            />
+        {/* Back Button (Assuming parent page handles back, or we add absolute back here) */}
+        {/* <div className="absolute top-4 left-4 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center">
+           <ArrowLeftIcon />
+        </div> */}
+
+        {/* Title Overlay: "Shibuya -> GV#273" */}
+        <div className="absolute bottom-4 left-0 right-0 px-4 text-white">
+          <div className="text-center text-[11px] font-bold mb-1 uppercase tracking-wide">
+            Delivery en curso
           </div>
-          <p className="text-[12px] leading-4 font-medium text-slate-600 flex-1">
-            {data.restaurantName} - {data.restaurantAddress}
-          </p>
-        </div>
-        <div className="flex items-center gap-2 mt-2">
-          <span className="inline-block w-2 h-2 bg-red-500 rounded-full" />
-          <p className="text-[14px] font-bold text-slate-600">
-            Entrega: {data.deliveryAddress}
-          </p>
+          <div className="flex items-center justify-center gap-2 text-[20px] font-bold leading-tight drop-shadow-md">
+            <span>{data.restaurantName}</span>
+            <span className="text-white/80">→</span>
+            <span>{data.deliverySector || "Sector"}</span>
+          </div>
         </div>
       </div>
 
-      {/* Mapa con RouteMap (Mapbox) */}
-      <OrderDetailRouteMap
-        partnerId={data.partnerId ?? undefined}
-        userAddressId={data.userAddressId ?? undefined}
-        eta={data.eta}
-      />
-
-      {/* Accept button when unassigned */}
-      {data.canAccept && !delivered ? <AcceptButton orderId={data.id} /> : null}
-
-      {/* Contact buttons */}
-      {data.canContact && !delivered ? (
-        <div className="flex gap-2 w-full">
-          {data.customerPhone && (
-            <a
-              href={`tel:${data.customerPhone}`}
-              className="flex-1 flex items-center justify-center gap-2 h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
+      {/* 2. MAIN CONTENT BODY */}
+      <div className="relative bg-white rounded-t-[24px] -mt-5 px-5 pt-4">
+        {/* Status Pills */}
+        <div className="flex justify-center items-center gap-2 mb-6">
+          <div className="relative">
+            <div className="absolute inset-0 bg-[#D1D1D6] rounded-full transform scale-x-110" />
+            <div
+              className={cn(
+                "relative z-10 px-6 py-2 rounded-full text-[16px] font-bold text-white transition-colors min-w-[140px] text-center",
+                statusStep === 1 ? "bg-[#47BB7E]" : "bg-[#D1D1D6]",
+              )}
             >
-              <Phone size={16} /> Llamar
-            </a>
-          )}
-          <Link
-            href={`/repartidor/orders/${data.id}/chat`}
-            className="flex-1 flex items-center justify-center gap-2 h-9 bg-black text-white rounded-xl text-[14px] font-medium transition-transform active:scale-95"
-          >
-            <MessageSquare size={16} /> Chat Cliente
-          </Link>
-        </div>
-      ) : (
-        <div className="flex gap-2 w-full">
-          <button
-            type="button"
-            disabled
-            className="flex-1 flex items-center justify-center gap-2 h-9 bg-white border border-gray-300 text-gray-400 rounded-xl text-[14px] font-medium cursor-not-allowed"
-          >
-            <Phone size={16} /> Llamar
-          </button>
-          <button
-            type="button"
-            disabled
-            className="flex-1 flex items-center justify-center gap-2 h-9 bg-white border border-gray-300 text-gray-400 rounded-xl text-[14px] font-medium cursor-not-allowed"
-          >
-            <MessageSquare size={16} /> Chat
-          </button>
-        </div>
-      )}
+              Recogiendo
+            </div>
+          </div>
 
-      {/* Botón de Cobro y Entrega (Dentro de la tarjeta) */}
-      {data.canMarkDelivered && !delivered && (
+          <div className="relative">
+            <div className="absolute inset-0 bg-[#D1D1D6] rounded-full transform scale-x-110" />
+            <div
+              className={cn(
+                "relative z-10 px-6 py-2 rounded-full text-[16px] font-bold text-white transition-colors min-w-[140px] text-center",
+                statusStep === 2 ? "bg-[#47BB7E]" : "bg-[#D1D1D6]",
+              )}
+            >
+              En Camino
+            </div>
+          </div>
+        </div>
+
+        {/* Contact info */}
+        <div className="flex justify-between items-start mb-6">
+          <div>
+            <h2 className="text-[18px] font-bold text-black mb-1">
+              Contacta a {data.customerName.split(" ")[0]}
+            </h2>
+            <div className="text-[12px] font-semibold text-[#505050] flex gap-1">
+              <span>Entregar Antes de las</span>
+              <span className="font-bold">{data.eta}</span>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleContact("message")}
+              disabled={!data.canContact}
+              className="w-[40px] h-[40px] rounded-full bg-[#47BB7E] flex items-center justify-center text-white shadow-sm disabled:opacity-50 transition-opacity"
+            >
+              <MessageSquare
+                size={20}
+                fill="currentColor"
+                className="text-white"
+              />
+            </button>
+            <button
+              onClick={() => handleContact("phone")}
+              disabled={!data.canContact}
+              className="w-[40px] h-[40px] rounded-full bg-[#47BB7E] flex items-center justify-center text-white shadow-sm disabled:opacity-50 transition-opacity"
+            >
+              <Phone size={20} fill="currentColor" className="text-white" />
+            </button>
+          </div>
+        </div>
+
+        <hr className="border-gray-100 mb-6" />
+
+        {/* Address Details */}
+        <div className="mb-6">
+          <div className="flex gap-8 mb-4">
+            <div>
+              <p className="text-[15px] font-semibold text-[#878787] mb-1">
+                Apt / Room
+              </p>
+              <p className="text-[16px] font-bold text-black">
+                {data.deliveryAddress || "N/A"}
+              </p>
+            </div>
+            <div>
+              <p className="text-[15px] font-semibold text-[#878787] mb-1">
+                Sector & #
+              </p>
+              <p className="text-[16px] font-bold text-black">
+                {data.deliverySector || "GV #123"}
+              </p>
+            </div>
+          </div>
+
+          <div className="mb-4">
+            <p className="text-[15px] font-semibold text-[#878787] mb-2">
+              Instrucciones de el Cliente
+            </p>
+            <div className="inline-flex items-center bg-[#DADADA] rounded-full px-4 py-2">
+              <span className="text-[13px] font-bold text-black">
+                {data.deliveryInstructions || "Dejar en la puerta"}
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[15px] font-bold text-[#878787] mb-1">
+              Nota de el cliente
+            </p>
+            <p className="text-[14px] text-black leading-snug font-semibold">
+              {data.customerNote ||
+                "Toca la puerta o el timbre. Dejalo frente al banco."}
+            </p>
+          </div>
+        </div>
+
+        <hr className="border-gray-100 mb-6" />
+
+        {/* Order Summary */}
+        <div className="mb-8">
+          <div className="flex justify-between items-center mb-4">
+            <div>
+              <h3 className="text-[18px] font-semibold text-black">
+                Resumen de la orden
+              </h3>
+              <span className="text-[14px] text-[#6B6B6B]">
+                {data.restaurantName}
+              </span>
+            </div>
+            <button className="text-[14px] font-semibold text-[#47BB7E]">
+              Ver recibo
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {data.items &&
+              data.items.map((item, idx) => (
+                <div key={item.id} className="flex gap-3 items-start">
+                  <div className="w-[29px] h-[29px] flex-shrink-0 bg-[#EEEEEE] rounded-[6px] flex items-center justify-center">
+                    <span className="text-[14px] font-semibold text-black">
+                      {idx + 1}
+                    </span>
+                  </div>
+                  <div className="flex-1 border-b border-gray-100 pb-2">
+                    <p className="text-[16px] text-black leading-tight mb-1">
+                      {item.name}
+                    </p>
+                    {item.variantName && (
+                      <p className="text-[13px] text-gray-500 mb-1">
+                        {item.variantName}
+                      </p>
+                    )}
+
+                    {/* Show More (Visual only for now) */}
+                    <button className="flex items-center gap-1 text-[14px] text-black mt-1 font-normal">
+                      Show more <ChevronDown size={14} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+          </div>
+
+          <div className="flex justify-between items-center mt-8 border-t border-gray-100 pt-4">
+            <span className="text-[16px] text-black font-normal">Total</span>
+            <span className="text-[16px] text-black font-normal">
+              RD${data.totalAmount.toFixed(2)}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* FOOTER ACTIONS (Delivery Button) */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white p-4 border-t border-gray-100 z-50">
         <button
-          type="button"
           onClick={() => setCollectionOpen(true)}
-          className="flex items-center justify-center gap-2 w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl shadow-md font-bold text-lg transition-all active:scale-95 mt-2"
+          disabled={!data.canMarkDelivered && !data.canAccept}
+          className="w-full h-[50px] bg-[#47BB7E] rounded-full text-white font-bold text-[18px] shadow-lg disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-[#3ca56e] transition-colors"
         >
-          <Banknote className="w-6 h-6" />
-          Proceder al Cobro
+          {data.canMarkDelivered ? "Confirmar Entrega" : "Acciones"}
         </button>
-      )}
+      </div>
 
       <DeliveryCollectionModal
-        orderId={data.id}
-        driverId={data.shipmentDriverId ?? ""}
-        initialMethod={data.paymentMethod ?? "cash"}
-        totalAmount={data.totalAmount}
         isOpen={collectionOpen}
         onClose={() => setCollectionOpen(false)}
         onSuccess={() => {
           setCollectionOpen(false);
-          setDelivered(true);
-          setSuccessOpen(true);
-          // Redirect to dashboard as requested or show success
-          // User said: redirige al driver al Dashboard o muestra un mensaje de éxito.
-          // I'll redirect after a short delay or let the user close the success modal
-          import("next/navigation").then(({ useRouter }) => {
-            // We can't use useRouter inside async callback easily if not initialized,
-            // but I can initialize it at top level.
-          });
-        }}
-      />
-
-      {/* Confirm complete modal */}
-      <ConfirmModal
-        open={confirmOpen}
-        title="¿Marcar como entregado?"
-        description="Esta acción no se puede deshacer. ¿Deseas continuar?"
-        confirmText="Sí, marcar"
-        cancelText="Cancelar"
-        loading={confirmLoading}
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={async () => {
-          try {
-            setConfirmLoading(true);
-            const resp = await fetch("/api/delivery/complete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ orderId: data.id }),
-            });
-            if (resp.ok) {
-              setDelivered(true);
-              setSuccessOpen(true);
-            }
-          } finally {
-            setConfirmLoading(false);
-            setConfirmOpen(false);
-          }
-        }}
-      />
-
-      {/* Success info modal */}
-      <ConfirmModal
-        open={successOpen}
-        title="Pedido entregado"
-        description="El pedido se ha completado y cobrado exitosamente."
-        confirmText="Ir al Dashboard"
-        cancelText="Cerrar"
-        onConfirm={() => {
-          setSuccessOpen(false);
           window.location.href = "/repartidor/home";
         }}
-        onCancel={() => setSuccessOpen(false)}
+        orderId={data.id}
+        driverId={data.shipmentDriverId || ""}
+        totalAmount={data.totalAmount}
+        initialMethod={data.paymentMethod || "cash"}
       />
-
-      {/* Placeholder Toast wiring to keep API consistent; hidden by default */}
-      <Toast open={false} message="" onClose={() => {}} />
     </div>
-  );
-}
-
-function AcceptButton({ orderId }: { orderId: string }) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [confirmLoading, setConfirmLoading] = useState(false);
-
-  const requestAccept = async () => {
-    try {
-      setConfirmLoading(true);
-      const resp = await fetch("/api/delivery/accept", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId }),
-      });
-      if (resp.ok) {
-        if (typeof window !== "undefined") window.location.reload();
-      }
-    } finally {
-      setConfirmLoading(false);
-      setConfirmOpen(false);
-    }
-  };
-
-  return (
-    <>
-      <button
-        type="button"
-        onClick={() => setConfirmOpen(true)}
-        className="flex items-center justify-center gap-2 w-full h-9 bg-white border border-black rounded-xl text-[14px] font-medium text-slate-800"
-      >
-        Aceptar pedido
-      </button>
-      <ConfirmModal
-        open={confirmOpen}
-        title="¿Aceptar este pedido?"
-        description="Te asignarás como repartidor de este envío."
-        confirmText="Sí, aceptar"
-        cancelText="Cancelar"
-        loading={confirmLoading}
-        onCancel={() => setConfirmOpen(false)}
-        onConfirm={requestAccept}
-      />
-    </>
-  );
-}
-
-function CompleteButton({
-  enabled,
-  onRequest,
-}: {
-  enabled: boolean;
-  onRequest: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={!enabled}
-      className={
-        enabled
-          ? "flex items-center justify-center gap-2 w-full h-9 bg-[#04BD88] rounded-xl text-[14px] font-medium text-white"
-          : "flex items-center justify-center gap-2 w-full h-9 rounded-xl text-[14px] font-medium bg-gray-200 text-gray-500 cursor-not-allowed"
-      }
-      onClick={enabled ? onRequest : undefined}
-      title={
-        enabled
-          ? "Marcar como entregado"
-          : "Solo disponible para el repartidor asignado"
-      }
-    >
-      Marcar como Entregado
-    </button>
   );
 }
