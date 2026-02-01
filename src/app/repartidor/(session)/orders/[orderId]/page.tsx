@@ -13,18 +13,8 @@ export default async function OrderDetailPage({ params }: Props) {
 
   // 3. El resto del componente funciona igual con el 'orderId' ya resuelto
   return (
-    <div className="px-4 pt-4">
-      <div className="mb-2">
-        <Link
-          href="/repartidor/home"
-          className="inline-flex items-center gap-2 text-sm text-slate-700 hover:underline"
-        >
-          <span className="rounded-full p-2 bg-gray-200 hover:bg-gray-300 transition-colors">
-            <ArrowLeftIcon />
-          </span>
-          Volver
-        </Link>
-      </div>
+    <div className="w-full">
+
       <OrderDetailServer orderId={orderId} />
     </div>
   );
