@@ -205,43 +205,47 @@ export default function UserChatPageClient({
     }
   };
 
-  return (
-    <div className="flex flex-col h-screen font-sans bg-[#F6F6F6] fixed inset-0 z-[100]">
-      {/* Header */}
-      <div className="bg-[#04BD88] pt-safe px-4 pb-4 shadow-md">
-        <div className="flex items-center gap-4 pt-4">
-          <button
-            onClick={() => router.back()}
-            className="w-8 h-8 flex items-center justify-center rounded-full bg-white/20 text-white"
-          >
-            <ArrowLeft size={20} />
-          </button>
+  const handleCall = () => {
+    window.location.href = `tel:+1234567890`; // Logic to get real number should be added based on driver phone
+  };
 
-          <div className="flex-1 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-gray-500 font-bold bg-white overflow-hidden relative">
-              {driverImage ? (
-                <Image
-                  src={driverImage}
-                  alt={driverName}
-                  fill
-                  className="object-cover"
-                />
-              ) : (
-                <div className="text-gray-500 font-bold">
-                  {driverName.charAt(0)}
-                </div>
-              )}
-            </div>
-            <div className="text-white">
-              <div className="font-semibold text-base leading-tight">
-                {driverName}
+  return (
+    <div className="fixed inset-0 z-[100] flex h-screen flex-col bg-white font-sans">
+      {/* Header */}
+      <div className="bg-white pt-safe px-5 pb-2 border-b border-gray-100">
+        <div className="flex items-center justify-between pt-4">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => router.back()}
+              className="w-[31px] h-[31px] flex items-center justify-center rounded-full bg-[#DCDCDC]/30 text-black hover:bg-[#DCDCDC]/50 transition-colors"
+            >
+              <ArrowLeft size={16} />
+            </button>
+
+            <div className="flex items-center gap-3">
+              <div className="relative w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                {driverImage ? (
+                  <Image
+                    src={driverImage}
+                    alt={driverName}
+                    fill
+                    className="object-cover"
+                  />
+                ) : (
+                  <div className="flex items-center justify-center w-full h-full bg-gray-300 text-gray-600 font-bold">
+                    {driverName.charAt(0)}
+                  </div>
+                )}
               </div>
-              <div className="text-white/80 text-xs">Conductor</div>
+              {/* Optional: Show Name if desired */}
             </div>
           </div>
-
-          <button className="w-10 h-10 flex items-center justify-center rounded-full bg-white/20 text-white">
-            <Phone size={20} fill="currentColor" />
+          
+          <button 
+             onClick={handleCall}
+             className="w-[36px] h-[36px] flex items-center justify-center rounded-full bg-[#F4F5F7] text-black hover:bg-gray-200 transition-colors"
+          >
+             <Phone size={18} fill="currentColor" className="text-black" />
           </button>
         </div>
       </div>
@@ -252,7 +256,7 @@ export default function UserChatPageClient({
           {chatError}
         </div>
       )}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#F6F6F6]">
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 bg-white">
         {messages.map((msg) => {
           const isMe = msg.sender_id === currentUserId;
           const isImage = msg.message_type === "image";
@@ -260,17 +264,18 @@ export default function UserChatPageClient({
           return (
             <div
               key={msg.id}
-              className={`flex w-full ${isMe ? "justify-end" : "justify-start"}`}
+              className={`flex w-full flex-col ${isMe ? "items-end" : "items-start"}`}
             >
               <div
-                className={`flex max-w-[80%] ${isMe ? "flex-row-reverse" : "flex-row"} items-end gap-2`}
+                className={`flex max-w-[80%] ${isMe ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`relative px-4 py-2 text-sm shadow-sm ${
-                    isMe
-                      ? "bg-[#595959] text-white rounded-t-lg rounded-bl-lg"
-                      : "bg-white text-[#363D4E] rounded-t-lg rounded-br-lg"
-                  }`}
+                  className={`relative px-4 py-3 shadow-none text-[15px] leading-[22px] tracking-[-0.2px]
+                    ${
+                      isMe
+                        ? "bg-[#595959] text-white rounded-[8px] rounded-tr-none"
+                        : "bg-white text-[#363D4E] rounded-[8px] rounded-tl-none border border-gray-100 shadow-sm"
+                    }`}
                 >
                   {isImage ? (
                     <div
@@ -286,25 +291,24 @@ export default function UserChatPageClient({
                       />
                     </div>
                   ) : (
-                    <p className="whitespace-pre-wrap leading-relaxed">
+                    <p className="whitespace-pre-wrap font-inter font-normal">
                       {msg.content}
                     </p>
                   )}
-                  <div
-                    className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? "text-white/70" : "text-gray-400"}`}
-                  >
-                    {format(new Date(msg.created_at), "h:mm a", { locale: es })}
-                    {isMe && (
-                      <span>
-                        {msg.is_read ? (
-                          <span className="text-blue-300">✓✓</span>
-                        ) : (
-                          <span>✓</span>
-                        )}
-                      </span>
-                    )}
-                  </div>
                 </div>
+              </div>
+               {/* Time & Status - Outside Bubble */}
+              <div 
+                className={`flex items-center gap-1 mt-1 text-[12px] text-[#5C616F] font-inter ${isMe ? "justify-end" : "justify-start pl-1"}`}
+              >
+                <span>
+                  {format(new Date(msg.created_at), "h:mm a", { locale: es })}
+                </span>
+                {isMe && (
+                   <span className="text-[#5C616F]">
+                      {msg.is_read ? "Seen" : ""}
+                   </span>
+                )}
               </div>
             </div>
           );
@@ -313,19 +317,8 @@ export default function UserChatPageClient({
       </div>
 
       {/* Input */}
-      <div className="bg-white p-4 pb-8 border-t border-gray-100 shadow-upper">
-        <div className="flex items-center gap-3 bg-[#F4F5F7] rounded-lg px-3 py-2">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
-            disabled={isUploading}
-          >
-            {isUploading ? (
-              <Loader2 className="animate-spin" size={20} />
-            ) : (
-              <Paperclip size={20} />
-            )}
-          </button>
+      <div className="bg-white px-5 pb-8 pt-2">
+        <div className="relative flex items-center bg-[#F4F5F7] rounded-[8px] px-4 py-3 h-[54px]">
           <input
             type="file"
             ref={fileInputRef}
@@ -338,20 +331,30 @@ export default function UserChatPageClient({
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            placeholder="Escribe un mensaje..."
-            className="flex-1 bg-transparent border-none outline-none text-gray-700 placeholder-gray-400 text-sm h-10"
+            placeholder="Escribe..."
+            className="flex-1 bg-transparent border-none outline-none text-[#484848] placeholder-[#A7AAB2] text-[15px] font-medium font-inter"
           />
-          <button
-            onClick={handleSendMessage}
-            disabled={!newMessage.trim()}
-            className={`p-2 rounded-full transition-colors ${
-              newMessage.trim()
-                ? "bg-[#04BD88] text-white shadow-md active:scale-95"
-                : "bg-gray-200 text-gray-400"
-            }`}
+           <button
+            onClick={() => fileInputRef.current?.click()}
+            className="ml-2 w-8 h-8 rounded-full bg-[#E8EBEE] flex items-center justify-center text-[#040C22] hover:opacity-80 transition-opacity"
+            disabled={isUploading}
           >
-            <Send size={18} />
+            {isUploading ? (
+              <Loader2 className="animate-spin" size={16} />
+            ) : (
+              <div className="transform rotate-45">
+                 <Paperclip size={16} />
+              </div>
+            )}
           </button>
+           {newMessage.trim() && (
+             <button
+               onClick={handleSendMessage}
+               className="ml-2 text-[#04BD88]"
+             >
+               <Send size={20} />
+             </button>
+           )}
         </div>
       </div>
 

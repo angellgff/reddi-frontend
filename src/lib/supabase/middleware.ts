@@ -78,7 +78,7 @@ export async function updateSession(request: NextRequest) {
   try {
     const {
       data: { user: u },
-    } = await withTimeout(supabase.auth.getUser(), 1200);
+    } = await withTimeout(supabase.auth.getUser(), 10000);
     user = u || null;
   } catch (e) {
     Sentry.captureException(e);
