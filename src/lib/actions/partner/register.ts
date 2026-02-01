@@ -133,7 +133,7 @@ export async function registerPartner(
         business_hours: businessHours,
         // Campos por defecto
         is_approved: false,
-        is_active: false,
+        is_active: true,
       })
       .select("id")
       .single();
