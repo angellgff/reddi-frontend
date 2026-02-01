@@ -280,6 +280,7 @@ export async function updateSession(request: NextRequest) {
     "/auth/callback",
     "/productos-y-servicios",
     "/auth/verify-otp",
+    "/repartidor/login",
   ];
   const authPaths = [
     "/login",
@@ -295,6 +296,7 @@ export async function updateSession(request: NextRequest) {
     "/auth/callback",
     "/productos-y-servicios",
     "/auth/verify-otp",
+    "/repartidor/login",
   ];
 
   const isPublicPath = publicPaths.includes(path);
