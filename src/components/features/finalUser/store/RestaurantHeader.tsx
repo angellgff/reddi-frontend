@@ -59,13 +59,13 @@ export default function RestaurantHeader({
       {/* Top Bar Navigation */}
       <div className="absolute top-[26px] left-0 w-full px-[21px] flex justify-between items-center z-20 pointer-events-none">
         <div className="flex items-center gap-3 pointer-events-auto">
-          {/* Back Button */}
-          <button
-            onClick={() => router.back()}
+          {/* Back Button -> Home */}
+          <Link
+            href="/user/home"
             className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center"
           >
             <ChevronLeft className="w-6 h-6 text-black" strokeWidth={1.5} />
-          </button>
+          </Link>
 
           {/* Restaurant Name */}
           <h1 className="text-white text-[24px] font-[800] leading-[24px] font-['Open_Sans'] drop-shadow-md">

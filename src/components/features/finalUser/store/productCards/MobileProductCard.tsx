@@ -28,21 +28,6 @@ interface Props {
 }
 
 export default function MobileProductCard({ product: p, onOpen, onAdd }: Props) {
-  // Hardcoded for design match, or dynamic if backend provides it.
-  // The screenshot shows "Many in Stock" in green using a specific tag style.
-  const stockTag = {
-    text: "Many in Stock",
-    bg: "#CDF8E9",
-    color: "#04BD88",
-  };
-  
-  // Also "Cold Product" tag from screenshot
-  const coldTag = {
-    text: "Cold Product",
-    bg: "#E0F7FA", 
-    color: "#00BCD4",
-  };
-
   const discount = p.discount_percentage ? Number(p.discount_percentage) : 0;
 
   return (
@@ -94,18 +79,23 @@ export default function MobileProductCard({ product: p, onOpen, onAdd }: Props) 
           RD${p.display_price?.toLocaleString("en-US")}
         </span>
 
-        {/* Tags */}
-        <div className="flex flex-col items-start gap-1 mt-1 w-full">
-            <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ backgroundColor: stockTag.bg, color: stockTag.color }}>
-                {stockTag.text}
-            </span>
-             {/* Mocking cold product tag if needed, logic for tags usually comes from backend */}
-             {/* {p.tags?.some(t => t.name === 'Cold') && (
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ backgroundColor: coldTag.bg, color: coldTag.color }}>
-                    {coldTag.text}
-                </span>
-             )} */}
-        </div>
+        {/* Tags - Dynamic from product data */}
+        {p.tags && p.tags.length > 0 && (
+          <div className="flex flex-wrap items-start gap-1 mt-1 w-full">
+            {p.tags.map((tag) => (
+              <span 
+                key={tag.id}
+                className="px-2 py-0.5 rounded-full text-[9px] font-bold" 
+                style={{ 
+                  backgroundColor: tag.color ? `${tag.color}20` : '#CDF8E9', 
+                  color: tag.color || '#04BD88' 
+                }}
+              >
+                {tag.name}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

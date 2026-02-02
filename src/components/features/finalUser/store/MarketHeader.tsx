@@ -59,13 +59,13 @@ export default function MarketHeader({
 
       {/* Top Bar Navigation */}
       <div className="absolute top-[49px] left-0 w-full px-[21px] flex justify-between items-center z-20 pointer-events-none">
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center pointer-events-auto"
-        >
-          <ChevronLeft className="w-6 h-6 text-black" strokeWidth={1.5} />
-        </button>
+          {/* Back Button -> Home */}
+          <Link
+            href="/user/home"
+            className="w-[37px] h-[37px] bg-[#D9D9D9] rounded-full flex items-center justify-center pointer-events-auto"
+          >
+            <ChevronLeft className="w-6 h-6 text-black" strokeWidth={1.5} />
+          </Link>
 
         {/* Right Actions */}
         <div className="flex items-center gap-[15px] pointer-events-auto">
