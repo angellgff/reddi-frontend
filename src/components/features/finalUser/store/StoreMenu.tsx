@@ -134,6 +134,15 @@ export default function StoreMenu({
 
   const shouldShowSearchInMenu = !isRestaurant;
 
+  const handleCategoryClick = (categoryId: string) => {
+    if (!categoryId) {
+      // Just reset the filter on the current page if "Todos" is clicked
+      setSelectedCategory("");
+      return; 
+    }
+    router.push(`/user/stores/${partnerId}/categories?category=${categoryId}`);
+  };
+
   return (
     <div className="space-y-4">
       <ProductDetailsDrawer
@@ -178,7 +187,7 @@ export default function StoreMenu({
             <TagsTabs
               tags={[{ value: "", label: "Todos" }, ...menu.categories]}
               selectedCategoryId={selectedCategory}
-              onSelectCategory={(id) => setSelectedCategory(id)}
+              onSelectCategory={handleCategoryClick}
               disabled={isPending}
             />
           </div>
@@ -203,7 +212,7 @@ export default function StoreMenu({
                 <h2 className="text-xl font-bold text-black">{group.name}</h2>
                 {!isFiltering && (
                   <button
-                    onClick={() => setSelectedCategory(group.id)}
+                    onClick={() => handleCategoryClick(group.id)}
                     className="text-sm font-semibold text-primary hover:opacity-80 transition-opacity"
                   >
                     Ver todos
