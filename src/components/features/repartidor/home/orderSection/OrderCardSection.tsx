@@ -6,7 +6,6 @@ import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { User, History } from "lucide-react";
 
 export default function OrderCardSection({ orders }: { orders: OrderData[] }) {
   const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
@@ -44,13 +43,37 @@ export default function OrderCardSection({ orders }: { orders: OrderData[] }) {
             href="/repartidor/historial"
             className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
           >
-            <History className="w-6 h-6 text-black" />
+            <svg
+              width="15"
+              height="19"
+              viewBox="0 0 15 19"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0 0V18.333L4.583 15.833L7.5 18.333L10.417 15.833L15 18.333V0H0ZM11.667 6.667H3.333V4.167H11.667V6.667Z"
+                fill="black"
+              />
+            </svg>
           </Link>
           <Link
             href="/repartidor/profile"
             className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
           >
-            <User className="w-6 h-6 text-black" />
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 20 20"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fillRule="evenodd"
+                clipRule="evenodd"
+                d="M10 11C12.2091 11 14 9.20914 14 7C14 4.79086 12.2091 3 10 3C7.79086 3 6 4.79086 6 7C6 9.20914 7.79086 11 10 11ZM10 13C6.68629 13 4 15.6863 4 19C4 19.5523 4.44772 20 5 20H15C15.5523 20 16 19.5523 16 19C16 15.6863 13.3137 13 10 13Z"
+                fill="black"
+              />
+            </svg>
           </Link>
         </div>
       </div>
