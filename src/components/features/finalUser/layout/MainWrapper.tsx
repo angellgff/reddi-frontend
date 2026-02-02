@@ -11,7 +11,8 @@ export default function MainWrapper({
   // Check if we are in the store details page
   const isStorePage =
     pathname?.startsWith("/user/stores/") ||
-    pathname?.startsWith("/user/orders/");
+    pathname?.startsWith("/user/orders/") ||
+    pathname === "/user/checkout/payment";
 
   // Default padding for header
   const paddingClass = isStorePage

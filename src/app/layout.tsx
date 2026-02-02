@@ -89,7 +89,6 @@ export default function RootLayout({
         <ReduxProvider>
           <NotificationsProvider>
             {children}
-            <PWAInstallButton />
             <Toaster richColors position="top-center" closeButton />
           </NotificationsProvider>
         </ReduxProvider>

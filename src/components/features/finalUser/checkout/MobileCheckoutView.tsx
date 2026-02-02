@@ -278,9 +278,12 @@ export default function MobileCheckoutView({
             className="w-full flex items-center justify-between mb-4 group"
           >
             <div className="flex items-center gap-3 text-left">
-              <div className="h-6 w-6 rounded-full bg-black flex items-center justify-center shrink-0">
-                <div className="h-2 w-2 bg-white rounded-full" />
-              </div>
+              <Image
+                src="/new-design/checkout/nd-checkout-address.png"
+                alt="Location"
+                width={24}
+                height={24}
+              />
               <div className="flex flex-col">
                 <span className="text-base font-semibold text-black">
                   {displayAddress
@@ -305,7 +308,12 @@ export default function MobileCheckoutView({
                 </span>
               </div>
             </div>
-            <ChevronRight className="h-5 w-5 text-black group-hover:translate-x-1 transition-transform" />
+             <Image
+                src="/new-design/checkout/nd-checkout-right.png"
+                alt="Location"
+                width={12}
+                height={12}
+              />
           </button>
 
           <div className="flex flex-col gap-1">
@@ -322,16 +330,23 @@ export default function MobileCheckoutView({
 
         {/* Delivery Mode Toggle (Rapido vs Programar) */}
         <section className="rounded-md border border-gray-200 p-0 overflow-hidden">
-          <div className="bg-white p-3 flex justify-between items-center border-b border-gray-200">
+          <div className="bg-white p-3 flex justify-between items-center border-[0.5px] border-gray-300 rounded-lg shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="h-5 w-5 border-2 border-gray-600 rounded-full p-0.5 flex items-center justify-center">
-                <div className="h-2.5 w-2.5 bg-gray-600 rounded-full" />
-              </div>
+              <Image 
+                 src="/new-design/checkout/nd-checkout-thunder.png" 
+                 alt="Rápido" 
+                 width={20} 
+                 height={20}
+                 className="object-contain"
+              />
               <div className="flex flex-col">
                 <span className="text-[13px] font-bold text-black">Rapido</span>
-                <span className="text-[10px] text-black">15-22 min</span>
+                <span className="text-[10px] text-gray-500">15-22 min</span>
               </div>
             </div>
+             <div className="h-5 w-5 border-2 border-primary rounded-full p-0.5 flex items-center justify-center">
+                <div className="h-2.5 w-2.5 bg-primary rounded-full" />
+              </div>
           </div>
 
           <div className="bg-gray-50/50 p-3 flex justify-between items-center">
@@ -352,7 +367,7 @@ export default function MobileCheckoutView({
           <h3 className="text-[13px] font-bold text-black mb-3">
             Instrucciones para el repartidor
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 text-xs">
             <button
               onClick={() => setInstruction("door")}
               className={`flex-1 flex items-center justify-center rounded-3xl py-2 px-4 transition-colors ${
@@ -391,7 +406,7 @@ export default function MobileCheckoutView({
             {/* Edit Button */}
             <button
               onClick={() => setIsTipSliderOpen(true)}
-              className={`h-9 w-12 rounded-full border border-gray-200 flex items-center justify-center ${
+              className={`flex-1 h-9 rounded-full border border-gray-200 flex items-center justify-center ${
                 manualTipAmount > 0
                   ? "bg-[#04BD88] text-white border-transparent"
                   : "bg-white text-black"
@@ -439,7 +454,7 @@ export default function MobileCheckoutView({
               className={`flex-1 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
                 manualTipAmount === 0 && tipPercent === 15
                   ? "bg-[#04BD88] text-white"
-                  : "bg-[#F4F5F7] border border-[#D9DCE3] text-black"
+                  : "bg-white border border-gray-200 text-black"
               }`}
             >
               15%
@@ -452,7 +467,7 @@ export default function MobileCheckoutView({
           {/* Payment Method */}
           <button
             onClick={() => setIsPaymentListOpen(true)}
-            className="flex-1 flex items-center justify-between border border-gray-200 rounded-lg p-3 bg-white"
+            className="flex-[1.5] flex items-center justify-between border border-gray-200 rounded-lg p-3 bg-white"
           >
             <div className="flex flex-col items-start gap-1">
               <span className="text-xs font-bold text-black flex items-center gap-1">
@@ -471,10 +486,12 @@ export default function MobileCheckoutView({
                   </>
                 ) : (
                   <>
-                    <div className="h-5 w-8 bg-gray-300 rounded overflow-hidden">
-                      <div className="w-full h-full bg-gray-400/50" />
-                    </div>
-                    <span className="text-xs font-bold">....</span>
+                    <Image
+                      src="/new-design/checkout/nd-checkout-creditcard.png"
+                      alt="Cash"
+                      width={40}
+                      height={40}
+                    />
                   </>
                 )}
               </div>

@@ -2,8 +2,10 @@
 
 import React, { useEffect, useState } from "react";
 import { Share, PlusSquare, Download, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export default function PWAInstallButton() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
@@ -73,6 +75,10 @@ export default function PWAInstallButton() {
   });
 
   if (isStandalone) return null;
+
+  // Only show on login page
+  const isLoginPage = pathname === "/auth/login" || pathname === "/login";
+  if (!isLoginPage) return null;
 
   const shouldShowButton = isIOS || !!deferredPrompt;
 

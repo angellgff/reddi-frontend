@@ -7,11 +7,13 @@ import {
   Folder,
   Wallet,
   Bookmark,
+  LogOut,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { User } from "lucide-react";
+import { logoutAction } from "@/src/lib/actions/auth";
 
 interface ProfilePageClientProps {
   firstName: string;
@@ -93,6 +95,20 @@ export default function ProfilePageClient({
               label="Ajustes"
               href="/repartidor/profile/settings"
             />
+            
+            <button
+              onClick={() => logoutAction()}
+              className="flex items-center justify-between w-full py-5 bg-white hover:bg-gray-50 transition-colors text-left"
+            >
+              <div className="flex items-center gap-5">
+                <div className="text-red-500">
+                  <LogOut className="w-5 h-5" />
+                </div>
+                <span className="text-[16px] font-semibold text-red-500">
+                  Cerrar Sesión
+                </span>
+              </div>
+            </button>
           </div>
         </div>
       </div>

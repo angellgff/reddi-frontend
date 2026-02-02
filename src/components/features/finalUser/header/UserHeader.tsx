@@ -141,7 +141,8 @@ export default function Header({ userData }: { userData: UserHeaderData }) {
 
   if (
     pathname?.startsWith("/user/stores/") ||
-    pathname === "/user/profile/create-address"
+    pathname === "/user/profile/create-address" ||
+    pathname === "/user/checkout/payment"
   ) {
     return null;
   }
