@@ -10,6 +10,7 @@ import HistoryIcon from "@/src/components/icons/HistoryIcon";
 import SupportIcon from "@/src/components/icons/SupportIcon";
 import FinancesIcon from "@/src/components/icons/FinancesIcon";
 import StarIcon from "@/src/components/icons/StarIcon";
+import CategoryIcon from "@/src/components/icons/CategoryIcon";
 import { ComponentType } from "react";
 
 export const iconMap: {
@@ -29,4 +30,5 @@ export const iconMap: {
   history: HistoryIcon,
   support: SupportIcon,
   finances: FinancesIcon,
+  category: CategoryIcon,
 };

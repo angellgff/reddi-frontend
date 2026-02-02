@@ -46,7 +46,7 @@ export default function CartSummary() {
           items.length === 0 ? "pointer-events-none opacity-60" : ""
         }`}
       >
-        Ir al pago
+        Proceder al pago
       </a>
     </div>
   );

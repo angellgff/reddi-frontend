@@ -25,6 +25,11 @@ const navigationLinks: NavLink[] = [
     icon: "product", // ANTES: ProductIcon
   },
   {
+    name: "Categorías",
+    href: `${actualURL}/categorias`,
+    icon: "category",
+  },
+  {
     name: "Historial",
     href: `${actualURL}/history`,
     icon: "history", // ANTES: HistoryIcon
