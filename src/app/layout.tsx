@@ -14,6 +14,7 @@ import ReduxProvider from "@/src/lib/store/ReduxProvider";
 import { NotificationsProvider } from "@/src/lib/notifications/NotificationsContext";
 import { Metadata } from "next";
 import { Toaster } from "sonner";
+import PWAInstallButton from "@/src/components/pwa-install-button";
 
 // Weights: 400 = normal, 500 = medium, 700 = bold, 900 = black
 const poppins = Poppins({
@@ -88,6 +89,7 @@ export default function RootLayout({
         <ReduxProvider>
           <NotificationsProvider>
             {children}
+            <PWAInstallButton />
             <Toaster richColors position="top-center" closeButton />
           </NotificationsProvider>
         </ReduxProvider>
