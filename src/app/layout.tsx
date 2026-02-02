@@ -67,6 +67,11 @@ export const metadata: Metadata = {
   description: "App de entregas",
   // Agrega esta línea:
   manifest: "/manifest.json",
+  icons: {
+    icon: "/favicon.ico", // Icono pestaña
+    shortcut: "/pwa/icons/maskable_icon_x192.png",
+    apple: "/pwa/icons/maskable_icon_x192.png", // CRUCIAL para iOS
+  },
 };
 
 export default function RootLayout({
