@@ -5,6 +5,7 @@ import { OrderData } from "@/src/lib/repartidor/type";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { User, History } from "lucide-react";
 
 export default function OrderCardSection({ orders }: { orders: OrderData[] }) {
@@ -39,12 +40,18 @@ export default function OrderCardSection({ orders }: { orders: OrderData[] }) {
           <span className="text-3xl font-bold font-openSans">Delivery</span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          <Link
+            href="/repartidor/historial"
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+          >
             <History className="w-6 h-6 text-black" />
-          </div>
-          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+          </Link>
+          <Link
+            href="/repartidor/profile"
+            className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center"
+          >
             <User className="w-6 h-6 text-black" />
-          </div>
+          </Link>
         </div>
       </div>
 

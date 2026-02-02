@@ -63,12 +63,7 @@ export default async function DeliveryLayout({
   return (
     <>
       <DriverLocationTracker />
-      <DeliveryLayoutClient
-        header={<DeliveryHeader />}
-        footer={<RepartidorFooter />}
-      >
-        {children}
-      </DeliveryLayoutClient>
+      {children}
     </>
   );
 }
