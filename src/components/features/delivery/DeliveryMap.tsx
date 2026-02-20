@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { createClient } from "@/src/lib/supabase/client";
 import { Database } from "@/src/lib/database.types";
+import { GOOGLE_MAP_ID } from "@/src/lib/constants";
 
 type Driver = Database["public"]["Tables"]["drivers"]["Row"];
 
@@ -39,6 +40,12 @@ export default function DeliveryMap({
   const originMarkerRef = useRef<google.maps.Marker | null>(null);
   const destMarkerRef = useRef<google.maps.Marker | null>(null);
   const polylineRef = useRef<google.maps.Polyline | null>(null);
+
+  const buildMarkerIcon = (url: string) => ({
+    url,
+    scaledSize: new google.maps.Size(36, 36),
+    anchor: new google.maps.Point(18, 36),
+  });
 
   const supabase = createClient();
 
@@ -166,7 +173,7 @@ export default function DeliveryMap({
         const newMap = new Map(mapRef.current as HTMLElement, {
           center: origin || defaultCenter,
           zoom: 13,
-          mapId: "DELIVERY_MAP_ID", // Optional map ID for advanced markers
+          mapId: GOOGLE_MAP_ID,
           disableDefaultUI: false,
         });
 
@@ -187,14 +194,7 @@ export default function DeliveryMap({
         position: origin,
         map,
         title: "Origen",
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#2563EB", // Blue
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: "#FFFFFF",
-        },
+        icon: buildMarkerIcon("/map/store.png"),
       });
     }
 
@@ -204,14 +204,7 @@ export default function DeliveryMap({
         position: destination,
         map,
         title: "Destino",
-        icon: {
-          path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
-          fillColor: "#EF4444", // Red
-          fillOpacity: 1,
-          strokeWeight: 2,
-          strokeColor: "#FFFFFF",
-        },
+        icon: buildMarkerIcon("/map/home.png"),
       });
     }
 
@@ -220,15 +213,7 @@ export default function DeliveryMap({
       driverMarkerRef.current = new google.maps.Marker({
         map,
         title: "Repartidor",
-        // Custom icon for driver (motorcycle or car)
-        icon: {
-          path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z", // Simple map pin for now
-          fillColor: "#10B981", // Green
-          fillOpacity: 1,
-          strokeWeight: 1,
-          scale: 1.5,
-          anchor: new google.maps.Point(12, 22),
-        },
+        icon: buildMarkerIcon("/map/delivery.png"),
       });
     }
 
@@ -267,14 +252,7 @@ export default function DeliveryMap({
           map,
           title: "Repartidor",
           position: driverLocation,
-          icon: {
-            path: "M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z",
-            fillColor: "#10B981",
-            fillOpacity: 1,
-            strokeWeight: 1,
-            scale: 1.5,
-            anchor: new google.maps.Point(12, 22),
-          },
+          icon: buildMarkerIcon("/map/delivery.png"),
           zIndex: 999, // Ensure it's on top
         });
       } else {

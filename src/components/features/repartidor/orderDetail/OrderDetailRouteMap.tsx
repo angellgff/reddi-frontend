@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { GOOGLE_MAP_ID } from "@/src/lib/constants";
 
 type Coords = [number, number]; // [lng, lat]
 
@@ -21,6 +22,15 @@ export default function OrderDetailRouteMap({
   
   const googleMapRef = useRef<google.maps.Map | null>(null);
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const originMarkerRef = useRef<google.maps.Marker | null>(null);
+  const destinationMarkerRef = useRef<google.maps.Marker | null>(null);
+  const driverMarkerRef = useRef<google.maps.Marker | null>(null);
+
+  const buildMarkerIcon = (url: string) => ({
+    url,
+    scaledSize: new google.maps.Size(36, 36),
+    anchor: new google.maps.Point(18, 36),
+  });
 
   useEffect(() => {
     const initMap = async () => {
@@ -46,6 +56,7 @@ export default function OrderDetailRouteMap({
         const map = new Map(mapRef.current, {
           center: { lat: 18.4861, lng: -69.9312 }, // Default fallback (Santo Domingo)
           zoom: 13,
+          mapId: GOOGLE_MAP_ID,
           disableDefaultUI: true, // Clean look like design
           styles: [
              {
@@ -58,7 +69,7 @@ export default function OrderDetailRouteMap({
 
         const directionsRenderer = new DirectionsRenderer({
           map,
-          suppressMarkers: false, // We can let Google handle markers or customize them
+          suppressMarkers: true,
           polylineOptions: {
             strokeColor: "#4285F4", // Google Blue-ish
             strokeWeight: 5,
@@ -84,11 +95,49 @@ export default function OrderDetailRouteMap({
              (result, status) => {
                if (status === google.maps.DirectionsStatus.OK && result) {
                  directionsRenderer.setDirections(result);
+                 const bounds = new google.maps.LatLngBounds();
+                 bounds.extend(originLatLng);
+                 bounds.extend(destLatLng);
+                 if (driverLocation) {
+                   bounds.extend({ lat: driverLocation[1], lng: driverLocation[0] });
+                 }
+                 map.fitBounds(bounds, 48);
                } else {
                  console.error("Directions request failed due to " + status);
                }
              }
            );
+        }
+
+        if (origin) {
+          originMarkerRef.current?.setMap(null);
+          originMarkerRef.current = new google.maps.Marker({
+            position: { lat: origin[1], lng: origin[0] },
+            map,
+            title: "Origen",
+            icon: buildMarkerIcon("/map/store.png"),
+          });
+        }
+
+        if (destination) {
+          destinationMarkerRef.current?.setMap(null);
+          destinationMarkerRef.current = new google.maps.Marker({
+            position: { lat: destination[1], lng: destination[0] },
+            map,
+            title: "Destino",
+            icon: buildMarkerIcon("/map/home.png"),
+          });
+        }
+
+        if (driverLocation) {
+          driverMarkerRef.current?.setMap(null);
+          driverMarkerRef.current = new google.maps.Marker({
+            position: { lat: driverLocation[1], lng: driverLocation[0] },
+            map,
+            title: "Repartidor",
+            icon: buildMarkerIcon("/map/delivery.png"),
+            zIndex: 999,
+          });
         }
 
       } catch (error) {
@@ -98,7 +147,7 @@ export default function OrderDetailRouteMap({
     };
 
     initMap();
-  }, [origin, destination]);
+  }, [origin, destination, driverLocation]);
 
   if (mapError) {
     return (

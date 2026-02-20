@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { GOOGLE_MAP_ID } from "@/src/lib/constants";
 
 interface Props {
   origin: [number, number] | null; // [lng, lat]
@@ -43,7 +44,7 @@ export default function OrderDetailMap({ origin, destination, eta }: Props) {
         zoom: 12,
         mapTypeControl: false,
         streetViewControl: false,
-        mapId: "ORDER_DETAIL_MAP_ID",
+        mapId: GOOGLE_MAP_ID,
       });
 
       mapRef.current = map;

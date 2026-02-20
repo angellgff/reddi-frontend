@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { GOOGLE_MAP_ID } from "@/src/lib/constants";
 
 export type LatLng = [number, number]; // [lat, lng]
 
@@ -54,7 +55,7 @@ export default function OrderMap({
         zoom,
         mapTypeControl: false,
         streetViewControl: false,
-        mapId: "ORDER_MAP_ID",
+        mapId: GOOGLE_MAP_ID,
       });
 
       mapRef.current = map;

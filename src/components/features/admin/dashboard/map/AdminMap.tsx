@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import type { AdminMapData } from "@/src/lib/admin/data/dashboard/getMapData";
+import { GOOGLE_MAP_ID } from "@/src/lib/constants";
 
 interface MapShipment {
   routeGeoJson?: { coordinates: number[][]; type: "LineString" };
@@ -45,7 +46,7 @@ export default function AdminMap({
       const map = new Map(containerRef.current!, {
         center: { lat: 18.4861, lng: -69.9312 }, // Santo Domingo
         zoom: 3,
-        mapId: "ADMIN_MAP_ID",
+        mapId: GOOGLE_MAP_ID,
         mapTypeControl: false,
         streetViewControl: false,
       });

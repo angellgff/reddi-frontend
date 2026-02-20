@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { GOOGLE_MAP_ID } from "@/src/lib/constants";
 
 type LngLat = { longitude: number; latitude: number };
 
@@ -43,7 +44,7 @@ export default function RouteMap({
       const map = new Map(containerRef.current!, {
         center: { lat: origin.latitude, lng: origin.longitude },
         zoom: 13,
-        mapId: "ROUTE_MAP_ID",
+        mapId: GOOGLE_MAP_ID,
         mapTypeControl: false,
         streetViewControl: false,
       });
