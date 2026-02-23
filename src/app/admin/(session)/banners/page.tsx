@@ -23,7 +23,7 @@ export default async function BannersPage({
   // Parallel fetch for shell data
   const statsPromise = getBannersStats();
   const countPromise = getBannersTotalCount({ fromDate, toDate, status });
-  
+
   const [stats, totalCount] = await Promise.all([statsPromise, countPromise]);
 
   return (
@@ -54,12 +54,16 @@ export default async function BannersPage({
           </Link>
         </div>
       </div>
-      
+
       <BannersClientShell
         stats={stats}
         totalCount={totalCount}
         tableBody={
-          <Suspense fallback={<div className="p-4 text-center">Cargando Banners...</div>}>
+          <Suspense
+            fallback={
+              <div className="p-4 text-center">Cargando Banners...</div>
+            }
+          >
             <BannersTableServer searchParams={searchParams} />
           </Suspense>
         }

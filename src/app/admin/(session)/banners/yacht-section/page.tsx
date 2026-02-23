@@ -35,7 +35,8 @@ export default async function YachtBannersPage({
         <div>
           <h1 className="font-semibold text-2xl mb-2">Banners Yacht Section</h1>
           <h2 className="font-roboto font-normal text-[#454545]">
-            Administra banners exclusivos para la sección de yates (GIF máx. 3MB).
+            Administra banners exclusivos para la sección de yates (GIF máx.
+            3MB).
           </h2>
         </div>
 
@@ -62,7 +63,11 @@ export default async function YachtBannersPage({
         stats={stats}
         totalCount={totalCount}
         tableBody={
-          <Suspense fallback={<div className="p-4 text-center">Cargando Banners...</div>}>
+          <Suspense
+            fallback={
+              <div className="p-4 text-center">Cargando Banners...</div>
+            }
+          >
             <BannersTableServer
               searchParams={searchParams}
               placement="yacht_section"

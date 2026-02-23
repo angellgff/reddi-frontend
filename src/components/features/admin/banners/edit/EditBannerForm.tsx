@@ -6,9 +6,7 @@ import Image from "next/image";
 import BasicInput from "@/src/components/basics/BasicInput";
 import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
-import {
-  updateBanner,
-} from "@/src/lib/admin/actions/updateBanner";
+import { updateBanner } from "@/src/lib/admin/actions/updateBanner";
 import { ArrowLeft, Monitor } from "lucide-react";
 import { Database } from "@/src/lib/database.types";
 

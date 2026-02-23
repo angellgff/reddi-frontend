@@ -17,7 +17,9 @@ export default async function getBannersTotalCount({
 }: GetBannersCountParams): Promise<number> {
   const supabase = await createClient();
 
-  let query = supabase.from("banners").select("id", { count: "exact", head: true });
+  let query = supabase
+    .from("banners")
+    .select("id", { count: "exact", head: true });
 
   if (status === "active") {
     query = query.eq("is_active", true);

@@ -122,10 +122,7 @@ export default function CreateBannerForm({
         if (enforceGifOnly && imageFile.type !== "image/gif") {
           newErrors.imageFile = "Solo se permiten archivos GIF.";
         }
-        if (
-          maxFileSizeMb &&
-          imageFile.size > maxFileSizeMb * 1024 * 1024
-        ) {
+        if (maxFileSizeMb && imageFile.size > maxFileSizeMb * 1024 * 1024) {
           newErrors.imageFile = `El archivo no puede superar ${maxFileSizeMb}MB.`;
         }
       }
@@ -154,10 +151,7 @@ export default function CreateBannerForm({
           if (enforceGifOnly && imageFile.type !== "image/gif") {
             fieldErrors.imageFile = "Solo se permiten archivos GIF.";
           }
-          if (
-            maxFileSizeMb &&
-            imageFile.size > maxFileSizeMb * 1024 * 1024
-          ) {
+          if (maxFileSizeMb && imageFile.size > maxFileSizeMb * 1024 * 1024) {
             fieldErrors.imageFile = `El archivo no puede superar ${maxFileSizeMb}MB.`;
           }
         }

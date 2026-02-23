@@ -67,10 +67,10 @@ export default async function getBannersStats(
 
   // 3. Coupons Used (Total usage of coupons that are linked to banners)
   // First get all coupon IDs linked to banners
-  // Then sum their times_used. 
+  // Then sum their times_used.
   // Optimization: If we just want GLOBAL coupons used, we query coupons directly.
   // Assuming "Descuentos Usados" refers to coupons linked to banners context.
-  
+
   // Strategy: Fetch coupons that are referenced in banners table.
   // Actually simpler: join banners and coupons.
   let couponsQuery = supabase

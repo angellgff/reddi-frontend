@@ -28,10 +28,8 @@ export default async function getBannersData({
   const supabase = await createClient();
 
   // Basic query
-  let query = supabase
-    .from("banners")
-    .select(
-      `
+  let query = supabase.from("banners").select(
+    `
       id,
       title,
       image_url,
@@ -46,8 +44,8 @@ export default async function getBannersData({
         count
       )
     `,
-      { count: "exact" }
-    );
+    { count: "exact" },
+  );
 
   // Filters
   if (status === "active") {
@@ -58,7 +56,7 @@ export default async function getBannersData({
 
   // Date Range Filtering
   // Assuming start_date should be >= fromDate and/or <= toDate
-  // Adjust logic based on exact business requirement. 
+  // Adjust logic based on exact business requirement.
   // Common pattern: if fromDate provided, start_date >= fromDate
   if (fromDate) {
     query = query.gte("start_date", fromDate);
@@ -89,8 +87,8 @@ export default async function getBannersData({
     // Determine status string
     let currentStatus: "active" | "inactive" = "inactive";
     if (row.is_active) {
-       // Ideally we also check dates vs now, but strict is_active flag is safer for admin MVP
-       currentStatus = "active";
+      // Ideally we also check dates vs now, but strict is_active flag is safer for admin MVP
+      currentStatus = "active";
     }
 
     // Format Date Range
@@ -105,7 +103,7 @@ export default async function getBannersData({
         year: "2-digit",
       });
     };
-    
+
     const dateRange = `${formatDate(row.start_date)} - ${formatDate(row.end_date)}`;
 
     // Clicks count from relation
