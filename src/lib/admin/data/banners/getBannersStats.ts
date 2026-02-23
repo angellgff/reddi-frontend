@@ -8,23 +8,58 @@ export interface BannersStatsData {
   couponsUsed: number;
 }
 
-export default async function getBannersStats(): Promise<BannersStatsData> {
+export default async function getBannersStats(
+  placement?: string,
+): Promise<BannersStatsData> {
   const supabase = await createClient();
 
   // 1. Total Active Banners
-  const { count: activeBanners, error: activeError } = await supabase
+  let activeBannersQuery = supabase
     .from("banners")
     .select("*", { count: "exact", head: true })
     .eq("is_active", true);
+
+  if (placement) {
+    activeBannersQuery = activeBannersQuery.eq("placement", placement);
+  }
+
+  const { count: activeBanners, error: activeError } = await activeBannersQuery;
 
   if (activeError) {
     console.error("Error fetching active banners count:", activeError);
   }
 
   // 2. Total Clicks
-  const { count: totalClicks, error: clicksError } = await supabase
-    .from("banner_clicks")
-    .select("*", { count: "exact", head: true });
+  let totalClicks = 0;
+  let clicksError: unknown = null;
+
+  if (placement) {
+    const { data: bannerIdsData, error: bannerIdsError } = await supabase
+      .from("banners")
+      .select("id")
+      .eq("placement", placement);
+
+    if (bannerIdsError) {
+      clicksError = bannerIdsError;
+    } else {
+      const bannerIds = (bannerIdsData || []).map((item) => item.id);
+
+      if (bannerIds.length > 0) {
+        const { count, error } = await supabase
+          .from("banner_clicks")
+          .select("*", { count: "exact", head: true })
+          .in("banner_id", bannerIds);
+        totalClicks = count || 0;
+        clicksError = error;
+      }
+    }
+  } else {
+    const { count, error } = await supabase
+      .from("banner_clicks")
+      .select("*", { count: "exact", head: true });
+    totalClicks = count || 0;
+    clicksError = error;
+  }
 
   if (clicksError) {
     console.error("Error fetching total clicks count:", clicksError);
@@ -38,9 +73,15 @@ export default async function getBannersStats(): Promise<BannersStatsData> {
   
   // Strategy: Fetch coupons that are referenced in banners table.
   // Actually simpler: join banners and coupons.
-  const { data: couponsData, error: couponsError } = await supabase
+  let couponsQuery = supabase
     .from("banners")
     .select("coupon_id, coupons(times_used)");
+
+  if (placement) {
+    couponsQuery = couponsQuery.eq("placement", placement);
+  }
+
+  const { data: couponsData, error: couponsError } = await couponsQuery;
 
   let couponsUsed = 0;
   if (!couponsError && couponsData) {
@@ -54,7 +95,7 @@ export default async function getBannersStats(): Promise<BannersStatsData> {
 
   return {
     activeBanners: activeBanners || 0,
-    totalClicks: totalClicks || 0,
+    totalClicks,
     couponsUsed,
   };
 }

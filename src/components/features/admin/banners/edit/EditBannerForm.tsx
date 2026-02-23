@@ -8,9 +8,7 @@ import SelectInput from "@/src/components/basics/SelectInput";
 import FileUploadZone from "@/src/components/basics/FileUploadZone";
 import {
   updateBanner,
-  UpdateBannerState,
 } from "@/src/lib/admin/actions/updateBanner";
-import { uploadFile } from "@/src/lib/storage/uploadFile";
 import { ArrowLeft, Monitor } from "lucide-react";
 import { Database } from "@/src/lib/database.types";
 
@@ -20,12 +18,22 @@ interface EditBannerFormProps {
   categories: { id: string; name: string }[];
   coupons: { id: string; code: string; title: string }[];
   initialData: BannerData;
+  fixedPlacement?: string;
+  hidePlacementSelect?: boolean;
+  redirectPath?: string;
+  enforceGifOnly?: boolean;
+  maxFileSizeMb?: number;
 }
 
 export default function EditBannerForm({
   categories,
   coupons,
   initialData,
+  fixedPlacement,
+  hidePlacementSelect = false,
+  redirectPath = "/admin/banners",
+  enforceGifOnly = false,
+  maxFileSizeMb,
 }: EditBannerFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -36,7 +44,9 @@ export default function EditBannerForm({
   const [categoryId, setCategoryId] = useState(initialData.category_id || "");
   const [couponId, setCouponId] = useState(initialData.coupon_id || "");
   const [actionLink, setActionLink] = useState(initialData.action_link || "");
-  const [placement, setPlacement] = useState(initialData.placement || "");
+  const [placement, setPlacement] = useState(
+    fixedPlacement || initialData.placement || "",
+  );
   const [startDate, setStartDate] = useState(initialData.start_date || "");
   const [endDate, setEndDate] = useState(initialData.end_date || "");
   const [description, setDescription] = useState(initialData.description || "");
@@ -53,7 +63,10 @@ export default function EditBannerForm({
     { id: "home_top", name: "Inicio - Arriba" },
     { id: "search_page", name: "Página de Búsqueda" },
     { id: "test_page", name: "Página de Prueba" },
+    { id: "yacht_section", name: "Sección Yate" },
   ];
+
+  const effectivePlacement = fixedPlacement || placement;
 
   const validateForm = () => {
     const newErrors: { [key: string]: string } = {};
@@ -68,6 +81,15 @@ export default function EditBannerForm({
     // Check constraints: End date must be after Start date
     if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
       newErrors.endDate = "La fecha de fin debe ser posterior a la de inicio";
+    }
+
+    if (imageFile) {
+      if (enforceGifOnly && imageFile.type !== "image/gif") {
+        newErrors.imageFile = "Solo se permiten archivos GIF.";
+      }
+      if (maxFileSizeMb && imageFile.size > maxFileSizeMb * 1024 * 1024) {
+        newErrors.imageFile = `El archivo no puede superar ${maxFileSizeMb}MB.`;
+      }
     }
 
     setErrors(newErrors);
@@ -95,20 +117,7 @@ export default function EditBannerForm({
           isActive,
         });
 
-        let imageUrl = "";
-
-        // 1. Upload new Image if selected
-        if (imageFile) {
-          const uploadedUrl = await uploadFile(imageFile, "banners", "images");
-
-          if (!uploadedUrl) {
-            setGlobalError("Error al subir la imagen. Inténtalo de nuevo.");
-            return;
-          }
-          imageUrl = uploadedUrl;
-        }
-
-        // 2. Update Banner
+        // 1. Update Banner
         const formData = new FormData();
         formData.append("id", initialData.id);
         formData.append("title", title);
@@ -116,18 +125,23 @@ export default function EditBannerForm({
         formData.append("categoryId", categoryId);
         formData.append("couponId", couponId);
         formData.append("actionLink", actionLink);
-        formData.append("placement", placement);
+        formData.append("placement", effectivePlacement);
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
-        if (imageUrl) {
-          formData.append("imageUrl", imageUrl);
+        if (imageFile) {
+          formData.append("imageFile", imageFile);
         }
         formData.append("isActive", String(isActive));
+        formData.append("enforceGifOnly", String(enforceGifOnly));
+
+        if (maxFileSizeMb) {
+          formData.append("maxFileSizeMb", String(maxFileSizeMb));
+        }
 
         const result = await updateBanner({}, formData);
 
         if (result.success) {
-          router.push("/admin/banners");
+          router.push(redirectPath);
         } else {
           setGlobalError(result.message || "Error al actualizar el banner.");
         }
@@ -182,18 +196,20 @@ export default function EditBannerForm({
               error={errors.categoryId}
             />
 
-            <SelectInput
-              id="placement"
-              label="Ubicación (Placement)"
-              options={PLACEMENT_OPTIONS}
-              value={placement}
-              getOptionLabel={(opt) => opt.name}
-              getOptionValue={(opt) => opt.id}
-              onChange={(e) => setPlacement(e.target.value)}
-              placeholder="Seleccione una ubicación"
-              disabled={isPending}
-              error={errors.placement}
-            />
+            {!hidePlacementSelect && (
+              <SelectInput
+                id="placement"
+                label="Ubicación (Placement)"
+                options={PLACEMENT_OPTIONS}
+                value={effectivePlacement}
+                getOptionLabel={(opt) => opt.name}
+                getOptionValue={(opt) => opt.id}
+                onChange={(e) => setPlacement(e.target.value)}
+                placeholder="Seleccione una ubicación"
+                disabled={isPending}
+                error={errors.placement}
+              />
+            )}
 
             <SelectInput
               id="coupon"
@@ -294,6 +310,12 @@ export default function EditBannerForm({
             />
             {errors.imageFile && (
               <p className="text-sm text-red-500 mt-1">{errors.imageFile}</p>
+            )}
+            {enforceGifOnly && (
+              <p className="text-xs text-[#5D5D5D] mt-2">
+                Formato requerido: GIF
+                {maxFileSizeMb ? ` (máx. ${maxFileSizeMb}MB)` : ""}
+              </p>
             )}
 
             <div className="mt-6 flex items-center justify-between">

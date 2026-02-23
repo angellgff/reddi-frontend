@@ -1401,6 +1401,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          onboarding_completed_at: string | null
           phone_number: string | null
           role: Database["public"]["Enums"]["app_role"]
           selected_address: string | null
@@ -1411,6 +1412,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          onboarding_completed_at?: string | null
           phone_number?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           selected_address?: string | null
@@ -1421,6 +1423,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          onboarding_completed_at?: string | null
           phone_number?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           selected_address?: string | null
@@ -1989,6 +1992,18 @@ export type Database = {
         Returns: string
       }
       create_order_v3: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_v4: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_v5: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_v6: {
         Args: { cart_items: Json; checkout_data: Json }
         Returns: string
       }
@@ -2848,7 +2863,11 @@ export type Database = {
         | "restaurant_list"
         | "pharmacy_list"
         | "liquor_list"
-      banner_placement: "home_top" | "search_page" | "test_page"
+      banner_placement:
+        | "home_top"
+        | "search_page"
+        | "test_page"
+        | "yacht_section"
       coupon_discount_type: "percentage" | "fixed_amount"
       coupon_status: "active" | "inactive" | "expired"
       driver_status:
@@ -3049,7 +3068,12 @@ export const Constants = {
         "pharmacy_list",
         "liquor_list",
       ],
-      banner_placement: ["home_top", "search_page", "test_page"],
+      banner_placement: [
+        "home_top",
+        "search_page",
+        "test_page",
+        "yacht_section",
+      ],
       coupon_discount_type: ["percentage", "fixed_amount"],
       coupon_status: ["active", "inactive", "expired"],
       driver_status: [

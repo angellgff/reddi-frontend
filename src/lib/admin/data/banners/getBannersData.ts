@@ -8,6 +8,7 @@ interface GetBannersDataParams {
   fromDate?: string;
   toDate?: string;
   status?: string; // 'active' | 'inactive' | ''
+  placement?: string;
 }
 
 export interface GetBannersResult {
@@ -22,6 +23,7 @@ export default async function getBannersData({
   fromDate,
   toDate,
   status,
+  placement,
 }: GetBannersDataParams): Promise<GetBannersResult> {
   const supabase = await createClient();
 
@@ -63,6 +65,10 @@ export default async function getBannersData({
   }
   if (toDate) {
     query = query.lte("end_date", toDate);
+  }
+
+  if (placement) {
+    query = query.eq("placement", placement);
   }
 
   // Pagination

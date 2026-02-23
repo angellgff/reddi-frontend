@@ -2,8 +2,10 @@
 
 import React from "react";
 import Link from "next/link";
-import { Eye, Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
+import { deleteBanner } from "@/src/lib/admin/actions/deleteBanner";
+import { toast } from "sonner";
 
 // Data type
 export type Banner = {
@@ -18,9 +20,29 @@ export type Banner = {
 
 interface BannersTableProps {
   banners: Banner[];
+  editBasePath?: string;
 }
 
-export default function BannersTable({ banners }: BannersTableProps) {
+export default function BannersTable({
+  banners,
+  editBasePath = "/admin/banners/edit",
+}: BannersTableProps) {
+  const handleDelete = async (id: string) => {
+    const confirmed = window.confirm(
+      "¿Seguro que deseas eliminar este banner? Esta acción no se puede deshacer.",
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await deleteBanner(id);
+      toast.success("Banner eliminado correctamente");
+    } catch (error) {
+      console.error(error);
+      toast.error("No se pudo eliminar el banner");
+    }
+  };
+
   return (
     <div className="overflow-x-auto border border-[#D9DCE3] rounded-xl">
       <table className="w-full text-left border-collapse">
@@ -100,15 +122,20 @@ export default function BannersTable({ banners }: BannersTableProps) {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <button className="text-gray-500 hover:text-gray-700">
-                      <Eye className="w-5 h-5" />
-                    </button>
                     <Link
-                      href={`/admin/banners/edit/${banner.id}`}
+                      href={`${editBasePath}/${banner.id}`}
                       className="text-gray-500 hover:text-gray-700"
                     >
                       <Pencil className="w-5 h-5" />
                     </Link>
+                    <button
+                      onClick={() => handleDelete(banner.id)}
+                      className="text-gray-500 hover:text-red-600"
+                      type="button"
+                      aria-label="Eliminar banner"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 </td>
               </tr>

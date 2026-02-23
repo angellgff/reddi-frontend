@@ -5,8 +5,12 @@ import getBannersData from "@/src/lib/admin/data/banners/getBannersData";
 
 export default async function BannersTableServer({
   searchParams,
+  placement,
+  editBasePath,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  placement?: string;
+  editBasePath?: string;
 }) {
   const params = await searchParams;
   const page = Number(params.page) || 1;
@@ -19,7 +23,8 @@ export default async function BannersTableServer({
     fromDate,
     toDate,
     status,
+    placement,
   });
 
-  return <BannersTable banners={banners} />;
+  return <BannersTable banners={banners} editBasePath={editBasePath} />;
 }

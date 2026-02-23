@@ -6,12 +6,14 @@ interface GetBannersCountParams {
   fromDate?: string;
   toDate?: string;
   status?: string;
+  placement?: string;
 }
 
 export default async function getBannersTotalCount({
   fromDate,
   toDate,
   status,
+  placement,
 }: GetBannersCountParams): Promise<number> {
   const supabase = await createClient();
 
@@ -28,6 +30,10 @@ export default async function getBannersTotalCount({
   }
   if (toDate) {
     query = query.lte("end_date", toDate);
+  }
+
+  if (placement) {
+    query = query.eq("placement", placement);
   }
 
   const { count, error } = await query;

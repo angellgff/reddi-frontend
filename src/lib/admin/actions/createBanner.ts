@@ -26,12 +26,29 @@ export async function createBanner(
   const endDate = formData.get("endDate") as string;
   const isActive = formData.get("isActive") === "true";
   const placement = formData.get("placement") as string;
+  const enforceGifOnly = formData.get("enforceGifOnly") === "true";
+  const maxFileSizeMbRaw = formData.get("maxFileSizeMb") as string;
+  const maxFileSizeMb = Number(maxFileSizeMbRaw || "0");
 
   /* Handle Image Upload */
   const imageFile = formData.get("imageFile") as File;
   let imageUrl = formData.get("imageUrl") as string;
 
   if (imageFile && imageFile.size > 0) {
+    if (enforceGifOnly && imageFile.type !== "image/gif") {
+      return {
+        success: false,
+        message: "Solo se permiten archivos GIF para este módulo.",
+      };
+    }
+
+    if (maxFileSizeMb > 0 && imageFile.size > maxFileSizeMb * 1024 * 1024) {
+      return {
+        success: false,
+        message: `El archivo excede el tamaño máximo permitido de ${maxFileSizeMb}MB.`,
+      };
+    }
+
     const fileExt = imageFile.name.split(".").pop();
     const fileName = `${uuid()}.${fileExt}`;
     const filePath = `images/${fileName}`;
@@ -81,7 +98,9 @@ export async function createBanner(
   // Validate placement if provided
   if (
     placement &&
-    !["home_top", "search_page", "test_page"].includes(placement)
+    !["home_top", "search_page", "test_page", "yacht_section"].includes(
+      placement,
+    )
   ) {
     console.error("Validation failed: Invalid placement");
     return {

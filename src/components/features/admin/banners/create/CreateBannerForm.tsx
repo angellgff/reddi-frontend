@@ -25,6 +25,11 @@ import {
 interface CreateBannerFormProps {
   categories: { id: string; name: string }[];
   coupons: { id: string; code: string; title: string }[];
+  fixedPlacement?: string;
+  hidePlacementSelect?: boolean;
+  redirectPath?: string;
+  enforceGifOnly?: boolean;
+  maxFileSizeMb?: number;
 }
 
 const bannerSchema = z
@@ -65,6 +70,11 @@ const bannerSchema = z
 export default function CreateBannerForm({
   categories,
   coupons,
+  fixedPlacement,
+  hidePlacementSelect = false,
+  redirectPath = "/admin/banners",
+  enforceGifOnly = false,
+  maxFileSizeMb,
 }: CreateBannerFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -73,7 +83,7 @@ export default function CreateBannerForm({
   const [categoryId, setCategoryId] = useState("");
   const [couponId, setCouponId] = useState("");
   const [actionLink, setActionLink] = useState("");
-  const [placement, setPlacement] = useState("");
+  const [placement, setPlacement] = useState(fixedPlacement || "");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [description, setDescription] = useState("");
@@ -87,7 +97,10 @@ export default function CreateBannerForm({
     { id: "home_top", name: "Inicio - Arriba" },
     { id: "search_page", name: "Página de Búsqueda" },
     { id: "test_page", name: "Página de Prueba" },
+    { id: "yacht_section", name: "Sección Yate" },
   ];
+
+  const effectivePlacement = fixedPlacement || placement;
 
   const validateForm = () => {
     try {
@@ -96,7 +109,7 @@ export default function CreateBannerForm({
         categoryId,
         couponId,
         actionLink,
-        placement,
+        placement: effectivePlacement,
         startDate,
         endDate,
         description,
@@ -105,6 +118,16 @@ export default function CreateBannerForm({
       const newErrors: { [key: string]: string } = {};
       if (!imageFile) {
         newErrors.imageFile = "La imagen es obligatoria";
+      } else {
+        if (enforceGifOnly && imageFile.type !== "image/gif") {
+          newErrors.imageFile = "Solo se permiten archivos GIF.";
+        }
+        if (
+          maxFileSizeMb &&
+          imageFile.size > maxFileSizeMb * 1024 * 1024
+        ) {
+          newErrors.imageFile = `El archivo no puede superar ${maxFileSizeMb}MB.`;
+        }
       }
 
       setErrors(newErrors);
@@ -127,6 +150,16 @@ export default function CreateBannerForm({
 
         if (!imageFile) {
           fieldErrors.imageFile = "La imagen es obligatoria";
+        } else {
+          if (enforceGifOnly && imageFile.type !== "image/gif") {
+            fieldErrors.imageFile = "Solo se permiten archivos GIF.";
+          }
+          if (
+            maxFileSizeMb &&
+            imageFile.size > maxFileSizeMb * 1024 * 1024
+          ) {
+            fieldErrors.imageFile = `El archivo no puede superar ${maxFileSizeMb}MB.`;
+          }
         }
 
         setErrors(fieldErrors);
@@ -153,10 +186,15 @@ export default function CreateBannerForm({
         formData.append("categoryId", categoryId);
         formData.append("couponId", couponId);
         formData.append("actionLink", actionLink);
-        formData.append("placement", placement);
+        formData.append("placement", effectivePlacement);
         formData.append("startDate", startDate);
         formData.append("endDate", endDate);
         formData.append("isActive", String(isActive));
+        formData.append("enforceGifOnly", String(enforceGifOnly));
+
+        if (maxFileSizeMb) {
+          formData.append("maxFileSizeMb", String(maxFileSizeMb));
+        }
 
         if (imageFile) {
           console.log("Adjuntando archivo de imagen:", imageFile.name);
@@ -178,7 +216,7 @@ export default function CreateBannerForm({
         if (result.success) {
           toast.success("Banner creado exitosamente");
           // Add a small delay/check before pushing to ensure user sees success
-          router.push("/admin/banners");
+          router.push(redirectPath);
         } else {
           console.error("Error en server action:", result.message);
           toast.error(result.message || "Error al crear el banner.");
@@ -234,18 +272,20 @@ export default function CreateBannerForm({
               error={errors.categoryId}
             />
 
-            <SelectInput
-              id="placement"
-              label="Ubicación (Placement)"
-              options={PLACEMENT_OPTIONS}
-              value={placement}
-              getOptionLabel={(opt) => opt.name}
-              getOptionValue={(opt) => opt.id}
-              onChange={(e) => setPlacement(e.target.value)}
-              placeholder="Seleccione una ubicación"
-              disabled={isPending}
-              error={errors.placement}
-            />
+            {!hidePlacementSelect && (
+              <SelectInput
+                id="placement"
+                label="Ubicación (Placement)"
+                options={PLACEMENT_OPTIONS}
+                value={effectivePlacement}
+                getOptionLabel={(opt) => opt.name}
+                getOptionValue={(opt) => opt.id}
+                onChange={(e) => setPlacement(e.target.value)}
+                placeholder="Seleccione una ubicación"
+                disabled={isPending}
+                error={errors.placement}
+              />
+            )}
 
             <SelectInput
               id="coupon"
@@ -336,6 +376,12 @@ export default function CreateBannerForm({
             />
             {errors.imageFile && (
               <p className="text-sm text-red-500 mt-1">{errors.imageFile}</p>
+            )}
+            {enforceGifOnly && (
+              <p className="text-xs text-[#5D5D5D] mt-2">
+                Formato requerido: GIF
+                {maxFileSizeMb ? ` (máx. ${maxFileSizeMb}MB)` : ""}
+              </p>
             )}
 
             <div className="mt-6 flex items-center justify-between">
