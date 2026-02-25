@@ -23,10 +23,12 @@ function mapStatus(s: string | null | undefined): OrderStatus {
 function minutesRemaining(
   createdAt: string,
   status: OrderStatus,
-  scheduledAt?: string | null
+  scheduledAt?: string | null,
 ): number {
   if (status === "scheduled" && scheduledAt) {
-    const diffMin = Math.ceil((new Date(scheduledAt).getTime() - Date.now()) / 60000);
+    const diffMin = Math.ceil(
+      (new Date(scheduledAt).getTime() - Date.now()) / 60000,
+    );
     return Math.max(0, diffMin);
   }
 
@@ -67,7 +69,11 @@ export default async function getOrderHeaderData(id: string) {
 
   return {
     status: mappedStatus,
-    timeRemaining: minutesRemaining(data.created_at, mappedStatus, data.scheduled_at),
+    timeRemaining: minutesRemaining(
+      data.created_at,
+      mappedStatus,
+      data.scheduled_at,
+    ),
     customerName,
   } as const;
 }

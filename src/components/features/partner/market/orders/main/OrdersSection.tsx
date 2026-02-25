@@ -14,15 +14,18 @@ interface OrdersSectionProps {
   orders: PartnerOrderCardProps[];
 }
 
-export default function OrdersSection({ tabs, orders: initialOrders }: OrdersSectionProps) {
+export default function OrdersSection({
+  tabs,
+  orders: initialOrders,
+}: OrdersSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
+    searchParams.get("category") || "",
   );
   const [isPending, startTransition] = useTransition();
-  
+
   // Realtime hook
   const orders = useRealtimeOrders(initialOrders);
 
@@ -65,9 +68,7 @@ export default function OrdersSection({ tabs, orders: initialOrders }: OrdersSec
             <Spinner />
           </div>
         ) : orders.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            {emptyMessage}
-          </div>
+          <div className="p-6 text-center text-gray-500">{emptyMessage}</div>
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (

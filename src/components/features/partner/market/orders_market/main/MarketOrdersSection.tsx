@@ -22,7 +22,7 @@ export default function MarketOrdersSection({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
+    searchParams.get("category") || "",
   );
   const [isPending, startTransition] = useTransition();
 
@@ -30,7 +30,9 @@ export default function MarketOrdersSection({
   // Nota: MarketPartnerOrderCardProps es compatible con PartnerOrderCardProps
   // Si TS se queja, tendremos que unificar tipos o castear.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const orders = useRealtimeOrders(initialOrders as any) as unknown as MarketPartnerOrderCardProps[];
+  const orders = useRealtimeOrders(
+    initialOrders as any,
+  ) as unknown as MarketPartnerOrderCardProps[];
 
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
@@ -68,9 +70,7 @@ export default function MarketOrdersSection({
             <Spinner />
           </div>
         ) : orders.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            {emptyMessage}
-          </div>
+          <div className="p-6 text-center text-gray-500">{emptyMessage}</div>
         ) : (
           <div className="space-y-6">
             {orders.map((order) => (

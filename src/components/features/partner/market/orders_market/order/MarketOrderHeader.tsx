@@ -45,7 +45,10 @@ export default function MarketOrderHeader({
       const result = await acceptOrder(id);
 
       if (!result.success) {
-        console.error("Error updating order status to preparing:", result.error);
+        console.error(
+          "Error updating order status to preparing:",
+          result.error,
+        );
         return;
       }
 

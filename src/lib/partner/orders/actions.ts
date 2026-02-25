@@ -26,10 +26,12 @@ function mapStatus(s: string | null | undefined): OrderStatus {
 function minutesRemaining(
   createdAt: string,
   status: OrderStatus,
-  scheduledAt?: string | null
+  scheduledAt?: string | null,
 ): number {
   if (status === "scheduled" && scheduledAt) {
-    const diffMin = Math.ceil((new Date(scheduledAt).getTime() - Date.now()) / 60000);
+    const diffMin = Math.ceil(
+      (new Date(scheduledAt).getTime() - Date.now()) / 60000,
+    );
     return Math.max(0, diffMin);
   }
 
@@ -41,14 +43,14 @@ function minutesRemaining(
 }
 
 export async function fetchOrderCardData(
-  orderId: string
+  orderId: string,
 ): Promise<PartnerOrderCardProps | null> {
   const supabase = await createClient();
 
   const { data: order, error } = await supabase
     .from("orders")
     .select(
-      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))"
+      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))",
     )
     .eq("id", orderId)
     .single();
@@ -65,7 +67,7 @@ export async function fetchOrderCardData(
   const items = Array.isArray(order.order_detail) ? order.order_detail : [];
   const productsCount = items.reduce(
     (s: number, it) => s + (it.quantity ?? 0),
-    0
+    0,
   );
   const paymentMethod = order.payment_intent_id ? "Tarjeta" : "Débito";
   const deliveryTime = order.scheduled_at
@@ -85,7 +87,11 @@ export async function fetchOrderCardData(
     customerName: fullName || "Cliente",
     orderId: order.id,
     status: mappedStatus,
-    timeRemaining: minutesRemaining(order.created_at, mappedStatus, order.scheduled_at),
+    timeRemaining: minutesRemaining(
+      order.created_at,
+      mappedStatus,
+      order.scheduled_at,
+    ),
     products: `${productsCount} producto(s)`,
     total: order.total_amount ?? 0,
     paymentMethod,

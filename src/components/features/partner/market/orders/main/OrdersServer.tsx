@@ -26,10 +26,5 @@ export default async function OrdersServer({
     { value: "delivered", label: "Entregados" },
   ];
 
-  return (
-    <OrdersSection
-      tabs={hardCodedTabs}
-      orders={mockedOrders}
-    />
-  );
+  return <OrdersSection tabs={hardCodedTabs} orders={mockedOrders} />;
 }

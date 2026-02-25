@@ -25,10 +25,12 @@ function mapStatus(s: string | null | undefined): OrderStatus {
 function minutesRemaining(
   createdAt: string,
   status: OrderStatus,
-  scheduledAt?: string | null
+  scheduledAt?: string | null,
 ): number {
   if (status === "scheduled" && scheduledAt) {
-    const diffMin = Math.ceil((new Date(scheduledAt).getTime() - Date.now()) / 60000);
+    const diffMin = Math.ceil(
+      (new Date(scheduledAt).getTime() - Date.now()) / 60000,
+    );
     return Math.max(0, diffMin);
   }
 
@@ -41,7 +43,7 @@ function minutesRemaining(
 
 export default async function getOrdersListData(
   category: string | string[] | undefined,
-  cursor?: string | string[] | undefined
+  cursor?: string | string[] | undefined,
 ): Promise<PartnerOrderCardProps[]> {
   const supabase = await createClient();
 
@@ -62,7 +64,7 @@ export default async function getOrdersListData(
   if (!partner?.id) return [];
 
   // Filtros por categoría
-  const cat = Array.isArray(category) ? category[0] ?? "" : category ?? "";
+  const cat = Array.isArray(category) ? (category[0] ?? "") : (category ?? "");
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
@@ -70,7 +72,7 @@ export default async function getOrdersListData(
   let query = supabase
     .from("orders")
     .select(
-      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))"
+      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))",
     )
     .eq("partner_id", partner.id)
     // Excluir pedidos que no se han pagado o fallaron
@@ -82,7 +84,12 @@ export default async function getOrdersListData(
   if (cat === "today") {
     query = query.gte("created_at", todayStart.toISOString());
   } else if (cat === "scheduled") {
-    query = query.in("status", ["scheduled", "programmed", "programada", "programado"]);
+    query = query.in("status", [
+      "scheduled",
+      "programmed",
+      "programada",
+      "programado",
+    ]);
   } else if (cat === "pending") {
     query = query.in("status", ["pending", "confirmed"]);
   } else if (cat === "preparation") {
@@ -101,7 +108,7 @@ export default async function getOrdersListData(
 
   // Join manual con profiles para obtener el nombre del cliente
   const userIds = Array.from(
-    new Set((data ?? []).map((o) => o.user_id).filter(Boolean))
+    new Set((data ?? []).map((o) => o.user_id).filter(Boolean)),
   );
   const profilesMap = new Map<
     string,
@@ -127,7 +134,7 @@ export default async function getOrdersListData(
     const items = Array.isArray(o.order_detail) ? o.order_detail : [];
     const productsCount = items.reduce(
       (s: number, it) => s + (it.quantity ?? 0),
-      0
+      0,
     );
     const paymentMethod = o.payment_intent_id ? "Tarjeta" : "Débito";
     const deliveryTime = o.scheduled_at
@@ -145,7 +152,11 @@ export default async function getOrdersListData(
       customerName: fullName || "Cliente",
       orderId: o.id,
       status: mappedStatus,
-      timeRemaining: minutesRemaining(o.created_at, mappedStatus, o.scheduled_at),
+      timeRemaining: minutesRemaining(
+        o.created_at,
+        mappedStatus,
+        o.scheduled_at,
+      ),
       products: `${productsCount} producto(s)`,
       total: o.total_amount ?? 0,
       paymentMethod,
