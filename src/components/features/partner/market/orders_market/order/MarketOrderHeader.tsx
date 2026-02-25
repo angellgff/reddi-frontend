@@ -67,6 +67,12 @@ export default function MarketOrderHeader({
   };
 
   const isAvailable = status === "new" || status === "pending";
+  const etaLabel =
+    status === "scheduled"
+      ? timeRemaining > 0
+        ? `Inicia en ${timeRemaining} min`
+        : "Programado para ahora"
+      : `${timeRemaining} min restantes`;
 
   return (
     <>
@@ -119,6 +125,12 @@ export default function MarketOrderHeader({
             >
               Pedido cancelado
             </button>
+          ) : status === "scheduled" ? (
+            <button
+              className={`${buttonStyles} bg-amber-100 text-amber-700 opacity-80 cursor-not-allowed`}
+            >
+              Pedido programado
+            </button>
           ) : null}
         </div>
       </div>
@@ -130,7 +142,7 @@ export default function MarketOrderHeader({
         </span>
         <div className="flex items-center gap-2 text-sm text-gray-600">
           <ClockOrdersIcon className="text-primary h-4 w-4" />
-          <span className="font-inter">{timeRemaining} min restantes</span>
+          <span className="font-inter">{etaLabel}</span>
         </div>
       </div>
     </>

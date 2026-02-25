@@ -6,6 +6,13 @@ import { OrderStatus } from "@/src/components/features/partner/market/orders/mai
 function mapStatus(s: string | null | undefined): OrderStatus {
   const v = (s ?? "").toLowerCase();
   if (v === "confirmed") return "new";
+  if (
+    v === "scheduled" ||
+    v === "programmed" ||
+    v === "programada" ||
+    v === "programado"
+  )
+    return "scheduled";
   if (v === "preparing") return "preparation";
   if (v === "on_the_way") return "preparation";
   if (v === "delivered") return "delivered";
@@ -13,7 +20,16 @@ function mapStatus(s: string | null | undefined): OrderStatus {
   return "pending";
 }
 
-function minutesRemaining(createdAt: string): number {
+function minutesRemaining(
+  createdAt: string,
+  status: OrderStatus,
+  scheduledAt?: string | null
+): number {
+  if (status === "scheduled" && scheduledAt) {
+    const diffMin = Math.ceil((new Date(scheduledAt).getTime() - Date.now()) / 60000);
+    return Math.max(0, diffMin);
+  }
+
   const ETA_MIN = 20;
   const start = new Date(createdAt).getTime();
   const now = Date.now();
@@ -25,7 +41,7 @@ export default async function getOrderHeaderData(id: string) {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("orders")
-    .select("id, created_at, status, user_id")
+    .select("id, created_at, status, scheduled_at, user_id")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
@@ -47,9 +63,11 @@ export default async function getOrderHeaderData(id: string) {
     }
   }
 
+  const mappedStatus = mapStatus(data.status);
+
   return {
-    status: mapStatus(data.status),
-    timeRemaining: minutesRemaining(data.created_at),
+    status: mappedStatus,
+    timeRemaining: minutesRemaining(data.created_at, mappedStatus, data.scheduled_at),
     customerName,
   } as const;
 }

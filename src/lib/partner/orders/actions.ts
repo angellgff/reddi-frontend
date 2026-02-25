@@ -9,6 +9,13 @@ import {
 function mapStatus(s: string | null | undefined): OrderStatus {
   const v = (s ?? "").toLowerCase();
   if (v === "confirmed") return "new";
+  if (
+    v === "scheduled" ||
+    v === "programmed" ||
+    v === "programada" ||
+    v === "programado"
+  )
+    return "scheduled";
   if (v === "preparing") return "preparation";
   if (v === "on_the_way") return "preparation";
   if (v === "delivered") return "delivered";
@@ -16,7 +23,16 @@ function mapStatus(s: string | null | undefined): OrderStatus {
   return "pending";
 }
 
-function minutesRemaining(createdAt: string): number {
+function minutesRemaining(
+  createdAt: string,
+  status: OrderStatus,
+  scheduledAt?: string | null
+): number {
+  if (status === "scheduled" && scheduledAt) {
+    const diffMin = Math.ceil((new Date(scheduledAt).getTime() - Date.now()) / 60000);
+    return Math.max(0, diffMin);
+  }
+
   const ETA_MIN = 20;
   const start = new Date(createdAt).getTime();
   const now = Date.now();
@@ -63,12 +79,13 @@ export async function fetchOrderCardData(
     .filter(Boolean)
     .join(" ")
     .trim();
+  const mappedStatus = mapStatus(order.status);
 
   return {
     customerName: fullName || "Cliente",
     orderId: order.id,
-    status: mapStatus(order.status),
-    timeRemaining: minutesRemaining(order.created_at),
+    status: mappedStatus,
+    timeRemaining: minutesRemaining(order.created_at, mappedStatus, order.scheduled_at),
     products: `${productsCount} producto(s)`,
     total: order.total_amount ?? 0,
     paymentMethod,

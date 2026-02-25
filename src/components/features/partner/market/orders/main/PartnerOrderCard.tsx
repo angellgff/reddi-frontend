@@ -5,6 +5,7 @@ import Link from "next/dist/client/link";
 // Como se guardará el estado en el servidor
 export type OrderStatus =
   | "new"
+  | "scheduled"
   | "preparation"
   | "delivered"
   | "pending"
@@ -23,6 +24,7 @@ export type PartnerOrderCardProps = {
 
 export const badgeLabels: Record<PartnerOrderCardProps["status"], string> = {
   new: "Nuevo",
+  scheduled: "Programado",
   preparation: "En preparación",
   delivered: "Entregado",
   pending: "Pendiente",
@@ -31,6 +33,7 @@ export const badgeLabels: Record<PartnerOrderCardProps["status"], string> = {
 
 export const badgeColors: Record<PartnerOrderCardProps["status"], string> = {
   new: "bg-blue-100 text-blue-600",
+  scheduled: "bg-amber-100 text-amber-700",
   preparation: "bg-[#DCD2FF] text-[#7F27FF]",
   delivered: "bg-green-100 text-green-600",
   pending: "bg-red-100 text-red-600",
@@ -57,6 +60,13 @@ export default function OrderCard({
   paymentMethod,
   deliveryTime,
 }: PartnerOrderCardProps) {
+  const etaLabel =
+    status === "scheduled"
+      ? timeRemaining > 0
+        ? `Inicia en ${timeRemaining} min`
+        : "Programado para ahora"
+      : `${timeRemaining} min restantes`;
+
   return (
     // Contenedor principal de la tarjeta
     <div className="bg-white rounded-xl border border-gray-200 font-sans">
@@ -79,7 +89,7 @@ export default function OrderCard({
           </span>
           <div className="flex items-center gap-2 text-sm text-gray-600">
             <ClockOrdersIcon className="text-primary h-4 w-4" />
-            <span className="font-inter">{timeRemaining} min restantes</span>
+            <span className="font-inter">{etaLabel}</span>
           </div>
         </div>
       </div>

@@ -42,6 +42,11 @@ export default function OrdersSection({ tabs, orders: initialOrders }: OrdersSec
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
+  const emptyMessage =
+    selectedCategory === "scheduled"
+      ? "No hay pedidos programados por ahora."
+      : "No hay pedidos en esta categoría.";
+
   return (
     <div className="space-y-8">
       {/* Tabs de categorías */}
@@ -53,7 +58,7 @@ export default function OrdersSection({ tabs, orders: initialOrders }: OrdersSec
           disabled={isPending}
         />
       </div>
-      <div className="h-screen overflow-auto">
+      <div className="max-h-[calc(100vh-240px)] overflow-y-auto pr-1">
         {/* Sección de órdenes */}
         {isPending ? (
           <div className="flex items-center justify-center h-full">
@@ -61,7 +66,7 @@ export default function OrdersSection({ tabs, orders: initialOrders }: OrdersSec
           </div>
         ) : orders.length === 0 ? (
           <div className="p-6 text-center text-gray-500">
-            No hay pedidos en esta categoría.
+            {emptyMessage}
           </div>
         ) : (
           <div className="space-y-6">

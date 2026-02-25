@@ -8,6 +8,13 @@ import {
 function mapStatus(s: string | null | undefined): OrderStatus {
   const v = (s ?? "").toLowerCase();
   if (v === "confirmed") return "new";
+  if (
+    v === "scheduled" ||
+    v === "programmed" ||
+    v === "programada" ||
+    v === "programado"
+  )
+    return "scheduled";
   if (v === "preparing") return "preparation";
   if (v === "on_the_way") return "preparation";
   if (v === "delivered") return "delivered";
@@ -15,7 +22,16 @@ function mapStatus(s: string | null | undefined): OrderStatus {
   return "pending";
 }
 
-function minutesRemaining(createdAt: string): number {
+function minutesRemaining(
+  createdAt: string,
+  status: OrderStatus,
+  scheduledAt?: string | null
+): number {
+  if (status === "scheduled" && scheduledAt) {
+    const diffMin = Math.ceil((new Date(scheduledAt).getTime() - Date.now()) / 60000);
+    return Math.max(0, diffMin);
+  }
+
   const ETA_MIN = 20; // ETA base si no hay dato
   const start = new Date(createdAt).getTime();
   const now = Date.now();
@@ -65,10 +81,12 @@ export default async function getOrdersListData(
 
   if (cat === "today") {
     query = query.gte("created_at", todayStart.toISOString());
+  } else if (cat === "scheduled") {
+    query = query.in("status", ["scheduled", "programmed", "programada", "programado"]);
   } else if (cat === "pending") {
-    query = query.in("status", ["pending"]);
+    query = query.in("status", ["pending", "confirmed"]);
   } else if (cat === "preparation") {
-    query = query.in("status", ["preparing", "out_for_delivery"]);
+    query = query.in("status", ["preparing", "out_for_delivery", "on_the_way"]);
   } else if (cat === "delivered") {
     query = query.eq("status", "delivered");
   }
@@ -105,6 +123,7 @@ export default async function getOrdersListData(
 
   // Adaptar al shape de PartnerOrderCardProps
   const list: PartnerOrderCardProps[] = (data ?? []).map((o) => {
+    const mappedStatus = mapStatus(o.status);
     const items = Array.isArray(o.order_detail) ? o.order_detail : [];
     const productsCount = items.reduce(
       (s: number, it) => s + (it.quantity ?? 0),
@@ -125,8 +144,8 @@ export default async function getOrdersListData(
     return {
       customerName: fullName || "Cliente",
       orderId: o.id,
-      status: mapStatus(o.status),
-      timeRemaining: minutesRemaining(o.created_at),
+      status: mappedStatus,
+      timeRemaining: minutesRemaining(o.created_at, mappedStatus, o.scheduled_at),
       products: `${productsCount} producto(s)`,
       total: o.total_amount ?? 0,
       paymentMethod,
@@ -135,4 +154,33 @@ export default async function getOrdersListData(
   });
 
   return list;
+}
+
+export async function getScheduledOrdersCount(): Promise<number> {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return 0;
+
+  const { data: partner, error: partnerErr } = await supabase
+    .from("partners")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle();
+  if (partnerErr) throw partnerErr;
+  if (!partner?.id) return 0;
+
+  const { count, error } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("partner_id", partner.id)
+    .neq("status", "awaiting_payment")
+    .neq("status", "payment_failed")
+    .in("status", ["scheduled", "programmed", "programada", "programado"]);
+
+  if (error) throw error;
+  return count ?? 0;
 }
