@@ -36,7 +36,7 @@ export default function PasswordInput({
     <div>
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700 mb-1 font-roboto"
+        className="block text-sm font-medium text-black mb-1 font-roboto"
       >
         {label}
         {/* Corregido de "Nombre" a "Contraseña" para mayor claridad */}

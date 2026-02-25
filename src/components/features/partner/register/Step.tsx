@@ -13,31 +13,26 @@ export default function StepperHeader({
   isActive,
   isCompleted,
 }: StepProps) {
-  const circleClasses = `
-    w-8 h-8 rounded-full flex items-center justify-center font-bold text-lg
-    transition-all duration-300 ease-in-out
-    ${isActive ? "bg-primary text-white scale-110" : ""}
-    ${isCompleted ? "bg-primary text-white" : ""}
-    ${!isActive && !isCompleted ? "bg-gray-200 text-gray-500" : ""}
-  `;
+  const circleClasses =
+    "h-8 w-8 rounded-full bg-white text-black flex items-center justify-center text-base font-medium";
 
-  const labelClasses = `
-    ml-3 text-sm sm:text-base font-medium
-    transition-colors duration-300 ease-in-out
-    ${isActive ? "text-primary" : "text-gray-500"}
-  `;
+  const labelClasses =
+    "text-sm font-medium leading-5 text-white transition-opacity duration-200";
 
   return (
-    <div className="flex items-center">
+    <div className="flex items-center gap-2">
       <div className={circleClasses}>
         {isCompleted ? (
-          // Muestra un checkmark si el paso está completado
-          <CheckBoxIcon className="h-5 w-5" />
+          <CheckBoxIcon className="h-4 w-4" />
         ) : (
           <span className="cursor-default">{number}</span>
         )}
       </div>
-      <span className={`${labelClasses} cursor-default`}>{label}</span>
+      <span
+        className={`${labelClasses} cursor-default ${isActive ? "opacity-100" : "opacity-90"}`}
+      >
+        {label}
+      </span>
     </div>
   );
 }

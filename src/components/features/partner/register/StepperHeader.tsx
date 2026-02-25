@@ -12,31 +12,24 @@ export default function StepperHeader({
 }: StepperHeaderProps) {
   const steps = [
     { number: 1, label: "Tipo de Negocio" },
-    { number: 2, label: "Datos del Local" },
-    { number: 3, label: "Datos Bancarios" },
-    { number: 4, label: "Horarios" },
+    { number: 2, label: "Información" },
+    { number: 3, label: "Productos" },
+    { number: 4, label: "Productos" },
   ];
 
   return (
-    <div className="w-full bg-transparent py-8 px-4 text-center">
-      {/* Título y Subtítulo */}
-      <h1 className="text-3xl sm:text-[32px] font-bold">Únete como Aliado</h1>
-      <p className="text-[#6A6C71] mt-2 max-w-lg mx-auto font-medium text-lg">
+    <div className="w-full px-2 py-4 text-center text-white md:py-6 font-poppins">
+      <h1 className="text-[32px] font-bold leading-10">Únete como Aliado</h1>
+      <p className="mx-auto mt-2 max-w-[480px] text-base font-medium leading-[22px] text-white md:text-lg">
         {subtitle}
       </p>
 
-      {/* Stepper */}
-      <div className="md:mt-8 md:flex md:items-center md:justify-center md:max-w-4xl md:mx-auto">
+      <div className="my-10 flex flex-wrap items-center justify-center gap-y-3 md:flex-nowrap md:gap-y-0">
         {steps.map((step, index) => {
           const isActive = step.number === currentStep;
           const isCompleted = step.number < currentStep;
 
-          // La línea conectora es verde si el paso anterior está completado
-          const connectorClasses = `
-            flex-grow h-0.5 mx-2
-            transition-colors duration-300 ease-in-out
-            ${isCompleted ? "bg-primary" : "bg-gray-200"}
-          `;
+          const connectorClasses = "mx-4 hidden h-[2px] w-16 bg-white md:block";
 
           return (
             <React.Fragment key={step.number}>

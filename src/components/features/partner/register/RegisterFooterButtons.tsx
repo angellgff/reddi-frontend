@@ -21,29 +21,33 @@ export default function FooterButtons({
   isSubmitting = false,
 }: FooterButtonsProps) {
   return (
-    <div className="flex items-center justify-between mt-10 border-t pt-6 w-full">
-      {/* Botón de Volver */}
+    <div className="mt-9 flex w-full items-center justify-between border-t border-white/40 py-10">
       <button
         type="button"
-        className="text-sm font-medium text-gray-700 hover:text-gray-900 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+        className="flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-[#202124] hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onGoBack}
         disabled={isSubmitting}
       >
-        <ArrowLeftIcon />
+        <ArrowLeftIcon fill="#202124" />
         {backText}
       </button>
 
-      {/* Grupo de botones de acción */}
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        {/* Botón de Siguiente/Enviar */}
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          disabled={isSubmitting}
+          className="h-11 rounded-xl border border-[#202124] bg-white px-5 text-sm font-medium text-[#202124] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          Guardar y salir
+        </button>
+
         <button
           type="submit"
-          className="px-5 py-2.5 text-sm font-medium text-white bg-primary rounded-xl hover:bg-green-700 focus:outline-none flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+          className="flex h-11 items-center justify-center gap-2 rounded-xl bg-[#595959] px-5 text-sm font-medium text-white focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           onClick={onSubmit}
           disabled={isSubmitting}
         >
-          {isSubmitting ? "Guardando..." : nextText}{" "}
-          {/* Muestra un texto de carga */}
+          {isSubmitting ? "Guardando..." : nextText}
           {!isSubmitting && <ArrowRightIcon fill="#ffffff" />}
         </button>
       </div>

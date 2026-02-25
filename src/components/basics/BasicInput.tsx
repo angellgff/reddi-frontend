@@ -42,7 +42,7 @@ export default function BasicInput({
     <div className={className}>
       <label
         htmlFor={id}
-        className="block text-sm font-medium text-gray-700 mb-1 font-roboto"
+        className="block text-sm font-medium text-black mb-1 font-roboto"
       >
         {label}
         {required && <span className="text-red-500"> *</span>}

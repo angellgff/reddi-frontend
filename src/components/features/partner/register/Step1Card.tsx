@@ -22,7 +22,7 @@ export default function Step1Card({
   return (
     <label htmlFor={id}>
       <input
-        type="checkbox"
+        type="radio"
         className="peer sr-only"
         id={id}
         value={value}
@@ -30,21 +30,21 @@ export default function Step1Card({
         onChange={onChange}
       />
       <div
-        className={`flex flex-col items-center justify-center sm:h-28 sm:w-28 lg:h-36 lg:w-36 xl:h-44 xl:w-44 bg-[#F0F2F5B8] shadow-md cursor-pointer rounded-2xl hover:border-4 hover:border-primary transition-colors duration-500 ${
+        className={`flex h-[169px] w-[178px] flex-col items-center justify-center rounded-2xl border-2 bg-[#F4F5F7] p-5 transition-colors duration-200 ${
           actualValue === value
-            ? "border-4 border-primary"
-            : "border-transparent"
+            ? "border-[#13835F]"
+            : "border-transparent hover:border-[#13835F]/50"
         }`}
       >
-        <div className="relative w-24 h-24">
+        <div className="relative h-[92px] w-[110px]">
           <Image
             src={imageUrl}
             alt={`Icono de ${name}`}
             fill={true}
-            className="object-fit"
+            className="object-contain"
           />
         </div>
-        <span className="font-medium text-xs sm:text-sm md:text-regular lg:text-lg">
+        <span className="mt-2 text-center text-base font-medium leading-[22px] text-black md:text-lg">
           {label}
         </span>
       </div>

@@ -37,7 +37,7 @@ const businessTypes: {
   },
   {
     name: "Tabaco",
-    imageUrl: "/tobaco.png",
+    imageUrl: "/new-design/nd-tobacco.png",
     value: "tobacco",
   },
 ];
@@ -66,24 +66,22 @@ export default function RegisterFormStep1({
   };
 
   return (
-    <>
+    <div className="flex h-full flex-col text-white">
       <StepperHeader
         subtitle="Selecciona el tipo de negocio que mejor describe 
                    tu establecimiento para comenzar el registro"
         currentStep={1}
       />
-      {/* --- Sección de Título --- */}
-      <div className="text-center mb-8">
-        <h1 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+      <div className="mb-10 text-center">
+        <h2 className="text-2xl font-semibold leading-7 text-white font-poppins">
           Selecciona un tipo de negocio para continuar
-        </h1>
-        <p className="text-gray-500 mt-2 font-roboto">
+        </h2>
+        <p className="mt-4 text-base font-normal text-white font-openSans">
           Selecciona un tipo de negocio para continuar
         </p>
       </div>
 
-      {/* --- Sección de Categorías --- */}
-      <section className="mb-12 flex flex-wrap gap-4 justify-center">
+      <section className="mb-10 flex flex-wrap justify-center gap-[15px]">
         {businessTypes.map((type) => (
           <Step1Card
             name="category"
@@ -98,9 +96,8 @@ export default function RegisterFormStep1({
         ))}
       </section>
 
-      {/* --- Sección del Formulario --- */}
-      <form className="pb-8" noValidate>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <form className="pb-4" noValidate>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3 md:gap-[21px]">
           <BasicInput
             name="email"
             value={formData.session.email}
@@ -137,6 +134,6 @@ export default function RegisterFormStep1({
         </div>
         <RegisterFooterButtons onGoBack={onGoBack} onSubmit={onSubmit} />
       </form>
-    </>
+    </div>
   );
 }
