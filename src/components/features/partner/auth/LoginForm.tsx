@@ -102,6 +102,15 @@ export default function LoginForm() {
             error={errors.password}
           />
 
+          <div className="w-full text-right -mt-1 mb-1">
+            <Link
+              href="/partner/forgot-password"
+              className="text-xs text-[#6A6C71] hover:text-[#484848] underline"
+            >
+              ¿Olvidaste tu contraseña?
+            </Link>
+          </div>
+
           {/* Continue Button */}
           <PartnerSubmitButton isPending={isPending} />
         </form>
