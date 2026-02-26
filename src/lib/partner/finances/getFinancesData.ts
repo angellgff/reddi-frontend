@@ -12,14 +12,37 @@ export type FinancesResult = {
   rows: RawFinanceRow[];
   page: number;
   totalPages: number;
+  totalCount: number;
   stats: {
     todayIncome: number;
     weekIncome: number; // usamos esto para "Más Vendidos" (supuesto: ventas de la semana)
     monthIncome: number;
     ordersCompleted: number; // del mes
     commissions: number; // sum(shipping_fee) del mes, como aproximación
+    trends: {
+      todayIncome: number;
+      weekIncome: number;
+      monthIncome: number;
+      ordersCompleted: number;
+      commissions: number;
+    };
   };
 };
+
+function sumByKey(
+  arr: Record<string, unknown>[] | null | undefined,
+  key: string,
+) {
+  return (arr ?? []).reduce((acc, item) => acc + (Number(item?.[key]) || 0), 0);
+}
+
+function percentChange(current: number, previous: number) {
+  if (previous === 0) {
+    return current === 0 ? 0 : 100;
+  }
+
+  return ((current - previous) / previous) * 100;
+}
 
 export async function getFinancesData(params: {
   from?: string;
@@ -43,12 +66,20 @@ export async function getFinancesData(params: {
       rows: [],
       page: 1,
       totalPages: 1,
+      totalCount: 0,
       stats: {
         todayIncome: 0,
         weekIncome: 0,
         monthIncome: 0,
         ordersCompleted: 0,
         commissions: 0,
+        trends: {
+          todayIncome: 0,
+          weekIncome: 0,
+          monthIncome: 0,
+          ordersCompleted: 0,
+          commissions: 0,
+        },
       },
     };
   }
@@ -67,12 +98,20 @@ export async function getFinancesData(params: {
       rows: [],
       page: 1,
       totalPages: 1,
+      totalCount: 0,
       stats: {
         todayIncome: 0,
         weekIncome: 0,
         monthIncome: 0,
         ordersCompleted: 0,
         commissions: 0,
+        trends: {
+          todayIncome: 0,
+          weekIncome: 0,
+          monthIncome: 0,
+          ordersCompleted: 0,
+          commissions: 0,
+        },
       },
     };
   }
@@ -99,11 +138,10 @@ export async function getFinancesData(params: {
       baseQuery = baseQuery.eq("status", "delivered");
     } else if (s === "pendiente") {
       baseQuery = baseQuery.in("status", [
-        "new",
         "pending",
-        "confirmed",
         "preparing",
-        "on_the_way",
+        "out_for_delivery",
+        "awaiting_payment",
       ]);
     }
   }
@@ -140,7 +178,28 @@ export async function getFinancesData(params: {
   startOfWeek.setDate(startOfWeek.getDate() - diffToMonday);
   startOfWeek.setHours(0, 0, 0, 0);
 
+  const startOfPrevWeek = new Date(startOfWeek);
+  startOfPrevWeek.setDate(startOfPrevWeek.getDate() - 7);
+
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const startOfPrevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
+  const elapsedTodayMs = now.getTime() - startOfDay.getTime();
+  const startOfYesterday = new Date(startOfDay);
+  startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+  const endOfYesterdayWindow = new Date(
+    startOfYesterday.getTime() + elapsedTodayMs,
+  );
+
+  const elapsedWeekMs = now.getTime() - startOfWeek.getTime();
+  const endOfPrevWeekWindow = new Date(
+    startOfPrevWeek.getTime() + elapsedWeekMs,
+  );
+
+  const elapsedMonthMs = now.getTime() - startOfMonth.getTime();
+  const endOfPrevMonthWindow = new Date(
+    startOfPrevMonth.getTime() + elapsedMonthMs,
+  );
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const deliveredFilter = (q: any) =>
@@ -148,44 +207,80 @@ export async function getFinancesData(params: {
 
   const [
     { data: today },
+    { data: yesterdayWindow },
     { data: week },
+    { data: prevWeekWindow },
     { data: month },
+    { data: prevMonthWindow },
     { count: monthDeliveredCount },
+    { count: prevMonthDeliveredCount },
   ] = await Promise.all([
+    deliveredFilter(supabase.from("orders").select("total_amount, created_at"))
+      .gte("created_at", startOfDay.toISOString())
+      .lt("created_at", now.toISOString()),
+    deliveredFilter(supabase.from("orders").select("total_amount, created_at"))
+      .gte("created_at", startOfYesterday.toISOString())
+      .lt("created_at", endOfYesterdayWindow.toISOString()),
+    deliveredFilter(supabase.from("orders").select("total_amount, created_at"))
+      .gte("created_at", startOfWeek.toISOString())
+      .lt("created_at", now.toISOString()),
+    deliveredFilter(supabase.from("orders").select("total_amount, created_at"))
+      .gte("created_at", startOfPrevWeek.toISOString())
+      .lt("created_at", endOfPrevWeekWindow.toISOString()),
     deliveredFilter(
-      supabase.from("orders").select("total_amount, created_at")
-    ).gte("created_at", startOfDay.toISOString()),
+      supabase.from("orders").select("total_amount, created_at, shipping_fee"),
+    )
+      .gte("created_at", startOfMonth.toISOString())
+      .lt("created_at", now.toISOString()),
     deliveredFilter(
-      supabase.from("orders").select("total_amount, created_at")
-    ).gte("created_at", startOfWeek.toISOString()),
+      supabase.from("orders").select("total_amount, created_at, shipping_fee"),
+    )
+      .gte("created_at", startOfPrevMonth.toISOString())
+      .lt("created_at", endOfPrevMonthWindow.toISOString()),
     deliveredFilter(
-      supabase.from("orders").select("total_amount, created_at, shipping_fee")
-    ).gte("created_at", startOfMonth.toISOString()),
+      supabase.from("orders").select("id", { count: "exact", head: true }),
+    )
+      .gte("created_at", startOfMonth.toISOString())
+      .lt("created_at", now.toISOString()),
     deliveredFilter(
-      supabase.from("orders").select("id", { count: "exact", head: true })
-    ).gte("created_at", startOfMonth.toISOString()),
+      supabase.from("orders").select("id", { count: "exact", head: true }),
+    )
+      .gte("created_at", startOfPrevMonth.toISOString())
+      .lt("created_at", endOfPrevMonthWindow.toISOString()),
   ]);
 
-  const sum = (
-    arr: Record<string, unknown>[] | null | undefined,
-    key: string
-  ) => (arr ?? []).reduce((acc, x) => acc + (Number(x?.[key]) || 0), 0);
+  const todayIncome = sumByKey(today, "total_amount");
+  const yesterdayIncome = sumByKey(yesterdayWindow, "total_amount");
+  const weekIncome = sumByKey(week, "total_amount");
+  const prevWeekIncome = sumByKey(prevWeekWindow, "total_amount");
+  const monthIncome = sumByKey(month, "total_amount");
+  const prevMonthIncome = sumByKey(prevMonthWindow, "total_amount");
+  const commissions = sumByKey(month, "shipping_fee"); // aproximación temporal
+  const prevMonthCommissions = sumByKey(prevMonthWindow, "shipping_fee");
 
-  const todayIncome = sum(today, "total_amount");
-  const weekIncome = sum(week, "total_amount");
-  const monthIncome = sum(month, "total_amount");
-  const commissions = sum(month, "shipping_fee"); // aproximación temporal
+  const ordersCompleted = monthDeliveredCount ?? 0;
+  const previousOrdersCompleted = prevMonthDeliveredCount ?? 0;
+
+  const trends = {
+    todayIncome: percentChange(todayIncome, yesterdayIncome),
+    weekIncome: percentChange(weekIncome, prevWeekIncome),
+    monthIncome: percentChange(monthIncome, prevMonthIncome),
+    ordersCompleted: percentChange(ordersCompleted, previousOrdersCompleted),
+    commissions: percentChange(commissions, prevMonthCommissions),
+  };
 
   return {
     rows,
     page,
     totalPages,
+    totalCount: count ?? 0,
     stats: {
       todayIncome,
       weekIncome,
       monthIncome,
-      ordersCompleted: monthDeliveredCount ?? 0,
+      ordersCompleted,
       commissions,
+      trends,
     },
   };
 }

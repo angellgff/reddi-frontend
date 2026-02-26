@@ -31,6 +31,13 @@ function formatDate(dateIso: string) {
   }
 }
 
+function formatTrend(value: number) {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  const abs = Math.abs(safeValue).toFixed(1);
+  const sign = safeValue > 0 ? "+" : safeValue < 0 ? "-" : "";
+  return `${sign}${abs}%`;
+}
+
 export default async function FinancesServer({
   searchParams,
 }: {
@@ -41,6 +48,7 @@ export default async function FinancesServer({
     rows,
     page: currentPage,
     totalPages,
+    totalCount,
     stats,
   } = await getFinancesData({
     from: Array.isArray(from) ? from[0] : from,
@@ -69,6 +77,7 @@ export default async function FinancesServer({
       rows={uiRows}
       page={currentPage}
       totalPages={totalPages}
+      totalCount={totalCount}
       filters={{
         from: Array.isArray(from) ? from[0] : from,
         to: Array.isArray(to) ? to[0] : to,
@@ -80,6 +89,13 @@ export default async function FinancesServer({
         monthIncome: formatMoneyCLP(stats.monthIncome),
         ordersCompleted: String(stats.ordersCompleted),
         commissions: formatMoneyCLP(stats.commissions),
+        trends: {
+          todayIncome: formatTrend(stats.trends.todayIncome),
+          bestSellers: formatTrend(stats.trends.weekIncome),
+          monthIncome: formatTrend(stats.trends.monthIncome),
+          ordersCompleted: formatTrend(stats.trends.ordersCompleted),
+          commissions: formatTrend(stats.trends.commissions),
+        },
       }}
     />
   );

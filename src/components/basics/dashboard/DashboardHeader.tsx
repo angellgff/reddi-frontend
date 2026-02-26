@@ -36,7 +36,7 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
     if (currentPath.includes("/categorias")) return "Categorías";
     if (currentPath.includes("/history")) return "Historial";
     if (currentPath.includes("/support")) return "Soporte";
-    if (currentPath.includes("/finances")) return "Finanzas";
+    if (currentPath.includes("/finances")) return "Ventas y Finanzas";
     if (currentPath.includes("/notifications")) return "Notificaciones";
     if (currentPath.includes("/profile")) return "Perfil";
 
