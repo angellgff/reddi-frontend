@@ -4,6 +4,7 @@ export type OrderHistoryRow = {
   id: string;
   created_at: string;
   total_amount: number;
+  platform_profit: number | null;
   status: string;
   user_id: string | null;
 };
@@ -12,6 +13,7 @@ export type OrderHistoryResult = {
   rows: OrderHistoryRow[];
   page: number;
   totalPages: number;
+  totalCount: number;
 };
 
 export async function getOrdersHistoryData(params: {
@@ -30,7 +32,7 @@ export async function getOrdersHistoryData(params: {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { rows: [], page: 1, totalPages: 1 }; // no autenticado
+  if (!user) return { rows: [], page: 1, totalPages: 1, totalCount: 0 }; // no autenticado
 
   // Obtener partner_id
   const { data: partnerRow } = await supabase
@@ -40,11 +42,13 @@ export async function getOrdersHistoryData(params: {
     .eq("is_active", true)
     .maybeSingle();
   const partnerId = partnerRow?.id;
-  if (!partnerId) return { rows: [], page: 1, totalPages: 1 }; // sin partner
+  if (!partnerId) return { rows: [], page: 1, totalPages: 1, totalCount: 0 }; // sin partner
 
   let baseQuery = supabase
     .from("orders")
-    .select("id, created_at, total_amount, status, user_id", { count: "exact" })
+    .select("id, created_at, total_amount, platform_profit, status, user_id", {
+      count: "exact",
+    })
     .eq("partner_id", partnerId)
     .neq("status", "awaiting_payment")
     .neq("status", "payment_failed");
@@ -62,9 +66,18 @@ export async function getOrdersHistoryData(params: {
     // mapear UI status -> internal statuses
     const s = status.toLowerCase();
     let internalStatuses: string[] | null = null;
-    if (s === "pendiente") internalStatuses = ["confirmed", "new", "pending"];
+    if (s === "pendiente") {
+      internalStatuses = [
+        "confirmed",
+        "new",
+        "pending",
+        "preparing",
+        "on_the_way",
+      ];
+    }
     // confirmed & pending equivalentes
-    else if (s === "entregado") internalStatuses = ["delivered"];
+    else if (s === "entregado" || s === "pagado")
+      internalStatuses = ["delivered"];
     else if (s === "cancelado") internalStatuses = ["canceled"];
     if (internalStatuses) baseQuery = baseQuery.in("status", internalStatuses);
   }
@@ -79,19 +92,24 @@ export async function getOrdersHistoryData(params: {
   const { data, error, count } = await baseQuery;
   if (error) {
     console.error("getOrdersHistoryData error", error);
-    return { rows: [], page: 1, totalPages: 1 };
+    return { rows: [], page: 1, totalPages: 1, totalCount: 0 };
   }
-  const totalPages = count ? Math.max(1, Math.ceil(count / limit)) : 1;
+  const totalCount = count ?? 0;
+  const totalPages = totalCount
+    ? Math.max(1, Math.ceil(totalCount / limit))
+    : 1;
 
   return {
     rows: (data ?? []).map((r) => ({
       id: r.id,
       created_at: r.created_at,
       total_amount: r.total_amount ?? 0,
+      platform_profit: r.platform_profit ?? null,
       status: r.status ?? "pending",
       user_id: r.user_id ?? null,
     })),
     page,
     totalPages,
+    totalCount,
   };
 }

@@ -60,12 +60,13 @@ export default async function FinancesServer({
 
   const uiRows = rows.map((r) => {
     const isDelivered = (r.status || "").toLowerCase() === "delivered";
-    const commission = r.shipping_fee || 0; // aproximación
-    const profit = Math.max(0, (r.total_amount || 0) - commission);
+    const amount = Number(r.total_amount || 0);
+    const commission = Math.max(0, Number(r.platform_profit || 0));
+    const profit = Math.max(0, amount - commission);
     return {
       id: `#${String(r.id).slice(0, 6)}`,
       date: formatDate(r.created_at),
-      amount: formatMoneyCLP(r.total_amount),
+      amount: formatMoneyCLP(amount),
       fee: formatMoneyCLP(commission),
       profit: formatMoneyCLP(profit),
       status: isDelivered ? "Pagado" : "Pendiente",

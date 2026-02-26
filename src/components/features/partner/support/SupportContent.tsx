@@ -20,21 +20,10 @@ export default function SupportContent() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen w-full bg-[#F0F2F5B8] px-6 py-6">
-      <div className="mx-auto max-w-[1117px]">
-        {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-[24px] leading-[28px] font-semibold text-[#171717]">
-            Soporte y Ayuda
-          </h1>
-          <p className="mt-1 text-[18px] leading-6 text-[#000] font-roboto">
-            Encuentra respuestas rápidas o contáctanos
-          </p>
-        </div>
-
-        {/* FAQ card */}
-        <section className="rounded-[20px] bg-white p-5 shadow-sm border border-[#E7E7E7]/0">
-          <h2 className="mb-4 text-[18px] leading-[22px] font-semibold text-[#04BD88]">
+    <div className="min-h-screen w-full bg-[#F9FAFB] px-6 py-6">
+      <div className="mx-auto w-full">
+        <section className="rounded-2xl bg-white p-5">
+          <h2 className="mb-[15px] text-[18px] font-semibold leading-[22px] text-black">
             Preguntas Frecuentes
           </h2>
 
@@ -48,11 +37,11 @@ export default function SupportContent() {
                 >
                   <button
                     type="button"
-                    className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
+                    className="flex min-h-[56px] w-full items-center justify-between gap-4 px-4 py-4 text-left"
                     onClick={() => setOpenIndex(open ? null : idx)}
                     aria-expanded={open}
                   >
-                    <span className="text-[16px] leading-5 font-medium text-black">
+                    <span className="text-[16px] font-medium leading-5 text-black">
                       {item.question}
                     </span>
                     <ChevronDown
@@ -71,11 +60,10 @@ export default function SupportContent() {
               );
             })}
 
-            {/* Ver más preguntas */}
-            <div className="flex items-center justify-center border-t border-[#D9DCE3]">
+            <div className="flex h-[31px] items-center justify-center border-t border-[#D9DCE3]">
               <button
                 type="button"
-                className="w-full py-2 text-center text-[14px] leading-[17px] text-[#6A6C71]"
+                className="w-full text-center text-[14px] leading-[17px] text-[#6A6C71]"
               >
                 Ver más preguntas
               </button>

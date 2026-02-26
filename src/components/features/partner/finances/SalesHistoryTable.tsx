@@ -105,7 +105,7 @@ export default function SalesHistoryTable({
   return (
     <section className="overflow-hidden rounded-2xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.1),0_1px_2px_rgba(0,0,0,0.1)]">
       <div className="flex h-[68px] items-center justify-between border-b border-[#E5E7EB] px-5">
-        <h2 className="text-[30px] font-bold leading-[26px] tracking-[-0.43px] text-black">
+        <h2 className="text-[17px] font-bold leading-[26px] tracking-[-0.43px] text-black">
           Historial de Ventas
         </h2>
         <button

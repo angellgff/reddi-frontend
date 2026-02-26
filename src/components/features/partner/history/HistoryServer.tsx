@@ -1,4 +1,4 @@
-import HistoryView, { HistoryRow } from "./HistoryView";
+import HistoryView from "./HistoryView";
 import { getOrdersHistoryData } from "@/src/lib/partner/orders/getOrdersHistoryData";
 
 function formatDate(dateIso: string) {
@@ -38,6 +38,7 @@ export default async function HistoryServer({
     rows,
     page: currentPage,
     totalPages,
+    totalCount,
   } = await getOrdersHistoryData({
     from: Array.isArray(from) ? from[0] : from,
     to: Array.isArray(to) ? to[0] : to,
@@ -46,54 +47,31 @@ export default async function HistoryServer({
     limit: 10,
   });
 
-  // Obtener nombres de perfil de usuarios implicados
-  // Hacemos el join en una segunda consulta aquí por simplicidad
-  const userIds = Array.from(
-    new Set(rows.map((r) => r.user_id).filter(Boolean))
-  ) as string[];
-  const names = new Map<string, string>();
-  if (userIds.length) {
-    const { createClient } = await import("@/src/lib/supabase/server");
-    const supabase = await createClient();
-    const { data: profs } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, email")
-      .in("id", userIds);
-    (profs ?? []).forEach(
-      (p: {
-        id: string;
-        first_name: string | null;
-        last_name: string | null;
-        email: string | null;
-      }) => {
-        const full = [p.first_name, p.last_name]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-        const fromEmail = p.email?.split("@")[0];
-        names.set(p.id, full || fromEmail || "Cliente");
-      }
-    );
-  }
+  const uiRows = rows.map((r) => {
+    const amount = Number(r.total_amount || 0);
+    const commission = Math.max(0, Number(r.platform_profit || 0));
+    const profit = Math.max(0, amount - commission);
 
-  const uiRows: HistoryRow[] = rows.map((r) => ({
-    id: `#${String(r.id).slice(0, 6)}`,
-    date: formatDate(r.created_at),
-    customer: r.user_id ? names.get(r.user_id) || "Cliente" : "Cliente",
-    total: formatMoneyCLP(r.total_amount),
-    status: ((): HistoryRow["status"] => {
-      const s = (r.status || "").toLowerCase();
-      if (s === "delivered") return "Entregado";
-      if (s === "canceled") return "Cancelado";
-      return "Pendiente"; // confirmed, new, pending, preparing, on_the_way
-    })(),
-  }));
+    return {
+      id: `#${String(r.id).slice(0, 6)}`,
+      date: formatDate(r.created_at),
+      amount: formatMoneyCLP(amount),
+      fee: formatMoneyCLP(commission),
+      profit: formatMoneyCLP(profit),
+      status: ((): "Pagado" | "Pendiente" => {
+        const s = (r.status || "").toLowerCase();
+        if (s === "delivered") return "Pagado";
+        return "Pendiente";
+      })(),
+    };
+  });
 
   return (
     <HistoryView
       rows={uiRows}
       page={currentPage}
       totalPages={totalPages}
+      totalCount={totalCount}
       filters={{
         from: Array.isArray(from) ? from[0] : from,
         to: Array.isArray(to) ? to[0] : to,

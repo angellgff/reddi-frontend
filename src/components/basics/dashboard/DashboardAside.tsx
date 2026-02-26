@@ -4,8 +4,8 @@ import CollapsibleNavLink from "../../features/admin/CollapsibleNavLink";
 import SingleNavLink from "../../features/admin/SingleNavLink";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { NavLink } from "./types";
-import ReddiLogo from "@/src/components/icons/ReddiLogo";
 import LogoutAsideIcon from "@/src/components/icons/LogoutAsideIcon";
 import { partnerLogoutAction } from "@/src/lib/actions/auth";
 
@@ -38,7 +38,14 @@ export default function Sidebar({
     <aside className="sticky top-0 z-40 hidden h-screen w-[200px] shrink-0 flex-col bg-black md:flex">
       <div className="flex h-full flex-col px-4 pb-4 pt-3">
         <div className="mb-5 px-1">
-          <ReddiLogo fill="white" className="h-[44px] w-auto" />
+          <Image
+            src="/new-design/partners.png"
+            alt="Aliados"
+            width={174}
+            height={62}
+            priority
+            className="h-10 w-auto"
+          />
         </div>
 
         <nav className="space-y-2">

@@ -4,7 +4,7 @@ export type RawFinanceRow = {
   id: string;
   created_at: string;
   total_amount: number;
-  shipping_fee: number | null;
+  platform_profit: number | null;
   status: string | null;
 };
 
@@ -119,7 +119,7 @@ export async function getFinancesData(params: {
   // Base query para la tabla (con filtros y paginación).
   let baseQuery = supabase
     .from("orders")
-    .select("id, created_at, total_amount, shipping_fee, status", {
+    .select("id, created_at, total_amount, platform_profit, status", {
       count: "exact",
     })
     .eq("partner_id", partnerId);
@@ -161,7 +161,7 @@ export async function getFinancesData(params: {
     id: r.id,
     created_at: r.created_at,
     total_amount: r.total_amount ?? 0,
-    shipping_fee: r.shipping_fee ?? 0,
+    platform_profit: r.platform_profit ?? 0,
     status: r.status ?? null,
   }));
 
@@ -228,12 +228,16 @@ export async function getFinancesData(params: {
       .gte("created_at", startOfPrevWeek.toISOString())
       .lt("created_at", endOfPrevWeekWindow.toISOString()),
     deliveredFilter(
-      supabase.from("orders").select("total_amount, created_at, shipping_fee"),
+      supabase
+        .from("orders")
+        .select("total_amount, created_at, platform_profit"),
     )
       .gte("created_at", startOfMonth.toISOString())
       .lt("created_at", now.toISOString()),
     deliveredFilter(
-      supabase.from("orders").select("total_amount, created_at, shipping_fee"),
+      supabase
+        .from("orders")
+        .select("total_amount, created_at, platform_profit"),
     )
       .gte("created_at", startOfPrevMonth.toISOString())
       .lt("created_at", endOfPrevMonthWindow.toISOString()),
@@ -255,8 +259,8 @@ export async function getFinancesData(params: {
   const prevWeekIncome = sumByKey(prevWeekWindow, "total_amount");
   const monthIncome = sumByKey(month, "total_amount");
   const prevMonthIncome = sumByKey(prevMonthWindow, "total_amount");
-  const commissions = sumByKey(month, "shipping_fee"); // aproximación temporal
-  const prevMonthCommissions = sumByKey(prevMonthWindow, "shipping_fee");
+  const commissions = sumByKey(month, "platform_profit");
+  const prevMonthCommissions = sumByKey(prevMonthWindow, "platform_profit");
 
   const ordersCompleted = monthDeliveredCount ?? 0;
   const previousOrdersCompleted = prevMonthDeliveredCount ?? 0;
