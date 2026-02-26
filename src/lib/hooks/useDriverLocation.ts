@@ -101,11 +101,24 @@ export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
   };
 
   const handlePositionError = (error: GeolocationPositionError) => {
-    console.error("Error getting location:", {
-      code: error.code,
-      message: error.message,
+    const code = error?.code ?? 0;
+    const rawMessage =
+      error?.message?.trim() || "No se pudo obtener la ubicación.";
+
+    const userMessageByCode: Record<number, string> = {
+      1: "Permiso de ubicación denegado. Activa la ubicación para continuar.",
+      2: "Ubicación no disponible en este momento.",
+      3: "Tiempo de espera agotado al obtener la ubicación.",
+    };
+
+    const userMessage = userMessageByCode[code] || rawMessage;
+
+    console.warn("[useDriverLocation] Geolocation warning", {
+      code,
+      message: rawMessage,
     });
-    setError(error.message);
+
+    setError(userMessage);
   };
 
   const updateLocationInDB = async (lat: number, lng: number) => {
