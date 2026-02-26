@@ -12,16 +12,11 @@ export default async function ProductsPage({
   const { q, category, available } = await searchParams;
 
   return (
-    <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
-      {/* Título */}
-      <h1 className="font-semibold">Productos</h1>
-      <h2 className="font-roboto font-normal mb-5">Gestiona tus productos</h2>
-      {/* Fila 1: Tarjetas de Estadísticas */}
+    <div className="min-h-screen bg-[#F6F6F6] px-8 py-4">
       <Suspense fallback={<StatSectionSkeleton count={3} />}>
         <ProductsStatsServer />
       </Suspense>
-      {/* Fila 2: Lista de Productos */}
-      <section className="bg-white px-10 py-6 rounded-xl">
+      <section className="mt-4 rounded-xl bg-white px-6 py-6">
         <Suspense fallback={<ProductsSkeleton />}>
           <ProductsServer q={q} category={category} available={available} />
         </Suspense>

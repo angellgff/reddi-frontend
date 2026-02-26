@@ -2,6 +2,7 @@ import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 import ProductsSection from "./ProductsSection";
 import getProductsData from "@/src/lib/partner/dashboard/data/products/getProductsData";
+import { ProductTagDefinition } from "@/src/lib/partner/productTypes";
 
 interface ProductServerProps {
   q: string | string[] | undefined;
@@ -36,10 +37,25 @@ export default async function ProductServer({
     return <div>Error: Partner no encontrado</div>;
   }
 
-  // Fetch parallel data: products and categories
-  const [products, categoriesResult] = await Promise.all([
+  // Fetch parallel data: products, filter categories, form categories and tags
+  const [
+    products,
+    categoriesResult,
+    formCategoriesResult,
+    tagDefinitionsResult,
+  ] = await Promise.all([
     getProductsData({ q, category, isAvailable: available }),
     supabase.from("categories").select("id, name").order("name"),
+    supabase
+      .from("categories")
+      .select("id, name")
+      .eq("is_active", true)
+      .order("name"),
+    supabase
+      .from("product_tag_definitions")
+      .select("id, name, icon_key, color")
+      .eq("is_active", true)
+      .order("name"),
   ]);
 
   const categories =
@@ -48,5 +64,27 @@ export default async function ProductServer({
       label: c.name,
     })) || [];
 
-  return <ProductsSection products={products} categories={categories} />;
+  const initialSubCategories =
+    formCategoriesResult.data?.map((c) => ({
+      id: c.id,
+      name: c.name,
+      categoryId: null,
+    })) || [];
+
+  const availableTags: ProductTagDefinition[] =
+    tagDefinitionsResult.data?.map((t) => ({
+      id: t.id,
+      name: t.name,
+      iconKey: t.icon_key,
+      color: t.color,
+    })) || [];
+
+  return (
+    <ProductsSection
+      products={products}
+      categories={categories}
+      initialSubCategories={initialSubCategories}
+      availableTags={availableTags}
+    />
+  );
 }

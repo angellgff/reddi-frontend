@@ -14,6 +14,8 @@ import { useRouter } from "next/navigation";
 type Props = {
   initialSubCategories: ProductSubCategory[];
   availableTags: ProductTagDefinition[];
+  onCreated?: (productId: string) => void;
+  onCancel?: () => void;
 };
 
 /**
@@ -29,6 +31,8 @@ type Props = {
 export default function MarketNewProductForm({
   initialSubCategories,
   availableTags,
+  onCreated,
+  onCancel,
 }: Props) {
   const router = useRouter();
   const [subCategories, setSubCategories] =
@@ -91,11 +95,18 @@ export default function MarketNewProductForm({
       data.append("tags", JSON.stringify(formData.tags || []));
 
       const { productId } = await createMarketProductAction(data);
+
+      if (onCreated) {
+        onCreated(productId);
+        router.refresh();
+        return;
+      }
+
       router.push(`/partner/market/productos?created=${productId}`);
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, router]);
+  }, [formData, onCreated, router]);
 
   return (
     <>
@@ -123,7 +134,13 @@ export default function MarketNewProductForm({
           params.set("draft", draftId);
           router.push(`/partner/market/productos/preview?${params.toString()}`);
         }}
-        onGoBack={() => router.push("/partner/market/productos")}
+        onGoBack={() => {
+          if (onCancel) {
+            onCancel();
+            return;
+          }
+          router.push("/partner/market/productos");
+        }}
         formData={formData}
         updateFormData={updateFormData}
         onNextStep={submitIfValid}

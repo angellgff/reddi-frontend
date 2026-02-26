@@ -31,7 +31,7 @@ export default function PartnerHeader({ profile }: PartnerHeaderProps) {
 
     if (currentPath.includes("/orders")) return "Pedidos";
     if (currentPath.includes("/productos") || currentPath.includes("/menu")) {
-      return "Productos";
+      return "Productos / Menú";
     }
     if (currentPath.includes("/categorias")) return "Categorías";
     if (currentPath.includes("/history")) return "Historial";
