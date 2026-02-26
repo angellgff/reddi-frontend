@@ -24,7 +24,7 @@ export default function StepperHeader({
         {subtitle}
       </p>
 
-      <div className="my-10 flex flex-wrap items-center justify-center gap-y-3 md:flex-nowrap md:gap-y-0">
+      <div className="mt-10 pb-16 flex flex-wrap items-center justify-center gap-y-3 md:flex-nowrap md:gap-y-0">
         {steps.map((step, index) => {
           const isActive = step.number === currentStep;
           const isCompleted = step.number < currentStep;

@@ -32,8 +32,8 @@ export default function Step1Card({
       <div
         className={`flex h-[169px] w-[178px] flex-col items-center justify-center rounded-2xl border-2 bg-[#F4F5F7] p-5 transition-colors duration-200 ${
           actualValue === value
-            ? "border-[#13835F]"
-            : "border-transparent hover:border-[#13835F]/50"
+            ? "border-primary"
+            : "border-transparent hover:border-primary/50"
         }`}
       >
         <div className="relative h-[92px] w-[110px]">

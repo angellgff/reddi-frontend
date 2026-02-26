@@ -53,7 +53,7 @@ export default function PasswordInput({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`block w-full rounded-xl border-[#D9DCE3] border sm:text-sm p-2 font-roboto px-10 ${
+          className={`block w-full rounded-xl border-[#D9DCE3] border text-black sm:text-sm p-2 font-roboto px-10 ${
             error ? "border-error" : ""
           }`}
           disabled={disabled}

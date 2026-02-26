@@ -60,7 +60,7 @@ export default function BasicInput({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`block w-full rounded-xl border-[#D9DCE3] border ${
+          className={`block w-full rounded-xl border-[#D9DCE3] border text-black ${
             icon && "pl-10"
           } sm:text-sm p-2 font-roboto ${error && "border-error"} ${
             disabled && "text-gray-400 cursor-not-allowed"
