@@ -35,7 +35,7 @@ export default function Sidebar({
   };
 
   return (
-    <aside className="fixed left-0 top-0 z-40 h-screen w-[200px] -translate-x-full flex-col bg-black md:translate-x-0">
+    <aside className="sticky top-0 z-40 hidden h-screen w-[200px] shrink-0 flex-col bg-black md:flex">
       <div className="flex h-full flex-col px-4 pb-4 pt-3">
         <div className="mb-5 px-1">
           <ReddiLogo fill="white" className="h-[44px] w-auto" />

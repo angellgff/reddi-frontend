@@ -10,15 +10,8 @@ export default async function MarketOrdersPage({
   const { category, cursor } = await searchParams;
 
   return (
-    <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
-      {/* Título */}
-      <h1 className="font-semibold">Lista de pedidos</h1>
-      <h2 className="font-roboto font-normal mb-5">
-        Gestiona todos los pedidos de tu negocio
-      </h2>
-
-      {/* Fila 1: Lista de órdenes */}
-      <section className="bg-white px-10 py-6 rounded-xl">
+    <div className="min-h-screen bg-[#F9F9F9] px-8 pt-6">
+      <section>
         <Suspense fallback={<MarketOrdersSkeleton />}>
           <MarketOrdersServer category={category} cursor={cursor} />
         </Suspense>

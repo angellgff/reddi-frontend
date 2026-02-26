@@ -66,10 +66,10 @@ export default async function PartnerDashboardLayout({
     isActive = partnerRow?.is_active ?? true;
   }
   return (
-    <>
+    <div className="flex min-h-screen bg-[#F9F9F9]">
       <PartnerAside navigationLinks={navigationLinks} />
-      <PartnerHeader profile={partnerProfile} />
-      <main className="md:ml-[200px] mt-[86px] bg-[#F9F9F9] min-h-screen">
+      <main className="min-w-0 flex-1">
+        <PartnerHeader profile={partnerProfile} />
         {children}
       </main>
 
@@ -104,6 +104,6 @@ export default async function PartnerDashboardLayout({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

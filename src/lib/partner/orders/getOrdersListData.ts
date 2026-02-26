@@ -5,20 +5,23 @@ import {
 } from "@/src/components/features/partner/market/orders/main/PartnerOrderCard";
 
 // Mapear estados de orders.status (cliente) -> estados de tarjeta del partner
-function mapStatus(s: string | null | undefined): OrderStatus {
+function mapStatus(
+  s: string | null | undefined,
+  scheduledAt?: string | null,
+): OrderStatus {
   const v = (s ?? "").toLowerCase();
-  if (v === "confirmed") return "new";
   if (
-    v === "scheduled" ||
-    v === "programmed" ||
-    v === "programada" ||
-    v === "programado"
-  )
+    scheduledAt &&
+    new Date(scheduledAt).getTime() > Date.now() &&
+    ["pending", "preparing"].includes(v)
+  ) {
     return "scheduled";
+  }
+  if (v === "confirmed") return "new";
   if (v === "preparing") return "preparation";
-  if (v === "on_the_way") return "preparation";
+  if (v === "out_for_delivery" || v === "on_the_way") return "preparation";
   if (v === "delivered") return "delivered";
-  if (v === "canceled") return "canceled";
+  if (v === "cancelled" || v === "canceled") return "canceled";
   return "pending";
 }
 
@@ -60,7 +63,10 @@ export default async function getOrdersListData(
     .eq("user_id", user.id)
     .eq("is_active", true)
     .maybeSingle();
-  if (partnerErr) throw partnerErr;
+  if (partnerErr) {
+    console.error("[orders] partner lookup error", partnerErr);
+    return [];
+  }
   if (!partner?.id) return [];
 
   // Filtros por categoría
@@ -72,7 +78,7 @@ export default async function getOrdersListData(
   let query = supabase
     .from("orders")
     .select(
-      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price, products(name))",
+      "id, created_at, status, total_amount, payment_intent_id, scheduled_at, user_id, order_detail(quantity, unit_price)",
     )
     .eq("partner_id", partner.id)
     // Excluir pedidos que no se han pagado o fallaron
@@ -84,12 +90,10 @@ export default async function getOrdersListData(
   if (cat === "today") {
     query = query.gte("created_at", todayStart.toISOString());
   } else if (cat === "scheduled") {
-    query = query.in("status", [
-      "scheduled",
-      "programmed",
-      "programada",
-      "programado",
-    ]);
+    query = query
+      .not("scheduled_at", "is", null)
+      .gte("scheduled_at", new Date().toISOString())
+      .in("status", ["pending", "preparing"]);
   } else if (cat === "pending") {
     query = query.in("status", ["pending", "confirmed"]);
   } else if (cat === "preparation") {
@@ -104,7 +108,10 @@ export default async function getOrdersListData(
   }
 
   const { data, error } = await query;
-  if (error) throw error;
+  if (error) {
+    console.error("[orders] list query error", error);
+    return [];
+  }
 
   // Join manual con profiles para obtener el nombre del cliente
   const userIds = Array.from(
@@ -131,6 +138,7 @@ export default async function getOrdersListData(
   // Adaptar al shape de PartnerOrderCardProps
   const list: PartnerOrderCardProps[] = (data ?? []).map((o) => {
     const mappedStatus = mapStatus(o.status);
+    const mappedStatusWithSchedule = mapStatus(o.status, o.scheduled_at);
     const items = Array.isArray(o.order_detail) ? o.order_detail : [];
     const productsCount = items.reduce(
       (s: number, it) => s + (it.quantity ?? 0),
@@ -151,10 +159,10 @@ export default async function getOrdersListData(
     return {
       customerName: fullName || "Cliente",
       orderId: o.id,
-      status: mappedStatus,
+      status: mappedStatusWithSchedule,
       timeRemaining: minutesRemaining(
         o.created_at,
-        mappedStatus,
+        mappedStatusWithSchedule,
         o.scheduled_at,
       ),
       products: `${productsCount} producto(s)`,
@@ -181,7 +189,10 @@ export async function getScheduledOrdersCount(): Promise<number> {
     .eq("user_id", user.id)
     .eq("is_active", true)
     .maybeSingle();
-  if (partnerErr) throw partnerErr;
+  if (partnerErr) {
+    console.error("[orders] scheduled count partner lookup error", partnerErr);
+    return 0;
+  }
   if (!partner?.id) return 0;
 
   const { count, error } = await supabase
@@ -190,8 +201,13 @@ export async function getScheduledOrdersCount(): Promise<number> {
     .eq("partner_id", partner.id)
     .neq("status", "awaiting_payment")
     .neq("status", "payment_failed")
-    .in("status", ["scheduled", "programmed", "programada", "programado"]);
+    .in("status", ["pending", "preparing"])
+    .not("scheduled_at", "is", null)
+    .gte("scheduled_at", new Date().toISOString());
 
-  if (error) throw error;
+  if (error) {
+    console.error("[orders] scheduled count query error", error);
+    return 0;
+  }
   return count ?? 0;
 }
