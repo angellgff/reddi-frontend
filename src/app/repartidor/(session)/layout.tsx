@@ -1,9 +1,6 @@
-import DeliveryHeader from "@/src/components/features/repartidor/header/DeliveryHeader";
 import DriverLocationTracker from "@/src/components/features/delivery/DriverLocationTracker";
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
-import RepartidorFooter from "@/src/components/features/repartidor/RepartidorFooter";
-import DeliveryLayoutClient from "@/src/components/features/repartidor/layout/DeliveryLayoutClient";
 
 export default async function DeliveryLayout({
   children,

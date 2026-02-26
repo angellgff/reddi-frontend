@@ -55,7 +55,7 @@ function mapStatus(
   if (v === "out_for_delivery") return "preparation";
   if (v === "delivered") return "delivered";
   if (v === "cancelled") return "canceled";
-  return "pending";
+  return "canceled";
 }
 
 function minutesFromCreatedAt(

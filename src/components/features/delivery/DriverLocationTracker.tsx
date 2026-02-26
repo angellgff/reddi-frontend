@@ -1,25 +1,10 @@
 "use client";
 
 import { useDriverLocation } from "@/src/lib/hooks/useDriverLocation";
-import { useEffect, useState } from "react";
-import { createClient } from "@/src/lib/supabase/client";
 
 export default function DriverLocationTracker() {
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // We need to fetch the current user ID to pass to the hook
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      if (data.user) {
-        setUserId(data.user.id);
-      }
-    });
-  }, []);
-
   const { isTracking, error, location } = useDriverLocation({
-    userId: userId || "",
-    enabled: !!userId,
+    enabled: true,
   });
 
   if (error) {

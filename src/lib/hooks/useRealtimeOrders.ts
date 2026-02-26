@@ -37,7 +37,15 @@ export function useRealtimeOrders(
 
           const fullOrder = await fetchOrderCardData(newOrder.id);
           if (fullOrder) {
-            setOrders((prev) => [fullOrder, ...prev]);
+            setOrders((prev) => {
+              const exists = prev.some((o) => o.orderId === fullOrder.orderId);
+              if (exists) {
+                return prev.map((o) =>
+                  o.orderId === fullOrder.orderId ? fullOrder : o,
+                );
+              }
+              return [fullOrder, ...prev];
+            });
           }
         } else if (payload.eventType === "UPDATE") {
           const updatedOrder = payload.new;
@@ -48,15 +56,24 @@ export function useRealtimeOrders(
           // Vamos a hacer fetch completo para asegurar consistencia.
           const fullOrder = await fetchOrderCardData(updatedOrder.id);
 
-          if (fullOrder) {
-            setOrders((prev) =>
-              prev.map((o) =>
+          setOrders((prev) => {
+            const updatedId = String(updatedOrder.id);
+            const exists = prev.some((o) => o.orderId === updatedId);
+
+            if (!fullOrder) {
+              return prev.filter((o) => o.orderId !== updatedId);
+            }
+
+            if (exists) {
+              return prev.map((o) =>
                 o.orderId === fullOrder.orderId ? fullOrder : o,
-              ),
-            );
-          }
+              );
+            }
+
+            return [fullOrder, ...prev];
+          });
         } else if (payload.eventType === "DELETE") {
-          const deletedId = payload.old.id;
+          const deletedId = String(payload.old.id);
           setOrders((prev) => prev.filter((o) => o.orderId !== deletedId));
         }
       })

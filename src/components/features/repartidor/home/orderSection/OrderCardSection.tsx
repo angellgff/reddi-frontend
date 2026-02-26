@@ -3,27 +3,72 @@
 import OrderCard from "@/src/components/features/repartidor/home/orderSection/OrderCard";
 import { OrderData } from "@/src/lib/repartidor/type";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import { acceptDeliveryOrderAction } from "@/src/lib/actions/delivery";
 
 export default function OrderCardSection({ orders }: { orders: OrderData[] }) {
   const [pendingAcceptId, setPendingAcceptId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [, startTransition] = useTransition();
+  const refreshDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    const queueRefresh = () => {
+      if (document.hidden) return;
+      if (pathname !== "/repartidor/home") return;
+
+      if (refreshDebounceRef.current) {
+        clearTimeout(refreshDebounceRef.current);
+      }
+
+      refreshDebounceRef.current = setTimeout(() => {
+        startTransition(() => {
+          router.refresh();
+        });
+      }, 350);
+    };
+
+    const intervalId = window.setInterval(() => {
+      queueRefresh();
+    }, 3000);
+
+    const onVisibilityChange = () => {
+      if (!document.hidden) queueRefresh();
+    };
+
+    const onWindowFocus = () => {
+      queueRefresh();
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    window.addEventListener("focus", onWindowFocus);
+
+    return () => {
+      if (refreshDebounceRef.current) {
+        clearTimeout(refreshDebounceRef.current);
+        refreshDebounceRef.current = null;
+      }
+
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      window.removeEventListener("focus", onWindowFocus);
+    };
+  }, [pathname, router]);
 
   const requestAccept = async () => {
     if (!pendingAcceptId) return;
     try {
       setLoading(true);
-      const resp = await fetch("/api/delivery/accept", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId: pendingAcceptId }),
-      });
-      if (resp.ok) {
+      const result = await acceptDeliveryOrderAction(pendingAcceptId);
+      if (result.success) {
         // Refresh server component data
         router.refresh();
+      } else {
+        console.error("Error accepting delivery order:", result.error);
       }
     } finally {
       setLoading(false);

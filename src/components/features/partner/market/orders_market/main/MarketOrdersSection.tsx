@@ -67,9 +67,7 @@ export default function MarketOrdersSection({
   >(null);
 
   const statusGroups = useMemo(() => {
-    const newOrders = orders.filter(
-      (order) => order.status === "new" || order.status === "pending",
-    );
+    const newOrders = orders.filter((order) => order.status === "pending");
     const preparationOrders = orders.filter(
       (order) => order.status === "preparation",
     );
@@ -278,8 +276,7 @@ export default function MarketOrdersSection({
                 <div className="overflow-y-auto">
                   {leftList.map((order, idx) => {
                     const urgent = idx === 0;
-                    const canAccept =
-                      order.status === "new" || order.status === "pending";
+                    const canAccept = order.status === "pending";
                     const isRowAccepting =
                       isAccepting && acceptingOrderId === order.orderId;
                     return (

@@ -13,7 +13,7 @@ function mapStatus(s: string | null | undefined): OrderStatus {
   if (v === "out_for_delivery") return "preparation";
   if (v === "delivered") return "delivered";
   if (v === "cancelled") return "canceled";
-  return "pending";
+  return "canceled";
 }
 
 function minutesFromCreatedAt(
@@ -48,6 +48,11 @@ export async function fetchOrderCardData(
     .single();
 
   if (error || !order) return null;
+
+  const rawStatus = (order.status ?? "").toLowerCase();
+  if (rawStatus === "awaiting_payment" || rawStatus === "payment_failed") {
+    return null;
+  }
 
   // Fetch user profile
   const { data: profile } = await supabase

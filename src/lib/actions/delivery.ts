@@ -31,6 +31,41 @@ export async function completeDeliveryAction(
   }
 }
 
+export async function acceptDeliveryOrderAction(orderId: string) {
+  const supabase = await createClient();
+
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const { data, error } = await supabase.rpc("accept_order", {
+      p_order_id: orderId,
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    if (data && typeof data === "object" && "error" in data) {
+      return { success: false, error: (data as { error: string }).error };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || "Unexpected server error",
+    };
+  }
+}
+
 export async function updateShipmentStatusAction(
   shipmentId: string | null,
   newStatus: string,
@@ -53,5 +88,41 @@ export async function updateShipmentStatusAction(
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message };
+  }
+}
+
+export async function updateDriverLocationAction(lat: number, lng: number) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    return { success: false, error: "Invalid coordinates" };
+  }
+
+  const supabase = await createClient();
+
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    const locationPoint = `POINT(${lng} ${lat})`;
+    const { error } = await supabase
+      .from("drivers")
+      .update({ current_location: locationPoint as any })
+      .eq("user_id", user.id);
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return {
+      success: false,
+      error: err?.message || "Unexpected server error",
+    };
   }
 }

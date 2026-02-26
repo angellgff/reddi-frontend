@@ -1,14 +1,6 @@
 import { useEffect, useState, useRef } from "react";
-import { createClient } from "@supabase/supabase-js";
-import { Database } from "../database.types";
-
-// We need a client-side supabase client.
-// Assuming you have a way to get it, or we create one here.
-// In Next.js with @supabase/ssr, we usually use a browser client helper.
-// If not available, we fall back to createClient.
-// Given the context `src/lib/supabase/client.ts` is likely the place.
-import { createClient as createBrowserClient } from "@/src/lib/supabase/client";
 import * as Sentry from "@sentry/nextjs";
+import { updateDriverLocationAction } from "@/src/lib/actions/delivery";
 
 type LocationData = {
   latitude: number;
@@ -16,14 +8,10 @@ type LocationData = {
 };
 
 interface UseDriverLocationProps {
-  userId: string; // The authenticated user's ID
   enabled?: boolean;
 }
 
-export function useDriverLocation({
-  userId,
-  enabled = true,
-}: UseDriverLocationProps) {
+export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isTracking, setIsTracking] = useState(false);
@@ -32,10 +20,8 @@ export function useDriverLocation({
   const lastLocationRef = useRef<LocationData | null>(null);
   const watchIdRef = useRef<number | null>(null);
 
-  const supabase = createBrowserClient();
-
   useEffect(() => {
-    if (!enabled || !userId) {
+    if (!enabled) {
       stopTracking();
       return;
     }
@@ -45,7 +31,7 @@ export function useDriverLocation({
     return () => {
       stopTracking();
     };
-  }, [enabled, userId]);
+  }, [enabled]);
 
   const startTracking = () => {
     if (!("geolocation" in navigator)) {
@@ -124,24 +110,9 @@ export function useDriverLocation({
 
   const updateLocationInDB = async (lat: number, lng: number) => {
     try {
-      // Format as WKT (Well-Known Text) for PostGIS
-      const locationPoint = `POINT(${lng} ${lat})`;
-
-      const { error } = await supabase
-        .from("drivers")
-        .update({
-          current_location: locationPoint as any,
-          // Removed updated_at as it doesn't exist on the drivers table definition
-        })
-        .eq("user_id", userId);
-
-      if (error) {
-        console.error("Supabase update error:", {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-        });
+      const result = await updateDriverLocationAction(lat, lng);
+      if (!result.success) {
+        console.error("Server location update error:", result.error);
       } else {
         console.log("✅ [useDriverLocation] DB Updated Successfully");
       }
