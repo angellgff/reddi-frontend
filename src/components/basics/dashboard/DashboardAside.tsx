@@ -5,6 +5,9 @@ import SingleNavLink from "../../features/admin/SingleNavLink";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { NavLink } from "./types";
+import ReddiLogo from "@/src/components/icons/ReddiLogo";
+import LogoutAsideIcon from "@/src/components/icons/LogoutAsideIcon";
+import { partnerLogoutAction } from "@/src/lib/actions/auth";
 
 export default function Sidebar({
   navigationLinks,
@@ -22,27 +25,31 @@ export default function Sidebar({
 
   const [openMenu, setOpenMenu] = useState(() => {
     const currentLink = navigationLinks.find((link) =>
-      link.subLinks?.some((sub) => isLinkActive(sub.href))
+      link.subLinks?.some((sub) => isLinkActive(sub.href)),
     );
     return currentLink?.name || "";
   });
 
+  const handleLogout = async () => {
+    await partnerLogoutAction();
+  };
+
   return (
-    <aside className="fixed w-[14rem] h-screen flex-col bg-white pt-[86px] -translate-x-full md:translate-x-0">
-      <div className="flex flex-col p-4 h-full justify-between">
+    <aside className="fixed left-0 top-0 z-40 h-screen w-[200px] -translate-x-full flex-col bg-black md:translate-x-0">
+      <div className="flex h-full flex-col px-4 pb-4 pt-3">
+        <div className="mb-5 px-1">
+          <ReddiLogo fill="white" className="h-[44px] w-auto" />
+        </div>
+
         <nav className="space-y-2">
           {navigationLinks.map((link) => {
             if (link.subLinks) {
-              // Ya no necesitas 'isMenuActive' aquí, pero lo dejamos por si lo usas en otro lado.
-              // const isMenuActive = link.subLinks.some((sub) => isLinkActive(sub.href));
-
               return (
                 <CollapsibleNavLink
                   key={link.name}
                   link={link}
-                  // ✨ LA CORRECCIÓN ESTÁ AQUÍ ✨
                   isOpen={openMenu === link.name}
-                  activeSubLink={pathname} // Sigue pasando el pathname, es correcto
+                  activeSubLink={pathname}
                   onToggle={() =>
                     setOpenMenu(openMenu === link.name ? "" : link.name)
                   }
@@ -57,14 +64,20 @@ export default function Sidebar({
                 key={link.name}
                 link={link}
                 isActive={isActive}
-                onClick={() => setOpenMenu("")} // Esto es bueno, cierra cualquier menú abierto
+                onClick={() => setOpenMenu("")}
               />
             );
           })}
         </nav>
 
-        {/* ... resto del componente ... */}
-
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="mt-auto flex h-[41px] items-center gap-3 rounded-[14px] pl-4 text-sm font-medium text-white/90 transition-colors hover:bg-white/10"
+        >
+          <LogoutAsideIcon fill="white" className="h-5 w-5" />
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   );

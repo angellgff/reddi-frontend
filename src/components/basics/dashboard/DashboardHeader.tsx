@@ -7,7 +7,7 @@ import BellIcon from "@/src/components/icons/BellIcon";
 import LogoutIcon from "@/src/components/icons/LogoutHeaderIcon";
 import Badge from "@/src/components/basics/header/Badge";
 import ReddiLogo from "@/src/components/icons/ReddiLogo";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 // Importamos la interfaz que definimos antes para tipar las props
 import { PartnerProfile } from "@/src/lib/partner/header/data/getData";
 import { partnerLogoutAction } from "@/src/lib/actions/auth";
@@ -20,7 +20,12 @@ interface PartnerHeaderProps {
 
 export default function PartnerHeader({ profile }: PartnerHeaderProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { unreadCount } = useNotifications();
+
+  if (pathname?.endsWith("/dashboard")) {
+    return null;
+  }
 
   const handleLogout = async () => {
     console.log("Iniciando cierre de sesión a través del server action...");

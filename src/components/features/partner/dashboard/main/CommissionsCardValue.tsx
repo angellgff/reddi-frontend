@@ -3,7 +3,6 @@
 import { useState } from "react";
 import EditPartnerIcon from "@/src/components/icons/EditPartnertIcon";
 import BasicInput from "@/src/components/basics/BasicInput";
-import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import { updatePartnerMarkup } from "@/src/lib/partner/actions/updateMarkup";
 
 interface CommissionsCardValueProps {
@@ -20,15 +19,22 @@ export default function CommissionsCardValue({
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [newMarkup, setNewMarkup] = useState(markup);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Example calculation base
   const EXAMPLE_BASE_PRICE = 10000;
-  
+
   const calculatedDisplayPrice = EXAMPLE_BASE_PRICE * (1 + newMarkup / 100);
   const platformFee = EXAMPLE_BASE_PRICE * (commission / 100);
   const partnerReceives = calculatedDisplayPrice - platformFee;
 
   const handleUpdate = async () => {
+    if (!Number.isFinite(newMarkup) || newMarkup < 0 || newMarkup > 300) {
+      setErrorMessage("El margen debe estar entre 0 y 300");
+      return;
+    }
+
+    setErrorMessage(null);
     setIsLoading(true);
     try {
       await updatePartnerMarkup(partnerId, newMarkup);
@@ -43,7 +49,7 @@ export default function CommissionsCardValue({
 
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xl font-bold text-gray-900">
+      <span className="font-inter text-[31px] font-semibold leading-none text-[#101010]">
         {commission}% / {markup}%
       </span>
       <button
@@ -60,14 +66,14 @@ export default function CommissionsCardValue({
           or reusing ConfirmModal if it supports custom content (it usually doesn't).
           Let's assume we need a custom simple modal div.
       */}
-      
+
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-xl shadow-lg max-w-md w-full p-6 animate-in fade-in zoom-in duration-200">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Configurar Comisiones
             </h3>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -96,10 +102,14 @@ export default function CommissionsCardValue({
                   value={newMarkup.toString()}
                   onChange={(e) => setNewMarkup(Number(e.target.value))}
                   min={0}
+                  max={300}
                 />
                 <p className="text-xs text-gray-500 mt-1">
                   Incremento sobre tu precio base que paga el cliente.
                 </p>
+                {errorMessage && (
+                  <p className="mt-1 text-xs text-red-600">{errorMessage}</p>
+                )}
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg space-y-2 text-sm text-blue-900">

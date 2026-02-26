@@ -36,10 +36,8 @@ export default function SingleNavLink({
     <Link
       href={link.href}
       onClick={onClick}
-      className={`flex items-center space-x-3 rounded-lg p-3 text-sm font-medium ${
-        isActive
-          ? "bg-primary text-white"
-          : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+      className={`flex h-10 items-center space-x-3 rounded-[14px] pl-4 text-[13px] font-semibold leading-5 ${
+        isActive ? "bg-primary text-white" : "text-white hover:bg-white/10"
       }`}
     >
       {renderIcon()}

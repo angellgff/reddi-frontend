@@ -2,20 +2,45 @@
 
 import StatCardSection from "@/src/components/features/partner/stats/StatCardSection";
 import getStatsData from "@/src/lib/partner/dashboard/data/main/getMainStatsData";
-import StatCarIcon from "@/src/components/icons/StatCarIcon";
-import StatDollarIcon from "@/src/components/icons/StatDollarIcon";
-import CompleteOrderIcon from "@/src/components/icons/CompleteOrderIcon";
-import ActiveProductIcon from "@/src/components/icons/ActiveProductIcon";
 import FinancesIcon from "@/src/components/icons/FinancesIcon";
 import type { MainStatsData } from "@/src/lib/partner/dashboard/type";
+import Image from "next/image";
 
 // Mapa de Iconos
 const iconMap: Record<MainStatsData["statKey"], React.ReactNode> = {
-  active_orders: <StatCarIcon fill="white" />,
-  today_earnings: <StatDollarIcon fill="white" />,
-  delivered_orders: <CompleteOrderIcon fill="white" />,
-  active_products: <ActiveProductIcon fill="white" />,
-  commissions: <FinancesIcon fill="white" />,
+  active_orders: (
+    <Image
+      src="/new-design/svg/partners/nd-active-orders.svg"
+      alt="Pedidos activos"
+      width={18}
+      height={18}
+    />
+  ),
+  today_earnings: (
+    <Image
+      src="/new-design/svg/partners/nd-incomes.svg"
+      alt="Ingresos"
+      width={18}
+      height={18}
+    />
+  ),
+  delivered_orders: (
+    <Image
+      src="/new-design/svg/partners/nd-complete-orders.svg"
+      alt="Pedidos completados"
+      width={18}
+      height={18}
+    />
+  ),
+  active_products: (
+    <Image
+      src="/new-design/svg/partners/nd-products.svg"
+      alt="Productos activos"
+      width={18}
+      height={18}
+    />
+  ),
+  commissions: <FinancesIcon fill="#595959" />,
 };
 
 // Mapa de Títulos
@@ -29,13 +54,30 @@ const titleMap: Record<MainStatsData["statKey"], string> = {
 
 export default async function MainStatsServer() {
   const statsData = await getStatsData();
+  const prioritizedOrder: MainStatsData["statKey"][] = [
+    "delivered_orders",
+    "today_earnings",
+    "active_products",
+    "commissions",
+    "active_orders",
+  ];
+
+  const mainStats = statsData
+    .filter((item) => prioritizedOrder.includes(item.statKey))
+    .sort(
+      (a, b) =>
+        prioritizedOrder.indexOf(a.statKey) -
+        prioritizedOrder.indexOf(b.statKey),
+    );
+
   return (
     <StatCardSection
-      stats={statsData}
+      stats={mainStats}
       iconMap={iconMap}
       titleMap={titleMap}
       getKey={(item) => item.statKey}
       getValue={(item) => item.value}
+      getTrend={(item) => item.trendPercentage}
     />
   );
 }

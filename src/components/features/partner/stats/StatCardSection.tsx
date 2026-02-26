@@ -10,6 +10,7 @@ type StatCardSectionProps<T> = {
 
   // `getValue` es una función que le dice al componente CÓMO obtener el valor a mostrar.
   getValue: (item: T) => string | React.ReactNode;
+  getTrend?: (item: T) => number | null | undefined;
 
   // Los mapas ahora usan `string` como clave, ya que es lo que devolverá `getKey`.
   iconMap: Record<string, React.ReactNode>;
@@ -21,15 +22,24 @@ export default function StatCardSection<T>({
   stats,
   getKey,
   getValue,
+  getTrend,
   iconMap,
   titleMap,
 }: StatCardSectionProps<T>) {
   const n = stats.length;
+  const colsClass =
+    n >= 5
+      ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-5"
+      : n === 4
+        ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-4"
+        : n === 3
+          ? "grid-cols-1 sm:grid-cols-2 xl:grid-cols-3"
+          : n === 2
+            ? "grid-cols-1 sm:grid-cols-2"
+            : "grid-cols-1";
 
   return (
-    <div
-      className={`grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-${n} xl:grid-cols-${n} mb-4`}
-    >
+    <div className={`mb-4 grid gap-4 ${colsClass}`}>
       {stats.map((item) => {
         const key = getKey(item);
         const value = getValue(item);
@@ -43,7 +53,12 @@ export default function StatCardSection<T>({
         }
 
         return (
-          <StatCard key={key} title={title} value={value}>
+          <StatCard
+            key={key}
+            title={title}
+            value={value}
+            trendPercentage={getTrend ? getTrend(item) : undefined}
+          >
             {icon}
           </StatCard>
         );

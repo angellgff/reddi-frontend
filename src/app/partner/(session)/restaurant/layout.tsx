@@ -74,7 +74,9 @@ export default async function PartnerDashboardLayout({
     <>
       <PartnerAside navigationLinks={navigationLinks} />
       <PartnerHeader profile={partnerProfile} />
-      <main className="md:ml-[14rem] mt-[86px] bg-[#F0F2F5B8]">{children}</main>
+      <main className="md:ml-[200px] mt-[86px] bg-[#F9F9F9] min-h-screen">
+        {children}
+      </main>
 
       {/* Modal bloqueante si el aliado no está aprobado */}
       {!isApproved && (

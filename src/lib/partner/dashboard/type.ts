@@ -9,6 +9,7 @@ export type MainStatsData = {
     | "active_products"
     | "commissions";
   value: string | React.ReactNode;
+  trendPercentage?: number | null;
 };
 
 // Estadísticas de productos
