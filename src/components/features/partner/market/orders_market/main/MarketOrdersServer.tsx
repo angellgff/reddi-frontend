@@ -1,9 +1,10 @@
 import MarketOrdersSection from "@/src/components/features/partner/market/orders_market/main/MarketOrdersSection";
 import getOrdersListData, {
-  getScheduledOrdersCount,
+  getOrderIndicatorCounts,
 } from "@/src/lib/partner/orders/getOrdersListData";
 import { PartnerOrderCardProps } from "@/src/components/features/partner/market/orders/main/PartnerOrderCard";
 import getOrderDetailsData from "@/src/lib/partner/orders/getOrderDetailsData";
+import { createClient } from "@/src/lib/supabase/server";
 
 interface MarketOrdersServerProps {
   category: string | string[] | undefined;
@@ -14,10 +15,27 @@ export default async function MarketOrdersServer({
   category,
   cursor,
 }: MarketOrdersServerProps) {
-  const [mockedOrders, scheduledCount] = await Promise.all([
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const partnerIdPromise = user
+    ? supabase
+        .from("partners")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_active", true)
+        .maybeSingle()
+    : Promise.resolve({ data: null, error: null } as const);
+
+  const [mockedOrders, indicatorCounts, partnerResult] = await Promise.all([
     getOrdersListData(category, cursor),
-    getScheduledOrdersCount(),
+    getOrderIndicatorCounts(),
+    partnerIdPromise,
   ]);
+  const scheduledCount = indicatorCounts.scheduled;
+  const partnerId = partnerResult.data?.id ?? null;
 
   const hardCodedTabs = [
     { value: "", label: "Todos" },
@@ -39,10 +57,7 @@ export default async function MarketOrdersServer({
     deliveryTime: o.deliveryTime,
   }));
 
-  const preparationOrders = transformed.filter(
-    (o) => o.status === "preparation",
-  );
-  const detailCandidates = preparationOrders.slice(0, 8);
+  const detailCandidates = transformed.slice(0, 20);
 
   const detailEntries = await Promise.all(
     detailCandidates.map(async (order) => {
@@ -97,6 +112,8 @@ export default async function MarketOrdersServer({
       orders={transformed}
       orderDetailsById={orderDetailsById}
       scheduledCount={scheduledCount}
+      indicatorCounts={indicatorCounts}
+      partnerId={partnerId}
     />
   );
 }

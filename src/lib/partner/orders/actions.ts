@@ -8,22 +8,15 @@ import {
 
 function mapStatus(s: string | null | undefined): OrderStatus {
   const v = (s ?? "").toLowerCase();
-  if (v === "confirmed") return "new";
-  if (
-    v === "scheduled" ||
-    v === "programmed" ||
-    v === "programada" ||
-    v === "programado"
-  )
-    return "scheduled";
+  if (v === "pending") return "pending";
   if (v === "preparing") return "preparation";
-  if (v === "on_the_way") return "preparation";
+  if (v === "out_for_delivery") return "preparation";
   if (v === "delivered") return "delivered";
-  if (v === "canceled") return "canceled";
+  if (v === "cancelled") return "canceled";
   return "pending";
 }
 
-function minutesRemaining(
+function minutesFromCreatedAt(
   createdAt: string,
   status: OrderStatus,
   scheduledAt?: string | null,
@@ -35,11 +28,10 @@ function minutesRemaining(
     return Math.max(0, diffMin);
   }
 
-  const ETA_MIN = 20;
   const start = new Date(createdAt).getTime();
   const now = Date.now();
   const diffMin = Math.floor((now - start) / 60000);
-  return Math.max(0, ETA_MIN - diffMin);
+  return Math.max(0, diffMin);
 }
 
 export async function fetchOrderCardData(
@@ -87,7 +79,7 @@ export async function fetchOrderCardData(
     customerName: fullName || "Cliente",
     orderId: order.id,
     status: mappedStatus,
-    timeRemaining: minutesRemaining(
+    timeRemaining: minutesFromCreatedAt(
       order.created_at,
       mappedStatus,
       order.scheduled_at,

@@ -6,12 +6,18 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import { useRealtimeOrders } from "@/src/lib/hooks/useRealtimeOrders";
+import { useRealtimeOrderIndicators } from "@/src/lib/hooks/useRealtimeOrderIndicators";
 import { formatCurrency } from "@/src/lib/utils";
+import { acceptOrder } from "@/src/lib/partner/actions/orderActions";
+import { ChevronDown } from "lucide-react";
+import type { OrderIndicatorCounts } from "@/src/lib/partner/orders/getOrdersListData";
 
 interface MarketOrdersSectionProps {
   tabs: { value: string; label: string }[];
   orders: MarketPartnerOrderCardProps[];
   scheduledCount: number;
+  indicatorCounts: OrderIndicatorCounts;
+  partnerId: string | null;
   orderDetailsById: Record<
     string,
     {
@@ -27,7 +33,8 @@ interface MarketOrdersSectionProps {
 export default function MarketOrdersSection({
   orders: initialOrders,
   orderDetailsById,
-  scheduledCount,
+  indicatorCounts,
+  partnerId,
 }: MarketOrdersSectionProps) {
   const pathname = usePathname();
   const router = useRouter();
@@ -36,6 +43,8 @@ export default function MarketOrdersSection({
     searchParams.get("category") || "",
   );
   const [isPending, startTransition] = useTransition();
+  const [isAccepting, startAcceptTransition] = useTransition();
+  const [acceptingOrderId, setAcceptingOrderId] = useState<string | null>(null);
 
   // Realtime hook
   // Nota: MarketPartnerOrderCardProps es compatible con PartnerOrderCardProps
@@ -43,7 +52,13 @@ export default function MarketOrdersSection({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const orders = useRealtimeOrders(
     initialOrders as any,
+    partnerId ?? undefined,
   ) as unknown as MarketPartnerOrderCardProps[];
+
+  const liveIndicatorCounts = useRealtimeOrderIndicators(
+    indicatorCounts,
+    partnerId,
+  );
 
   const [leftPaneWidth, setLeftPaneWidth] = useState(36);
   const [isDragging, setIsDragging] = useState(false);
@@ -56,23 +71,27 @@ export default function MarketOrdersSection({
       (order) => order.status === "new" || order.status === "pending",
     );
     const preparationOrders = orders.filter(
-      (order) => order.status === "preparation" || order.status === "scheduled",
+      (order) => order.status === "preparation",
+    );
+    const scheduledOrders = orders.filter(
+      (order) => order.status === "scheduled",
     );
     const completedOrders = orders.filter(
       (order) => order.status === "delivered",
     );
-    const activeOrders = [...newOrders, ...preparationOrders];
-    return { newOrders, preparationOrders, completedOrders, activeOrders };
+    const activeOrders = [
+      ...newOrders,
+      ...preparationOrders,
+      ...scheduledOrders,
+    ];
+    return {
+      newOrders,
+      preparationOrders,
+      scheduledOrders,
+      completedOrders,
+      activeOrders,
+    };
   }, [orders]);
-
-  useEffect(() => {
-    if (
-      !expandedPreparationOrderId &&
-      statusGroups.preparationOrders.length > 0
-    ) {
-      setExpandedPreparationOrderId(statusGroups.preparationOrders[0].orderId);
-    }
-  }, [expandedPreparationOrderId, statusGroups.preparationOrders]);
 
   useEffect(() => {
     if (!isDragging) return;
@@ -114,6 +133,32 @@ export default function MarketOrdersSection({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory]);
 
+  const handleAcceptOrder = (orderId: string) => {
+    setAcceptingOrderId(orderId);
+
+    startAcceptTransition(async () => {
+      try {
+        const result = await acceptOrder(orderId);
+        if (!result.success) {
+          console.error(
+            "Error updating order status to preparing:",
+            result.error,
+          );
+          return;
+        }
+        router.refresh();
+      } finally {
+        setAcceptingOrderId(null);
+      }
+    });
+  };
+
+  const togglePreparationPanel = (orderId: string) => {
+    setExpandedPreparationOrderId((prev) =>
+      prev === orderId ? null : orderId,
+    );
+  };
+
   const emptyMessage =
     selectedCategory === "scheduled"
       ? "No hay pedidos programados por ahora."
@@ -123,42 +168,54 @@ export default function MarketOrdersSection({
     {
       value: "",
       label: "Activos",
-      count: Math.max(statusGroups.activeOrders.length, scheduledCount),
+      count: liveIndicatorCounts.active,
       countClass: "bg-[#FB2C36] text-white",
     },
     {
       value: "pending",
       label: "Nuevos",
-      count: statusGroups.newOrders.length,
+      count: liveIndicatorCounts.pending,
       countClass: "bg-[#E5E7EB] text-[#364153]",
     },
     {
       value: "preparation",
       label: "Preparación",
-      count: statusGroups.preparationOrders.length,
+      count: liveIndicatorCounts.preparation,
       countClass: "bg-[#E5E7EB] text-[#364153]",
     },
     {
       value: "delivered",
       label: "Completados",
-      count: statusGroups.completedOrders.length,
+      count: liveIndicatorCounts.delivered,
       countClass: "bg-[#E5E7EB] text-[#364153]",
     },
   ];
 
-  const leftList =
-    selectedCategory === "delivered"
-      ? statusGroups.completedOrders
-      : selectedCategory === "preparation"
-        ? statusGroups.preparationOrders
-        : selectedCategory === "pending"
-          ? statusGroups.newOrders
-          : statusGroups.newOrders;
+  const leftList = statusGroups.newOrders;
 
   const rightList =
-    selectedCategory === "delivered"
-      ? statusGroups.completedOrders
-      : statusGroups.preparationOrders;
+    selectedCategory === "pending"
+      ? statusGroups.newOrders
+      : selectedCategory === "preparation"
+        ? statusGroups.preparationOrders
+        : selectedCategory === "scheduled"
+          ? statusGroups.scheduledOrders
+          : selectedCategory === "delivered"
+            ? statusGroups.completedOrders
+            : statusGroups.preparationOrders;
+
+  const showOnlyDetailCards = selectedCategory !== "";
+
+  const rightHeaderTitle =
+    selectedCategory === "pending"
+      ? "Nuevos"
+      : selectedCategory === "preparation"
+        ? "En preparación"
+        : selectedCategory === "scheduled"
+          ? "Programados"
+          : selectedCategory === "delivered"
+            ? "Completados"
+            : "En preparación";
 
   return (
     <div className="space-y-4">
@@ -181,9 +238,7 @@ export default function MarketOrdersSection({
                 <span
                   className={`rounded px-1.5 py-0.5 text-xs font-semibold ${tab.countClass}`}
                 >
-                  {tab.value === ""
-                    ? statusGroups.activeOrders.length
-                    : tab.count}
+                  {tab.count}
                 </span>
               </button>
             );
@@ -203,85 +258,102 @@ export default function MarketOrdersSection({
           <div className="p-6 text-center text-gray-500">{emptyMessage}</div>
         ) : (
           <>
-            <section
-              className="flex h-full flex-col border-r-4 border-[#D1D5DC]"
-              style={{ width: `${leftPaneWidth}%` }}
-            >
-              <div className="flex h-[62px] items-center justify-between border-b-2 border-[#E5E7EB] px-6">
-                <div className="flex items-center gap-3">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]" />
-                  <h3 className="font-inter text-sm font-bold uppercase tracking-[0.35px] text-[#101828]">
-                    Nuevos
-                  </h3>
+            {!showOnlyDetailCards && (
+              <section
+                className="flex h-full flex-col border-r-4 border-[#D1D5DC]"
+                style={{ width: `${leftPaneWidth}%` }}
+              >
+                <div className="flex h-[62px] items-center justify-between border-b-2 border-[#E5E7EB] px-6">
+                  <div className="flex items-center gap-3">
+                    <span className="h-2.5 w-2.5 rounded-full bg-[#EF4444]" />
+                    <h3 className="font-inter text-sm font-bold uppercase tracking-[0.35px] text-[#101828]">
+                      Nuevos
+                    </h3>
+                  </div>
+                  <span className="font-inter text-sm font-bold text-[#6A7282]">
+                    {leftList.length}
+                  </span>
                 </div>
-                <span className="font-inter text-sm font-bold text-[#6A7282]">
-                  {leftList.length}
-                </span>
-              </div>
 
-              <div className="overflow-y-auto">
-                {leftList.map((order, idx) => {
-                  const urgent = idx === 0;
-                  return (
-                    <div
-                      key={order.orderId}
-                      className={`relative flex min-h-[94px] items-center gap-6 border-b border-[#E5E7EB] px-6 ${
-                        urgent ? "bg-[#FEF2F2]" : "bg-white"
-                      }`}
-                    >
-                      <span
-                        className={`absolute left-0 top-0 h-full w-1 ${
-                          urgent ? "bg-[#E7000B]" : "bg-[#E5E7EB]"
+                <div className="overflow-y-auto">
+                  {leftList.map((order, idx) => {
+                    const urgent = idx === 0;
+                    const canAccept =
+                      order.status === "new" || order.status === "pending";
+                    const isRowAccepting =
+                      isAccepting && acceptingOrderId === order.orderId;
+                    return (
+                      <div
+                        key={order.orderId}
+                        className={`relative flex min-h-[94px] items-center gap-6 border-b border-[#E5E7EB] px-6 ${
+                          urgent ? "bg-[#FEF2F2]" : "bg-white"
                         }`}
-                      />
+                      >
+                        <span
+                          className={`absolute left-0 top-0 h-full w-1 ${
+                            urgent ? "bg-[#E7000B]" : "bg-[#E5E7EB]"
+                          }`}
+                        />
 
-                      <div className="w-[64px] shrink-0">
-                        <p className="font-inter text-[28px] font-bold tracking-[-0.75px] text-[#101828]">
-                          #{order.orderId.slice(0, 4)}
-                        </p>
-                        <p className="font-inter text-sm font-semibold text-[#4A5565]">
-                          {order.timeRemaining}m
-                        </p>
+                        <div className="w-[64px] shrink-0">
+                          <p className="font-inter text-[28px] font-bold tracking-[-0.75px] text-[#101828]">
+                            #{order.orderId.slice(0, 4)}
+                          </p>
+                          <p className="font-inter text-sm font-semibold text-[#4A5565]">
+                            {order.timeRemaining}m
+                          </p>
+                        </div>
+
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-inter text-base font-semibold text-[#101828]">
+                            {order.customerName}
+                          </p>
+                          {urgent && (
+                            <span className="mt-1 inline-flex rounded bg-[#E7000B] px-2 py-0.5 font-inter text-xs font-bold text-white">
+                              URGENTE
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <button className="flex h-12 w-12 items-center justify-center rounded-[10px] text-[#364153]">
+                            ×
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleAcceptOrder(order.orderId)}
+                            disabled={!canAccept || isRowAccepting}
+                            className="h-12 rounded-[10px] bg-primary px-6 font-inter text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {isRowAccepting
+                              ? "Aceptando..."
+                              : canAccept
+                                ? "Aceptar"
+                                : "En preparación"}
+                          </button>
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
 
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate font-inter text-base font-semibold text-[#101828]">
-                          {order.customerName}
-                        </p>
-                        {urgent && (
-                          <span className="mt-1 inline-flex rounded bg-[#E7000B] px-2 py-0.5 font-inter text-xs font-bold text-white">
-                            URGENTE
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button className="flex h-12 w-12 items-center justify-center rounded-[10px] text-[#364153]">
-                          ×
-                        </button>
-                        <button className="h-12 rounded-[10px] bg-primary px-6 font-inter text-sm font-semibold text-white">
-                          Aceptar
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-
-            <button
-              type="button"
-              aria-label="Ajustar paneles"
-              onMouseDown={() => setIsDragging(true)}
-              className="w-[6px] cursor-col-resize bg-[#D1D5DC] hover:bg-primary/60"
-            />
+            {!showOnlyDetailCards && (
+              <button
+                type="button"
+                aria-label="Ajustar paneles"
+                onMouseDown={() => setIsDragging(true)}
+                className="w-[6px] cursor-col-resize bg-[#D1D5DC] hover:bg-primary/60"
+              />
+            )}
 
             <section className="flex h-full flex-1 flex-col">
               <div className="flex h-[62px] items-center justify-between border-b-2 border-[#E5E7EB] px-6">
                 <div className="flex items-center gap-3">
                   <span className="h-2.5 w-2.5 rounded-full bg-[#13835F]" />
                   <h3 className="font-inter text-sm font-bold uppercase tracking-[0.2px] text-[#101828]">
-                    En preparación
+                    {rightHeaderTitle}
                   </h3>
                 </div>
                 <span className="font-inter text-sm font-bold text-[#6A7282]">
@@ -290,6 +362,11 @@ export default function MarketOrdersSection({
               </div>
 
               <div className="overflow-y-auto">
+                {rightList.length === 0 && (
+                  <div className="p-6 text-center text-gray-500">
+                    {emptyMessage}
+                  </div>
+                )}
                 {rightList.map((order) => {
                   const expanded = expandedPreparationOrderId === order.orderId;
                   const detail = orderDetailsById[order.orderId];
@@ -301,11 +378,16 @@ export default function MarketOrdersSection({
                     >
                       <span className="absolute left-0 top-0 h-full w-1 bg-[#13835F]" />
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setExpandedPreparationOrderId(order.orderId)
-                        }
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => togglePreparationPanel(order.orderId)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            togglePreparationPanel(order.orderId);
+                          }
+                        }}
                         className="flex w-full items-start justify-between px-6 py-4 text-left"
                       >
                         <div>
@@ -324,11 +406,23 @@ export default function MarketOrdersSection({
                           <div className="flex h-[50px] w-[50px] items-center justify-center rounded-md bg-[#E5E7EB] text-black">
                             ✓
                           </div>
-                          <div className="flex h-[50px] w-[41px] items-center justify-center rounded-md bg-black text-white">
-                            {expanded ? "⌄" : "⌃"}
-                          </div>
+                          <button
+                            type="button"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              togglePreparationPanel(order.orderId);
+                            }}
+                            aria-label={
+                              expanded ? "Contraer pedido" : "Expandir pedido"
+                            }
+                            className="flex h-[50px] w-[41px] items-center justify-center rounded-md bg-black text-white"
+                          >
+                            <ChevronDown
+                              className={`h-5 w-5 transition-transform ${expanded ? "rotate-180" : "rotate-0"}`}
+                            />
+                          </button>
                         </div>
-                      </button>
+                      </div>
 
                       {expanded && detail && (
                         <div className="px-6 pb-4">
