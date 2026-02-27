@@ -75,10 +75,12 @@ export default async function AdminDashboardLayout({
   ];
 
   return (
-    <>
+    <div className="flex min-h-screen bg-[#F9F9F9]">
       <AdminAside navigationLinks={navigationLinks} />
-      <AdminHeader profile={adminProfile} />
-      <main className="md:ml-[14rem] mt-[86px] bg-[#F0F2F5B8]">{children}</main>
-    </>
+      <main className="min-w-0 flex-1 bg-[#F0F2F5B8]">
+        <AdminHeader profile={adminProfile} />
+        {children}
+      </main>
+    </div>
   );
 }

@@ -6,6 +6,7 @@ import OrderHomeIcon from "@/src/components/icons/OrderHomeIcon";
 import { cn } from "@/src/lib/utils";
 import CheckIcon from "@/src/components/icons/CheckIcon";
 import { useRouter } from "next/navigation";
+import ClockOrdersIcon from "@/src/components/icons/ClockOrdersIcon";
 
 // Adjusted to match the design requirements
 export type StatusType = "Preparando" | "Nueva" | "En camino" | "Completado";
@@ -24,7 +25,7 @@ const statusConfig: Record<StatusType, StatusConfig> = {
     badgeText: "NUEVO",
     badgeClasses: "bg-[#CF4518] text-white",
     buttonText: "Aceptar pedido",
-    buttonClasses: "bg-[#CF4518] text-white hover:bg-[#b03a12]",
+    buttonClasses: "bg-[#13835F] text-white hover:bg-[#0f6f51]",
   },
   Preparando: {
     badgeText: "En Curso",
@@ -105,15 +106,15 @@ export default function OrderCard({
     <div
       onClick={handleCardClick}
       className={cn(
-        "cursor-pointer relative mb-4 w-full rounded-[24px] bg-white p-5 shadow-sm font-openSans",
+        "cursor-pointer relative w-full rounded-[17px] border border-[#D9D9D9] bg-white p-3 font-openSans",
       )}
     >
       {/* Top Section: Avatar + Info */}
       <div className="flex gap-4">
         {/* Avatar */}
-        <div className="relative w-[46px] h-[46px] flex-shrink-0">
+        <div className="relative h-[46px] w-[46px] shrink-0">
           <Image
-            src={logoUrl || "/placeholder-restaurant.png"} // Fallback image needed
+            src={logoUrl || "/placeholder-restaurant.png"}
             alt={restaurantName}
             fill
             className="rounded-full object-cover"
@@ -123,7 +124,7 @@ export default function OrderCard({
         {/* Info Column */}
         <div className="flex-1 min-w-0">
           <div className="flex justify-between items-start">
-            <h3 className="text-[16px] font-bold text-black leading-tight truncate pr-2">
+            <h3 className="truncate pr-2 text-[16px] font-bold leading-[18px] text-black">
               {restaurantName}
             </h3>
 
@@ -136,7 +137,7 @@ export default function OrderCard({
                 )}
               >
                 <div className="w-[5px] h-[5px] rounded-full bg-white" />
-                <span className="text-[7px] font-bold uppercase tracking-wide">
+                <span className="text-[7px] font-bold uppercase leading-none tracking-wide">
                   {config.badgeText}
                 </span>
               </div>
@@ -144,15 +145,15 @@ export default function OrderCard({
           </div>
 
           {/* Address Line */}
-          <div className="flex items-center gap-1 mt-1">
+          <div className="mt-1 flex items-center gap-1">
             <OrderHomeIcon className="w-[14px] h-[14px]" fill="#595959" />
-            <span className="text-[12px] font-semibold text-[#595959] leading-tight truncate">
+            <span className="truncate text-[12px] font-semibold leading-tight text-black">
               {address}
             </span>
           </div>
 
           {/* Time / Completed Line */}
-          <div className="flex items-center gap-1 mt-1">
+          <div className="mt-1 flex items-center gap-1">
             {isCompleted ? (
               // Completed State: Checkmark + Text
               <div className="flex items-center gap-1">
@@ -166,8 +167,8 @@ export default function OrderCard({
             ) : (
               // Active State: Box + Time
               <>
-                <div className="w-[10px] h-[10px] border border-[#595959] rounded-[1px]" />
-                <span className="text-[12px] font-semibold text-[#595959]">
+                <ClockOrdersIcon className="h-[10px] w-[10px]" fill="#CF4518" />
+                <span className="text-[12px] font-semibold text-[#CF4518]">
                   {deliveryTime}
                 </span>
               </>
@@ -177,12 +178,12 @@ export default function OrderCard({
       </div>
 
       {/* Button Section */}
-      <div className="mt-4">
+      <div className="mt-3">
         <button
           onClick={handleClick}
           disabled={!canAccept}
           className={cn(
-            "w-full h-[33px] rounded-full flex items-center justify-center text-[16px] font-bold transition-colors",
+            "flex h-[33px] w-full items-center justify-center rounded-full text-[16px] font-bold transition-colors",
             config.buttonClasses,
           )}
         >

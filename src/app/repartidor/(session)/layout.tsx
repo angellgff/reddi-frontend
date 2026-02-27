@@ -1,4 +1,5 @@
 import DriverLocationTracker from "@/src/components/features/delivery/DriverLocationTracker";
+import RepartidorFooter from "@/src/components/features/repartidor/RepartidorFooter";
 import { createClient } from "@/src/lib/supabase/server";
 import { redirect } from "next/navigation";
 
@@ -61,6 +62,7 @@ export default async function DeliveryLayout({
     <>
       <DriverLocationTracker />
       {children}
+      <RepartidorFooter />
     </>
   );
 }

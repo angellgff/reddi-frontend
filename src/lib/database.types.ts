@@ -138,6 +138,38 @@ export type Database = {
           },
         ]
       }
+      billing_customers: {
+        Row: {
+          billing_provider: string
+          created_at: string
+          stripe_customer_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          billing_provider?: string
+          created_at?: string
+          stripe_customer_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          billing_provider?: string
+          created_at?: string
+          stripe_customer_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_customers_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           created_at: string
@@ -638,7 +670,9 @@ export type Database = {
           id: string
           product_detail: string | null
           product_extra_id: string | null
+          product_section_option_id: string | null
           quantity: number
+          section_id: string | null
           unit_price: number
         }
         Insert: {
@@ -646,7 +680,9 @@ export type Database = {
           id?: string
           product_detail?: string | null
           product_extra_id?: string | null
+          product_section_option_id?: string | null
           quantity?: number
+          section_id?: string | null
           unit_price: number
         }
         Update: {
@@ -654,15 +690,31 @@ export type Database = {
           id?: string
           product_detail?: string | null
           product_extra_id?: string | null
+          product_section_option_id?: string | null
           quantity?: number
+          section_id?: string | null
           unit_price?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "order_detail_extras_option_fkey"
+            columns: ["product_section_option_id"]
+            isOneToOne: false
+            referencedRelation: "product_section_options"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "order_detail_extras_product_detail_fkey"
             columns: ["product_detail"]
             isOneToOne: false
             referencedRelation: "order_detail"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_detail_extras_section_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "product_sections"
             referencedColumns: ["id"]
           },
         ]
@@ -1724,42 +1776,57 @@ export type Database = {
       }
       user_payment_methods: {
         Row: {
+          billing_provider: string
           brand: string
           cardholder_name: string | null
           created_at: string
           exp_month: number
           exp_year: number
+          fingerprint: string | null
           id: string
           is_default: boolean
           last4: string
           payment_provider_token: string
           postal_code: string | null
+          stripe_customer_id: string | null
+          stripe_payment_method_id: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          billing_provider?: string
           brand: string
           cardholder_name?: string | null
           created_at?: string
           exp_month: number
           exp_year: number
+          fingerprint?: string | null
           id?: string
           is_default?: boolean
           last4: string
           payment_provider_token: string
           postal_code?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_method_id?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          billing_provider?: string
           brand?: string
           cardholder_name?: string | null
           created_at?: string
           exp_month?: number
           exp_year?: number
+          fingerprint?: string | null
           id?: string
           is_default?: boolean
           last4?: string
           payment_provider_token?: string
           postal_code?: string | null
+          stripe_customer_id?: string | null
+          stripe_payment_method_id?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -2004,6 +2071,14 @@ export type Database = {
         Returns: string
       }
       create_order_v6: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_v7: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_v8: {
         Args: { cart_items: Json; checkout_data: Json }
         Returns: string
       }

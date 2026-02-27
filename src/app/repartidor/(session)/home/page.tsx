@@ -4,7 +4,7 @@ import OrderSectionSkeleton from "@/src/components/features/repartidor/home/orde
 
 export default function HomePage() {
   return (
-    <section className="px-2 py-5">
+    <section className="min-h-screen bg-white pb-24">
       <Suspense fallback={<OrderSectionSkeleton />}>
         <OrderSectionServer />
       </Suspense>

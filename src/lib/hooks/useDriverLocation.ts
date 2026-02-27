@@ -11,14 +11,75 @@ interface UseDriverLocationProps {
   enabled?: boolean;
 }
 
+type GeolocationPermissionStatus =
+  | "granted"
+  | "denied"
+  | "prompt"
+  | "unsupported"
+  | "unknown";
+
 export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
   const [location, setLocation] = useState<LocationData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isTracking, setIsTracking] = useState(false);
+  const [permissionStatus, setPermissionStatus] =
+    useState<GeolocationPermissionStatus>("unknown");
 
   const lastUpdateRef = useRef<number>(0);
   const lastLocationRef = useRef<LocationData | null>(null);
   const watchIdRef = useRef<number | null>(null);
+  const permissionRef = useRef<PermissionStatus | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const syncPermission = async () => {
+      if (!("geolocation" in navigator)) {
+        if (isMounted) {
+          setPermissionStatus("unsupported");
+        }
+        return;
+      }
+
+      if (!("permissions" in navigator)) {
+        if (isMounted) {
+          setPermissionStatus("unknown");
+        }
+        return;
+      }
+
+      try {
+        const status = await navigator.permissions.query({
+          name: "geolocation" as PermissionName,
+        });
+
+        if (!isMounted) return;
+
+        permissionRef.current = status;
+        setPermissionStatus(status.state as GeolocationPermissionStatus);
+
+        status.onchange = () => {
+          setPermissionStatus(status.state as GeolocationPermissionStatus);
+          if (status.state === "granted") {
+            setError(null);
+          }
+        };
+      } catch {
+        if (isMounted) {
+          setPermissionStatus("unknown");
+        }
+      }
+    };
+
+    syncPermission();
+
+    return () => {
+      isMounted = false;
+      if (permissionRef.current) {
+        permissionRef.current.onchange = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!enabled) {
@@ -35,6 +96,7 @@ export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
 
   const startTracking = () => {
     if (!("geolocation" in navigator)) {
+      setPermissionStatus("unsupported");
       setError("Geolocalización no soportada por este navegador.");
       return;
     }
@@ -69,6 +131,8 @@ export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
 
     // console.log("📍 [useDriverLocation] Raw GPS:", newLocation);
     setLocation(newLocation);
+    setPermissionStatus("granted");
+    setError(null);
 
     // Throttling logic
     const now = Date.now();
@@ -113,6 +177,10 @@ export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
 
     const userMessage = userMessageByCode[code] || rawMessage;
 
+    if (code === 1) {
+      setPermissionStatus("denied");
+    }
+
     console.warn("[useDriverLocation] Geolocation warning", {
       code,
       message: rawMessage,
@@ -135,7 +203,45 @@ export function useDriverLocation({ enabled = true }: UseDriverLocationProps) {
     }
   };
 
-  return { location, error, isTracking };
+  const requestPermission = () => {
+    if (!("geolocation" in navigator)) {
+      setPermissionStatus("unsupported");
+      setError("Geolocalización no soportada por este navegador.");
+      return Promise.resolve(false);
+    }
+
+    setError(null);
+
+    return new Promise<boolean>((resolve) => {
+      try {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            handlePositionUpdate(position);
+            if (!isTracking) {
+              startTracking();
+            }
+            resolve(true);
+          },
+          (geoError) => {
+            handlePositionError(geoError);
+            resolve(false);
+          },
+          {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0,
+          },
+        );
+      } catch {
+        setError(
+          "No fue posible solicitar ubicación. Verifica que uses HTTPS o localhost.",
+        );
+        resolve(false);
+      }
+    });
+  };
+
+  return { location, error, isTracking, permissionStatus, requestPermission };
 }
 
 // Helper: Haversine distance in meters

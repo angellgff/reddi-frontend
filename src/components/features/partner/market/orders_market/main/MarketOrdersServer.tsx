@@ -86,23 +86,8 @@ export default async function MarketOrdersServer({
 
   const orderDetailsById = Object.fromEntries(
     detailEntries.filter(
-      (
-        entry,
-      ): entry is readonly [
-        string,
-        {
-          orderId: string;
-          items: {
-            id: string;
-            name: string;
-            quantity: number;
-            price: number;
-          }[];
-          total: number;
-          addressDetails: string;
-          instructions?: string | null;
-        },
-      ] => Boolean(entry),
+      (entry): entry is NonNullable<(typeof detailEntries)[number]> =>
+        entry !== null,
     ),
   );
 
