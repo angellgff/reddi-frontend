@@ -1,9 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { cn } from "@/src/lib/utils";
 import { ChevronRight } from "lucide-react";
-import { useState } from "react";
 
 interface Props {
   mode: "slide_complete" | "proceed_pay" | "see_route";
@@ -25,7 +23,7 @@ export default function DriverFloatingBar({
 
   return (
     <div className="fixed bottom-20 md:bottom-6 left-0 right-0 z-50 px-6 flex justify-center pointer-events-none">
-      <div className="w-full max-w-[340px] h-[44px] relative pointer-events-auto">
+      <div className="w-full h-[44px] relative pointer-events-auto">
         {/* SEE ROUTE STATE */}
         {mode === "see_route" && (
           <motion.button
@@ -75,22 +73,34 @@ export default function DriverFloatingBar({
 
         {/* PROCEED TO PAY STATE */}
         {mode === "proceed_pay" && (
-          <motion.button
-            onClick={onAction}
-            disabled={disabled}
-            className="w-full h-full bg-[#CF4518] rounded-[25px] flex items-center justify-between px-6 shadow-lg text-white"
+          <motion.div
+            className="w-full h-full bg-primary rounded-[25px] flex items-center justify-between pl-1 pr-1 relative overflow-hidden shadow-[0px_0px_29.1px_rgba(0,0,0,0.25)]"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
           >
-            <span className="font-bold text-[16px]">Proceder a Cobrar</span>
-            <span className="font-bold text-[16px]">
-              RD$
-              {amount?.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              }) || "0.00"}
-            </span>
-          </motion.button>
+            <div className="absolute inset-0 flex items-center justify-center z-0 px-10">
+              <span className="text-white font-bold text-[16px] text-center">
+                Desliza para proceder a cobrar · RD$
+                {amount?.toLocaleString("en-US", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }) || "0.00"}
+              </span>
+            </div>
+
+            <motion.div
+              className="relative z-10 w-[38px] h-[38px] bg-white rounded-full flex items-center justify-center cursor-pointer shadow-sm"
+              drag={disabled ? false : "x"}
+              dragConstraints={{ left: 0, right: 290 }}
+              onDragEnd={(e, info) => {
+                if (!disabled && info.offset.x > 150) {
+                  onAction();
+                }
+              }}
+            >
+              <ChevronRight className="text-primary" />
+            </motion.div>
+          </motion.div>
         )}
       </div>
     </div>

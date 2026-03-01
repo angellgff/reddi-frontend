@@ -32,6 +32,12 @@ export interface OrderDetailData {
   canAccept: boolean;
   canContact: boolean;
   canMarkDelivered: boolean;
+  subtotalAmount: number;
+  discountAmount: number;
+  serviceFee: number;
+  shippingFee: number;
+  estimatedTax: number;
+  totalWithoutTip: number;
   totalAmount: number;
   paymentMethod: "cash" | "physical_pos" | null;
   shipmentStatus: string | null;
@@ -187,7 +193,8 @@ export default async function getOrderDetail(
       .select(
         `
         id, created_at, scheduled_at, status, shipment_id, partner_id, user_address_id,
-        total_amount, payment_method, instructions,
+        base_subtotal, subtotal, discount_amount, shipping_fee, platform_profit, tip_amount, total_amount, payment_meta,
+        payment_method, instructions,
         payments(status),
         partners(name,image_url,address,coordinates), 
         profiles(first_name, last_name, phone_number), 
@@ -261,6 +268,36 @@ export default async function getOrderDetail(
     const shipmentId: string | null = shipment?.id ?? null;
     const shipmentDriverId: string | null = shipment?.driver_id ?? null;
 
+    const paymentMeta =
+      data.payment_meta && typeof data.payment_meta === "object"
+        ? (data.payment_meta as Record<string, unknown>)
+        : null;
+
+    const extractMetaNumber = (...keys: string[]) => {
+      for (const key of keys) {
+        const value = paymentMeta?.[key];
+        if (typeof value === "number") return value;
+      }
+      return 0;
+    };
+
+    const subtotalAmount =
+      typeof data.base_subtotal === "number"
+        ? data.base_subtotal
+        : typeof data.subtotal === "number"
+          ? data.subtotal
+          : 0;
+    const discountAmount = data.discount_amount ?? 0;
+    const serviceFee = data.platform_profit ?? extractMetaNumber("service_fee");
+    const shippingFee = data.shipping_fee ?? extractMetaNumber("shipping_fee");
+    const estimatedTax = extractMetaNumber(
+      "estimated_tax",
+      "tax",
+      "tax_amount",
+    );
+    const tipAmount = data.tip_amount ?? 0;
+    const totalWithoutTip = Math.max(0, (data.total_amount ?? 0) - tipAmount);
+
     const items: OrderDetailItem[] = (data.order_detail || []).map(
       (item: any) => {
         const pName = item.products?.name || "Producto sin nombre";
@@ -333,12 +370,20 @@ export default async function getOrderDetail(
       canAccept,
       canContact,
       canMarkDelivered,
+      subtotalAmount,
+      discountAmount,
+      serviceFee,
+      shippingFee,
+      estimatedTax,
+      totalWithoutTip,
       totalAmount: data.total_amount ?? 0,
       paymentMethod: (data.payment_method as "cash" | "physical_pos") ?? "cash",
       shipmentStatus: shipment?.status ?? null,
-      paymentStatus: Array.isArray(data.payments) && data.payments.length > 0 
-        ? (data.payments.find((p: any) => p.status === 'completed')?.status ?? data.payments[0].status)
-        : null,
+      paymentStatus:
+        Array.isArray(data.payments) && data.payments.length > 0
+          ? (data.payments.find((p: any) => p.status === "completed")?.status ??
+            data.payments[0].status)
+          : null,
     };
   } catch (error: unknown) {
     Sentry.captureException(error);

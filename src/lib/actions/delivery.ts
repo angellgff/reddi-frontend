@@ -31,6 +31,104 @@ export async function completeDeliveryAction(
   }
 }
 
+export async function confirmDeliveryPinAction(orderId: string, pin: string) {
+  const debugId = `pin-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const normalizedPin = String(pin ?? "").trim();
+
+  console.info("[confirmDeliveryPinAction] start", {
+    debugId,
+    orderId,
+    pinLength: normalizedPin.length,
+    pinMasked: normalizedPin
+      ? `${"*".repeat(Math.max(0, normalizedPin.length - 1))}${normalizedPin.slice(-1)}`
+      : "",
+  });
+
+  if (!/^\d{4}$/.test(normalizedPin)) {
+    console.warn("[confirmDeliveryPinAction] invalid-pin-format", {
+      debugId,
+      orderId,
+      pinLength: normalizedPin.length,
+    });
+    return {
+      success: false,
+      error: "El PIN debe contener 4 dígitos.",
+      errorCode: "INVALID_PIN_FORMAT",
+      debugId,
+    };
+  }
+
+  const supabase = await createClient();
+
+  try {
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[confirmDeliveryPinAction] auth-failed", {
+        debugId,
+        orderId,
+        authError,
+      });
+      return {
+        success: false,
+        error: "No autorizado para validar PIN.",
+        errorCode: "UNAUTHORIZED",
+        debugId,
+      };
+    }
+
+    const { data, error } = await supabase.rpc("confirm_delivery_with_pin", {
+      p_order_id: orderId,
+      p_pin: normalizedPin,
+      p_user_id: user.id,
+    });
+
+    if (error) {
+      console.error("[confirmDeliveryPinAction] rpc-error", {
+        debugId,
+        orderId,
+        userId: user.id,
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+      });
+      return {
+        success: false,
+        error: error.message || "No se pudo validar el PIN",
+        errorCode: error.code || "RPC_ERROR",
+        errorDetails: error.details || null,
+        errorHint: error.hint || null,
+        debugId,
+      };
+    }
+
+    console.info("[confirmDeliveryPinAction] success", {
+      debugId,
+      orderId,
+      userId: user.id,
+      result: data,
+    });
+
+    return { success: true, data, debugId };
+  } catch (err: any) {
+    console.error("[confirmDeliveryPinAction] unexpected-exception", {
+      debugId,
+      orderId,
+      error: err,
+    });
+    return {
+      success: false,
+      error: err?.message || "No se pudo validar el PIN",
+      errorCode: "UNEXPECTED_EXCEPTION",
+      debugId,
+    };
+  }
+}
+
 export async function acceptDeliveryOrderAction(orderId: string) {
   const supabase = await createClient();
 
