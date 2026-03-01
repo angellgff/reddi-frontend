@@ -7,18 +7,20 @@ export async function getPartnerDataForProductForms() {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data: profile } = await supabase
-    .from("profiles")
+  const { data: partner } = await supabase
+    .from("partners")
     .select("id")
-    .eq("id", user.id)
+    .eq("user_id", user.id)
+    .eq("is_active", true)
     .single();
 
-  const partnerId = profile?.id;
+  const partnerId = partner?.id;
   if (!partnerId) return null;
 
   const { data: subCategoriesData } = await supabase
     .from("sub_categories")
     .select("id, name")
+    .eq("partner_id", partnerId)
     .order("name");
 
   const { data: extrasData } = await supabase

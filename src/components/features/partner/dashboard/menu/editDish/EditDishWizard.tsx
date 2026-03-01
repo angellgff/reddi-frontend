@@ -16,12 +16,22 @@ import { updateDishAction } from "../newDish/actions";
 import CreateCategoryModal from "../newDish/CreateCategoryModal";
 import { CreateExtraModal } from "../newDish/CreateExtraModal";
 
+type WizardStep = "1" | "2" | "preview";
+
+const appendParam = (href: string, key: string, value: string) => {
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}${key}=${encodeURIComponent(value)}`;
+};
+
 interface EditDishWizardProps {
   dishId: string;
   initialDishData: CreateProductFormState;
   initialSubCategories: ProductSubCategory[];
   extrasCatalog: ProductExtra[];
   availableTags: ProductTagDefinition[];
+  mode?: "page" | "modal";
+  closeHref?: string;
+  successHref?: string;
 }
 
 export default function EditDishWizard({
@@ -30,11 +40,18 @@ export default function EditDishWizard({
   initialSubCategories,
   extrasCatalog: initialExtrasCatalog,
   availableTags,
+  mode = "page",
+  closeHref,
+  successHref,
 }: EditDishWizardProps) {
   const basePath = `/aliado/menu/editar/${dishId}`;
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentStep = searchParams.get("step") || "1";
+  const [modalStep, setModalStep] = useState<WizardStep>("1");
+  const currentStep =
+    mode === "modal"
+      ? modalStep
+      : (searchParams.get("step") as WizardStep) || "1";
 
   const [formData, setFormData] =
     useState<CreateProductFormState>(initialDishData);
@@ -54,6 +71,23 @@ export default function EditDishWizard({
     optionId: string;
   } | null>(null);
 
+  const goToStep = (step: WizardStep) => {
+    if (mode === "modal") {
+      setModalStep(step);
+      return;
+    }
+
+    router.push(`${basePath}?step=${step}`);
+  };
+
+  const closeWizard = () => {
+    if (mode === "modal" && closeHref) {
+      router.replace(closeHref, { scroll: false });
+      return;
+    }
+    router.push("/aliado/menu");
+  };
+
   const handleSectionsChange = (
     newSections: CreateProductFormState["sections"],
   ) => {
@@ -70,7 +104,7 @@ export default function EditDishWizard({
       issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
     );
     if (issues.length === 0) {
-      router.push(`${basePath}?step=2`);
+      goToStep("2");
     }
   };
 
@@ -80,15 +114,19 @@ export default function EditDishWizard({
       issues.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
     );
     if (issues.length === 0) {
-      router.push(`${basePath}?step=preview`);
+      goToStep("preview");
     }
   };
 
   useEffect(() => {
+    if (mode === "modal") {
+      return;
+    }
+
     if (currentStep !== "1" && validateStep1(formData).length > 0) {
       router.replace(`${basePath}?step=1`);
     }
-  }, [currentStep, formData, router, basePath]);
+  }, [currentStep, formData, router, basePath, mode]);
 
   const handleSubmitAll = useCallback(async () => {
     // 🚀 Inicia el proceso de envío
@@ -127,9 +165,8 @@ export default function EditDishWizard({
       setErrorsStep1(errors1);
       setErrorsStep2(errors2);
 
-      const redirectPath = `${basePath}?step=1`;
-      console.log(`Redirigiendo al usuario a: ${redirectPath}`);
-      router.push(redirectPath);
+      console.log("Redirigiendo al usuario al paso 1");
+      goToStep("1");
 
       console.groupEnd(); // Fin del proceso handleSubmitAll (temprano)
       return;
@@ -187,7 +224,11 @@ export default function EditDishWizard({
       await updateDishAction(dishId, data);
       console.log("✅ Server action 'updateDishAction' completada con éxito.");
 
-      const successPath = `/aliado/menu?updated=${dishId}`;
+      const successPath = appendParam(
+        successHref || "/aliado/menu",
+        "updated",
+        dishId,
+      );
       console.log(`Redirigiendo a la página de éxito: ${successPath}`);
       router.push(successPath);
     } catch (e: unknown) {
@@ -206,7 +247,7 @@ export default function EditDishWizard({
       console.groupEnd(); // Fin de Fase de Envío (API Call)
       console.groupEnd(); // Fin del proceso handleSubmitAll
     }
-  }, [formData, router, dishId, basePath]);
+  }, [formData, router, dishId, basePath, successHref]);
 
   // Renderizado condicional idéntico a NewDishWizard
   switch (currentStep) {
@@ -214,8 +255,8 @@ export default function EditDishWizard({
       return (
         <>
           <NewDishStep1
-            onPreview={() => router.push(`${basePath}?step=preview`)}
-            onGoBack={() => router.push("/aliado/menu")}
+            onPreview={() => goToStep("preview")}
+            onGoBack={closeWizard}
             formData={formData}
             updateFormData={updateFormData}
             onNextStep={handleNextStep1}
@@ -240,8 +281,8 @@ export default function EditDishWizard({
       return (
         <>
           <NewDishStep2
-            onPreview={() => router.push(`${basePath}?step=preview`)}
-            onGoBack={() => router.push(`${basePath}?step=1`)}
+            onPreview={() => goToStep("preview")}
+            onGoBack={() => goToStep("1")}
             sections={formData.sections}
             onSectionsChange={handleSectionsChange}
             onNextStep={handleNextStep2}

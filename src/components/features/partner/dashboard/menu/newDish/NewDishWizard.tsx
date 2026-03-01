@@ -18,6 +18,12 @@ import CreateCategoryModal from "./CreateCategoryModal";
 import { CreateExtraModal } from "./CreateExtraModal";
 
 const basePath = "/aliado/menu/nuevo";
+type WizardStep = "1" | "2" | "preview";
+
+const appendParam = (href: string, key: string, value: string) => {
+  const separator = href.includes("?") ? "&" : "?";
+  return `${href}${separator}${key}=${encodeURIComponent(value)}`;
+};
 
 /*const categoryOptions = [
   { id: "entrantes", name: "Entrantes" },
@@ -30,16 +36,26 @@ interface NewDishWizardProps {
   initialSubCategories: ProductSubCategory[];
   extrasCatalog: ProductExtra[]; // catálogo inicial
   availableTags: ProductTagDefinition[];
+  mode?: "page" | "modal";
+  closeHref?: string;
+  successHref?: string;
 }
 
 export default function NewDishWizard({
   initialSubCategories,
   extrasCatalog: initialExtrasCatalog,
   availableTags,
+  mode = "page",
+  closeHref,
+  successHref,
 }: NewDishWizardProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentStep = searchParams.get("step") || "1";
+  const [modalStep, setModalStep] = useState<WizardStep>("1");
+  const currentStep =
+    mode === "modal"
+      ? modalStep
+      : (searchParams.get("step") as WizardStep) || "1";
   const [subCategories, setSubCategories] =
     useState<ProductSubCategory[]>(initialSubCategories);
   const [extras, setExtras] = useState<ProductExtra[]>(initialExtrasCatalog);
@@ -77,6 +93,23 @@ export default function NewDishWizard({
     setFormData((prev) => ({ ...prev, sections: newSections }));
   };
 
+  const goToStep = (step: WizardStep) => {
+    if (mode === "modal") {
+      setModalStep(step);
+      return;
+    }
+
+    router.push(`${basePath}?step=${step}`);
+  };
+
+  const closeWizard = () => {
+    if (mode === "modal" && closeHref) {
+      router.replace(closeHref, { scroll: false });
+      return;
+    }
+    router.push("/aliado/menu");
+  };
+
   // Actualiza cualquier campo del formulario
   const updateFormData = (newData: Partial<CreateProductFormState>) => {
     setFormData((prev) => ({
@@ -92,7 +125,7 @@ export default function NewDishWizard({
     issues.forEach((i) => (mapped[i.field] = i.message));
     setErrorsStep1(mapped);
     if (issues.length === 0) {
-      router.push(`${basePath}?step=2`);
+      goToStep("2");
     }
   };
 
@@ -102,12 +135,16 @@ export default function NewDishWizard({
     issues.forEach((i) => (mapped[i.field] = i.message));
     setErrorsStep2(mapped);
     if (issues.length === 0) {
-      router.push(`${basePath}?step=preview`);
+      goToStep("preview");
     }
   };
 
   // Efecto para validar el paso actual y los campos requeridos
   useEffect(() => {
+    if (mode === "modal") {
+      return;
+    }
+
     const validSteps = ["1", "2", "preview"];
     if (!validSteps.includes(currentStep)) {
       router.replace(`${basePath}?step=1`);
@@ -119,7 +156,7 @@ export default function NewDishWizard({
         router.replace(`${basePath}?step=1`);
       }
     }
-  }, [currentStep, formData, router]);
+  }, [currentStep, formData, mode, router]);
 
   const handleSubmitAll = useCallback(async () => {
     setSubmitError(null);
@@ -132,7 +169,7 @@ export default function NewDishWizard({
       setErrorsStep2(
         s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
       );
-      router.push(`${basePath}?step=1`); // fallback
+      goToStep("1");
       return;
     }
     try {
@@ -172,14 +209,18 @@ export default function NewDishWizard({
 
       // 3. Llamar a la server action con el FormData
       const { productId } = await createDishAction(data);
-
-      router.push(`/aliado/menu?created=${productId}`);
+      const destination = appendParam(
+        successHref || "/aliado/menu",
+        "created",
+        productId,
+      );
+      router.push(destination);
     } catch (e: unknown) {
       setSubmitError((e as Error).message || "Error inesperado");
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, router]);
+  }, [formData, router, successHref]);
 
   const handleSaveAndExit = useCallback(async () => {
     setSubmitError(null);
@@ -193,7 +234,7 @@ export default function NewDishWizard({
         s2.reduce((acc, i) => ({ ...acc, [i.field]: i.message }), {}),
       );
       // En caso de errores, vuelve al primer paso con errores
-      router.push(`${basePath}?step=1`);
+      goToStep("1");
       return;
     }
     try {
@@ -222,13 +263,18 @@ export default function NewDishWizard({
       data.append("sections", JSON.stringify(formData.sections));
       data.append("tags", JSON.stringify(formData.tags || [])); // Added tags
       const { productId } = await createDishAction(data);
-      router.push(`/aliado/menu?created=${productId}`);
+      const destination = appendParam(
+        successHref || "/aliado/menu",
+        "created",
+        productId,
+      );
+      router.push(destination);
     } catch (e: unknown) {
       setSubmitError((e as Error).message || "Error inesperado");
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, router]);
+  }, [formData, router, successHref]);
 
   // Guardias para renderizar el paso correcto o nada
   if (!["1", "2", "preview"].includes(currentStep || "")) {
@@ -240,8 +286,8 @@ export default function NewDishWizard({
       return (
         <>
           <NewDishStep1
-            onPreview={() => router.push(`${basePath}?step=preview`)}
-            onGoBack={() => router.push("/aliado/menu")}
+            onPreview={() => goToStep("preview")}
+            onGoBack={closeWizard}
             formData={formData}
             updateFormData={updateFormData}
             onNextStep={handleNextStep1}
@@ -266,8 +312,8 @@ export default function NewDishWizard({
       return (
         <>
           <NewDishStep2
-            onPreview={() => router.push(`${basePath}?step=preview`)}
-            onGoBack={() => router.push(`${basePath}?step=1`)}
+            onPreview={() => goToStep("preview")}
+            onGoBack={() => goToStep("1")}
             sections={formData.sections}
             onSectionsChange={handleSectionsChange}
             onNextStep={handleNextStep2}

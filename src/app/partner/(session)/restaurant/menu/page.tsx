@@ -2,26 +2,45 @@ import StatSectionSkeleton from "@/src/components/features/partner/stats/StatSec
 import MenuStatsServer from "@/src/components/features/partner/dashboard/menu/MenuStatsServer";
 import DishesServer from "@/src/components/features/partner/dashboard/menu/dishesList/DishesServer";
 import ProductsSkeleton from "@/src/components/features/partner/dashboard/products/productsList/ProductsSkeleton";
+import CreateDishModalServer from "@/src/components/features/partner/dashboard/menu/newDish/CreateDishModalServer";
+import EditDishModalServer from "@/src/components/features/partner/dashboard/menu/editDish/EditDishModalServer";
 import { Suspense } from "react";
+
+const getSearchParam = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value[0] : value;
 
 export default async function MenuPage({
   searchParams,
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const { category, tag, q, available } = await searchParams;
+  const { category, tag, q, available, create, edit } = await searchParams;
+  const shouldOpenCreate = getSearchParam(create) === "true";
+  const editId = getSearchParam(edit);
+
+  const baseParams = new URLSearchParams();
+  const qValue = getSearchParam(q);
+  const categoryValue = getSearchParam(category);
+  const tagValue = getSearchParam(tag);
+  const availableValue = getSearchParam(available);
+
+  if (qValue) baseParams.set("q", qValue);
+  if (categoryValue) baseParams.set("category", categoryValue);
+  if (tagValue) baseParams.set("tag", tagValue);
+  if (availableValue) baseParams.set("available", availableValue);
+
+  const paramsString = baseParams.toString();
+  const baseHref = paramsString
+    ? `/partner/restaurant/menu?${paramsString}`
+    : "/partner/restaurant/menu";
 
   return (
-    <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
-      {/* Título */}
-      <h1 className="font-semibold">Menú</h1>
-      <h2 className="font-roboto font-normal mb-5">Gestiona tus platillos</h2>
-      {/* Fila 1: Tarjetas de Estadísticas */}
+    <div className="min-h-screen bg-[#F6F6F6] px-8 py-4">
       <Suspense fallback={<StatSectionSkeleton count={3} />}>
         <MenuStatsServer />
       </Suspense>
-      {/* Fila 2: Lista de Productos */}
-      <section className="bg-white px-10 py-6 rounded-xl">
+
+      <section className="mt-4 rounded-xl bg-white px-6 py-6">
         <Suspense fallback={<ProductsSkeleton />}>
           <DishesServer
             category={category}
@@ -31,6 +50,22 @@ export default async function MenuPage({
           />
         </Suspense>
       </section>
+
+      {shouldOpenCreate ? (
+        <Suspense fallback={null}>
+          <CreateDishModalServer closeHref={baseHref} successHref={baseHref} />
+        </Suspense>
+      ) : null}
+
+      {editId ? (
+        <Suspense fallback={null}>
+          <EditDishModalServer
+            id={editId}
+            closeHref={baseHref}
+            successHref={baseHref}
+          />
+        </Suspense>
+      ) : null}
     </div>
   );
 }
