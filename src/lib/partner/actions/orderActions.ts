@@ -30,13 +30,57 @@ export async function acceptOrder(orderId: string) {
     // Revalidate the paths that might display this order
     revalidatePath("/partner/market/orders");
     revalidatePath("/partner/market/orders_market");
+    revalidatePath("/partner/restaurant/orders");
     revalidatePath(`/partner/market/orders/${orderId}`);
     revalidatePath(`/partner/market/orders_market/${orderId}`);
+    revalidatePath(`/partner/restaurant/orders/${orderId}`);
 
     return { success: true };
   } catch (err: unknown) {
     Sentry.captureException(err);
     console.error("Unexpected error in acceptOrder:", err);
+    let errorMessage = "Unknown error";
+    if (err instanceof Error) {
+      errorMessage = err.message;
+    } else if (typeof err === "string") {
+      errorMessage = err;
+    }
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
+ * Server action to mark an order as ready and send it to delivery flow
+ * by updating DB status to 'out_for_delivery'.
+ */
+export async function markOrderOutForDelivery(orderId: string) {
+  try {
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from("orders")
+      .update({ status: "out_for_delivery" })
+      .eq("id", orderId);
+
+    if (error) {
+      console.error("Error updating order status to out_for_delivery:", error);
+      return {
+        success: false,
+        error: error.message || "Failed to update order status",
+      };
+    }
+
+    revalidatePath("/partner/market/orders");
+    revalidatePath("/partner/market/orders_market");
+    revalidatePath("/partner/restaurant/orders");
+    revalidatePath(`/partner/market/orders/${orderId}`);
+    revalidatePath(`/partner/market/orders_market/${orderId}`);
+    revalidatePath(`/partner/restaurant/orders/${orderId}`);
+
+    return { success: true };
+  } catch (err: unknown) {
+    Sentry.captureException(err);
+    console.error("Unexpected error in markOrderOutForDelivery:", err);
     let errorMessage = "Unknown error";
     if (err instanceof Error) {
       errorMessage = err.message;

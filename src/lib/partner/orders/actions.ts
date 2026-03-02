@@ -10,7 +10,7 @@ function mapStatus(s: string | null | undefined): OrderStatus {
   const v = (s ?? "").toLowerCase();
   if (v === "pending") return "pending";
   if (v === "preparing") return "preparation";
-  if (v === "out_for_delivery") return "preparation";
+  if (v === "out_for_delivery") return "delivered";
   if (v === "delivered") return "delivered";
   if (v === "cancelled") return "canceled";
   return "canceled";

@@ -1,6 +1,6 @@
 import { Suspense } from "react";
-import OrdersSkeleton from "@/src/components/features/partner/market/orders/main/OrdersSkeleton";
-import OrdersServer from "@/src/components/features/partner/market/orders/main/OrdersServer";
+import MarketOrdersSkeleton from "@/src/components/features/partner/market/orders_market/main/MarketOrdersSkeleton";
+import MarketOrdersServer from "@/src/components/features/partner/market/orders_market/main/MarketOrdersServer";
 
 export default async function OrdersPage({
   searchParams,
@@ -10,11 +10,10 @@ export default async function OrdersPage({
   const { category, cursor } = await searchParams;
 
   return (
-    <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
-      {/* Fila 1: Lista de órdenes */}
-      <section className="bg-white px-10 py-6 rounded-xl">
-        <Suspense fallback={<OrdersSkeleton />}>
-          <OrdersServer category={category} cursor={cursor} />
+    <div className="min-h-screen bg-[#F9F9F9] px-8 pt-6">
+      <section>
+        <Suspense fallback={<MarketOrdersSkeleton />}>
+          <MarketOrdersServer category={category} cursor={cursor} />
         </Suspense>
       </section>
     </div>

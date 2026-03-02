@@ -1,34 +1,29 @@
 import { Suspense } from "react";
-import OrderHeaderServer from "@/src/components/features/partner/market/orders/order/OrderHeaderServer";
-import OrderTrackingServer from "@/src/components/features/partner/market/orders/order/OrderTrackingServer";
-import OrderTrackingSkeleton from "@/src/components/features/partner/market/orders/order/OrderTrackingSkeleton";
-import OrderDetailsServer from "@/src/components/features/partner/market/orders/order/OrderDetailsServer";
-import OrderDetailsSkeleton from "@/src/components/features/partner/market/orders/order/OrderDetailsSkeleton";
+import MarketOrderHeaderServer from "@/src/components/features/partner/market/orders_market/order/MarketOrderHeaderServer";
+import MarketOrderTrackingServer from "@/src/components/features/partner/market/orders_market/order/MarketOrderTrackingServer";
+import MarketOrderTrackingSkeleton from "@/src/components/features/partner/market/orders_market/order/MarketOrderTrackingSkeleton";
+import MarketOrderDetailsServer from "@/src/components/features/partner/market/orders_market/order/MarketOrderDetailsServer";
+import MarketOrderDetailsSkeleton from "@/src/components/features/partner/market/orders_market/order/MarketOrderDetailsSkeleton";
 
 export default async function OrderPage({
   params,
 }: {
-  // 1. Actualiza el tipo para que sea una Promise
   params: Promise<{ id: string }>;
 }) {
-  // Tu uso de 'await' ya es correcto
   const { id } = await params;
   return (
     <div className="bg-[#F0F2F5] px-8 py-6 min-h-screen">
-      {/* Título */}
       <Suspense fallback={<div></div>}>
-        <OrderHeaderServer id={id} />
+        <MarketOrderHeaderServer id={id} />
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Columna 1: Datos del cliente */}
           <div className="bg-white rounded-xl cols-span-1 shadow-md border-2 border-gray-300 p-6">
-            <Suspense fallback={<OrderTrackingSkeleton />}>
-              <OrderTrackingServer id={id} />
+            <Suspense fallback={<MarketOrderTrackingSkeleton />}>
+              <MarketOrderTrackingServer id={id} />
             </Suspense>
           </div>
-          {/* Columna 2: Detalles del pedido */}
           <div className="bg-white rounded-xl cols-span-1 shadow-md border-2 border-gray-300 p-6">
-            <Suspense fallback={<OrderDetailsSkeleton />}>
-              <OrderDetailsServer id={id} />
+            <Suspense fallback={<MarketOrderDetailsSkeleton />}>
+              <MarketOrderDetailsServer id={id} />
             </Suspense>
           </div>
         </section>

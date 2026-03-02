@@ -9,7 +9,10 @@ import {
 } from "@/src/components/features/partner/market/orders/main/PartnerOrderCard";
 import ClockOrdersIcon from "@/src/components/icons/ClockOrdersIcon";
 import { useRouter } from "next/navigation";
-import { acceptOrder } from "@/src/lib/partner/actions/orderActions";
+import {
+  acceptOrder,
+  markOrderOutForDelivery,
+} from "@/src/lib/partner/actions/orderActions";
 
 interface MarketOrderHeaderProps {
   id: string;
@@ -52,7 +55,7 @@ export default function MarketOrderHeader({
         return;
       }
 
-      setStatus("preparation");
+      setStatus("delivered");
       router.refresh();
     });
   };
@@ -65,7 +68,18 @@ export default function MarketOrderHeader({
 
   const handleReady = () => {
     startReadyTransition(async () => {
-      setStatus("delivered");
+      const result = await markOrderOutForDelivery(id);
+
+      if (!result.success) {
+        console.error(
+          "Error updating order status to out_for_delivery:",
+          result.error,
+        );
+        return;
+      }
+
+      setStatus("preparation");
+      router.refresh();
     });
   };
 

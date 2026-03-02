@@ -14,7 +14,8 @@ function mapStatus(s: string | null | undefined): OrderStatus {
   )
     return "scheduled";
   if (v === "preparing") return "preparation";
-  if (v === "on_the_way") return "preparation";
+  if (v === "on_the_way") return "delivered";
+  if (v === "out_for_delivery") return "delivered";
   if (v === "delivered") return "delivered";
   if (v === "canceled") return "canceled";
   return "pending";

@@ -18,27 +18,25 @@ export function useRealtimeOrderIndicators(
 ) {
   const [counts, setCounts] = useState<OrderIndicatorCounts>(initialCounts);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingPartnerRef = useRef<string | null>(partnerId ?? null);
 
   useEffect(() => {
     setCounts(initialCounts);
   }, [initialCounts]);
 
   useEffect(() => {
-    if (!partnerId) {
-      setCounts(initialCounts ?? EMPTY_COUNTS);
-      return;
-    }
+    pendingPartnerRef.current = partnerId ?? null;
 
     const supabase = createClient();
     let isAlive = true;
 
-    const fetchCounts = async () => {
+    const fetchCounts = async (targetPartnerId: string) => {
       const nowIso = new Date().toISOString();
       const createCountBase = () =>
         supabase
           .from("orders")
           .select("id", { count: "exact", head: true })
-          .eq("partner_id", partnerId)
+          .eq("partner_id", targetPartnerId)
           .neq("status", "awaiting_payment")
           .neq("status", "payment_failed");
 
@@ -48,9 +46,9 @@ export function useRealtimeOrderIndicators(
             .eq("status", "pending")
             .or(`scheduled_at.is.null,scheduled_at.lte.${nowIso}`),
           createCountBase()
-            .in("status", ["preparing", "out_for_delivery"])
+            .eq("status", "preparing")
             .or(`scheduled_at.is.null,scheduled_at.lte.${nowIso}`),
-          createCountBase().eq("status", "delivered"),
+          createCountBase().in("status", ["delivered", "out_for_delivery"]),
           createCountBase()
             .in("status", ["pending", "preparing"])
             .not("scheduled_at", "is", null)
@@ -73,33 +71,48 @@ export function useRealtimeOrderIndicators(
       });
     };
 
-    const queueRefresh = () => {
+    const queueRefresh = (targetPartnerId: string) => {
+      pendingPartnerRef.current = targetPartnerId;
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        void fetchCounts().catch((err) => {
+        const partnerIdToRefresh = pendingPartnerRef.current;
+        if (!partnerIdToRefresh) return;
+        void fetchCounts(partnerIdToRefresh).catch((err) => {
           console.error("[orders] realtime indicator refresh failed", err);
         });
       }, 250);
     };
 
-    void fetchCounts().catch((err) => {
-      console.error("[orders] initial realtime indicator fetch failed", err);
-    });
+    if (partnerId) {
+      void fetchCounts(partnerId).catch((err) => {
+        console.error("[orders] initial realtime indicator fetch failed", err);
+      });
+    } else {
+      setCounts(initialCounts ?? EMPTY_COUNTS);
+    }
+
+    const channelConfig = {
+      event: "*" as const,
+      schema: "public",
+      table: "orders",
+      ...(partnerId ? { filter: `partner_id=eq.${partnerId}` } : {}),
+    };
 
     const channel = supabase
-      .channel(`orders_indicator_realtime_${partnerId}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "orders",
-          filter: `partner_id=eq.${partnerId}`,
-        },
-        () => {
-          queueRefresh();
-        },
-      )
+      .channel(`orders_indicator_realtime_${partnerId ?? "fallback"}`)
+      .on("postgres_changes", channelConfig, (payload) => {
+        const payloadPartnerId =
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((payload as any)?.new?.partner_id as string | undefined) ??
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ((payload as any)?.old?.partner_id as string | undefined) ??
+          null;
+
+        const targetPartnerId = partnerId ?? payloadPartnerId;
+        if (!targetPartnerId) return;
+
+        queueRefresh(targetPartnerId);
+      })
       .subscribe();
 
     return () => {

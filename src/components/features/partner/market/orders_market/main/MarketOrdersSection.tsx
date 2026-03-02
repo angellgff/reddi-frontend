@@ -8,7 +8,10 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useRealtimeOrders } from "@/src/lib/hooks/useRealtimeOrders";
 import { useRealtimeOrderIndicators } from "@/src/lib/hooks/useRealtimeOrderIndicators";
 import { formatCurrency } from "@/src/lib/utils";
-import { acceptOrder } from "@/src/lib/partner/actions/orderActions";
+import {
+  acceptOrder,
+  markOrderOutForDelivery,
+} from "@/src/lib/partner/actions/orderActions";
 import { ChevronDown } from "lucide-react";
 import type { OrderIndicatorCounts } from "@/src/lib/partner/orders/getOrdersListData";
 
@@ -44,7 +47,9 @@ export default function MarketOrdersSection({
   );
   const [isPending, startTransition] = useTransition();
   const [isAccepting, startAcceptTransition] = useTransition();
+  const [isReadying, startReadyTransition] = useTransition();
   const [acceptingOrderId, setAcceptingOrderId] = useState<string | null>(null);
+  const [readyingOrderId, setReadyingOrderId] = useState<string | null>(null);
 
   // Realtime hook
   // Nota: MarketPartnerOrderCardProps es compatible con PartnerOrderCardProps
@@ -62,9 +67,7 @@ export default function MarketOrdersSection({
 
   const [leftPaneWidth, setLeftPaneWidth] = useState(36);
   const [isDragging, setIsDragging] = useState(false);
-  const [expandedPreparationOrderId, setExpandedPreparationOrderId] = useState<
-    string | null
-  >(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   const statusGroups = useMemo(() => {
     const newOrders = orders.filter((order) => order.status === "pending");
@@ -151,10 +154,29 @@ export default function MarketOrdersSection({
     });
   };
 
-  const togglePreparationPanel = (orderId: string) => {
-    setExpandedPreparationOrderId((prev) =>
-      prev === orderId ? null : orderId,
-    );
+  const toggleOrderPanel = (orderId: string) => {
+    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
+  };
+
+  const handleMarkOrderReady = (orderId: string) => {
+    setReadyingOrderId(orderId);
+
+    startReadyTransition(async () => {
+      try {
+        const result = await markOrderOutForDelivery(orderId);
+        if (!result.success) {
+          console.error(
+            "Error updating order status to out_for_delivery:",
+            result.error,
+          );
+          return;
+        }
+        setExpandedOrderId((prev) => (prev === orderId ? null : prev));
+        router.refresh();
+      } finally {
+        setReadyingOrderId(null);
+      }
+    });
   };
 
   const emptyMessage =
@@ -279,56 +301,130 @@ export default function MarketOrdersSection({
                     const canAccept = order.status === "pending";
                     const isRowAccepting =
                       isAccepting && acceptingOrderId === order.orderId;
+                    const expanded = expandedOrderId === order.orderId;
+                    const detail = orderDetailsById[order.orderId];
                     return (
                       <div
                         key={order.orderId}
-                        className={`relative flex min-h-[94px] items-center gap-6 border-b border-[#E5E7EB] px-6 ${
-                          urgent ? "bg-[#FEF2F2]" : "bg-white"
-                        }`}
+                        className="border-b border-[#E5E7EB]"
                       >
-                        <span
-                          className={`absolute left-0 top-0 h-full w-1 ${
-                            urgent ? "bg-[#E7000B]" : "bg-[#E5E7EB]"
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => toggleOrderPanel(order.orderId)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              event.preventDefault();
+                              toggleOrderPanel(order.orderId);
+                            }
+                          }}
+                          className={`relative flex min-h-[94px] items-center gap-6 px-6 ${
+                            urgent ? "bg-[#FEF2F2]" : "bg-white"
                           }`}
-                        />
+                        >
+                          <span
+                            className={`absolute left-0 top-0 h-full w-1 ${
+                              urgent ? "bg-[#E7000B]" : "bg-[#E5E7EB]"
+                            }`}
+                          />
 
-                        <div className="w-[64px] shrink-0">
-                          <p className="font-inter text-[28px] font-bold tracking-[-0.75px] text-[#101828]">
-                            #{order.orderId.slice(0, 4)}
-                          </p>
-                          <p className="font-inter text-sm font-semibold text-[#4A5565]">
-                            {order.timeRemaining}m
-                          </p>
+                          <div className="w-[64px] shrink-0">
+                            <p className="font-inter text-[28px] font-bold tracking-[-0.75px] text-[#101828]">
+                              #{order.orderId.slice(0, 4)}
+                            </p>
+                            <p className="font-inter text-sm font-semibold text-[#4A5565]">
+                              {order.timeRemaining}m
+                            </p>
+                          </div>
+
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate font-inter text-base font-semibold text-[#101828]">
+                              {order.customerName}
+                            </p>
+                            {urgent && (
+                              <span className="mt-1 inline-flex rounded bg-[#E7000B] px-2 py-0.5 font-inter text-xs font-bold text-white">
+                                URGENTE
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={(event) => event.stopPropagation()}
+                              className="flex h-12 w-12 items-center justify-center rounded-[10px] text-[#364153]"
+                            >
+                              ×
+                            </button>
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleAcceptOrder(order.orderId);
+                              }}
+                              disabled={!canAccept || isRowAccepting}
+                              className="h-12 rounded-[10px] bg-primary px-6 font-inter text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {isRowAccepting
+                                ? "Aceptando..."
+                                : canAccept
+                                  ? "Aceptar"
+                                  : "En preparación"}
+                            </button>
+                          </div>
                         </div>
 
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-inter text-base font-semibold text-[#101828]">
-                            {order.customerName}
-                          </p>
-                          {urgent && (
-                            <span className="mt-1 inline-flex rounded bg-[#E7000B] px-2 py-0.5 font-inter text-xs font-bold text-white">
-                              URGENTE
-                            </span>
-                          )}
-                        </div>
+                        {expanded && detail && (
+                          <div className="bg-white px-6 pb-4">
+                            <div className="space-y-2">
+                              {detail.items.slice(0, 5).map((item) => (
+                                <div
+                                  key={item.id}
+                                  className="flex items-center justify-between font-inter text-sm"
+                                >
+                                  <p className="text-[#4A5565]">
+                                    <span className="mr-2 font-semibold text-[#364153]">
+                                      {item.quantity}x
+                                    </span>
+                                    {item.name}
+                                  </p>
+                                  <p className="font-semibold text-[#101828]">
+                                    {formatCurrency(item.price * item.quantity)}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
 
-                        <div className="flex items-center gap-2">
-                          <button className="flex h-12 w-12 items-center justify-center rounded-[10px] text-[#364153]">
-                            ×
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleAcceptOrder(order.orderId)}
-                            disabled={!canAccept || isRowAccepting}
-                            className="h-12 rounded-[10px] bg-primary px-6 font-inter text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {isRowAccepting
-                              ? "Aceptando..."
-                              : canAccept
-                                ? "Aceptar"
-                                : "En preparación"}
-                          </button>
-                        </div>
+                            <div className="mt-4 flex items-center justify-between border-t border-[#E5E7EB] pt-3">
+                              <p className="font-inter text-base font-bold text-[#101828]">
+                                Total
+                              </p>
+                              <p className="font-inter text-lg font-bold text-[#13835F]">
+                                {formatCurrency(detail.total)}
+                              </p>
+                            </div>
+
+                            <div className="mt-3 rounded-md bg-[#F9FAFB] p-3">
+                              <p className="font-inter text-xs font-semibold uppercase tracking-[0.5px] text-[#364153]">
+                                Dirección de entrega
+                              </p>
+                              <p className="mt-1 font-inter text-sm text-[#4A5565]">
+                                {detail.addressDetails || "Sin detalles"}
+                              </p>
+                            </div>
+
+                            {detail.instructions && (
+                              <div className="mt-2 rounded-md border border-[#FECACA] bg-[#FEF2F2] p-3">
+                                <p className="font-inter text-xs font-semibold uppercase tracking-[0.5px] text-[#991B1B]">
+                                  Instrucciones especiales
+                                </p>
+                                <p className="mt-1 font-inter text-sm text-[#7F1D1D]">
+                                  {detail.instructions}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -365,8 +461,11 @@ export default function MarketOrdersSection({
                   </div>
                 )}
                 {rightList.map((order) => {
-                  const expanded = expandedPreparationOrderId === order.orderId;
+                  const expanded = expandedOrderId === order.orderId;
                   const detail = orderDetailsById[order.orderId];
+                  const isRowReadying =
+                    isReadying && readyingOrderId === order.orderId;
+                  const canMarkAsReady = order.status === "preparation";
 
                   return (
                     <div
@@ -378,11 +477,11 @@ export default function MarketOrdersSection({
                       <div
                         role="button"
                         tabIndex={0}
-                        onClick={() => togglePreparationPanel(order.orderId)}
+                        onClick={() => toggleOrderPanel(order.orderId)}
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
                             event.preventDefault();
-                            togglePreparationPanel(order.orderId);
+                            toggleOrderPanel(order.orderId);
                           }
                         }}
                         className="flex w-full items-start justify-between px-6 py-4 text-left"
@@ -407,7 +506,7 @@ export default function MarketOrdersSection({
                             type="button"
                             onClick={(event) => {
                               event.stopPropagation();
-                              togglePreparationPanel(order.orderId);
+                              toggleOrderPanel(order.orderId);
                             }}
                             aria-label={
                               expanded ? "Contraer pedido" : "Expandir pedido"
@@ -471,11 +570,20 @@ export default function MarketOrdersSection({
                             </div>
                           )}
 
-                          <div className="mt-3 flex justify-end">
-                            <button className="h-12 rounded-[10px] bg-primary px-6 font-inter text-sm font-semibold text-white">
-                              Orden Lista
-                            </button>
-                          </div>
+                          {canMarkAsReady && (
+                            <div className="mt-3 flex justify-end">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleMarkOrderReady(order.orderId)
+                                }
+                                disabled={isRowReadying}
+                                className="h-12 rounded-[10px] bg-primary px-6 font-inter text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60"
+                              >
+                                {isRowReadying ? "Enviando..." : "Orden Lista"}
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>

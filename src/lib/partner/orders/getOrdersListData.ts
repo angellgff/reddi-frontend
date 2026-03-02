@@ -52,7 +52,7 @@ function mapStatus(
   }
   if (v === "pending") return "pending";
   if (v === "preparing") return "preparation";
-  if (v === "out_for_delivery") return "preparation";
+  if (v === "out_for_delivery") return "delivered";
   if (v === "delivered") return "delivered";
   if (v === "cancelled") return "canceled";
   return "canceled";
@@ -109,8 +109,9 @@ export default async function getOrdersListData(
   const pageSize = 20;
   const scheduledFilterStatuses: OrderDbStatus[] = ["pending", "preparing"];
   const pendingFilterStatuses: OrderDbStatus[] = ["pending"];
-  const preparationFilterStatuses: OrderDbStatus[] = [
-    "preparing",
+  const preparationFilterStatuses: OrderDbStatus[] = ["preparing"];
+  const deliveredFilterStatuses: OrderDbStatus[] = [
+    "delivered",
     "out_for_delivery",
   ];
 
@@ -138,7 +139,7 @@ export default async function getOrdersListData(
   } else if (cat === "preparation") {
     query = query.in("status", preparationFilterStatuses);
   } else if (cat === "delivered") {
-    query = query.eq("status", "delivered");
+    query = query.in("status", deliveredFilterStatuses);
   }
 
   const cur = Array.isArray(cursor) ? cursor[0] : cursor;
@@ -242,9 +243,9 @@ export async function getOrderIndicatorCounts(): Promise<OrderIndicatorCounts> {
       .eq("status", "pending")
       .or(`scheduled_at.is.null,scheduled_at.lte.${nowIso}`),
     createCountBase()
-      .in("status", ["preparing", "out_for_delivery"])
+      .eq("status", "preparing")
       .or(`scheduled_at.is.null,scheduled_at.lte.${nowIso}`),
-    createCountBase().eq("status", "delivered"),
+    createCountBase().in("status", ["delivered", "out_for_delivery"]),
     createCountBase()
       .in("status", ["pending", "preparing"])
       .not("scheduled_at", "is", null)
