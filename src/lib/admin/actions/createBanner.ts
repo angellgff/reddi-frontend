@@ -91,7 +91,8 @@ export async function createBanner(
     console.error("Validation failed: Missing required fields");
     return {
       success: false,
-      message: "Faltan campos obligatorios",
+      message:
+        "Faltan campos obligatorios. Verifica título, fechas e imagen del banner.",
     };
   }
 
@@ -161,6 +162,7 @@ export async function createBanner(
   console.log("Banner inserted successfully.");
 
   revalidatePath("/admin/banners");
+  revalidatePath("/admin/banners/yacht-section");
 
   return {
     success: true,

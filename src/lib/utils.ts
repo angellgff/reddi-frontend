@@ -56,12 +56,12 @@ export function uuid(): string {
 export async function withTimeout<T>(
   promise: Promise<T>,
   ms: number,
-  label: string = "timeout"
+  label: string = "timeout",
 ): Promise<T> {
   return (await Promise.race<Promise<T>>([
     promise,
     new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error(label)), ms)
+      setTimeout(() => reject(new Error(label)), ms),
     ),
   ])) as T;
 }
@@ -72,4 +72,26 @@ export function formatCurrency(amount: number): string {
     maximumFractionDigits: 2,
   }).format(amount);
   return `${CURRENCY_SYMBOL}${formattedNumber}`;
+}
+
+export function getErrorMessage(
+  error: unknown,
+  fallback: string = "Ocurrió un error inesperado. Intenta nuevamente.",
+): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message;
+  }
+
+  if (typeof error === "string" && error.trim()) {
+    return error;
+  }
+
+  if (error && typeof error === "object") {
+    const maybeMessage = (error as { message?: unknown }).message;
+    if (typeof maybeMessage === "string" && maybeMessage.trim()) {
+      return maybeMessage;
+    }
+  }
+
+  return fallback;
 }

@@ -13,6 +13,7 @@ import {
 } from "@/src/lib/partner/productTypes";
 import { validateStep1, validateStep2 } from "@/src/lib/partner/productUtils";
 import { createDishAction } from "./actions";
+import { getErrorMessage } from "@/src/lib/utils";
 import CreateCategoryModal from "./CreateCategoryModal";
 // Using named import to mitigate transient module resolution issue with default import
 import { CreateExtraModal } from "./CreateExtraModal";
@@ -216,7 +217,7 @@ export default function NewDishWizard({
       );
       router.push(destination);
     } catch (e: unknown) {
-      setSubmitError((e as Error).message || "Error inesperado");
+      setSubmitError(getErrorMessage(e));
     } finally {
       setIsSubmitting(false);
     }
@@ -270,7 +271,7 @@ export default function NewDishWizard({
       );
       router.push(destination);
     } catch (e: unknown) {
-      setSubmitError((e as Error).message || "Error inesperado");
+      setSubmitError(getErrorMessage(e));
     } finally {
       setIsSubmitting(false);
     }
@@ -296,6 +297,7 @@ export default function NewDishWizard({
             openCreateCategoryModal={() => setShowCategoryModal(true)}
             onSaveAndExit={handleSaveAndExit}
             isSubmitting={isSubmitting}
+            submitError={submitError}
             availableTags={availableTags}
           />
           <CreateCategoryModal
@@ -325,6 +327,7 @@ export default function NewDishWizard({
             }}
             onSaveAndExit={handleSaveAndExit}
             isSubmitting={isSubmitting}
+            submitError={submitError}
           />
           <CreateExtraModal
             isOpen={showExtraModal}

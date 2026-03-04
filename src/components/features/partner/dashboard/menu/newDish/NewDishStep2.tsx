@@ -8,6 +8,7 @@ import {
 import BasicInput from "@/src/components/basics/BasicInput";
 import Checkbox from "@/src/components/basics/CheckBox";
 import FooterButtons from "@/src/components/basics/FooterButtons";
+import InputNotice from "@/src/components/basics/InputNotice";
 import SelectInput from "@/src/components/basics/SelectInput";
 import { uuid } from "@/src/lib/utils";
 
@@ -22,6 +23,7 @@ interface NewDishStep2Props {
   onRequestCreateExtra: (sectionId: string, optionId: string) => void;
   onSaveAndExit: () => void;
   isSubmitting?: boolean;
+  submitError?: string | null;
 }
 
 export default function NewDishStep2({
@@ -35,6 +37,7 @@ export default function NewDishStep2({
   onRequestCreateExtra,
   onSaveAndExit,
   isSubmitting,
+  submitError,
 }: NewDishStep2Props) {
   // --- LOGS DE DEPURACIÓN PRINCIPALES ---
   console.groupCollapsed(`--- [NewDishStep2] Render Ciclo ---`);
@@ -48,17 +51,17 @@ export default function NewDishStep2({
 
   if (!extrasCatalog || extrasCatalog.length === 0) {
     console.warn(
-      "⚠️ ADVERTENCIA: El prop 'extrasCatalog' está vacío o no definido. Los selectores de extras no tendrán opciones."
+      "⚠️ ADVERTENCIA: El prop 'extrasCatalog' está vacío o no definido. Los selectores de extras no tendrán opciones.",
     );
   } else {
     console.log(
-      `✅ Catálogo de extras recibido con ${extrasCatalog.length} elementos.`
+      `✅ Catálogo de extras recibido con ${extrasCatalog.length} elementos.`,
     );
   }
 
   if (!sections || sections.length === 0) {
     console.info(
-      "ℹ️ El prop 'sections' está vacío. Se mostrará el mensaje 'No hay secciones'."
+      "ℹ️ El prop 'sections' está vacío. Se mostrará el mensaje 'No hay secciones'.",
     );
   }
 
@@ -80,10 +83,10 @@ export default function NewDishStep2({
   const handleSectionChange = (
     id: string,
     field: keyof Omit<ProductSectionForm, "clientId" | "options">,
-    value: string | boolean
+    value: string | boolean,
   ) => {
     onSectionsChange(
-      sections.map((s) => (s.clientId === id ? { ...s, [field]: value } : s))
+      sections.map((s) => (s.clientId === id ? { ...s, [field]: value } : s)),
     );
   };
   const addOption = (sectionId: string) => {
@@ -94,8 +97,10 @@ export default function NewDishStep2({
     };
     onSectionsChange(
       sections.map((s) =>
-        s.clientId === sectionId ? { ...s, options: [...s.options, newOpt] } : s
-      )
+        s.clientId === sectionId
+          ? { ...s, options: [...s.options, newOpt] }
+          : s,
+      ),
     );
   };
   const removeOption = (sectionId: string, optId: string) => {
@@ -103,15 +108,15 @@ export default function NewDishStep2({
       sections.map((s) =>
         s.clientId === sectionId
           ? { ...s, options: s.options.filter((o) => o.clientId !== optId) }
-          : s
-      )
+          : s,
+      ),
     );
   };
   const updateOption = (
     sectionId: string,
     optId: string,
     field: keyof Omit<SectionExtraSelection, "clientId">,
-    value: string | null
+    value: string | null,
   ) => {
     onSectionsChange(
       sections.map((s) => {
@@ -119,10 +124,10 @@ export default function NewDishStep2({
         return {
           ...s,
           options: s.options.map((o) =>
-            o.clientId === optId ? { ...o, [field]: value } : o
+            o.clientId === optId ? { ...o, [field]: value } : o,
           ),
         };
-      })
+      }),
     );
   };
 
@@ -155,13 +160,16 @@ export default function NewDishStep2({
           ) : (
             sections.map((section) => {
               const usedExtraIds = new Set(
-                section.options.filter((o) => o.extraId).map((o) => o.extraId)
+                section.options.filter((o) => o.extraId).map((o) => o.extraId),
               );
 
               // --- LOGS DENTRO DEL MAP ---
               console.log(
                 `-> Renderizando sección "${section.name || "(sin nombre)"}"`,
-                { sectionData: section, usedExtraIds: Array.from(usedExtraIds) }
+                {
+                  sectionData: section,
+                  usedExtraIds: Array.from(usedExtraIds),
+                },
               );
 
               const dropdownOptions = [
@@ -195,7 +203,7 @@ export default function NewDishStep2({
                           handleSectionChange(
                             section.clientId,
                             "name",
-                            e.target.value
+                            e.target.value,
                           )
                         }
                         required
@@ -211,7 +219,7 @@ export default function NewDishStep2({
                           handleSectionChange(
                             section.clientId,
                             "isRequired",
-                            e.target.checked
+                            e.target.checked,
                           )
                         }
                       />
@@ -242,7 +250,7 @@ export default function NewDishStep2({
                               if (e.target.value === "__create__") {
                                 onRequestCreateExtra(
                                   section.clientId,
-                                  opt.clientId
+                                  opt.clientId,
                                 );
                                 return;
                               }
@@ -250,7 +258,7 @@ export default function NewDishStep2({
                                 section.clientId,
                                 opt.clientId,
                                 "extraId",
-                                e.target.value
+                                e.target.value,
                               );
                             }}
                             getOptionValue={(o) =>
@@ -273,7 +281,7 @@ export default function NewDishStep2({
                               section.clientId,
                               opt.clientId,
                               "overridePrice",
-                              e.target.value
+                              e.target.value,
                             )
                           }
                           error={
@@ -311,6 +319,11 @@ export default function NewDishStep2({
           onSubmit={() => {}}
           isSubmitting={isSubmitting}
         />
+        {submitError && (
+          <div className="mt-4">
+            <InputNotice variant="error" msg={submitError} />
+          </div>
+        )}
       </form>
     </>
   );

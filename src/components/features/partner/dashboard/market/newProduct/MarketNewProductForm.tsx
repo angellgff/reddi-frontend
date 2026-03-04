@@ -10,6 +10,7 @@ import {
 import { validateStep1 } from "@/src/lib/partner/productUtils";
 import { createMarketProductAction } from "./actions";
 import { useRouter } from "next/navigation";
+import { getErrorMessage } from "@/src/lib/utils";
 
 type Props = {
   initialSubCategories: ProductSubCategory[];
@@ -39,6 +40,7 @@ export default function MarketNewProductForm({
     useState<ProductSubCategory[]>(initialSubCategories);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorsStep1, setErrorsStep1] = useState<Record<string, string>>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<CreateProductFormState>({
     image: null,
@@ -63,6 +65,7 @@ export default function MarketNewProductForm({
   };
 
   const submitIfValid = useCallback(async () => {
+    setSubmitError(null);
     const issues = validateStep1(formData);
     if (issues.length) {
       const mapped: Record<string, string> = {};
@@ -103,6 +106,8 @@ export default function MarketNewProductForm({
       }
 
       router.push(`/partner/market/productos?created=${productId}`);
+    } catch (e: unknown) {
+      setSubmitError(getErrorMessage(e));
     } finally {
       setIsSubmitting(false);
     }
@@ -149,6 +154,7 @@ export default function MarketNewProductForm({
         openCreateCategoryModal={() => {}}
         onSaveAndExit={submitIfValid}
         isSubmitting={isSubmitting}
+        submitError={submitError}
         allowCreateCategory={false}
         availableTags={availableTags}
       />

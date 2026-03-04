@@ -38,6 +38,7 @@ interface NewDishStep1Props {
   openCreateCategoryModal: () => void;
   onSaveAndExit: () => void;
   isSubmitting?: boolean;
+  submitError?: string | null;
   allowCreateCategory?: boolean;
   availableTags?: ProductTagDefinition[];
 }
@@ -53,6 +54,7 @@ export default function NewDishStep1({
   openCreateCategoryModal,
   onSaveAndExit,
   isSubmitting = false,
+  submitError = null,
   allowCreateCategory = true,
   availableTags = [],
 }: NewDishStep1Props) {
@@ -419,6 +421,12 @@ export default function NewDishStep1({
             </div>
           </div>
         </div>
+
+        {submitError && (
+          <div className="mt-4">
+            <InputNotice variant="error" msg={submitError} />
+          </div>
+        )}
 
         {/* Botones de Acción */}
         <FooterButtons

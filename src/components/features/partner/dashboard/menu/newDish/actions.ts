@@ -195,6 +195,7 @@ export async function createDishAction(
       );
       if (tagsError) {
         console.error("Error creating tags:", tagsError);
+        throw new Error(`Error guardando etiquetas: ${tagsError.message}`);
       }
     }
   }

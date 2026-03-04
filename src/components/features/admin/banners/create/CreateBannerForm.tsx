@@ -13,6 +13,7 @@ import {
   //  CreateBannerState,
 } from "@/src/lib/admin/actions/createBanner";
 import { uploadFile } from "@/src/lib/storage/uploadFile";
+import { getErrorMessage } from "@/src/lib/utils";
 import {
   ArrowLeft,
   Monitor,
@@ -101,6 +102,24 @@ export default function CreateBannerForm({
   ];
 
   const effectivePlacement = fixedPlacement || placement;
+
+  const mapBannerSubmitError = (error: unknown) => {
+    const raw = getErrorMessage(error, "Error inesperado al crear el banner.");
+    const lowered = raw.toLowerCase();
+
+    if (
+      lowered.includes("413") ||
+      lowered.includes("entity too large") ||
+      lowered.includes("request entity too large") ||
+      lowered.includes("unexpected response")
+    ) {
+      return maxFileSizeMb
+        ? `La imagen es demasiado pesada para el servidor. Usa un GIF de hasta ${maxFileSizeMb}MB e intenta de nuevo.`
+        : "La imagen es demasiado pesada para el servidor. Reduce el tamaño e intenta de nuevo.";
+    }
+
+    return raw;
+  };
 
   const validateForm = () => {
     try {
@@ -191,8 +210,16 @@ export default function CreateBannerForm({
         }
 
         if (imageFile) {
-          console.log("Adjuntando archivo de imagen:", imageFile.name);
-          formData.append("imageFile", imageFile);
+          console.log("Subiendo imagen al storage:", imageFile.name);
+          const uploadedImageUrl = await uploadFile(
+            imageFile,
+            "banners",
+            "images",
+          );
+          if (!uploadedImageUrl) {
+            throw new Error("No se pudo obtener la URL pública de la imagen.");
+          }
+          formData.append("imageUrl", uploadedImageUrl);
         } else {
           // Should be caught by validateForm, but safety check
           setErrors((prev) => ({
@@ -218,8 +245,9 @@ export default function CreateBannerForm({
         }
       } catch (error) {
         console.error("Submission error catch:", error);
-        toast.error("Ocurrió un error inesperado.");
-        setGlobalError("Ocurrió un error inesperado al procesar la solicitud.");
+        const friendlyError = mapBannerSubmitError(error);
+        toast.error(friendlyError);
+        setGlobalError(friendlyError);
       }
     });
   };
