@@ -12,9 +12,11 @@ import {
   getChatMessages,
   sendMessage,
   uploadChatImage,
+  type ChatSource,
 } from "@/src/lib/actions/chat";
 
 type Message = Database["public"]["Tables"]["chat_messages"]["Row"];
+type GuestMessage = Database["public"]["Tables"]["guest_chat_messages"]["Row"];
 
 interface ChatPageClientProps {
   orderId: string;
@@ -28,6 +30,7 @@ export default function ChatPageClient({
   currentUserId,
 }: ChatPageClientProps) {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [chatSource, setChatSource] = useState<ChatSource>("regular");
   const [newMessage, setNewMessage] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [viewingImage, setViewingImage] = useState<string | null>(null);
@@ -57,6 +60,7 @@ export default function ChatPageClient({
         if (isMounted) {
           if (response.success && response.data) {
             setMessages(response.data);
+            setChatSource(response.source ?? "regular");
           } else {
             setChatError("Error cargando mensajes.");
           }
@@ -68,7 +72,10 @@ export default function ChatPageClient({
 
     loadMessages();
 
-    // 2. Realtime Subscription (Standard/Conventional)
+    // 2. Realtime Subscription (Regular/Guest)
+    const realtimeTable =
+      chatSource === "guest" ? "guest_chat_messages" : "chat_messages";
+
     const channel = supabase
       .channel(`chat:${orderId}`)
       .on(
@@ -76,12 +83,28 @@ export default function ChatPageClient({
         {
           event: "INSERT",
           schema: "public",
-          table: "chat_messages",
+          table: realtimeTable,
           filter: `order_id=eq.${orderId}`,
         },
         (payload) => {
           if (!isMounted) return;
-          const newMsg = payload.new as Message;
+
+          let newMsg: Message;
+          if (chatSource === "guest") {
+            const guestMessage = payload.new as GuestMessage;
+            newMsg = {
+              id: guestMessage.id,
+              order_id: guestMessage.order_id,
+              sender_id: guestMessage.sender_profile_id ?? "guest",
+              content: guestMessage.content,
+              message_type: guestMessage.message_type,
+              created_at: guestMessage.created_at,
+              is_read: guestMessage.is_read,
+            };
+          } else {
+            newMsg = payload.new as Message;
+          }
+
           // De-duplicate in case of race conditions or optimistic updates
           setMessages((prev) => {
             if (prev.some((m) => m.id === newMsg.id)) return prev;
@@ -100,7 +123,7 @@ export default function ChatPageClient({
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [orderId, supabase]);
+  }, [orderId, supabase, chatSource]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !currentUserId) return;

@@ -498,6 +498,262 @@ export type Database = {
           },
         ]
       }
+      guest_access_attempts: {
+        Row: {
+          created_at: string
+          device_fingerprint_hash: string | null
+          id: number
+          ip_hash: string | null
+          phone_e164: string | null
+          reason: string | null
+          result: string
+          store_id: string | null
+          user_agent_hash: string | null
+        }
+        Insert: {
+          created_at?: string
+          device_fingerprint_hash?: string | null
+          id?: number
+          ip_hash?: string | null
+          phone_e164?: string | null
+          reason?: string | null
+          result: string
+          store_id?: string | null
+          user_agent_hash?: string | null
+        }
+        Update: {
+          created_at?: string
+          device_fingerprint_hash?: string | null
+          id?: number
+          ip_hash?: string | null
+          phone_e164?: string | null
+          reason?: string | null
+          result?: string
+          store_id?: string | null
+          user_agent_hash?: string | null
+        }
+        Relationships: []
+      }
+      guest_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          guest_order_link_id: string
+          id: string
+          is_read: boolean
+          message_type: string
+          metadata: Json
+          order_id: string
+          sender_profile_id: string | null
+          sender_role: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          guest_order_link_id: string
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          metadata?: Json
+          order_id: string
+          sender_profile_id?: string | null
+          sender_role: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          guest_order_link_id?: string
+          id?: string
+          is_read?: boolean
+          message_type?: string
+          metadata?: Json
+          order_id?: string
+          sender_profile_id?: string | null
+          sender_role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_chat_messages_guest_order_link_id_fkey"
+            columns: ["guest_order_link_id"]
+            isOneToOne: false
+            referencedRelation: "guest_order_links"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "guest_chat_messages_sender_profile_id_fkey"
+            columns: ["sender_profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_order_links: {
+        Row: {
+          amount_total: number | null
+          created_at: string
+          currency: string
+          customer_first_name: string
+          customer_last_name: string
+          customer_phone_e164: string
+          expires_at: string
+          guest_session_id: string
+          id: string
+          metadata: Json
+          order_id: string
+          order_status_snapshot: string | null
+          payment_provider: string
+          payment_status: string
+          store_id: string | null
+          stripe_checkout_session_id: string | null
+          stripe_payment_intent_id: string | null
+          tracking_token: string
+          updated_at: string
+        }
+        Insert: {
+          amount_total?: number | null
+          created_at?: string
+          currency?: string
+          customer_first_name: string
+          customer_last_name: string
+          customer_phone_e164: string
+          expires_at?: string
+          guest_session_id: string
+          id?: string
+          metadata?: Json
+          order_id: string
+          order_status_snapshot?: string | null
+          payment_provider?: string
+          payment_status?: string
+          store_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          tracking_token?: string
+          updated_at?: string
+        }
+        Update: {
+          amount_total?: number | null
+          created_at?: string
+          currency?: string
+          customer_first_name?: string
+          customer_last_name?: string
+          customer_phone_e164?: string
+          expires_at?: string
+          guest_session_id?: string
+          id?: string
+          metadata?: Json
+          order_id?: string
+          order_status_snapshot?: string | null
+          payment_provider?: string
+          payment_status?: string
+          store_id?: string | null
+          stripe_checkout_session_id?: string | null
+          stripe_payment_intent_id?: string | null
+          tracking_token?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_order_links_guest_session_id_fkey"
+            columns: ["guest_session_id"]
+            isOneToOne: false
+            referencedRelation: "guest_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_runtime_config: {
+        Row: {
+          fixed_store_id: string
+          guest_enabled: boolean
+          id: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          fixed_store_id: string
+          guest_enabled?: boolean
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          fixed_store_id?: string
+          guest_enabled?: boolean
+          id?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guest_runtime_config_fixed_store_id_fkey"
+            columns: ["fixed_store_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guest_sessions: {
+        Row: {
+          consent_accepted: boolean
+          created_at: string
+          device_fingerprint_hash: string | null
+          expires_at: string
+          first_name: string
+          id: string
+          ip_hash: string | null
+          last_name: string
+          last_seen_at: string
+          notes: string | null
+          phone_e164: string
+          session_token: string
+          status: string
+          store_id: string | null
+          updated_at: string
+          user_agent_hash: string | null
+        }
+        Insert: {
+          consent_accepted?: boolean
+          created_at?: string
+          device_fingerprint_hash?: string | null
+          expires_at?: string
+          first_name: string
+          id?: string
+          ip_hash?: string | null
+          last_name: string
+          last_seen_at?: string
+          notes?: string | null
+          phone_e164: string
+          session_token?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          user_agent_hash?: string | null
+        }
+        Update: {
+          consent_accepted?: boolean
+          created_at?: string
+          device_fingerprint_hash?: string | null
+          expires_at?: string
+          first_name?: string
+          id?: string
+          ip_hash?: string | null
+          last_name?: string
+          last_seen_at?: string
+          notes?: string | null
+          phone_e164?: string
+          session_token?: string
+          status?: string
+          store_id?: string | null
+          updated_at?: string
+          user_agent_hash?: string | null
+        }
+        Relationships: []
+      }
       liquor_stores: {
         Row: {
           id: string
@@ -719,6 +975,29 @@ export type Database = {
           },
         ]
       }
+      order_pins: {
+        Row: {
+          order_id: string
+          pin: string
+        }
+        Insert: {
+          order_id: string
+          pin: string
+        }
+        Update: {
+          order_id?: string
+          pin?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_pins_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       orders: {
         Row: {
           base_subtotal: number | null
@@ -858,6 +1137,68 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "partner_placements_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      partner_printers: {
+        Row: {
+          capabilities: Json
+          connection_type: string
+          created_at: string
+          external_printer_id: string | null
+          id: string
+          ip_address: string | null
+          is_active: boolean
+          is_default: boolean
+          last_seen_at: string | null
+          model: string | null
+          name: string
+          partner_id: string
+          port: number | null
+          provider: string
+          updated_at: string
+        }
+        Insert: {
+          capabilities?: Json
+          connection_type: string
+          created_at?: string
+          external_printer_id?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean
+          is_default?: boolean
+          last_seen_at?: string | null
+          model?: string | null
+          name: string
+          partner_id: string
+          port?: number | null
+          provider: string
+          updated_at?: string
+        }
+        Update: {
+          capabilities?: Json
+          connection_type?: string
+          created_at?: string
+          external_printer_id?: string | null
+          id?: string
+          ip_address?: string | null
+          is_active?: boolean
+          is_default?: boolean
+          last_seen_at?: string | null
+          model?: string | null
+          name?: string
+          partner_id?: string
+          port?: number | null
+          provider?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_printers_partner_id_fkey"
             columns: ["partner_id"]
             isOneToOne: false
             referencedRelation: "partners"
@@ -1099,6 +1440,120 @@ export type Database = {
             columns: ["id"]
             isOneToOne: true
             referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      print_job_attempts: {
+        Row: {
+          attempt_no: number
+          created_at: string
+          error_message: string | null
+          id: string
+          print_job_id: string
+          provider: string
+          success: boolean
+        }
+        Insert: {
+          attempt_no: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          print_job_id: string
+          provider: string
+          success: boolean
+        }
+        Update: {
+          attempt_no?: number
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          print_job_id?: string
+          provider?: string
+          success?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "print_job_attempts_print_job_id_fkey"
+            columns: ["print_job_id"]
+            isOneToOne: false
+            referencedRelation: "print_jobs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      print_jobs: {
+        Row: {
+          attempts: number
+          content_format: string
+          created_at: string
+          id: string
+          idempotency_key: string
+          last_error: string | null
+          max_attempts: number
+          order_id: string | null
+          partner_id: string
+          payload: Json
+          printer_id: string
+          scheduled_at: string
+          source: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          content_format?: string
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          last_error?: string | null
+          max_attempts?: number
+          order_id?: string | null
+          partner_id: string
+          payload: Json
+          printer_id: string
+          scheduled_at?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          content_format?: string
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          last_error?: string | null
+          max_attempts?: number
+          order_id?: string | null
+          partner_id?: string
+          payload?: Json
+          printer_id?: string
+          scheduled_at?: string
+          source?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "print_jobs_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "print_jobs_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "print_jobs_printer_id_fkey"
+            columns: ["printer_id"]
+            isOneToOne: false
+            referencedRelation: "partner_printers"
             referencedColumns: ["id"]
           },
         ]
@@ -1481,6 +1936,119 @@ export type Database = {
           selected_address?: string | null
         }
         Relationships: []
+      }
+      push_jobs: {
+        Row: {
+          attempt_count: number
+          body: string
+          created_at: string
+          id: number
+          last_error: string | null
+          max_attempts: number
+          next_retry_at: string | null
+          notification_id: number | null
+          payload: Json | null
+          sent_at: string | null
+          status: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          body: string
+          created_at?: string
+          id?: number
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          notification_id?: number | null
+          payload?: Json | null
+          sent_at?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          body?: string
+          created_at?: string
+          id?: number
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string | null
+          notification_id?: number | null
+          payload?: Json | null
+          sent_at?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_jobs_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "notifications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "push_jobs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      push_tokens: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          device_id: string | null
+          id: string
+          is_active: boolean
+          last_seen_at: string
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          platform: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          device_id?: string | null
+          id?: string
+          is_active?: boolean
+          last_seen_at?: string
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "push_tokens_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ratings: {
         Row: {
@@ -2044,6 +2612,24 @@ export type Database = {
         Args: { partner_data: Json }
         Returns: undefined
       }
+      confirm_delivery_with_pin: {
+        Args: { p_order_id: string; p_pin: string; p_user_id: string }
+        Returns: Json
+      }
+      create_guest_order_transaction: {
+        Args: {
+          p_cart_items: Json
+          p_checkout_data: Json
+          p_guest_details: Json
+          p_guest_session_id: string
+          p_guest_user_id: string
+          p_partner_id: string
+          p_session_first_name: string
+          p_session_last_name: string
+          p_session_phone: string
+        }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           p_message: string
@@ -2079,6 +2665,10 @@ export type Database = {
         Returns: string
       }
       create_order_v8: {
+        Args: { cart_items: Json; checkout_data: Json }
+        Returns: string
+      }
+      create_order_v9: {
         Args: { cart_items: Json; checkout_data: Json }
         Returns: string
       }
@@ -2242,6 +2832,22 @@ export type Database = {
           total_records: number
         }[]
       }
+      get_guest_fixed_store_id: { Args: never; Returns: string }
+      get_guest_order_tracking: {
+        Args: { p_phone_e164?: string; p_tracking_token: string }
+        Returns: {
+          amount_total: number
+          created_at: string
+          currency: string
+          customer_first_name: string
+          customer_last_name: string
+          customer_phone_last4: string
+          expires_at: string
+          order_id: string
+          order_status_snapshot: string
+          payment_status: string
+        }[]
+      }
       get_map_partners: { Args: never; Returns: Json }
       get_partner_details: {
         Args: { p_id: string }
@@ -2282,6 +2888,45 @@ export type Database = {
         }[]
       }
       gettransactionid: { Args: never; Returns: unknown }
+      guest_chat_list: {
+        Args: {
+          p_before_created_at?: string
+          p_before_id?: string
+          p_limit?: number
+          p_phone_e164?: string
+          p_tracking_token: string
+        }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message_type: string
+          metadata: Json
+          order_id: string
+          sender_profile_id: string
+          sender_role: string
+        }[]
+      }
+      guest_chat_send: {
+        Args: {
+          p_content: string
+          p_message_type?: string
+          p_phone_e164?: string
+          p_tracking_token: string
+        }
+        Returns: {
+          content: string
+          created_at: string
+          id: string
+          is_read: boolean
+          message_type: string
+          metadata: Json
+          order_id: string
+          sender_profile_id: string
+          sender_role: string
+        }[]
+      }
       longtransactionsenabled: { Args: never; Returns: boolean }
       mark_delivery_as_complete: {
         Args: { caller_user_id_param: string; order_id_param: string }
@@ -2330,6 +2975,28 @@ export type Database = {
       register_partner: {
         Args: { email: string; partner_data: Json; password: string }
         Returns: string
+      }
+      register_push_token: {
+        Args: {
+          p_app_version?: string
+          p_device_id?: string
+          p_last_seen_at?: string
+          p_platform: string
+          p_token: string
+        }
+        Returns: undefined
+      }
+      resolve_guest_session: {
+        Args: { p_session_token: string; p_store_id?: string }
+        Returns: {
+          expires_at: string
+          first_name: string
+          guest_session_id: string
+          is_valid: boolean
+          last_name: string
+          phone_last4: string
+          store_id: string
+        }[]
       }
       st_3dclosestpoint: {
         Args: { geom1: unknown; geom2: unknown }
