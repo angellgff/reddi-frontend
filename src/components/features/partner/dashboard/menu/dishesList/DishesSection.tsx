@@ -14,6 +14,7 @@ import { deleteDishAction, restoreDishAction } from "../newDish/actions";
 import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import Toast from "@/src/components/basics/Toast";
 import { X } from "lucide-react";
+import DishImportModal from "./DishImportModal";
 
 type DishesListProps = {
   dishes: DishData[];
@@ -254,13 +255,16 @@ export default function DishesSection({
             </span>
           </div>
 
-          <button
-            type="button"
-            onClick={openCreateModal}
-            className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
-          >
-            Añadir Nuevo Menú / Plato
-          </button>
+          <div className="flex flex-wrap items-center gap-3">
+            <DishImportModal />
+            <button
+              type="button"
+              onClick={openCreateModal}
+              className="rounded-xl bg-primary px-5 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90"
+            >
+              Añadir Nuevo Menú / Plato
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border-2 border-primary bg-[#F3F4F6] px-4 py-4">

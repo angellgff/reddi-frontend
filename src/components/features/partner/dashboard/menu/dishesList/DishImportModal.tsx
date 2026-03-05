@@ -11,7 +11,10 @@ import {
   Download,
 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
-import { importProductsFromExcelAction } from "@/src/lib/partner/bulkUploadActions";
+import {
+  importDishesFromFileAction,
+  getDishesImportTemplateAction,
+} from "@/src/lib/partner/bulkUploadActions";
 
 type ImportResult = {
   success: boolean;
@@ -19,7 +22,7 @@ type ImportResult = {
   errors: string[];
 };
 
-export default function ProductImportModal() {
+export default function DishImportModal() {
   const [open, setOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -40,10 +43,9 @@ export default function ProductImportModal() {
 
     startTransition(async () => {
       // @ts-ignore
-      const res = await importProductsFromExcelAction(null, formData);
+      const res = await importDishesFromFileAction(null, formData);
       setResult(res);
       if (res.success && res.errors.length === 0) {
-        // Clear file on full success
         setFile(null);
       }
     });
@@ -51,15 +53,12 @@ export default function ProductImportModal() {
 
   const handleDownloadTemplate = async () => {
     try {
-      // @ts-ignore
-      const { getImportTemplateAction } =
-        await import("@/src/lib/partner/bulkUploadActions");
-      const res = await getImportTemplateAction();
+      const res = await getDishesImportTemplateAction();
 
       if (res.success && res.base64) {
         const link = document.createElement("a");
         link.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${res.base64}`;
-        link.download = "plantilla_productos.xlsx";
+        link.download = "plantilla_platos.xlsx";
         link.click();
       } else {
         console.error("Failed to download template:", res.error);
@@ -76,7 +75,7 @@ export default function ProductImportModal() {
       <Dialog.Trigger asChild>
         <button className="px-5 py-2 text-primary border border-primary rounded-xl hover:bg-primary/5 transition-colors font-medium text-sm flex items-center gap-2">
           <FileSpreadsheet size={18} />
-          Importar Excel
+          Importar Excel/CSV
         </button>
       </Dialog.Trigger>
       <Dialog.Portal>
@@ -84,7 +83,7 @@ export default function ProductImportModal() {
         <Dialog.Content className="fixed left-[50%] top-[50%] z-50 w-full max-w-lg translate-x-[-50%] translate-y-[-50%] rounded-xl bg-white p-6 shadow-lg focus:outline-none">
           <div className="flex items-center justify-between mb-4">
             <Dialog.Title className="text-xl font-semibold text-gray-900">
-              Importar Productos
+              Importar Platillos
             </Dialog.Title>
             <Dialog.Close className="text-gray-400 hover:text-gray-500">
               <X size={24} />
@@ -93,10 +92,10 @@ export default function ProductImportModal() {
 
           <Dialog.Description className="text-sm text-gray-500 mb-4 flex flex-col gap-2">
             <span>
-              Carga un archivo Excel (.xlsx) con tus productos. Asegúrate de
-              seguir el formato correcto. Las columnas requeridas son:{" "}
-              <strong>Name, Description, Price, Unit, Category</strong>.
-              Opcional: <strong>Tags</strong>.
+              Carga un archivo Excel (.xlsx/.xls) o CSV (.csv) con tus
+              platillos. Las columnas requeridas son:{" "}
+              <strong>Name, Price, Category</strong>. Opcional:{" "}
+              <strong>Tags</strong>.
             </span>
             <button
               onClick={handleDownloadTemplate}
@@ -110,7 +109,7 @@ export default function ProductImportModal() {
             <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors relative">
               <input
                 type="file"
-                accept=".xlsx, .xls"
+                accept=".xlsx,.xls,.csv"
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 onChange={handleFileChange}
               />
@@ -120,7 +119,7 @@ export default function ProductImportModal() {
                   <p className="font-medium text-gray-900">{file.name}</p>
                 ) : (
                   <p className="text-gray-500">
-                    Arrastra o selecciona un archivo Excel
+                    Arrastra o selecciona un archivo Excel o CSV
                   </p>
                 )}
               </div>
@@ -145,7 +144,7 @@ export default function ProductImportModal() {
                     ? "Importación completada"
                     : "Error en la importación"}
                 </div>
-                <p>{result.count} productos procesados correctamente.</p>
+                <p>{result.count} platillos procesados correctamente.</p>
                 {result.errors.length > 0 && (
                   <ul className="list-disc list-inside mt-2 max-h-32 overflow-y-auto">
                     {result.errors.map((err, idx) => (
