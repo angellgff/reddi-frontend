@@ -150,8 +150,8 @@ export default function Page() {
         </ul>
         <p>
           Para ejercer estos derechos, escríbenos a{" "}
-          <strong>[contacto@reddi.do]</strong> o mediante WhatsApp a{" "}
-          <strong>[número Reddi]</strong>.
+          <strong>[angellgff@gmail.com]</strong> o mediante WhatsApp a{" "}
+          <strong>[+1 (912) 228-0053]</strong>.
         </p>
       </section>
 
