@@ -17,6 +17,7 @@ type Props = {
   availableTags: ProductTagDefinition[];
   onCreated?: (productId: string) => void;
   onCancel?: () => void;
+  returnHref?: string;
 };
 
 /**
@@ -34,6 +35,7 @@ export default function MarketNewProductForm({
   availableTags,
   onCreated,
   onCancel,
+  returnHref = "/partner/market/productos",
 }: Props) {
   const router = useRouter();
   const [subCategories, setSubCategories] =
@@ -105,13 +107,15 @@ export default function MarketNewProductForm({
         return;
       }
 
-      router.push(`/partner/market/productos?created=${productId}`);
+      router.push(
+        `${returnHref}${returnHref.includes("?") ? "&" : "?"}created=${productId}`,
+      );
     } catch (e: unknown) {
       setSubmitError(getErrorMessage(e));
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, onCreated, router]);
+  }, [formData, onCreated, router, returnHref]);
 
   return (
     <>
@@ -144,7 +148,7 @@ export default function MarketNewProductForm({
             onCancel();
             return;
           }
-          router.push("/partner/market/productos");
+          router.push(returnHref);
         }}
         formData={formData}
         updateFormData={updateFormData}

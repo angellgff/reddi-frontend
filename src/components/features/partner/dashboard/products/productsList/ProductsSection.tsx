@@ -217,6 +217,14 @@ export default function ProductsSection({
     }
   };
 
+  const openEditModal = (productId: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("edit", productId);
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    });
+  };
+
   return (
     <>
       <div className="space-y-6 rounded-xl bg-white">
@@ -389,6 +397,7 @@ export default function ProductsSection({
               product={product}
               onDelete={handleDeleteProduct}
               onRestore={handleRestoreProduct}
+              onEdit={openEditModal}
               isSelected={selectedIds.includes(product.id)}
               onToggleSelect={toggleSelection}
             />

@@ -1,6 +1,5 @@
 import React from "react";
 import Image from "next/image";
-import Link from "next/link";
 import EditPartnerIcon from "@/src/components/icons/EditPartnertIcon";
 import DeletePartnerIcon from "@/src/components/icons/DeletePartnerIcon";
 import { ProductData } from "@/src/lib/partner/dashboard/type";
@@ -13,6 +12,7 @@ type ProductItemProps = {
   onRestore?: (id: string) => void;
   isSelected?: boolean;
   onToggleSelect?: (id: string) => void;
+  onEdit?: (id: string) => void;
 };
 
 export default function ProductItem({
@@ -21,6 +21,7 @@ export default function ProductItem({
   onRestore,
   isSelected = false,
   onToggleSelect,
+  onEdit,
 }: ProductItemProps) {
   return (
     <div
@@ -77,13 +78,14 @@ export default function ProductItem({
               Activar
             </button>
           ) : (
-            <Link
-              href={`/partner/market/productos/editar/${product.id}`}
+            <button
+              type="button"
+              onClick={() => onEdit?.(product.id)}
               className="inline-flex h-6 flex-1 items-center justify-center gap-1 rounded border border-[#D1D5DC] bg-white text-[9px] font-medium text-[#0A0A0A]"
             >
               <EditPartnerIcon className="h-3 w-3" />
               Editar
-            </Link>
+            </button>
           )}
 
           <button

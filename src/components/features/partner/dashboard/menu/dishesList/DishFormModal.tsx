@@ -25,10 +25,14 @@ export default function DishFormModal({
   };
 
   return (
-    <Dialog.Root open onOpenChange={handleOpenChange}>
+    <Dialog.Root open modal={false} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-black/60" />
-        <Dialog.Content className="fixed bottom-4 left-1/2 top-4 z-50 w-[min(1240px,95vw)] -translate-x-1/2 overflow-hidden rounded-2xl bg-[#F0F2F5] shadow-2xl outline-none">
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 z-[1000] bg-black/70"
+          onClick={() => handleOpenChange(false)}
+        />
+        <Dialog.Content className="fixed inset-x-0 bottom-4 top-4 z-[1010] mx-auto w-[min(1240px,95vw)] overflow-hidden rounded-2xl bg-[#F0F2F5] shadow-2xl outline-none">
           <div className="flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
             <Dialog.Title className="text-lg font-semibold text-[#101010]">
               {title}

@@ -16,6 +16,7 @@ type Props = {
   initialSubCategories: ProductSubCategory[];
   initialFormData: CreateProductFormState;
   availableTags: ProductTagDefinition[];
+  returnHref?: string;
 };
 
 /**
@@ -30,6 +31,7 @@ export default function MarketEditProductForm({
   initialSubCategories,
   initialFormData,
   availableTags,
+  returnHref = "/partner/market/productos",
 }: Props) {
   const router = useRouter();
   const [subCategories] = useState<ProductSubCategory[]>(initialSubCategories);
@@ -75,11 +77,15 @@ export default function MarketEditProductForm({
       data.append("tags", JSON.stringify(formData.tags || []));
 
       await updateMarketProductAction(productId, data);
-      router.push(`/partner/market/productos?updated=${productId}`);
+      const params = new URLSearchParams();
+      params.set("updated", productId);
+      router.push(
+        `${returnHref}${returnHref.includes("?") ? "&" : "?"}${params.toString()}`,
+      );
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, router, productId]);
+  }, [formData, router, productId, returnHref]);
 
   return (
     <>
@@ -107,7 +113,7 @@ export default function MarketEditProductForm({
           params.set("productId", productId);
           router.push(`/partner/market/productos/preview?${params.toString()}`);
         }}
-        onGoBack={() => router.push("/partner/market/productos")}
+        onGoBack={() => router.push(returnHref)}
         formData={formData}
         updateFormData={updateFormData}
         onNextStep={submitIfValid}
