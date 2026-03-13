@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { PartnerCategory } from "@/src/app/partner/(session)/restaurant/categorias/actions";
+import {
+  PartnerCategory,
+  reorderCategoriesAction,
+} from "@/src/app/partner/(session)/restaurant/categorias/actions";
 import CategoryModal from "./CategoryModal";
 import DeleteCategoryModal from "./DeleteCategoryModal";
+import { Button } from "@/src/components/ui/button";
+import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
 
 interface CategoriesClientProps {
   initialCategories: PartnerCategory[];
@@ -17,62 +22,129 @@ export default function CategoriesClient({
     useState<PartnerCategory[]>(initialCategories);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editCategory, setEditCategory] = useState<PartnerCategory | null>(
-    null
+    null,
   );
   const [deleteCategory, setDeleteCategory] = useState<PartnerCategory | null>(
-    null
+    null,
   );
+  const [reorderError, setReorderError] = useState<string | null>(null);
+  const [loadingReorder, setLoadingReorder] = useState(false);
 
-  const handleCreated = (newCat: { id: string; name: string }) => {
-    setCategories((prev) => [
-      ...prev,
-      {
-        id: newCat.id,
-        name: newCat.name,
-        imageUrl: null,
-        createdAt: new Date().toISOString(),
-        productCount: 0,
-      },
-    ]);
+  const normalizeDisplayOrder = (items: PartnerCategory[]) =>
+    items.map((item, index) => ({
+      ...item,
+      displayOrder: index + 1,
+    }));
+
+  const handleCreated = (newCat: {
+    id: string;
+    name: string;
+    displayOrder: number;
+  }) => {
+    setCategories((prev) =>
+      [
+        ...prev,
+        {
+          id: newCat.id,
+          name: newCat.name,
+          imageUrl: null,
+          createdAt: new Date().toISOString(),
+          displayOrder: newCat.displayOrder,
+          productCount: 0,
+        },
+      ].sort((a, b) => a.displayOrder - b.displayOrder),
+    );
   };
 
-  const handleUpdated = (updated: { id: string; name: string }) => {
+  const handleUpdated = (updated: {
+    id: string;
+    name: string;
+    displayOrder: number;
+  }) => {
     setCategories((prev) =>
-      prev.map((c) => (c.id === updated.id ? { ...c, name: updated.name } : c))
+      prev
+        .map((c) =>
+          c.id === updated.id
+            ? {
+                ...c,
+                name: updated.name,
+                displayOrder: updated.displayOrder,
+              }
+            : c,
+        )
+        .sort((a, b) => a.displayOrder - b.displayOrder),
     );
   };
 
   const handleDeleted = (id: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
+    setCategories((prev) =>
+      normalizeDisplayOrder(prev.filter((c) => c.id !== id)),
+    );
   };
+
+  const handleMove = async (index: number, direction: "up" | "down") => {
+    if (loadingReorder) return;
+    if (direction === "up" && index === 0) return;
+    if (direction === "down" && index === categories.length - 1) return;
+
+    const current = [...categories].sort(
+      (a, b) => a.displayOrder - b.displayOrder,
+    );
+    const targetIndex = direction === "up" ? index - 1 : index + 1;
+    const movingItem = current[index];
+    current.splice(index, 1);
+    current.splice(targetIndex, 0, movingItem);
+
+    const normalized = normalizeDisplayOrder(current);
+    const previous = categories;
+
+    setReorderError(null);
+    setCategories(normalized);
+    setLoadingReorder(true);
+
+    try {
+      await reorderCategoriesAction(
+        normalized.map((item) => ({
+          id: item.id,
+          displayOrder: item.displayOrder,
+        })),
+      );
+    } catch (error: unknown) {
+      setCategories(previous);
+      setReorderError(
+        (error as Error)?.message || "No se pudo actualizar el orden",
+      );
+    } finally {
+      setLoadingReorder(false);
+    }
+  };
+
+  const orderedCategories = [...categories].sort(
+    (a, b) => a.displayOrder - b.displayOrder,
+  );
 
   return (
     <>
-      {/* Header con botón nuevo */}
-      <div className="flex items-center justify-between mb-6">
-        <h3 className="text-lg font-semibold">Mis Categorías</h3>
-        <button
-          onClick={() => setIsCreateOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-              clipRule="evenodd"
-            />
-          </svg>
-          Nueva categoría
-        </button>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h3 className="text-lg font-semibold">Mis categorías</h3>
+          <p className="text-sm text-gray-500 mt-1">
+            Define el orden en que se muestran a tus clientes.
+          </p>
+        </div>
+
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" /> Nueva categoría
+        </Button>
       </div>
 
-      {/* Empty state */}
-      {categories.length === 0 && (
+      {reorderError && (
+        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {reorderError}
+        </div>
+      )}
+
+      {orderedCategories.length === 0 && (
         <div className="text-center py-12 text-gray-500">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -95,86 +167,85 @@ export default function CategoriesClient({
         </div>
       )}
 
-      {/* Grid de categorías */}
-      {categories.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {categories.map((cat) => (
+      {orderedCategories.length > 0 && (
+        <div
+          className={`space-y-2 ${loadingReorder ? "opacity-60 pointer-events-none" : ""}`}
+        >
+          {orderedCategories.map((cat, index) => (
             <div
               key={cat.id}
-              className="bg-gray-50 rounded-xl p-4 border border-gray-100 hover:border-gray-200 transition-colors"
+              className="flex items-center justify-between p-3 border rounded-md bg-gray-50"
             >
-              {/* Imagen */}
-              <div className="relative w-full aspect-video mb-3 rounded-lg overflow-hidden bg-gray-200">
-                {cat.imageUrl ? (
-                  <Image
-                    src={cat.imageUrl}
-                    alt={cat.name}
-                    fill
-                    className="object-cover"
-                    sizes="(max-width: 768px) 100vw, 25vw"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-8 w-8"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={1.5}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                )}
+              <div className="flex items-center gap-4 min-w-0">
+                <span className="text-gray-400 font-mono w-6 text-center text-sm">
+                  {index + 1}
+                </span>
+
+                <div className="relative w-12 h-12 rounded-lg overflow-hidden border bg-white flex-shrink-0">
+                  {cat.imageUrl ? (
+                    <Image
+                      src={cat.imageUrl}
+                      alt={cat.name}
+                      fill
+                      className="object-cover"
+                      sizes="48px"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">
+                      NA
+                    </div>
+                  )}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="font-medium truncate" title={cat.name}>
+                    {cat.name}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {cat.productCount} producto{cat.productCount !== 1 && "s"}
+                  </p>
+                </div>
               </div>
 
-              {/* Info */}
-              <h4 className="font-medium truncate" title={cat.name}>
-                {cat.name}
-              </h4>
-              <p className="text-sm text-gray-500 mt-1">
-                {cat.productCount} producto{cat.productCount !== 1 && "s"}
-              </p>
-
-              {/* Acciones */}
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-200">
-                <button
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={index === 0 || loadingReorder}
+                  onClick={() => handleMove(index, "up")}
+                >
+                  <ArrowUp className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  disabled={
+                    index === orderedCategories.length - 1 || loadingReorder
+                  }
+                  onClick={() => handleMove(index, "down")}
+                >
+                  <ArrowDown className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => setEditCategory(cat)}
-                  className="flex-1 px-3 py-1.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Editar
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
                   onClick={() => setDeleteCategory(cat)}
-                  className="px-3 py-1.5 text-sm font-medium text-red-600 bg-white border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-4 w-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Modales */}
       <CategoryModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}

@@ -15,7 +15,7 @@ import {
 interface CategoryModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSuccess: (data: { id: string; name: string }) => void;
+  onSuccess: (data: { id: string; name: string; displayOrder: number }) => void;
   category?: PartnerCategory;
 }
 
@@ -38,7 +38,7 @@ export default function CategoryModal({
       setError(null);
       setTimeout(() => {
         const el = document.getElementById(
-          "category-name-input"
+          "category-name-input",
         ) as HTMLInputElement | null;
         el?.focus();
       }, 50);
@@ -77,7 +77,7 @@ export default function CategoryModal({
         imageUrl = await uploadFile(imageFile, "categories", "sub-categories");
       }
 
-      let result: { id: string; name: string };
+      let result: { id: string; name: string; displayOrder: number };
       if (isEdit && category) {
         result = await updateCategoryAction(category.id, trimmed, imageUrl);
       } else {

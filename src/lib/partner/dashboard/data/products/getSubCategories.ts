@@ -14,6 +14,7 @@ export default async function getSubCategories(
     .from("sub_categories")
     .select("id, name, image_url")
     .eq("partner_id", partnerId) // Only sub-categories for the specific partner
+    .order("display_order", { ascending: true })
     .order("name", { ascending: true });
   if (error) {
     console.error("Error fetching sub_categories", error);

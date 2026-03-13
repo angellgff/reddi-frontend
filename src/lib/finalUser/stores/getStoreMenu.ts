@@ -106,8 +106,9 @@ export default async function getStoreMenu(
     // 1. Fetch subcategories
     const { data: subCatsData, error: subErr } = await supabase
       .from("sub_categories")
-      .select("id, name, image_url")
+      .select("id, name, image_url, display_order")
       .eq("partner_id", partnerId)
+      .order("display_order", { ascending: true })
       .order("name", { ascending: true });
     if (subErr) console.error("getStoreMenu sub_categories error", subErr);
     categoriesList = (subCatsData || []) as {

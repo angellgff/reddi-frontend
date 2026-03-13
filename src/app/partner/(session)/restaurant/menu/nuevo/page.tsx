@@ -26,9 +26,10 @@ export default async function NewDishPage() {
   if (partnerId) {
     const { data: subCategoriesRows } = await supabase
       .from("sub_categories")
-      .select("id, name, partner_id")
+      .select("id, name, partner_id, display_order")
       .eq("partner_id", partnerId)
-      .order("name");
+      .order("display_order", { ascending: true })
+      .order("name", { ascending: true });
     subCategories = (subCategoriesRows || []).map((c) => ({
       id: c.id,
       name: c.name,
