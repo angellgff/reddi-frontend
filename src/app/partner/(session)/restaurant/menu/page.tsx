@@ -4,6 +4,7 @@ import DishesServer from "@/src/components/features/partner/dashboard/menu/dishe
 import ProductsSkeleton from "@/src/components/features/partner/dashboard/products/productsList/ProductsSkeleton";
 import CreateDishModalServer from "@/src/components/features/partner/dashboard/menu/newDish/CreateDishModalServer";
 import EditDishModalServer from "@/src/components/features/partner/dashboard/menu/editDish/EditDishModalServer";
+import LoadingDishFormModal from "@/src/components/features/partner/dashboard/shared/LoadingDishFormModal";
 import { Suspense } from "react";
 
 const getSearchParam = (value: string | string[] | undefined) =>
@@ -41,7 +42,7 @@ export default async function MenuPage({
       </Suspense>
 
       <section className="mt-4 rounded-xl bg-white px-6 py-6">
-        <Suspense fallback={<ProductsSkeleton />}>
+        <Suspense fallback={editId ? null : <ProductsSkeleton />}>
           <DishesServer
             category={category}
             tag={tag}
@@ -58,7 +59,7 @@ export default async function MenuPage({
       ) : null}
 
       {editId ? (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingDishFormModal closeHref={baseHref} />}>
           <EditDishModalServer
             id={editId}
             closeHref={baseHref}

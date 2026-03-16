@@ -4,6 +4,7 @@ import ProductsServer from "@/src/components/features/partner/dashboard/products
 import ProductsSkeleton from "@/src/components/features/partner/dashboard/products/productsList/ProductsSkeleton";
 import MarketEditProductModalServer from "@/src/components/features/partner/dashboard/market/editProduct/MarketEditProductModalServer";
 import MarketCreateProductModalServer from "@/src/components/features/partner/dashboard/market/newProduct/MarketCreateProductModalServer";
+import LoadingDishFormModal from "@/src/components/features/partner/dashboard/shared/LoadingDishFormModal";
 import { Suspense } from "react";
 
 const getSearchParam = (value: string | string[] | undefined) =>
@@ -38,13 +39,13 @@ export default async function ProductsPage({
         <ProductsStatsServer />
       </Suspense>
       <section className="mt-4 rounded-xl bg-white px-6 py-6">
-        <Suspense fallback={<ProductsSkeleton />}>
+        <Suspense fallback={editId ? null : <ProductsSkeleton />}>
           <ProductsServer q={q} category={category} available={available} />
         </Suspense>
       </section>
 
       {editId ? (
-        <Suspense fallback={null}>
+        <Suspense fallback={<LoadingDishFormModal closeHref={baseHref} />}>
           <MarketEditProductModalServer id={editId} closeHref={baseHref} />
         </Suspense>
       ) : null}

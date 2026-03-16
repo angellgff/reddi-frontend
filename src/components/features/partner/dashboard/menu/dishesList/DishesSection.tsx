@@ -15,6 +15,7 @@ import ConfirmModal from "@/src/components/basics/ConfirmModal";
 import Toast from "@/src/components/basics/Toast";
 import { X } from "lucide-react";
 import DishImportModal from "./DishImportModal";
+import BasicModal from "@/src/components/basics/BasicModal";
 
 type DishesListProps = {
   dishes: DishData[];
@@ -43,6 +44,9 @@ export default function DishesSection({
   const [bulkDeletingIds, setBulkDeletingIds] = useState<string[]>([]);
   const [confirmMode, setConfirmMode] = useState<"single" | "bulk">("single");
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [optimisticModal, setOptimisticModal] = useState<
+    "create" | "edit" | null
+  >(null);
   const [toast, setToast] = useState<{
     open: boolean;
     msg: string;
@@ -53,6 +57,12 @@ export default function DishesSection({
   useEffect(() => {
     setItems(dishes);
   }, [dishes]);
+
+  useEffect(() => {
+    if (searchParams.get("edit") || searchParams.get("create") === "true") {
+      setOptimisticModal(null);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     setSelectedIds((prev) =>
@@ -174,18 +184,16 @@ export default function DishesSection({
     const params = new URLSearchParams(searchParams.toString());
     params.set("create", "true");
     params.delete("edit");
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    });
+    setOptimisticModal("create");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const openEditModal = (id: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("edit", id);
     params.delete("create");
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    });
+    setOptimisticModal("edit");
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   const selectedCount = selectedIds.length;
@@ -433,6 +441,21 @@ export default function DishesSection({
         type={toast.type}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
       />
+
+      <BasicModal
+        open={optimisticModal !== null}
+        onClose={() => setOptimisticModal(null)}
+        title={
+          optimisticModal === "create"
+            ? "Abriendo formulario..."
+            : "Abriendo editor..."
+        }
+        className="max-w-lg"
+      >
+        <div className="flex min-h-[220px] items-center justify-center">
+          <Spinner />
+        </div>
+      </BasicModal>
     </>
   );
 }

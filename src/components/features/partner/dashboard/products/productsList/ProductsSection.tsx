@@ -18,6 +18,7 @@ import {
   ProductTagDefinition,
 } from "@/src/lib/partner/productTypes";
 import CreateProductModal from "./CreateProductModal";
+import BasicModal from "@/src/components/basics/BasicModal";
 
 type ProductsListProps = {
   products: ProductData[];
@@ -47,6 +48,7 @@ export default function ProductsSection({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [optimisticEditOpen, setOptimisticEditOpen] = useState(false);
   // Estado para Toast
   const [toast, setToast] = useState<{
     open: boolean;
@@ -59,6 +61,12 @@ export default function ProductsSection({
       prev.filter((id) => products.some((p) => p.id === id)),
     );
   }, [products]);
+
+  useEffect(() => {
+    if (searchParams.get("edit")) {
+      setOptimisticEditOpen(false);
+    }
+  }, [searchParams]);
 
   // Sincronizar búsqueda y filtros con URL
   useEffect(() => {
@@ -220,9 +228,8 @@ export default function ProductsSection({
   const openEditModal = (productId: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set("edit", productId);
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    });
+    setOptimisticEditOpen(true);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
@@ -426,6 +433,17 @@ export default function ProductsSection({
         type={toast.type}
         onClose={() => setToast((t) => ({ ...t, open: false }))}
       />
+
+      <BasicModal
+        open={optimisticEditOpen}
+        onClose={() => setOptimisticEditOpen(false)}
+        title="Abriendo editor..."
+        className="max-w-lg"
+      >
+        <div className="flex min-h-[220px] items-center justify-center">
+          <Spinner />
+        </div>
+      </BasicModal>
     </>
   );
 }
