@@ -106,8 +106,8 @@ export default function ProductVariantsManager({
     try {
       setLoading(true);
       await updateVariantGroup(
-        productId,
         editingGroupId,
+        productId,
         editingGroupData,
         path,
       );

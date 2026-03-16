@@ -1,5 +1,4 @@
-import { createClient } from "@/src/lib/supabase/server";
-import { redirect } from "next/navigation";
+import { requireAdminUser } from "@/src/lib/admin/auth/requireAdmin";
 
 export interface AdminProfileFull {
   id: string;
@@ -15,14 +14,7 @@ export interface AdminProfileFull {
 }
 
 export async function getAdminProfileFull(): Promise<AdminProfileFull> {
-  const supabase = await createClient();
-
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-  if (!session) redirect("/admin/login");
-
-  const user = session.user;
+  const { supabase, user } = await requireAdminUser();
 
   // Fetch profile data from 'profiles' table
   const { data: profile } = await supabase
@@ -41,7 +33,7 @@ export async function getAdminProfileFull(): Promise<AdminProfileFull> {
     last_name?: string;
     phone_number?: string;
   };
-  
+
   const meta = (user.user_metadata || {}) as UserMetadata;
   const notification_preferences = {
     email: meta.notifications_email ?? true,
@@ -52,7 +44,7 @@ export async function getAdminProfileFull(): Promise<AdminProfileFull> {
   return {
     id: user.id,
     // Prefer profile email, fallback to auth email
-    email: profile?.email || user.email, 
+    email: profile?.email || user.email,
     first_name: profile?.first_name || meta.first_name || null,
     last_name: profile?.last_name || meta.last_name || null,
     phone_number: profile?.phone_number || meta.phone_number || null,

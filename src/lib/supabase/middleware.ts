@@ -5,6 +5,15 @@ import * as Sentry from "@sentry/nextjs";
 
 export async function updateSession(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const asNonEmptyString = (value: unknown): string | null => {
+    if (typeof value !== "string") return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.toLowerCase() === "undefined") return null;
+    if (trimmed.toLowerCase() === "null") return null;
+    return trimmed;
+  };
+
   console.log(
     `\n\n--- [MW-DEBUG] INICIO Petición a: ${request.method} ${path} ---`,
   );
@@ -118,7 +127,9 @@ export async function updateSession(request: NextRequest) {
 
   // --- PHONE VERIFICATION CHECK ---
   // Bloquea el acceso si el usuario tiene teléfono registrado pero no confirmado.
-  const userPhone = user?.phone || (user?.user_metadata as any)?.phone_number;
+  const userPhone =
+    asNonEmptyString(user?.phone) ||
+    asNonEmptyString((user?.user_metadata as any)?.phone_number);
   // Check both standard field and metadata flag for verification status
   const isPhoneVerified =
     !!user?.phone_confirmed_at ||
@@ -231,16 +242,11 @@ export async function updateSession(request: NextRequest) {
       role = profile?.role ?? null;
     } catch (e) {
       Sentry.captureException(e);
-      const am = (user?.app_metadata as Record<string, unknown>) || {};
-      const um = (user?.user_metadata as Record<string, unknown>) || {};
-      role =
-        (am.user_role as string) ||
-        (am.role as string) ||
-        (um.user_role as string) ||
-        (um.role as string) ||
-        null;
+      // Security hardening: never escalate role from auth metadata when
+      // profiles lookup fails (timeouts/transient errors).
+      role = null;
       console.warn(
-        "[MW-DEBUG] Fallo al buscar rol en 'profiles', usando metadata:",
+        "[MW-DEBUG] Fallo al buscar rol en 'profiles'. Rol invalidado por seguridad:",
         (e as Error)?.message,
       );
     }
