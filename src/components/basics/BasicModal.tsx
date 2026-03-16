@@ -1,8 +1,7 @@
 "use client";
 
 import Portal from "@/src/components/basics/Portal";
-import React, { useEffect } from "react";
-import { X } from "lucide-react"; // Assuming lucide-react is available, otherwise I'll use a simple SVG or text
+import React, { useEffect, useRef } from "react";
 
 type BasicModalProps = {
   open: boolean;
@@ -21,6 +20,8 @@ export default function BasicModal({
   className = "max-w-md",
   usePortal = true,
 }: BasicModalProps) {
+  const backdropPointerDown = useRef(false);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -48,11 +49,21 @@ export default function BasicModal({
       className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200 pointer-events-auto"
       role="dialog"
       aria-modal
-      onClick={onClose}
+      onPointerDown={(e) => {
+        backdropPointerDown.current = e.target === e.currentTarget;
+      }}
+      onPointerUp={(e) => {
+        const releasedOnBackdrop = e.target === e.currentTarget;
+        if (backdropPointerDown.current && releasedOnBackdrop) {
+          onClose();
+        }
+        backdropPointerDown.current = false;
+      }}
     >
       <div
         className={`bg-white rounded-xl shadow-xl w-full relative z-[1201] pointer-events-auto overflow-hidden animate-in zoom-in-95 duration-200 ${className}`}
-        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-4 border-b">
           <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
