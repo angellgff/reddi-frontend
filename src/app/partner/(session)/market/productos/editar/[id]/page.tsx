@@ -31,7 +31,7 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
   const { data: productRow, error: productError } = await supabase
     .from("products")
     .select(
-      `id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, sub_category_id, is_available, tax_included, image_url, category_id`,
+      `id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, search_keywords, sub_category_id, is_available, tax_included, image_url, category_id`,
     )
     .eq("id", id) // Se usa la variable 'id'
     .eq("partner_id", partner.id)
@@ -120,6 +120,7 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     quantityStep: String(productRow.quantity_step || "1"),
     estimatedTimeRange: productRow.estimated_time || "",
     description: productRow.description || "",
+    search_keywords: productRow.search_keywords || [],
     subCategoryId: validCategoryId,
     isAvailable: productRow.is_available ?? true,
     taxIncluded: productRow.tax_included ?? false,

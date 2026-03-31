@@ -54,6 +54,7 @@ export interface CreateProductFormState {
   subCategoryId: string | null; // FK sub_category_id
   isAvailable: boolean;
   taxIncluded: boolean;
+  search_keywords: string[];
   sections: ProductSectionForm[];
   tags: string[];
 }

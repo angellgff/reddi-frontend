@@ -58,6 +58,7 @@ export default function MarketNewProductForm({
     subCategoryId: initialSubCategories[0]?.id || null,
     isAvailable: true,
     taxIncluded: false,
+    search_keywords: [],
     sections: [], // market: no extras, keep empty
     tags: [],
   });
@@ -95,6 +96,10 @@ export default function MarketNewProductForm({
       data.append("isAvailable", String(formData.isAvailable));
       data.append("taxIncluded", String(formData.taxIncluded));
       if (formData.image) data.append("image", formData.image);
+      data.append(
+        "search_keywords",
+        JSON.stringify(formData.search_keywords || []),
+      );
       // market: force empty sections
       data.append("sections", JSON.stringify([]));
       data.append("tags", JSON.stringify(formData.tags || []));

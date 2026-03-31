@@ -59,8 +59,35 @@ export default function NewDishStep1({
   availableTags = [],
 }: NewDishStep1Props) {
   const [errors, setErrors] = useState<Partial<Record<string, string>>>({});
+  const [keywordInput, setKeywordInput] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
   const fileUploadRef = useRef<HTMLDivElement>(null);
+
+  const normalizeKeyword = (raw: string) => raw.trim().toLowerCase();
+
+  const addSearchKeyword = (raw: string) => {
+    const normalized = normalizeKeyword(raw);
+    if (!normalized) {
+      return;
+    }
+
+    const current = formData.search_keywords || [];
+    if (current.includes(normalized)) {
+      setKeywordInput("");
+      return;
+    }
+
+    updateFormData({ search_keywords: [...current, normalized] });
+    setKeywordInput("");
+  };
+
+  const removeSearchKeyword = (keyword: string) => {
+    updateFormData({
+      search_keywords: (formData.search_keywords || []).filter(
+        (item) => item !== keyword,
+      ),
+    });
+  };
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -349,6 +376,59 @@ export default function NewDishStep1({
                 required
                 error={errors.description}
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-900">
+                Palabras clave de busqueda
+              </label>
+              <div className="rounded-xl border border-gray-200 bg-white px-3 py-2 focus-within:border-primary">
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {(formData.search_keywords || []).map((keyword) => (
+                    <button
+                      key={keyword}
+                      type="button"
+                      onClick={() => removeSearchKeyword(keyword)}
+                      className="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100"
+                      aria-label={`Eliminar palabra clave ${keyword}`}
+                    >
+                      {keyword}
+                      <span aria-hidden="true">x</span>
+                    </button>
+                  ))}
+                </div>
+                <input
+                  name="search_keywords"
+                  value={keywordInput}
+                  onChange={(e) => setKeywordInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === ",") {
+                      e.preventDefault();
+                      addSearchKeyword(keywordInput);
+                      return;
+                    }
+
+                    if (
+                      e.key === "Backspace" &&
+                      !keywordInput.trim() &&
+                      (formData.search_keywords || []).length > 0
+                    ) {
+                      const keywords = formData.search_keywords || [];
+                      removeSearchKeyword(keywords[keywords.length - 1]);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (keywordInput.trim()) {
+                      addSearchKeyword(keywordInput);
+                    }
+                  }}
+                  placeholder="Escribe y presiona Enter o coma"
+                  className="w-full border-0 p-0 text-sm text-gray-900 outline-none placeholder:text-gray-400"
+                />
+              </div>
+              <p className="mt-1 text-xs text-gray-500">
+                Se guardaran en minusculas y sin espacios al inicio o al final.
+              </p>
             </div>
 
             {availableTags && availableTags.length > 0 && (

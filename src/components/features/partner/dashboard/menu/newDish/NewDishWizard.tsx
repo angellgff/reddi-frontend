@@ -74,6 +74,7 @@ export default function NewDishWizard({
     subCategoryId: subCategories[0]?.id || null,
     isAvailable: true,
     taxIncluded: false,
+    search_keywords: [],
     sections: [],
     tags: [],
   });
@@ -205,6 +206,10 @@ export default function NewDishWizard({
       }
 
       // Objetos/Arrays complejos se convierten a string JSON
+      data.append(
+        "search_keywords",
+        JSON.stringify(formData.search_keywords || []),
+      );
       data.append("sections", JSON.stringify(formData.sections));
       data.append("tags", JSON.stringify(formData.tags || [])); // Added tags
 
@@ -261,6 +266,10 @@ export default function NewDishWizard({
       if (formData.image) {
         data.append("image", formData.image);
       }
+      data.append(
+        "search_keywords",
+        JSON.stringify(formData.search_keywords || []),
+      );
       data.append("sections", JSON.stringify(formData.sections));
       data.append("tags", JSON.stringify(formData.tags || [])); // Added tags
       const { productId } = await createDishAction(data);

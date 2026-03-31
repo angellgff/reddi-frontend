@@ -201,6 +201,10 @@ export default function EditDishWizard({
       if (formData.image instanceof File) {
         data.append("image", formData.image);
       }
+      data.append(
+        "search_keywords",
+        JSON.stringify(formData.search_keywords || []),
+      );
       data.append("sections", JSON.stringify(formData.sections));
       data.append("tags", JSON.stringify(formData.tags || []));
 

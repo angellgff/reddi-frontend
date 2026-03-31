@@ -14,6 +14,33 @@ const generateUniqueFileName = (originalName: string) => {
   return `${crypto.randomUUID()}.${extension}`;
 };
 
+const normalizeSearchKeywords = (keywords: string[]) => {
+  return Array.from(
+    new Set(
+      keywords.map((keyword) => keyword.trim().toLowerCase()).filter(Boolean),
+    ),
+  );
+};
+
+const parseSearchKeywordsFromFormData = (formData: FormData) => {
+  const raw = formData.get("search_keywords");
+  if (typeof raw !== "string" || !raw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return normalizeSearchKeywords(
+      parsed.filter((item) => typeof item === "string"),
+    );
+  } catch {
+    return [];
+  }
+};
+
 // Crear nueva sub-categoría (modal)
 export async function createSubCategoryAction(
   name: string,
@@ -101,6 +128,7 @@ export async function createDishAction(
   }
 
   // 3. Extraer los datos del producto del FormData
+  const searchKeywords = parseSearchKeywordsFromFormData(formData);
   const productPayload = {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
@@ -117,6 +145,7 @@ export async function createDishAction(
     sub_category_id: formData.get("subCategoryId") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",
+    search_keywords: searchKeywords,
     partner_id: partner.id,
     image_url: imageUrl, // <-- ¡Aquí está la URL de la imagen!
   };
@@ -313,7 +342,10 @@ export async function updateDishAction(dishId: string, formData: FormData) {
 
   // 2. PAYLOAD DEL PRODUCTO PRINCIPAL
   console.group("2. Preparando payload para actualizar el producto principal");
-  const updatePayload: { [key: string]: string | number | boolean | null } = {
+  const searchKeywords = parseSearchKeywordsFromFormData(formData);
+  const updatePayload: {
+    [key: string]: string | number | boolean | string[] | null;
+  } = {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
     description: formData.get("description") as string,
@@ -329,6 +361,7 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     estimated_time: formData.get("estimatedTimeRange") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",
+    search_keywords: searchKeywords,
     previous_price: formData.get("previousPrice")
       ? parseFloat(formData.get("previousPrice") as string)
       : null,

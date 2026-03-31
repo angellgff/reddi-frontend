@@ -24,6 +24,7 @@ type ProductData = {
   quantity_step?: number;
   estimated_time?: string;
   description?: string;
+  search_keywords?: string[] | null;
   sub_category_id?: string;
   is_available?: boolean;
   tax_included?: boolean;
@@ -55,6 +56,7 @@ function mapProductToFormState(product: ProductData): CreateProductFormState {
     quantityStep: String(product.quantity_step || "1"),
     estimatedTimeRange: product.estimated_time || "",
     description: product.description || "",
+    search_keywords: product.search_keywords || [],
     subCategoryId: product.sub_category_id || null,
     isAvailable: product.is_available ?? true,
     taxIncluded: product.tax_included ?? false,

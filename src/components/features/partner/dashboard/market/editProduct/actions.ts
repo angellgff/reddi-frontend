@@ -8,6 +8,33 @@ const generateUniqueFileName = (originalName: string) => {
   return `${crypto.randomUUID()}.${extension}`;
 };
 
+const normalizeSearchKeywords = (keywords: string[]) => {
+  return Array.from(
+    new Set(
+      keywords.map((keyword) => keyword.trim().toLowerCase()).filter(Boolean),
+    ),
+  );
+};
+
+const parseSearchKeywordsFromFormData = (formData: FormData) => {
+  const raw = formData.get("search_keywords");
+  if (typeof raw !== "string" || !raw) {
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return normalizeSearchKeywords(
+      parsed.filter((item) => typeof item === "string"),
+    );
+  } catch {
+    return [];
+  }
+};
+
 export async function updateMarketProductAction(
   productId: string,
   formData: FormData,
@@ -64,6 +91,7 @@ export async function updateMarketProductAction(
 
   // Construct Payload
   // Market uses category_id based on global categories, NOT sub_category_id
+  const searchKeywords = parseSearchKeywordsFromFormData(formData);
   const updatePayload: Record<string, any> = {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
@@ -79,6 +107,7 @@ export async function updateMarketProductAction(
     estimated_time: formData.get("estimatedTimeRange") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",
+    search_keywords: searchKeywords,
     previous_price: formData.get("previousPrice")
       ? parseFloat(formData.get("previousPrice") as string)
       : null,
