@@ -25,6 +25,11 @@ const navigationLinks: NavLink[] = [
     icon: "product", // ANTES: ProductIcon
   },
   {
+    name: "Orden menú",
+    href: `${actualURL}/menu/editor`,
+    icon: "category",
+  },
+  {
     name: "Categorías",
     href: `${actualURL}/categorias`,
     icon: "category",

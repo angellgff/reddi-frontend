@@ -1823,6 +1823,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percentage: number | null
+          display_order: number
           estimated_time: string
           id: string
           image_url: string | null
@@ -1845,6 +1846,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
+          display_order: number
           estimated_time: string
           id?: string
           image_url?: string | null
@@ -1867,6 +1869,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           discount_percentage?: number | null
+          display_order?: number
           estimated_time?: string
           id?: string
           image_url?: string | null
@@ -3112,6 +3115,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percentage: number | null
+          display_order: number
           estimated_time: string
           id: string
           image_url: string | null
@@ -3187,6 +3191,10 @@ export type Database = {
       mark_delivery_as_complete: {
         Args: { caller_user_id_param: string; order_id_param: string }
         Returns: string
+      }
+      normalize_partner_product_order: {
+        Args: { p_partner_id: string; p_sub_category_id?: string }
+        Returns: undefined
       }
       normalize_partner_sub_category_order: {
         Args: { p_partner_id: string }
@@ -3268,6 +3276,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      reorder_partner_products: {
+        Args: {
+          p_items: Json
+          p_partner_id: string
+          p_sub_category_id?: string
+        }
+        Returns: undefined
+      }
       reorder_partner_sub_categories: {
         Args: { p_items: Json; p_partner_id: string }
         Returns: undefined
@@ -3292,6 +3308,7 @@ export type Database = {
           created_at: string
           description: string | null
           discount_percentage: number | null
+          display_order: number
           estimated_time: string
           id: string
           image_url: string | null

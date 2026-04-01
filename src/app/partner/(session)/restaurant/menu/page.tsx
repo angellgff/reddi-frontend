@@ -6,6 +6,7 @@ import CreateDishModalServer from "@/src/components/features/partner/dashboard/m
 import EditDishModalServer from "@/src/components/features/partner/dashboard/menu/editDish/EditDishModalServer";
 import LoadingDishFormModal from "@/src/components/features/partner/dashboard/shared/LoadingDishFormModal";
 import { Suspense } from "react";
+import Link from "next/link";
 
 const getSearchParam = (value: string | string[] | undefined) =>
   Array.isArray(value) ? value[0] : value;
@@ -42,6 +43,15 @@ export default async function MenuPage({
       </Suspense>
 
       <section className="mt-4 rounded-xl bg-white px-6 py-6">
+        <div className="mb-5 flex justify-end">
+          <Link
+            href="/partner/restaurant/menu/editor"
+            className="rounded-xl border border-[#D9DCE3] bg-[#F8F9FB] px-4 py-2 text-sm font-semibold text-[#1E293B] hover:bg-[#EEF2F7]"
+          >
+            Reordenar en vista móvil
+          </Link>
+        </div>
+
         <Suspense fallback={editId ? null : <ProductsSkeleton />}>
           <DishesServer
             category={category}

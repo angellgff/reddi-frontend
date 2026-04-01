@@ -49,3 +49,9 @@ public/workbox-*.js.map
 
 # Sentry Config File
 .env.sentry-build-plugin
+
+# Planning / AI explanation docs (do not commit)
+docs/*postmortem*.md
+docs/*migracion*.md
+docs/*especificacion*.md
+docs/*plan*.md
