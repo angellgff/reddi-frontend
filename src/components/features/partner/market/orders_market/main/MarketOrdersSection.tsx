@@ -404,25 +404,6 @@ export default function MarketOrdersSection({
                               </p>
                             </div>
 
-                            <div className="mt-3 rounded-md bg-[#F9FAFB] p-3">
-                              <p className="font-inter text-xs font-semibold uppercase tracking-[0.5px] text-[#364153]">
-                                Dirección de entrega
-                              </p>
-                              <p className="mt-1 font-inter text-sm text-[#4A5565]">
-                                {detail.addressDetails || "Sin detalles"}
-                              </p>
-                            </div>
-
-                            {detail.instructions && (
-                              <div className="mt-2 rounded-md border border-[#FECACA] bg-[#FEF2F2] p-3">
-                                <p className="font-inter text-xs font-semibold uppercase tracking-[0.5px] text-[#991B1B]">
-                                  Instrucciones especiales
-                                </p>
-                                <p className="mt-1 font-inter text-sm text-[#7F1D1D]">
-                                  {detail.instructions}
-                                </p>
-                              </div>
-                            )}
                           </div>
                         )}
                       </div>
@@ -549,26 +530,6 @@ export default function MarketOrdersSection({
                               {formatCurrency(detail.total)}
                             </p>
                           </div>
-
-                          <div className="mt-3 rounded-md bg-[#F9FAFB] p-3">
-                            <p className="font-inter text-xs font-semibold uppercase tracking-[0.5px] text-[#364153]">
-                              Dirección de entrega
-                            </p>
-                            <p className="mt-1 font-inter text-sm text-[#4A5565]">
-                              {detail.addressDetails || "Sin detalles"}
-                            </p>
-                          </div>
-
-                          {detail.instructions && (
-                            <div className="mt-2 rounded-md border border-[#FECACA] bg-[#FEF2F2] p-3">
-                              <p className="font-inter text-xs font-semibold uppercase tracking-[0.5px] text-[#991B1B]">
-                                Instrucciones especiales
-                              </p>
-                              <p className="mt-1 font-inter text-sm text-[#7F1D1D]">
-                                {detail.instructions}
-                              </p>
-                            </div>
-                          )}
 
                           {canMarkAsReady && (
                             <div className="mt-3 flex justify-end">
