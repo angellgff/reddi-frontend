@@ -403,7 +403,6 @@ export default function MarketOrdersSection({
                                 {formatCurrency(detail.total)}
                               </p>
                             </div>
-
                           </div>
                         )}
                       </div>
