@@ -44,12 +44,20 @@ export default async function MenuPage({
 
       <section className="mt-4 rounded-xl bg-white px-6 py-6">
         <div className="mb-5 flex justify-end">
-          <Link
-            href="/partner/restaurant/menu/editor"
-            className="rounded-xl border border-[#D9DCE3] bg-[#F8F9FB] px-4 py-2 text-sm font-semibold text-[#1E293B] hover:bg-[#EEF2F7]"
-          >
-            Reordenar en vista móvil
-          </Link>
+          <div className="flex gap-2">
+            <Link
+              href="/partner/restaurant/menus"
+              className="rounded-xl border border-[#D9DCE3] bg-white px-4 py-2 text-sm font-semibold text-[#1E293B] hover:bg-[#F8F9FB]"
+            >
+              Gestionar menús
+            </Link>
+            <Link
+              href="/partner/restaurant/menu/editor"
+              className="rounded-xl border border-[#D9DCE3] bg-[#F8F9FB] px-4 py-2 text-sm font-semibold text-[#1E293B] hover:bg-[#EEF2F7]"
+            >
+              Reordenar en vista móvil
+            </Link>
+          </div>
         </div>
 
         <Suspense fallback={editId ? null : <ProductsSkeleton />}>

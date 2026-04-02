@@ -30,6 +30,11 @@ const navigationLinks: NavLink[] = [
     icon: "category",
   },
   {
+    name: "Menús",
+    href: `${actualURL}/menus`,
+    icon: "category",
+  },
+  {
     name: "Categorías",
     href: `${actualURL}/categorias`,
     icon: "category",
