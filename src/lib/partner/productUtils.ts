@@ -26,7 +26,13 @@ export function isPositiveNumberString(v: string): boolean {
 export function buildCreateProductPayload(
   form: CreateProductFormState,
 ): CreateProductPayload {
-  if (!form.subCategoryId) {
+  const selectedIds = form.subCategoryIds?.length
+    ? form.subCategoryIds
+    : form.subCategoryId
+      ? [form.subCategoryId]
+      : [];
+
+  if (selectedIds.length === 0) {
     throw new Error("La categoría (sub-categoría) es obligatoria");
   }
   const estimated = parseEstimatedRange(form.estimatedTimeRange);
@@ -50,7 +56,7 @@ export function buildCreateProductPayload(
         form.measurementUnit === "unit" ? 1 : Number(form.quantityStep),
       estimatedTime: estimated,
       description: form.description.trim() || null,
-      subCategoryId: form.subCategoryId,
+      subCategoryIds: selectedIds,
       isAvailable: form.isAvailable,
       taxIncluded: form.taxIncluded,
     },
@@ -105,10 +111,16 @@ export function validateStep1(form: CreateProductFormState): ValidationIssue[] {
     }
   }
 
-  if (!form.subCategoryId) {
+  const selectedIds = form.subCategoryIds?.length
+    ? form.subCategoryIds
+    : form.subCategoryId
+      ? [form.subCategoryId]
+      : [];
+
+  if (selectedIds.length === 0) {
     issues.push({
-      field: "subCategoryId",
-      message: "Seleccione una categoría",
+      field: "subCategoryIds",
+      message: "Seleccione al menos una categoría",
     });
   }
   if (!isPositiveNumberString(form.basePrice)) {

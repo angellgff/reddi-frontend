@@ -45,7 +45,7 @@ export async function getPartnerCategories(): Promise<PartnerCategory[]> {
   // Get product counts per category
   const categoryIds = (categories || []).map((c) => c.id);
   const { data: products } = await supabase
-    .from("products")
+    .from("product_sub_categories")
     .select("sub_category_id")
     .in("sub_category_id", categoryIds);
 
@@ -283,8 +283,8 @@ export async function deleteCategoryAction(id: string): Promise<void> {
 
   // Check for associated products
   const { count } = await supabase
-    .from("products")
-    .select("id", { count: "exact", head: true })
+    .from("product_sub_categories")
+    .select("product_id", { count: "exact", head: true })
     .eq("sub_category_id", id);
 
   if (count && count > 0) {

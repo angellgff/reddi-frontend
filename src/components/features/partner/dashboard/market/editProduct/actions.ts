@@ -35,6 +35,59 @@ const parseSearchKeywordsFromFormData = (formData: FormData) => {
   }
 };
 
+const parseSelectedCategoryIdsFromFormData = (formData: FormData): string[] => {
+  const rawIds = formData.get("subCategoryIds");
+  if (typeof rawIds === "string" && rawIds) {
+    try {
+      const parsed = JSON.parse(rawIds);
+      if (Array.isArray(parsed)) {
+        return Array.from(
+          new Set(parsed.filter((item) => typeof item === "string" && item)),
+        );
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  const legacy = formData.get("subCategoryId");
+  return typeof legacy === "string" && legacy ? [legacy] : [];
+};
+
+const syncProductCategories = async (
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  productId: string,
+  categoryIds: string[],
+) => {
+  const uniqueIds = Array.from(new Set(categoryIds.filter(Boolean)));
+
+  const { error: deleteError } = await supabase
+    .from("product_categories")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteError) {
+    throw new Error(
+      deleteError.message || "No se pudieron limpiar las categorías previas",
+    );
+  }
+
+  if (uniqueIds.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("product_categories")
+    .insert(
+      uniqueIds.map((categoryId) => ({
+        product_id: productId,
+        category_id: categoryId,
+      })),
+    );
+
+  if (insertError) {
+    throw new Error(insertError.message || "No se pudieron guardar categorías");
+  }
+};
+
 export async function updateMarketProductAction(
   productId: string,
   formData: FormData,
@@ -90,7 +143,11 @@ export async function updateMarketProductAction(
   }
 
   // Construct Payload
-  // Market uses category_id based on global categories, NOT sub_category_id
+  const selectedCategoryIds = parseSelectedCategoryIdsFromFormData(formData);
+  if (selectedCategoryIds.length === 0) {
+    throw new Error("Debe seleccionar al menos una categoría");
+  }
+
   const searchKeywords = parseSearchKeywordsFromFormData(formData);
   const updatePayload: Record<string, any> = {
     name: formData.get("name") as string,
@@ -114,12 +171,6 @@ export async function updateMarketProductAction(
     discount_percentage: formData.get("discountPercent")
       ? parseInt(formData.get("discountPercent") as string)
       : null,
-
-    // IMPORTANT: Market logic
-    category_id: formData.get("subCategoryId")
-      ? (formData.get("subCategoryId") as string)
-      : null,
-    sub_category_id: null,
   };
 
   console.log("updateMarketProductAction Payload:", {
@@ -144,6 +195,8 @@ export async function updateMarketProductAction(
   if (updateError) {
     throw new Error("No se pudo guardar los cambios del producto.");
   }
+
+  await syncProductCategories(supabase, productId, selectedCategoryIds);
 
   // Market products typically don't have sections/variants in this flow yet,
   // or if they do, we might need to handle them.

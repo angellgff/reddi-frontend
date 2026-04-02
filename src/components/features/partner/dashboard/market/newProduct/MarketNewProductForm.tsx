@@ -56,6 +56,9 @@ export default function MarketNewProductForm({
     estimatedTimeRange: "",
     description: "",
     subCategoryId: initialSubCategories[0]?.id || null,
+    subCategoryIds: initialSubCategories[0]?.id
+      ? [initialSubCategories[0].id]
+      : [],
     isAvailable: true,
     taxIncluded: false,
     search_keywords: [],
@@ -84,6 +87,10 @@ export default function MarketNewProductForm({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
+      data.append(
+        "subCategoryIds",
+        JSON.stringify(formData.subCategoryIds || []),
+      );
       data.append("unit", formData.measurementUnit);
       data.append("measurementUnit", formData.measurementUnit);
       data.append("minQuantity", formData.minQuantity);

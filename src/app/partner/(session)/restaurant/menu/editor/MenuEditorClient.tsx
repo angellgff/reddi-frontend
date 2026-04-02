@@ -232,15 +232,18 @@ export default function MenuEditorClient({
     }
 
     for (const product of products) {
-      if (!product.subCategoryId) continue;
-      if (!map.has(product.subCategoryId)) continue;
-      map.get(product.subCategoryId)?.push(product);
+      for (const subCategoryId of product.subCategoryIds || []) {
+        if (!map.has(subCategoryId)) continue;
+        map.get(subCategoryId)?.push(product);
+      }
     }
 
     for (const [subCategoryId, list] of map.entries()) {
       const sorted = [...list].sort(
         (a, b) =>
-          a.displayOrder - b.displayOrder || a.name.localeCompare(b.name),
+          (a.displayOrderBySubCategory[subCategoryId] ?? 0) -
+            (b.displayOrderBySubCategory[subCategoryId] ?? 0) ||
+          a.name.localeCompare(b.name),
       );
       map.set(subCategoryId, sorted);
     }
@@ -288,7 +291,10 @@ export default function MenuEditorClient({
     const reorderedScoped = arrayMove(scoped, oldIndex, newIndex).map(
       (item, index) => ({
         ...item,
-        displayOrder: index + 1,
+        displayOrderBySubCategory: {
+          ...item.displayOrderBySubCategory,
+          [subCategoryId]: index + 1,
+        },
       }),
     );
 
@@ -450,7 +456,11 @@ export default function MenuEditorClient({
                                         id={product.id}
                                         name={product.name}
                                         imageUrl={product.imageUrl}
-                                        order={product.displayOrder}
+                                        order={
+                                          product.displayOrderBySubCategory[
+                                            subCategory.id
+                                          ] || 0
+                                        }
                                         price={product.displayPrice}
                                         isAvailable={product.isAvailable}
                                       />

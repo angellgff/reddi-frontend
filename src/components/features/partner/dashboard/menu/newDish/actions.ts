@@ -41,6 +41,63 @@ const parseSearchKeywordsFromFormData = (formData: FormData) => {
   }
 };
 
+const parseSelectedIdsFromFormData = (formData: FormData): string[] => {
+  const rawIds = formData.get("subCategoryIds");
+  if (typeof rawIds === "string" && rawIds) {
+    try {
+      const parsed = JSON.parse(rawIds);
+      if (Array.isArray(parsed)) {
+        return Array.from(
+          new Set(parsed.filter((item) => typeof item === "string" && item)),
+        );
+      }
+    } catch {
+      // Fallback to legacy field below
+    }
+  }
+
+  const legacy = formData.get("subCategoryId");
+  return typeof legacy === "string" && legacy ? [legacy] : [];
+};
+
+const syncProductSubCategories = async (
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  productId: string,
+  subCategoryIds: string[],
+) => {
+  const uniqueIds = Array.from(new Set(subCategoryIds.filter(Boolean)));
+
+  const { error: deleteError } = await supabase
+    .from("product_sub_categories")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteError) {
+    throw new Error(
+      deleteError.message || "No se pudieron limpiar las subcategorías previas",
+    );
+  }
+
+  if (uniqueIds.length === 0) {
+    return;
+  }
+
+  const { error: insertError } = await supabase
+    .from("product_sub_categories")
+    .insert(
+      uniqueIds.map((subCategoryId) => ({
+        product_id: productId,
+        sub_category_id: subCategoryId,
+      })),
+    );
+
+  if (insertError) {
+    throw new Error(
+      insertError.message || "No se pudieron guardar las subcategorías",
+    );
+  }
+};
+
 // Crear nueva sub-categoría (modal)
 export async function createSubCategoryAction(
   name: string,
@@ -129,6 +186,12 @@ export async function createDishAction(
 
   // 3. Extraer los datos del producto del FormData
   const searchKeywords = parseSearchKeywordsFromFormData(formData);
+  const selectedSubCategoryIds = parseSelectedIdsFromFormData(formData);
+
+  if (selectedSubCategoryIds.length === 0) {
+    throw new Error("Debe seleccionar al menos una categoría");
+  }
+
   const productPayload = {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
@@ -142,7 +205,6 @@ export async function createDishAction(
     // Cambia estimatedTime a estimated_time si así se llama en tu DB
     estimated_time: formData.get("estimatedTimeRange") as string,
     description: formData.get("description") as string,
-    sub_category_id: formData.get("subCategoryId") as string,
     is_available: formData.get("isAvailable") === "true",
     tax_included: formData.get("taxIncluded") === "true",
     search_keywords: searchKeywords,
@@ -161,6 +223,8 @@ export async function createDishAction(
     throw new Error(prodErr?.message || "Error creando producto");
 
   const productId = productRow.id;
+
+  await syncProductSubCategories(supabase, productId, selectedSubCategoryIds);
 
   // 5. Extraer y procesar las secciones y opciones (sin cambios en la lógica, solo en la fuente de datos)
   const sections: ProductSectionForm[] = JSON.parse(
@@ -349,7 +413,6 @@ export async function updateDishAction(dishId: string, formData: FormData) {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
     description: formData.get("description") as string,
-    sub_category_id: formData.get("subCategoryId") as string,
     unit: formData.get("unit") as string,
     measurement_unit: formData.get("measurementUnit") as string,
     min_quantity: parseFloat(
@@ -432,6 +495,13 @@ export async function updateDishAction(dishId: string, formData: FormData) {
   }
   console.log("✅ Producto principal actualizado con éxito.");
   console.groupEnd();
+
+  const selectedSubCategoryIds = parseSelectedIdsFromFormData(formData);
+  if (selectedSubCategoryIds.length === 0) {
+    throw new Error("Debe seleccionar al menos una categoría");
+  }
+
+  await syncProductSubCategories(supabase, dishId, selectedSubCategoryIds);
 
   // 5. ACTUALIZACIÓN DE SECCIONES Y OPCIONES
   console.group("5. Actualizando Secciones y Opciones (Borrar y Recrear)");

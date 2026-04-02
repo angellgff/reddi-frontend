@@ -33,11 +33,12 @@ export default async function MarketEditProductModalServer({
     tagsResult,
     productTagsResult,
     categoriesResult,
+    productCategoriesResult,
   ] = await Promise.all([
     supabase
       .from("products")
       .select(
-        "id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, search_keywords, sub_category_id, is_available, tax_included, image_url, category_id",
+        "id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, search_keywords, is_available, tax_included, image_url",
       )
       .eq("id", id)
       .eq("partner_id", partner.id)
@@ -71,6 +72,10 @@ export default async function MarketEditProductModalServer({
       .select("id, name")
       .eq("is_active", true)
       .order("name"),
+    supabase
+      .from("product_categories")
+      .select("category_id")
+      .eq("product_id", id),
   ]);
 
   const productRow = productResult.data;
@@ -106,10 +111,11 @@ export default async function MarketEditProductModalServer({
     categoryId: null as string | null,
   }));
 
-  const rawCategoryId =
-    productRow.sub_category_id || (productRow as any).category_id || null;
-  const categoryExists = subCategories.some((c) => c.id === rawCategoryId);
-  const validCategoryId = categoryExists ? rawCategoryId : null;
+  const selectedCategoryIds = (productCategoriesResult.data || [])
+    .map((item) => item.category_id)
+    .filter((categoryId): categoryId is string =>
+      subCategories.some((category) => category.id === categoryId),
+    );
 
   const initialFormData = {
     image: productRow.image_url || null,
@@ -123,7 +129,8 @@ export default async function MarketEditProductModalServer({
     estimatedTimeRange: productRow.estimated_time || "",
     description: productRow.description || "",
     search_keywords: productRow.search_keywords || [],
-    subCategoryId: validCategoryId,
+    subCategoryId: selectedCategoryIds[0] || null,
+    subCategoryIds: selectedCategoryIds,
     isAvailable: productRow.is_available ?? true,
     taxIncluded: productRow.tax_included ?? false,
     sections: [],

@@ -31,12 +31,17 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
   const { data: productRow, error: productError } = await supabase
     .from("products")
     .select(
-      `id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, search_keywords, sub_category_id, is_available, tax_included, image_url, category_id`,
+      `id, name, description, base_price, previous_price, unit, measurement_unit, min_quantity, quantity_step, estimated_time, search_keywords, is_available, tax_included, image_url`,
     )
     .eq("id", id) // Se usa la variable 'id'
     .eq("partner_id", partner.id)
     .single();
   if (productError || !productRow) notFound();
+
+  const { data: productCategories } = await supabase
+    .from("product_categories")
+    .select("category_id")
+    .eq("product_id", id);
 
   // Fetch Variants and Groups
   const { data: groupsData } = await supabase
@@ -99,15 +104,11 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     categoryId: null as string | null,
   }));
 
-  // Determinar el ID de categoría original del producto
-  const rawCategoryId =
-    productRow.sub_category_id || (productRow as any).category_id || null;
-
-  // Verificar si la categoría existe en la lista de activos
-  const categoryExists = subCategories.some((c) => c.id === rawCategoryId);
-
-  // Si existe se usa, si no, se deja null para evitar error en formulario (caso legacy)
-  const validCategoryId = categoryExists ? rawCategoryId : null;
+  const selectedCategoryIds = (productCategories || [])
+    .map((item) => item.category_id)
+    .filter((categoryId): categoryId is string =>
+      subCategories.some((category) => category.id === categoryId),
+    );
 
   const initialFormData = {
     image: productRow.image_url || null,
@@ -121,7 +122,8 @@ export default async function EditMarketProductPage({ params }: EditPageProps) {
     estimatedTimeRange: productRow.estimated_time || "",
     description: productRow.description || "",
     search_keywords: productRow.search_keywords || [],
-    subCategoryId: validCategoryId,
+    subCategoryId: selectedCategoryIds[0] || null,
+    subCategoryIds: selectedCategoryIds,
     isAvailable: productRow.is_available ?? true,
     taxIncluded: productRow.tax_included ?? false,
     sections: [], // Market sin extras/secciones

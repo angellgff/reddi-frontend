@@ -15,6 +15,9 @@ type DishRow = {
   image_url: string | null;
   estimated_time: string | null;
   is_available: boolean;
+  product_sub_categories?: Array<{
+    sub_category_id: string;
+  }>;
 };
 
 // Maps DB row to DishData (placeholders are fine)
@@ -32,7 +35,7 @@ function mapRowToDish(row: DishRow): DishData {
 }
 
 export default async function getRealDishesData(
-  params: FetchDishesParams = {}
+  params: FetchDishesParams = {},
 ): Promise<DishData[]> {
   const supabase = await createClient();
 
@@ -42,7 +45,7 @@ export default async function getRealDishesData(
   } = await supabase.auth.getUser();
   if (!user) {
     console.warn(
-      "getRealDishesData: No user session found. Returning empty array."
+      "getRealDishesData: No user session found. Returning empty array.",
     );
     return [];
   }
@@ -59,7 +62,7 @@ export default async function getRealDishesData(
 
   if (!partnerId) {
     console.error(
-      `getRealDishesData: No partner_id found for user ${user.id}.`
+      `getRealDishesData: No partner_id found for user ${user.id}.`,
     );
     return [];
   }
@@ -67,7 +70,9 @@ export default async function getRealDishesData(
   // --- PASO 2: Construir la consulta CON el filtro del partner ---
   let query = supabase
     .from("products")
-    .select("id,name,image_url,estimated_time,is_available,sub_category_id")
+    .select(
+      "id,name,image_url,estimated_time,is_available,product_sub_categories(sub_category_id)",
+    )
     // Este filtro es OBLIGATORIO para asegurar que el partner solo vea sus productos
     .eq("partner_id", partnerId); // Asegúrate de que tu columna se llame 'partner_id'
 
@@ -82,7 +87,7 @@ export default async function getRealDishesData(
     typeof params.category === "string" &&
     params.category
   ) {
-    query = query.eq("sub_category_id", params.category);
+    query = query.eq("product_sub_categories.sub_category_id", params.category);
   }
 
   // Filtro de disponibilidad

@@ -26,8 +26,20 @@ const detailRowSchema = z.object({
 const productRowSchema = z.object({
   id: z.string().uuid(),
   name: z.string().trim().min(1).max(120),
-  category_id: z.string().uuid().nullable(),
-  sub_category_id: z.string().uuid().nullable(),
+  product_categories: z
+    .array(
+      z.object({
+        category_id: z.string().uuid(),
+      }),
+    )
+    .optional(),
+  product_sub_categories: z
+    .array(
+      z.object({
+        sub_category_id: z.string().uuid(),
+      }),
+    )
+    .optional(),
 });
 
 type Aggregate = {
@@ -144,7 +156,9 @@ async function fetchProductsMeta(
 
   const { data: productsData } = await supabase
     .from("products")
-    .select("id, name, category_id, sub_category_id")
+    .select(
+      "id, name, product_categories(category_id), product_sub_categories(sub_category_id)",
+    )
     .eq("partner_id", partnerId)
     .in("id", productIds)
     .limit(productIds.length);
@@ -160,13 +174,19 @@ async function fetchProductsMeta(
 
   const categoryIds = Array.from(
     new Set(
-      validProducts.map((product) => product.category_id).filter(Boolean),
+      validProducts.flatMap((product) =>
+        (product.product_categories || []).map((item) => item.category_id),
+      ),
     ),
   ) as string[];
 
   const subCategoryIds = Array.from(
     new Set(
-      validProducts.map((product) => product.sub_category_id).filter(Boolean),
+      validProducts.flatMap((product) =>
+        (product.product_sub_categories || []).map(
+          (item) => item.sub_category_id,
+        ),
+      ),
     ),
   ) as string[];
 
@@ -260,10 +280,13 @@ export default async function getTopSellingProducts(): Promise<
       if (!product) return null;
 
       const previous = previousAggregates.get(productId);
+      const primarySubCategoryId = (product.product_sub_categories || [])[0]
+        ?.sub_category_id;
+      const primaryCategoryId = (product.product_categories || [])[0]
+        ?.category_id;
       const categoryName =
-        (product.sub_category_id &&
-          subCategoriesById.get(product.sub_category_id)) ||
-        (product.category_id && categoriesById.get(product.category_id)) ||
+        (primarySubCategoryId && subCategoriesById.get(primarySubCategoryId)) ||
+        (primaryCategoryId && categoriesById.get(primaryCategoryId)) ||
         "Sin categoría";
 
       return {

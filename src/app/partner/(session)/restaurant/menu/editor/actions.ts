@@ -14,9 +14,9 @@ type ProductVM = {
   id: string;
   name: string;
   imageUrl: string | null;
-  subCategoryId: string | null;
+  subCategoryIds: string[];
   isAvailable: boolean;
-  displayOrder: number;
+  displayOrderBySubCategory: Record<string, number>;
   displayPrice: number;
 };
 
@@ -36,18 +36,16 @@ export type SaveMenuOrderInput = {
 
 async function fallbackReorderProductsSafely(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  partnerId: string,
   subCategoryId: string,
   productIds: string[],
 ) {
   if (productIds.length === 0) return;
 
-  // Evita conflictos de índice único moviendo primero a un rango alto seguro para int4.
   const { data: currentRows, error: currentRowsError } = await supabase
-    .from("products")
+    .from("product_sub_categories")
     .select("display_order")
-    .eq("partner_id", partnerId)
-    .eq("sub_category_id", subCategoryId);
+    .eq("sub_category_id", subCategoryId)
+    .in("product_id", productIds);
 
   if (currentRowsError) {
     throw new Error(
@@ -71,10 +69,9 @@ async function fallbackReorderProductsSafely(
   for (let index = 0; index < productIds.length; index += 1) {
     const id = productIds[index];
     const { error } = await supabase
-      .from("products")
+      .from("product_sub_categories")
       .update({ display_order: offsetBase + index + 1 })
-      .eq("id", id)
-      .eq("partner_id", partnerId)
+      .eq("product_id", id)
       .eq("sub_category_id", subCategoryId);
 
     if (error) {
@@ -85,10 +82,9 @@ async function fallbackReorderProductsSafely(
   for (let index = 0; index < productIds.length; index += 1) {
     const id = productIds[index];
     const { error } = await supabase
-      .from("products")
+      .from("product_sub_categories")
       .update({ display_order: index + 1 })
-      .eq("id", id)
-      .eq("partner_id", partnerId)
+      .eq("product_id", id)
       .eq("sub_category_id", subCategoryId);
 
     if (error) {
@@ -140,16 +136,49 @@ export async function getMenuEditorInitialData(): Promise<MenuEditorInitialData>
 
   const { data: products, error: productsError } = await supabase
     .from("products")
-    .select(
-      "id, name, image_url, display_price, base_price, sub_category_id, is_available, display_order",
-    )
+    .select("id, name, image_url, display_price, base_price, is_available")
     .eq("partner_id", partner.id)
-    .order("display_order", { ascending: true })
     .order("name", { ascending: true });
 
   if (productsError) {
     throw new Error(productsError.message || "No se pudieron cargar productos");
   }
+
+  const { data: productSubCategories, error: productSubCategoriesError } =
+    await supabase
+      .from("product_sub_categories")
+      .select("product_id, sub_category_id, display_order")
+      .in(
+        "sub_category_id",
+        (subCategories || []).map((item) => item.id),
+      );
+
+  if (productSubCategoriesError) {
+    throw new Error(
+      productSubCategoriesError.message ||
+        "No se pudieron cargar relaciones producto-subcategoría",
+    );
+  }
+
+  const byProduct = new Map<
+    string,
+    {
+      subCategoryIds: string[];
+      displayOrderBySubCategory: Record<string, number>;
+    }
+  >();
+
+  (productSubCategories || []).forEach((item) => {
+    const current = byProduct.get(item.product_id) || {
+      subCategoryIds: [],
+      displayOrderBySubCategory: {},
+    };
+
+    current.subCategoryIds.push(item.sub_category_id);
+    current.displayOrderBySubCategory[item.sub_category_id] =
+      item.display_order ?? 0;
+    byProduct.set(item.product_id, current);
+  });
 
   return {
     partner: {
@@ -166,9 +195,10 @@ export async function getMenuEditorInitialData(): Promise<MenuEditorInitialData>
       id: item.id,
       name: item.name,
       imageUrl: item.image_url,
-      subCategoryId: item.sub_category_id,
+      subCategoryIds: byProduct.get(item.id)?.subCategoryIds || [],
       isAvailable: item.is_available ?? false,
-      displayOrder: item.display_order ?? 0,
+      displayOrderBySubCategory:
+        byProduct.get(item.id)?.displayOrderBySubCategory || {},
       displayPrice: Number(item.display_price ?? item.base_price ?? 0),
     })),
   };
@@ -229,9 +259,9 @@ export async function saveMenuOrderAction(
 
     const { data: partnerProducts, error: partnerProductsError } =
       await supabase
-        .from("products")
-        .select("id, sub_category_id")
-        .eq("partner_id", partner.id);
+        .from("product_sub_categories")
+        .select("product_id, sub_category_id, products!inner(partner_id)")
+        .eq("products.partner_id", partner.id);
 
     if (partnerProductsError) {
       return { ok: false, message: partnerProductsError.message };
@@ -245,7 +275,9 @@ export async function saveMenuOrderAction(
     for (const product of partnerProducts ?? []) {
       if (!product.sub_category_id) continue;
       if (!productsBySubCategory.has(product.sub_category_id)) continue;
-      productsBySubCategory.get(product.sub_category_id)?.push(product.id);
+      productsBySubCategory
+        .get(product.sub_category_id)
+        ?.push(product.product_id);
     }
 
     for (const subCategoryId of payloadSubCategoryIds) {
@@ -321,7 +353,6 @@ export async function saveMenuOrderAction(
           try {
             await fallbackReorderProductsSafely(
               supabase,
-              partner.id,
               subCategoryId,
               productIds,
             );

@@ -159,6 +159,32 @@ async function attachTagsToInsertedProducts(
   }
 }
 
+async function attachSubCategoriesToInsertedProducts(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  insertedProducts: Array<{ id: string }> | null,
+  sourceRows: Array<{ _subCategoryId?: string | null }>,
+  errors: string[],
+) {
+  if (!insertedProducts || insertedProducts.length === 0) return;
+
+  const links = insertedProducts
+    .map((inserted, index) => ({
+      product_id: inserted.id,
+      sub_category_id: sourceRows[index]?._subCategoryId || null,
+    }))
+    .filter((item): item is { product_id: string; sub_category_id: string } =>
+      Boolean(item.sub_category_id),
+    );
+
+  if (links.length === 0) return;
+
+  const { error } = await supabase.from("product_sub_categories").insert(links);
+
+  if (error) {
+    errors.push(`Category Link Error: ${error.message}`);
+  }
+}
+
 export async function importProductsFromExcelAction(
   prevState: any,
   formData: FormData,
@@ -260,17 +286,17 @@ export async function importProductsFromExcelAction(
           : null,
         unit: measurementUnit,
         estimated_time: timeRange || null,
-        sub_category_id: subCategoryId,
         partner_id: partner.id,
         is_available: true,
         image_url: imageUrl || null,
+        _subCategoryId: subCategoryId,
         _rawTags: rawTags,
       });
     });
 
     if (productsToInsert.length > 0) {
       const rowsToInsert = productsToInsert.map(
-        ({ _rawTags, ...rest }) => rest,
+        ({ _rawTags, _subCategoryId, ...rest }) => rest,
       );
 
       const { data: insertedProducts, error: insertError } = await supabase
@@ -286,6 +312,13 @@ export async function importProductsFromExcelAction(
           errors: [...errors, `Database Error: ${insertError.message}`],
         };
       }
+
+      await attachSubCategoriesToInsertedProducts(
+        supabase,
+        insertedProducts,
+        productsToInsert,
+        errors,
+      );
 
       await attachTagsToInsertedProducts(
         supabase,
@@ -573,18 +606,18 @@ export async function importDishesFromFileAction(
         min_quantity: 1,
         quantity_step: 1,
         estimated_time: timeRange || "10-20min",
-        sub_category_id: subCategoryId,
         partner_id: partner.id,
         is_available: true,
         tax_included: false,
         image_url: imageUrl || null,
+        _subCategoryId: subCategoryId,
         _rawTags: rawTags,
       });
     });
 
     if (productsToInsert.length > 0) {
       const rowsToInsert = productsToInsert.map(
-        ({ _rawTags, ...rest }) => rest,
+        ({ _rawTags, _subCategoryId, ...rest }) => rest,
       );
 
       const { data: insertedProducts, error: insertError } = await supabase
@@ -600,6 +633,13 @@ export async function importDishesFromFileAction(
           errors: [...errors, `Database Error: ${insertError.message}`],
         };
       }
+
+      await attachSubCategoriesToInsertedProducts(
+        supabase,
+        insertedProducts,
+        productsToInsert,
+        errors,
+      );
 
       await attachTagsToInsertedProducts(
         supabase,

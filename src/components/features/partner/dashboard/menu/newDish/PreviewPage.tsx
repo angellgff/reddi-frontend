@@ -22,10 +22,11 @@ export default function PreviewPage({
   extrasCatalog,
   subCategories,
 }: PreviewPageProps) {
-  const categoryName = formData.subCategoryId
-    ? subCategories.find((c) => c.id === formData.subCategoryId)?.name ||
-      formData.subCategoryId
-    : "(sin categoría)";
+  const categoryNames = (formData.subCategoryIds || [])
+    .map(
+      (id) => subCategories.find((category) => category.id === id)?.name || id,
+    )
+    .join(", ");
   const extraName = (id: string | null) => {
     if (!id) return "(sin seleccionar)";
     return extrasCatalog.find((e) => e.id === id)?.name || id;
@@ -53,7 +54,7 @@ export default function PreviewPage({
           <strong>Tiempo estimado:</strong> {formData.estimatedTimeRange}
         </p>
         <p>
-          <strong>Categoría:</strong> {categoryName}
+          <strong>Categorías:</strong> {categoryNames || "(sin categoría)"}
         </p>
         <p>
           <strong>Disponible:</strong> {formData.isAvailable ? "Sí" : "No"}

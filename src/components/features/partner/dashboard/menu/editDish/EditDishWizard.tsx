@@ -187,6 +187,10 @@ export default function EditDishWizard({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
+      data.append(
+        "subCategoryIds",
+        JSON.stringify(formData.subCategoryIds || []),
+      );
       data.append("unit", formData.measurementUnit);
       data.append("measurementUnit", formData.measurementUnit);
       data.append("minQuantity", formData.minQuantity);
@@ -276,7 +280,11 @@ export default function EditDishWizard({
             onClose={() => setShowCategoryModal(false)}
             onCreated={(sc) => {
               setSubCategories((prev) => [...prev, sc]);
-              setFormData((prev) => ({ ...prev, subCategoryId: sc.id }));
+              setFormData((prev) => ({
+                ...prev,
+                subCategoryId: sc.id,
+                subCategoryIds: [...(prev.subCategoryIds || []), sc.id],
+              }));
             }}
           />
         </>

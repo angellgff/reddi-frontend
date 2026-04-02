@@ -64,10 +64,10 @@ export default async function getStoreMenu(
     | "previous_price"
     | "description"
     | "discount_percentage"
-    | "sub_category_id"
-    | "category_id"
   > & {
     display_price: number;
+    product_categories?: Array<{ category_id: string }>;
+    product_sub_categories?: Array<{ sub_category_id: string }>;
     product_tags: {
       product_tag_definitions: {
         id: string;
@@ -88,10 +88,10 @@ export default async function getStoreMenu(
       | "previous_price"
       | "description"
       | "discount_percentage"
-      | "sub_category_id"
-      | "category_id"
     > & {
       display_price: number;
+      product_categories?: Array<{ category_id: string }>;
+      product_sub_categories?: Array<{ sub_category_id: string }>;
       tags: Array<{
         id: string;
         name: string;
@@ -121,14 +121,11 @@ export default async function getStoreMenu(
     let query = supabase
       .from("products")
       .select(
-        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id, category_id, product_tags(product_tag_definitions(id, name, color, icon_key))",
+        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, product_sub_categories(sub_category_id), product_categories(category_id), product_tags(product_tag_definitions(id, name, color, icon_key))",
       )
       .eq("partner_id", partnerId)
       .eq("is_available", true);
 
-    if (selectedCategory) {
-      query = query.eq("sub_category_id", selectedCategory);
-    }
     if (searchQ) {
       query = query.ilike("name", `%${searchQ}%`);
     }
@@ -154,6 +151,14 @@ export default async function getStoreMenu(
             })) || [],
       }),
     );
+
+    if (selectedCategory) {
+      products = products.filter((product) =>
+        (product.product_sub_categories || []).some(
+          (item) => item.sub_category_id === selectedCategory,
+        ),
+      );
+    }
   }
 
   // --- MARKET / OTHER LOGIC ---
@@ -162,14 +167,11 @@ export default async function getStoreMenu(
     let query = supabase
       .from("products")
       .select(
-        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, sub_category_id, category_id, product_tags(product_tag_definitions(id, name, color, icon_key))",
+        "id, name, image_url, base_price, display_price, previous_price, description, discount_percentage, product_sub_categories(sub_category_id), product_categories(category_id), product_tags(product_tag_definitions(id, name, color, icon_key))",
       )
       .eq("partner_id", partnerId)
       .eq("is_available", true);
 
-    if (selectedCategory) {
-      query = query.eq("category_id", selectedCategory);
-    }
     if (searchQ) {
       query = query.ilike("name", `%${searchQ}%`);
     }
@@ -196,9 +198,21 @@ export default async function getStoreMenu(
       }),
     );
 
+    if (selectedCategory) {
+      products = products.filter((product) =>
+        (product.product_categories || []).some(
+          (item) => item.category_id === selectedCategory,
+        ),
+      );
+    }
+
     // 2. Fetch categories that appear in these products
     const distinctCategoryIds = Array.from(
-      new Set(products.map((p) => p.category_id).filter(Boolean)),
+      new Set(
+        products.flatMap((product) =>
+          (product.product_categories || []).map((item) => item.category_id),
+        ),
+      ),
     ) as string[];
 
     if (distinctCategoryIds.length > 0) {
@@ -241,8 +255,8 @@ export default async function getStoreMenu(
   for (const p of products) {
     // Determine which ID to use for grouping
     const groupId = isRestaurant
-      ? (p.sub_category_id ?? "")
-      : (p.category_id ?? "");
+      ? ((p.product_sub_categories || [])[0]?.sub_category_id ?? "")
+      : ((p.product_categories || [])[0]?.category_id ?? "");
 
     const group = groupsMap.get(groupId);
     if (group) {

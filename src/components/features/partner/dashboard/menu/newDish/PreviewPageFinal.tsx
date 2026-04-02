@@ -39,10 +39,11 @@ export default function PreviewPageFinal({
     imageUrl = formData.image ? URL.createObjectURL(formData.image) : null;
   }
 
-  const categoryName = formData.subCategoryId
-    ? subCategories.find((c) => c.id === formData.subCategoryId)?.name ||
-      formData.subCategoryId
-    : "(sin categoría)";
+  const categoryNames = (formData.subCategoryIds || [])
+    .map(
+      (id) => subCategories.find((category) => category.id === id)?.name || id,
+    )
+    .join(", ");
 
   return (
     <div className="w-full my-10 p-6 bg-white rounded-xl font-sans">
@@ -102,7 +103,9 @@ export default function PreviewPageFinal({
             <span className="p-1 bg-[#EEF6FF] border border-[#BEDBFF] rounded-lg font-roboto">
               {formData.estimatedTimeRange || "(sin tiempo)"}
             </span>
-            <span className="text-[#6A6C71]">Categoría: {categoryName}</span>
+            <span className="text-[#6A6C71]">
+              Categorías: {categoryNames || "(sin categoría)"}
+            </span>
           </div>
 
           <p className="mt-4 text-sm text-[#6A6C71]">{formData.description}</p>

@@ -38,6 +38,59 @@ const parseSearchKeywordsFromFormData = (formData: FormData) => {
   }
 };
 
+const parseSelectedCategoryIdsFromFormData = (formData: FormData): string[] => {
+  const rawIds = formData.get("subCategoryIds");
+  if (typeof rawIds === "string" && rawIds) {
+    try {
+      const parsed = JSON.parse(rawIds);
+      if (Array.isArray(parsed)) {
+        return Array.from(
+          new Set(parsed.filter((item) => typeof item === "string" && item)),
+        );
+      }
+    } catch {
+      // fallback
+    }
+  }
+
+  const legacy = formData.get("subCategoryId");
+  return typeof legacy === "string" && legacy ? [legacy] : [];
+};
+
+const syncProductCategories = async (
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  productId: string,
+  categoryIds: string[],
+) => {
+  const uniqueIds = Array.from(new Set(categoryIds.filter(Boolean)));
+
+  const { error: deleteError } = await supabase
+    .from("product_categories")
+    .delete()
+    .eq("product_id", productId);
+
+  if (deleteError) {
+    throw new Error(
+      deleteError.message || "No se pudieron limpiar las categorías previas",
+    );
+  }
+
+  if (uniqueIds.length === 0) return;
+
+  const { error: insertError } = await supabase
+    .from("product_categories")
+    .insert(
+      uniqueIds.map((categoryId) => ({
+        product_id: productId,
+        category_id: categoryId,
+      })),
+    );
+
+  if (insertError) {
+    throw new Error(insertError.message || "No se pudieron guardar categorías");
+  }
+};
+
 /**
  * Crea un producto para Market (sin extras/secciones)
  * Sube imagen a Supabase Storage y guarda URL pública en products.image_url
@@ -77,6 +130,11 @@ export async function createMarketProductAction(
 
   // Payload del producto
   const searchKeywords = parseSearchKeywordsFromFormData(formData);
+  const selectedCategoryIds = parseSelectedCategoryIdsFromFormData(formData);
+  if (selectedCategoryIds.length === 0) {
+    throw new Error("Debe seleccionar al menos una categoría");
+  }
+
   const productPayload = {
     name: formData.get("name") as string,
     base_price: parseFloat(formData.get("basePrice") as string),
@@ -94,9 +152,6 @@ export async function createMarketProductAction(
     search_keywords: searchKeywords,
     partner_id: partner.id,
     image_url: imageUrl,
-    // Para market products, usamos category_id en lugar de sub_category_id
-    category_id: formData.get("subCategoryId") as string,
-    sub_category_id: null,
   };
 
   // Insert en products
@@ -107,6 +162,8 @@ export async function createMarketProductAction(
     .single();
   if (prodErr || !productRow)
     throw new Error(prodErr?.message || "Error creando producto");
+
+  await syncProductCategories(supabase, productRow.id, selectedCategoryIds);
 
   // Insert Tags
   const tagsJson = formData.get("tags") as string;

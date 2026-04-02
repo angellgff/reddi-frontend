@@ -51,7 +51,8 @@ export interface CreateProductFormState {
   quantityStep: string;
   estimatedTimeRange: string; // formato "10-20min"
   description: string;
-  subCategoryId: string | null; // FK sub_category_id
+  subCategoryId: string | null; // Legacy: primer ID seleccionado
+  subCategoryIds: string[]; // Nuevo: selección múltiple (categorías o subcategorías según flujo)
   isAvailable: boolean;
   taxIncluded: boolean;
   search_keywords: string[];
@@ -72,7 +73,7 @@ export interface CreateProductPayload {
     quantityStep: number;
     estimatedTime: string; // se guarda tal cual (estimated_time)
     description: string | null;
-    subCategoryId: string; // requerido en BD
+    subCategoryIds: string[];
     isAvailable: boolean;
     taxIncluded: boolean;
   };

@@ -25,7 +25,9 @@ type ProductData = {
   estimated_time?: string;
   description?: string;
   search_keywords?: string[] | null;
-  sub_category_id?: string;
+  product_sub_categories?: Array<{
+    sub_category_id: string;
+  }>;
   is_available?: boolean;
   tax_included?: boolean;
   product_sections?: Array<{
@@ -44,6 +46,10 @@ type ProductData = {
 };
 
 function mapProductToFormState(product: ProductData): CreateProductFormState {
+  const selectedSubCategoryIds = (product.product_sub_categories || [])
+    .map((item) => item.sub_category_id)
+    .filter(Boolean);
+
   return {
     // Campos principales del producto
     image: product.image_url || null,
@@ -57,7 +63,8 @@ function mapProductToFormState(product: ProductData): CreateProductFormState {
     estimatedTimeRange: product.estimated_time || "",
     description: product.description || "",
     search_keywords: product.search_keywords || [],
-    subCategoryId: product.sub_category_id || null,
+    subCategoryId: selectedSubCategoryIds[0] || null,
+    subCategoryIds: selectedSubCategoryIds,
     isAvailable: product.is_available ?? true,
     taxIncluded: product.tax_included ?? false,
     tags: (product.product_tags || []).map((t) => t.tag_id),
@@ -135,6 +142,7 @@ async function getDishByIdUncached({
           product_extras (*)
         )
       ),
+      product_sub_categories (sub_category_id),
       product_tags (tag_id)
     `,
     )

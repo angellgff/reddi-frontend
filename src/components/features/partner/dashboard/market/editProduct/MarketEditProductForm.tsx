@@ -60,6 +60,10 @@ export default function MarketEditProductForm({
       data.append("basePrice", formData.basePrice);
       data.append("description", formData.description);
       data.append("subCategoryId", formData.subCategoryId || "");
+      data.append(
+        "subCategoryIds",
+        JSON.stringify(formData.subCategoryIds || []),
+      );
       data.append("unit", formData.measurementUnit);
       data.append("measurementUnit", formData.measurementUnit);
       data.append("minQuantity", formData.minQuantity);

@@ -36,7 +36,7 @@ export default async function getProductsData(
   let query = supabase
     .from("products")
     .select(
-      "id,name,description,base_price,previous_price,image_url,is_available,sub_category_id",
+      "id,name,description,base_price,previous_price,image_url,is_available,product_categories(category_id),product_sub_categories(sub_category_id)",
     )
     .eq("partner_id", partner.id);
 
@@ -45,15 +45,6 @@ export default async function getProductsData(
     const q = params.q.trim();
     // Búsqueda en nombre O descripción (usando OR)
     query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
-  }
-
-  // Filtro de categoría
-  if (
-    params.category &&
-    typeof params.category === "string" &&
-    params.category
-  ) {
-    query = query.eq("category_id", params.category);
   }
 
   // Filtro de disponibilidad
@@ -77,8 +68,28 @@ export default async function getProductsData(
     return [];
   }
 
+  const selectedCategory =
+    params.category && typeof params.category === "string"
+      ? params.category
+      : undefined;
+
+  const filteredData = selectedCategory
+    ? (data || []).filter((row) => {
+        const categoryIds = (row.product_categories || []).map(
+          (item) => item.category_id,
+        );
+        const subCategoryIds = (row.product_sub_categories || []).map(
+          (item) => item.sub_category_id,
+        );
+        return (
+          categoryIds.includes(selectedCategory) ||
+          subCategoryIds.includes(selectedCategory)
+        );
+      })
+    : data || [];
+
   // 4. Mapear al tipo esperado por el frontend
-  return (data || []).map(
+  return filteredData.map(
     (row): ProductData => ({
       id: row.id,
       name: row.name || "Sin nombre",
@@ -86,7 +97,10 @@ export default async function getProductsData(
       price: typeof row.base_price === "number" ? row.base_price : 0,
       currency: "DOP", // Assumption
       imageUrl: row.image_url || "/placeholder-product.svg",
-      categoryId: row.sub_category_id,
+      categoryId:
+        (row.product_sub_categories || [])[0]?.sub_category_id ||
+        (row.product_categories || [])[0]?.category_id ||
+        null,
       isAvailable: row.is_available,
     }),
   );

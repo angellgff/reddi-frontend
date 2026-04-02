@@ -128,6 +128,28 @@ export default function NewDishStep1({
     updateFormData({ [name]: checked });
   };
 
+  const handleCategoryToggle = (id: string) => {
+    const current = formData.subCategoryIds || [];
+    const exists = current.includes(id);
+    const next = exists
+      ? current.filter((item) => item !== id)
+      : [...current, id];
+
+    updateFormData({
+      subCategoryIds: next,
+      subCategoryId: next[0] || null,
+    });
+
+    if (errors.subCategoryIds || errors.subCategoryId) {
+      setErrors((prevErrors) => {
+        const newErrors = { ...prevErrors };
+        delete newErrors.subCategoryIds;
+        delete newErrors.subCategoryId;
+        return newErrors;
+      });
+    }
+  };
+
   const verifyErrors = (newErrors: Partial<Record<string, string>>) => {
     [
       "name",
@@ -152,8 +174,8 @@ export default function NewDishStep1({
       }
     }
 
-    if (!formData.subCategoryId) {
-      newErrors["subCategoryId"] = "Seleccione una categoría";
+    if (!formData.subCategoryIds || formData.subCategoryIds.length === 0) {
+      newErrors.subCategoryIds = "Seleccione al menos una categoría";
     }
     mustBeNumber.forEach((field) => {
       const val = formData[field];
@@ -445,44 +467,55 @@ export default function NewDishStep1({
             )}
 
             <div>
-              <div>
-                <SelectInput
-                  id="subCategoryId"
-                  name="subCategoryId"
-                  label="Categoría"
-                  placeholder="Seleccione"
-                  options={[
-                    ...(allowCreateCategory
-                      ? [
-                          {
-                            value: "__create__",
-                            label: "➕ Crear nueva categoría...",
-                          },
-                        ]
-                      : []),
-                    ...subCategories.map((c) => ({
-                      value: c.id,
-                      label: c.name,
-                    })),
-                  ]}
-                  value={formData.subCategoryId || ""}
-                  onChange={(e) => {
-                    if (e.target.value === "__create__") {
-                      openCreateCategoryModal();
-                      return;
-                    }
-                    handleChange(e);
-                  }}
-                  getOptionValue={(option) =>
-                    (option as { value: string }).value
-                  }
-                  getOptionLabel={(option) =>
-                    (option as { label: string }).label
-                  }
-                  required
-                  error={errors.subCategoryId || externalErrors.subCategoryId}
-                />
+              <label className="mb-1 block text-sm font-medium text-gray-900">
+                Categorías
+              </label>
+              <div className="rounded-xl border border-[#D9DCE3] p-3 space-y-2 max-h-52 overflow-y-auto">
+                {subCategories.map((category) => {
+                  const checked = (formData.subCategoryIds || []).includes(
+                    category.id,
+                  );
+                  return (
+                    <label
+                      key={category.id}
+                      className="flex items-center gap-2 text-sm text-gray-700"
+                    >
+                      <input
+                        type="checkbox"
+                        name="subCategoryIds"
+                        value={category.id}
+                        checked={checked}
+                        onChange={() => handleCategoryToggle(category.id)}
+                      />
+                      <span>{category.name}</span>
+                    </label>
+                  );
+                })}
               </div>
+              {allowCreateCategory && (
+                <button
+                  type="button"
+                  className="mt-2 text-sm text-primary hover:underline"
+                  onClick={openCreateCategoryModal}
+                >
+                  + Crear nueva categoría
+                </button>
+              )}
+              {(errors.subCategoryIds ||
+                errors.subCategoryId ||
+                externalErrors.subCategoryIds ||
+                externalErrors.subCategoryId) && (
+                <InputNotice
+                  variant="error"
+                  msg={
+                    errors.subCategoryIds ||
+                    errors.subCategoryId ||
+                    externalErrors.subCategoryIds ||
+                    externalErrors.subCategoryId ||
+                    "Seleccione al menos una categoría"
+                  }
+                />
+              )}
             </div>
 
             <div className="flex items-center space-x-6">
